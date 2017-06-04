@@ -20,11 +20,13 @@ Keep in mind that
 	  unused at this moment.
 
 Platform:
+
 	python 2.7.9
 	vpython 6
 	wxpython 3.0
 
-you will also need the following libraries
+you will also need the following libraries:
+
 	numpy
 	scipy
 
@@ -38,18 +40,17 @@ at trajectories by zooming in/out and rotate, and then resume.
 You can also examin the objects details displayed at the bottom of the Orbital Control window. 
 Legend is:
 
-i: Orbital Inclinaison
-N: Longitude of Ascending node
-w: Augument of Perihelion
-e: Orbit Eccentricity
-q: Perihelion distance to the sun
+	i: Orbital Inclinaison
+	N: Longitude of Ascending node
+	w: Augument of Perihelion
+	e: Orbit Eccentricity
+	q: Perihelion distance to the sun
 
-M: mass in kg
-R: Average radius in Km
-P: Orbital Period in years
+	M: mass in kg
+	R: Average radius in Km
+	P: Orbital Period in years
 
-Moid: Minimum Orbital Intersection Distance (in this case with Earth)
-
+	Moid: Minimum Orbital Intersection Distance (in this case with Earth)
 
 Note: there is a bug in the autoscale feature in vpython. If you are in a very comprehensive view that includes far objects like
 dwarf planets and you want to refresh after only keeping the inner rocky planets, the autoscale will sometime send you inside 
