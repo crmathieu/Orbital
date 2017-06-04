@@ -6,17 +6,18 @@ except for Earth, Mercury and Saturn, is located at its perihelion (closest dist
 to their actual orbit location when your start the simulation. 
 
 PHA (Potentially Hazardous Asteroids), comets and Big Asteroids data was collected from the JPL Small-Body Database 
-Search Engine
+Search Engine.
 
-Keep in mind that:
+Keep in mind that
 
-	All distances between each object and the sun are proportional to the actual distance
-	Objects sizes are NOT proportional to their actual size (this is by design in order to view all objects properly)
-	Asteroid belt, Kuiper belt and Oort Cloud are included for illustration purpose only. Even though their size and 
-	thickness is proportional to their actual size and thickness, the distribution pattern within the belt is purely 
-	random/cosmetic.
-	This code is a work in progress, so you may see some under development portions of the script that are unused
-	at this moment.
+	- All distances between each object and the sun are proportional to the actual distance.
+	- Objects sizes are NOT proportional to their actual size (this is by design in order to 
+	  view all objects properly).
+	- Asteroid belt, Kuiper belt and Oort Cloud are included for illustration purpose only. Even though their 
+	  size and thickness is proportional to their actual size and thickness, the distribution pattern within 
+	  the belt is purely random/cosmetic.
+	- This code is a work in progress, so you may see some under development portions of the script that are 
+	  unused at this moment.
 
 Platform:
 	python 2.7.9
