@@ -10,9 +10,9 @@ Keep in mind that:
 	- All distances between each object and the sun are proportional to the actual distance
 	- The size of objects is NOT proportional to their actual size (this is by design in order to view all objects properly)
 	- Asteroid belt, Kuiper belt and Oort Cloud are there for illustration purpose only. Even though their size and thickness
-	is proportional to their actual size and thickness, the distribution pattern within the belt is purely random/cosmetic.
+	  is proportional to their actual size and thickness, the distribution pattern within the belt is purely random/cosmetic.
 	- This code is far from being finished. Some portions of the script are still under development and are not being used
-	at this time.
+	  at this time.
 
 Platform:
 	python 2.7.9
