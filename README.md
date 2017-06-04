@@ -30,14 +30,15 @@ you will also need the following libraries:
 	numpy
 	scipy
 
-The orbital control modal window will take about 30sec to appear as a lot of objects data need to load first in order
-to calculate and trace their orbits.
+The Orbital control modal window will take about 30sec to load as PHA, Asteroids and Comets orbits get calculated 
+during this initial phase, but inner planets are rendered right away and can be interacted with.
 
-You may visualize all PHAs, Big Asteroids and Comets by checking the corresponding checkbox -but- since there are so many 
-of them, you also may want to see them one by one using the Animate feature. You may pause at any time to take a closer look 
-at trajectories by zooming in/out and rotate, and then resume.
+Once the Orbital Control modal pops up, you may visualize the other major bodies in the solar system: Gas giants, 
+dwarf planets or Asteroid and Kuiper belts. All PHAs, Big Asteroids and Comets orbits can be rendered by checking the 
+corresponding checkbox -but- since there are so many orbits, you also may want to see them one by one using the Animate 
+feature. You may pause at any time to take a closer look at trajectories by zooming in/out and rotate, and then resume.
 
-You can also examin the objects details displayed at the bottom of the Orbital Control window. 
+You can also examine the current object details displayed at the bottom of the Orbital Control window. 
 Legend is:
 
 	i: Orbital Inclinaison
