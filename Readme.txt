@@ -24,7 +24,8 @@ you will also need the following libraries
 	numpy
 	scipy
 
-The orbital control modal window will take about 30sec to appear as lots of space objects information need to load first.
+The orbital control modal window will take about 30sec to appear as a lot of objects data need to load first in order
+to calculate and trace their orbits.
 
 You may visualize all PHAs, Big Asteroids and Comets by checking the corresponding checkbox -but- since there are so many 
 of them, you also may want to see them one by one using the Animate feature. You may pause at any time to take a closer look 
