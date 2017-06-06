@@ -460,8 +460,8 @@ SATELLITE_M = 100
 THREE_D = False
 MAX_P_D = 1.1423e13
 MIN_P_D = 46.0e9
-LEGEND = true
-REFERENTIAL = false
+LEGEND = True
+REFERENTIAL = False
 
 class solarsystem:
 
@@ -478,25 +478,33 @@ class solarsystem:
 		self.Scene.lights = []
 		self.Scene.forward = (0,0,-1)
 		self.Scene.fov = math.pi/3
-		self.Scene.userspin = true
-		self.Scene.userzoom = true
+		self.Scene.userspin = True #True
+		self.Scene.userzoom = True #True
+		self.Scene.autoscale = True
+		self.Scene.autocenter = False
+		self.Scene.up = (0,0,1)
 
 		sunLight = local_light(pos=(0,0,0))
 
 		if THREE_D:
 			self.Scene.stereo='redcyan'
-			self.Scene.stereodepth = 2
+			self.Scene.stereodepth = 1
 
 		self.Look = sphere(pos=vector(0,0,0), radius=self.BodyRadius/(35000), color=color.yellow)
 		self.Look.material = materials.emissive
 
 		if REFERENTIAL:
-			self.xaxis = cylinder(pos=(0,0,0), axis=(30*AU/200000,0,0), radius = 2e3, color=(1,1,1), material=materials.emissive)
-			self.yaxis = cylinder(pos=(0,0,0), axis=(0,30*AU/200000,0), radius = 2e3, color=(1,1,1), material=materials.emissive)
-			self.zaxis = cylinder(pos=(0,0,0), axis=(0,0,30*AU/200000), radius = 2e3, color=(1,1,1), material=materials.emissive)
-			xaxislabel = label(pos=(self.xaxis.axis[0]/50,0,0), text='x', xoffset=20, yoffset=12, space=0, height=10, border=6, box=false, font='sans')
-			yaxislabel = label(pos=(0,self.yaxis.axis[1]/50,0), text='y', xoffset=20, yoffset=12, space=0, height=10, border=6, box=false, font='sans')
-			zaxislabel = label(pos=(0,0,self.zaxis.axis[2]/50), text='z', xoffset=20, yoffset=12, space=0, height=10, border=6, box=false, font='sans')
+			self.makeAxes(color.white, AU*1.2*DIST_FACTOR, (0,0,0)) #(-AU*DIST_FACTOR,2*(AU*DIST_FACTOR),0))
+
+	def makeAxes(self, color, size, position): # Make axes visible (of world or frame).
+	                                     # Use None for world.
+	    directions = [vector(size,0,0), vector(0,size,0), vector(0,0,size)]
+	    texts = ["x","y","z"]
+	    pos = vector(position)
+	    for i in range (3): # EACH DIRECTION
+	       curve( frame = None, color = color, pos= [ pos, pos+directions[i]])
+	       label( frame = None, color = color,  text = texts[i],
+		   			pos = pos+directions[i], opacity = 0, box = False )
 
 	def addTo(self, body):
 		self.bodies.append(body)
@@ -679,17 +687,26 @@ class makeBody:
 		self.Y = self.Position[Y_COOR] # 0
 		self.Z = self.Position[Z_COOR] #0
 
-		sizeCorrection = { INNERPLANET: 500, GASGIANT: 1500, DWARFPLANET: 20, ASTEROID:1, COMET:1, SMALL_ASTEROID: 0.1, BIG_ASTEROID: 200, PHA: 1}[bodyType]
-		shape = { INNERPLANET: "sphere", GASGIANT: "sphere", DWARFPLANET: "sphere", ASTEROID:"cube", COMET:"cone", SMALL_ASTEROID:"cube", BIG_ASTEROID:"sphere", PHA:"sphere"}[bodyType]
+		sizeCorrection = { INNERPLANET: 500, GASGIANT: 1500, DWARFPLANET: 20, ASTEROID:1, COMET:0.01, SMALL_ASTEROID: 0.1, BIG_ASTEROID:0.1, PHA: 0.003}[bodyType]
+		shape = { INNERPLANET: "sphere", GASGIANT: "sphere", DWARFPLANET: "sphere", ASTEROID:"cube", COMET:"cone", SMALL_ASTEROID:"cube", BIG_ASTEROID:"sphere", PHA:"cube"}[bodyType]
 		self.SizeCorrection = getSigmoid(self.Perihelion, sizeCorrection)
-		self.Look = sphere(pos=(self.Position[X_COOR],self.Position[Y_COOR],self.Position[Z_COOR]), radius=self.BodyRadius/self.SizeCorrection, make_trail=false)
+		if shape == "sphere":
+			self.Look = sphere(pos=(self.Position[X_COOR],self.Position[Y_COOR],self.Position[Z_COOR]), radius=self.BodyRadius/self.SizeCorrection, make_trail=false)
+			self.Angle = pi/2
+		else:
+			self.Look = ellipsoid(pos=(self.Position[X_COOR],self.Position[Y_COOR],self.Position[Z_COOR]), length=(self.BodyRadius * randint(1, 5))/self.SizeCorrection, height=(self.BodyRadius * randint(1, 5))/self.SizeCorrection, width=(self.BodyRadius * randint(1, 5))/self.SizeCorrection, make_trail=false)
+			self.Angle = pi/randint(2,6)
+
 		self.Trail = curve(color=self.Color)
 		self.Trail.append(pos=self.Look.pos)
 
 		if planets_data[index]["material"] <> 0:
-			self.Look.material = planets_data[index]["material"]
+			data = materials.loadTGA("./img/"+index) #planets_data[index]["material"]
 		else:
-			self.Look.color = self.Color
+			data = materials.loadTGA("./img/mercury") # when not specified, body will look like mercury
+
+		self.Look.material = materials.texture(data=data, mapping="spherical", interpolate=False)
+		self.Look.rotate(angle=self.Angle)
 
 		# add LEGEND
 		self.Label = label(pos=(self.Position[X_COOR],self.Position[Y_COOR],self.Position[Z_COOR]), text=self.Name, xoffset=20, yoffset=12, space=0, height=10, color=color, border=6, box=false, font='sans')
