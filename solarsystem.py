@@ -224,7 +224,7 @@ AnimationInProgress = False
 currentSource = PHA
 
 planets_data = {
-				"neptune" :{"material":0,
+				"neptune" :{"material":1,
 							"name": "Neptune",
 							"mass":102e24,
 							"radius":24622e3,
@@ -235,7 +235,7 @@ planets_data = {
 							"longitude_of_ascendingnode":131.72169,
 							"longitude_of_perihelion":44.97135},
 
-				"uranus" : {"material":0,
+				"uranus" : {"material":1,
 							"name": "Uranus",
 							"mass":86.8e24,
 							"radius":25362e3,
@@ -246,7 +246,7 @@ planets_data = {
 							"longitude_of_ascendingnode":74.22988,
 							"longitude_of_perihelion":170.96424},
 
-				"saturn" : {"material":0,
+				"saturn" : {"material":1,
 							"name": "Saturn",
 							"mass":568e24,
 							"radius":58232e3,
@@ -257,7 +257,7 @@ planets_data = {
 							"longitude_of_ascendingnode":113.71504,
 							"longitude_of_perihelion":92.43194},
 
-				"jupiter" :{"material":0,
+				"jupiter" :{"material":1,
 							"name": "Jupiter",
 							"mass":1898e24,
 							"radius":69911e3,
@@ -268,7 +268,7 @@ planets_data = {
 							"longitude_of_ascendingnode":100.55615,
 							"longitude_of_perihelion":14.75385},
 
-				"mars" : {	"material":0,
+				"mars" : {	"material":1,
 							"name": "Mars",
 							"mass":0.642e24,
 							"radius":3389e3,
@@ -279,7 +279,7 @@ planets_data = {
 							"longitude_of_ascendingnode":49.57854,
 							"longitude_of_perihelion":336.04084},
 
-				"mercury" :{"material":0,
+				"mercury" :{"material":1,
 							"name": "Mercury",
 							"mass":0.330e24,
 							"radius":2439e3,
@@ -290,7 +290,7 @@ planets_data = {
 							"longitude_of_ascendingnode":48.33167,
 							"longitude_of_perihelion":77.45645},
 
-				"venus" : {	"material":0,
+				"venus" : {	"material":1,
 							"name": "Venus",
 							"mass":4.87e24,
 							"radius":6052e3,
@@ -301,7 +301,7 @@ planets_data = {
 							"longitude_of_ascendingnode":76.68069,
 							"longitude_of_perihelion":131.53298},
 
-				"earth" : {	"material":materials.BlueMarble,
+				"earth" : {	"material":1,
 							"name": "Earth",
 							"mass":5.972e24,
 							"radius":6371e3,
@@ -323,7 +323,7 @@ planets_data = {
 							"longitude_of_ascendingnode": 35.9531,
 							"longitude_of_perihelion":186.9301},
 
-				"pluto" : {	"material":0,
+				"pluto" : {	"material":1,
 							"name": "Pluto",
 							"mass":0.0146e24,
 							"radius":1195e3,
@@ -356,28 +356,6 @@ planets_data = {
 							"longitude_of_ascendingnode":144.546,
 							"longitude_of_perihelion":455.836},
 
-				"ceres":   {"material":0,
-							"name": "Ceres",
-							"mass":9.393e20,
-							"radius":995e3,
-							"perihelion":3.8262e11,
-							"e":0.075823,
-							"revolution": 1681.63 * 86400,
-							"orbital_inclinaison":10.593,
-							"longitude_of_ascendingnode":80.3293,
-							"longitude_of_perihelion":152.8513},
-
-				"pallas":   {"material":0,
-							"name": "Pallas",
-							"mass":2.11e20,
-							"radius":995e3,
-							"perihelion":2.13060671 * AU,
-							"e":0.23127363,
-							"revolution": 1685.371678 * 86400,
-							"orbital_inclinaison":34.840998,
-							"longitude_of_ascendingnode":173.096248,
-							"longitude_of_perihelion":483.026576},
-
 				"haumea":  {"material":0,
 							"name": "Haumea",
 							"mass":4.006e21,
@@ -387,54 +365,7 @@ planets_data = {
 							"revolution": 112897 * 86400,
 							"orbital_inclinaison":28.19,
 							"longitude_of_ascendingnode":121.79,
-							"longitude_of_perihelion":361.99},
-
-				"toutatis":{"material":0,
-							"name": "Toutatis",
-							"mass":5e13,
-							"radius":2.7e3,
-							"perihelion":1.40518776e+11,
-							"e":0.62938,
-							"revolution": 1473.7 * 86400,
-							"orbital_inclinaison":0.44712,
-							"longitude_of_ascendingnode":124.37,
-							"longitude_of_perihelion":403.1},
-
-				"OL339":   {"material":0,
-							"name": "OL339",
-							"mass":5e13, # unknown
-							"radius":170,
-							"perihelion":8.060333e+10,
-							"e":0.4608,
-							"revolution": 365 * 86400,
-							"orbital_inclinaison":10.187,
-							"longitude_of_ascendingnode":252.18,
-							"argument_of_perihelion": 289.69,
-							"longitude_of_perihelion":541.87},
-
-				"halley":{"material":0,
-							"name": "Halley",
-							"mass":5e13, # unknown
-							"radius":2000,
-							"perihelion":0.586 * AU,
-							"e":0.967,
-							"revolution": 75.316 * 365 * 86400,
-							"orbital_inclinaison":162.26,
-							"longitude_of_ascendingnode":58.42,
-							"argument_of_perihelion": 111.33,
-							"longitude_of_perihelion":169.75},
-
-				"67P":{"material":0,
-							"name": "Churyumov-Gerasimenko",
-							"mass":5e13, # unknown
-							"radius":2000,
-							"perihelion":1.2432 * AU,
-							"e":0.64102,
-							"revolution": 6.44 * 365 * 86400,
-							"orbital_inclinaison":7.0405,
-							"longitude_of_ascendingnode":50.147,
-							"argument_of_perihelion": 12.780,
-							"longitude_of_perihelion":62.927}
+							"longitude_of_perihelion":361.99}
 }
 
 belt_data = {
