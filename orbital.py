@@ -95,7 +95,7 @@ NEO_TIME_OF_PERIHELION_PASSAGE_ET = 20
 NEO_ORBITAL_P = 21
 NEO_EARTH_MOID = 22
 
-PHA_LOAD = False
+SMALL_OBJECTS = True
 
 class controlWindow(wx.Frame):
 
@@ -911,10 +911,11 @@ def main():
 	solarsystem.addTo(makeBelt(solarsystem, 'asteroid', 'Asteroid Belt', ASTEROID_BELT, color.white, 2, 2))
 	solarsystem.addTo(makeBelt(solarsystem, 'inneroort', 'Inner Oort Cloud', INNER_OORT_CLOUD, color.white, 2, 5))
 
-	# generate PHA, Big Asteroid and Comets
-	loadBodies(solarsystem, PHA, "orbital elements of PHA with size greater than 100m.txt")
-	loadBodies(solarsystem, BIG_ASTEROID,"orbital elements big asteroids.txt")
-	loadBodies(solarsystem, COMET, "orbital elements comets.txt")
+	if SMALL_OBJECTS:
+		# generate PHA, Big Asteroid and Comets
+		loadBodies(solarsystem, PHA, "orbital elements of PHA with size greater than 100m.txt")
+		loadBodies(solarsystem, BIG_ASTEROID,"orbital elements big asteroids.txt")
+		loadBodies(solarsystem, COMET, "orbital elements comets.txt")
 
 	solarsystem.drawAllBodiesTrajectory()
 
