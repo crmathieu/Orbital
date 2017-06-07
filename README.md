@@ -3,7 +3,7 @@ An accurate interactive 3D representation of the solar system featuring the majo
 
 This is version 1.0. This version simply displays the 3D orbit of major objects in the solar system. Each object, 
 except for Earth, Mercury and Saturn, is located at its perihelion (closest distance to the sun) which does not correspond 
-to their actual orbit location when the simulation starts. Earth, Mercury and Saturn were positioned this way for esthetic reasons only. I am working on an update that will position all objects correctly based on their perihelion time of passage.
+to their actual orbit location when the simulation starts. Earth, Mercury and Saturn were positioned this way for aesthetic reasons only. I am working on an update that will position all objects correctly based on their perihelion time of passage.
 
 Interacting with the simulation:
 
@@ -20,7 +20,7 @@ Keep in mind that
 	  view all objects properly).
 	- Asteroid belt, Kuiper belt and Oort Cloud are included for illustration purpose only. Even though their 
 	  size and thickness is proportional to their actual size and thickness, the distribution pattern within 
-	  the belt is purely random/cosmetic.
+	  the belt is purely random/aesthetic.
 	- This code is a work in progress, so you may see some under development portions of the script that are 
 	  unused at this moment.
 
