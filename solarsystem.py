@@ -399,9 +399,9 @@ class solarsystem:
 	bodies = []
 
 	def __init__(self):  # change default values during instantiation
-		self.Name = "Sun"		# Sun name
-		self.BodyRadius = SUN_R		# Sun radius
-		self.Mass = SUN_M		# Sun mass
+		self.Name = "Sun"
+		self.BodyRadius = SUN_R
+		self.Mass = SUN_M
 
 		# define canvas
 		self.Scene = display(title = 'Solar System', width = 1300, height = 740, center = (0,0,0))
@@ -415,6 +415,7 @@ class solarsystem:
 		self.Scene.autocenter = False
 		self.Scene.up = (0,0,1)
 
+		# make all light coming from origin
 		sunLight = local_light(pos=(0,0,0))
 
 		if THREE_D:
@@ -579,9 +580,9 @@ class makeBody:
 
 		self.Inclinaison = planets_data[index]["orbital_inclinaison"]
 
-		self.OmegaAngle = self.Longitude_of_ascendingnode*math.pi/180
-		self.InclinaisonAngle = self.Inclinaison*math.pi/180
-		self.SmallOmegaAngle = self.Argument_of_perihelion*math.pi/180
+		self.Angle_Om = self.Longitude_of_ascendingnode*math.pi/180
+		self.Angle_i = self.Inclinaison*math.pi/180
+		self.Angle_w = self.Argument_of_perihelion*math.pi/180
 
 		# initial acceleration
 		self.Acceleration = vector(0,0,0)
@@ -598,17 +599,17 @@ class makeBody:
 										[0]])
 
 		self.Euler_3D_Rotation = np.matrix([
-												[cos(self.SmallOmegaAngle)*cos(self.OmegaAngle) - sin(self.SmallOmegaAngle)*cos(self.InclinaisonAngle)*sin(self.OmegaAngle),
-												 cos(self.SmallOmegaAngle)*sin(self.OmegaAngle) + sin(self.SmallOmegaAngle)*cos(self.InclinaisonAngle)*cos(self.OmegaAngle),
-												 sin(self.SmallOmegaAngle)*sin(self.InclinaisonAngle)
+												[cos(self.Angle_w)*cos(self.Angle_Om) - sin(self.Angle_w)*cos(self.Angle_i)*sin(self.Angle_Om),
+												 cos(self.Angle_w)*sin(self.Angle_Om) + sin(self.Angle_w)*cos(self.Angle_i)*cos(self.Angle_Om),
+												 sin(self.Angle_w)*sin(self.Angle_i)
 												],
-												[-sin(self.SmallOmegaAngle)*cos(self.OmegaAngle) - cos(self.SmallOmegaAngle)*cos(self.InclinaisonAngle)*sin(self.OmegaAngle),
-												 -sin(self.SmallOmegaAngle)*sin(self.OmegaAngle) + cos(self.SmallOmegaAngle)*cos(self.InclinaisonAngle)*cos(self.OmegaAngle),
-												 cos(self.SmallOmegaAngle)*sin(self.InclinaisonAngle)
+												[-sin(self.Angle_w)*cos(self.Angle_Om) - cos(self.Angle_w)*cos(self.Angle_i)*sin(self.Angle_Om),
+												 -sin(self.Angle_w)*sin(self.Angle_Om) + cos(self.Angle_w)*cos(self.Angle_i)*cos(self.Angle_Om),
+												 cos(self.Angle_w)*sin(self.Angle_i)
 												],
-												[sin(self.OmegaAngle)*sin(self.InclinaisonAngle),
-												 -sin(self.InclinaisonAngle)*cos(self.OmegaAngle),
-												 cos(self.InclinaisonAngle)
+												[sin(self.Angle_Om)*sin(self.Angle_i),
+												 -sin(self.Angle_i)*cos(self.Angle_Om),
+												 cos(self.Angle_i)
 												]]
 		)
 
@@ -634,7 +635,7 @@ class makeBody:
 		if planets_data[index]["material"] <> 0:
 			data = materials.loadTGA("./img/"+index) #planets_data[index]["material"]
 		else:
-			data = materials.loadTGA("./img/mercury") # when not specified, body will look like mercury
+			data = materials.loadTGA("./img/asteroid") # when not specified, body will look like mercury
 
 		self.Look.material = materials.texture(data=data, mapping="spherical", interpolate=False)
 		self.Look.rotate(angle=self.Angle)
