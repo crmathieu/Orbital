@@ -5,6 +5,10 @@ This is version 1.0. This version simply displays the 3D orbit of major objects 
 except for Earth, Mercury and Saturn, is located at its perihelion (closest distance to the sun) which does not correspond 
 to their actual orbit location when the simulation starts. 
 
+Interacting with the simulation:
+to zoom in/out: click on both mouse buttons and drag the mouse forward or backward.
+to rotate the scene: click on the mouse left button only and drag the mouse side ways.
+
 PHA (Potentially Hazardous Asteroids), comets and Big Asteroids data was collected from the JPL Small-Body Database 
 Search Engine.
 
