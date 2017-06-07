@@ -1,9 +1,9 @@
 # Orbital
-An interactive 3D representation of the solar system featuring the major planets, dwarf planets, asteroids and comets. Also includes the asteroid belt, Kuiper belt and inner Oort cloud.
+An accurate interactive 3D representation of the solar system featuring the major and dwarf planets, asteroids and comets. Also includes the asteroid belt, Kuiper belt and inner Oort cloud.
 
-This is version 1.0. This version simply displays the accurate 3D orbit of major objects in the solar system. Each object, 
+This is version 1.0. This version simply displays the 3D orbit of major objects in the solar system. Each object, 
 except for Earth, Mercury and Saturn, is located at its perihelion (closest distance to the sun) which does not correspond 
-to their actual orbit location when your start the simulation. 
+to their actual orbit location when the simulation starts. 
 
 PHA (Potentially Hazardous Asteroids), comets and Big Asteroids data was collected from the JPL Small-Body Database 
 Search Engine.
