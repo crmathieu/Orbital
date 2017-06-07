@@ -54,7 +54,6 @@ Legend is:
 	Moid: Minimum Orbital Intersection Distance (in this case with Earth)
 
 Note: there is a bug in the autoscale feature in vpython. If you are in a very comprehensive view that includes far objects like
-dwarf planets and you want to refresh after only keeping the inner rocky planets, the autoscale will sometime send you inside 
-the sun (even though everything looks black). To get out, simply zoom out of it.
+dwarf planets and also closer to the sun objects like inner planets, unchecking the far objects and refresh the scene may "autoscale" you back inside the sun (even though everything looks black). To get out, simply zoom out of it.
 
 
