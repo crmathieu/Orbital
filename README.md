@@ -7,8 +7,8 @@ to their actual orbit location when the simulation starts.
 
 Interacting with the simulation:
 
-to zoom in/out: click on both mouse buttons and drag the mouse forward or backward.
-to rotate the scene: click on the mouse left button only and drag the mouse side ways.
+To zoom in/out: click on both mouse buttons and drag the mouse forward or backward.
+To rotate the scene: click on the mouse left button only and drag the mouse sideways.
 
 PHA (Potentially Hazardous Asteroids), comets and Big Asteroids data was collected from the JPL Small-Body Database 
 Search Engine.
