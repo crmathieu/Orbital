@@ -3,7 +3,7 @@ An accurate interactive 3D representation of the solar system featuring the majo
 
 This is version 1.0. This version simply displays the 3D orbit of major objects in the solar system. Each object, 
 except for Earth, Mercury and Saturn, is located at its perihelion (closest distance to the sun) which does not correspond 
-to their actual orbit location when the simulation starts. Earth, Mercury and Saturn were positioned to be more apart from one another.
+to their actual orbit location when the simulation starts. Earth, Mercury and Saturn were positioned this way for esthetic reasons only. I am working on an update that will position all objects correctly based on their perihelion time of passage.
 
 Interacting with the simulation:
 
