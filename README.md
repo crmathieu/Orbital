@@ -35,7 +35,7 @@ you will also need the following libraries:
 	numpy
 	scipy
 
-The Orbital control modal window will take about 30sec to load as PHA, Asteroids and Comets orbits get calculated 
+The Orbital control modal window will take about 30 sec to load as PHA, Asteroids and Comets orbits get calculated 
 and rendered during this initial phase, but inner planets are rendered right away and can be interacted with.
 
 Once the Orbital Control modal pops up, you may visualize the other major bodies in the solar system: Gas giants, 
