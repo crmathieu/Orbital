@@ -1,9 +1,9 @@
 # Orbital
-An accurate interactive 3D representation of the solar system featuring the major and dwarf planets, asteroids and comets. Also includes the asteroid belt, Kuiper belt and inner Oort cloud.
+An accurate interactive 3D representation of the solar system featuring inner and outter planets, asteroids and 
+comets. Also includes the asteroid belt, Kuiper belt and inner Oort cloud.
 
-This is version 1.0. This version simply displays the 3D orbit of major objects in the solar system. Each object, 
-except for Earth, Mercury and Saturn, is located at its perihelion (closest distance to the sun) which does not correspond 
-to their actual orbit location when the simulation starts. Earth, Mercury and Saturn were positioned this way for aesthetic reasons only. I am working on an update that will position all objects correctly based on their perihelion time of passage.
+3D orbit of major objects in the solar system is rendered and can be zoomed in and out as well as rotated. Each 
+object, is located at its actual orbit position at the time of rendering. 
 
 Interacting with the simulation:
 
@@ -36,12 +36,12 @@ you will also need the following libraries:
 	scipy
 
 The Orbital control modal window will take about 30sec to load as PHA, Asteroids and Comets orbits get calculated 
-during this initial phase, but inner planets are rendered right away and can be interacted with.
+and rendered during this initial phase, but inner planets are rendered right away and can be interacted with.
 
 Once the Orbital Control modal pops up, you may visualize the other major bodies in the solar system: Gas giants, 
-dwarf planets or Asteroid and Kuiper belts. All PHAs, Big Asteroids and Comets orbits can be rendered by checking the 
-corresponding checkbox -but- since there are so many orbits, you also may want to see them one by one using the Animate 
-feature. You may pause at any time to take a closer look at trajectories by zooming in/out and rotate, and then resume.
+dwarf planets or Asteroid and Kuiper belts. All PHAs, Big Asteroids and Comets orbits can be rendered by using the 
+Animate feature. You may pause at any time to take a closer look at trajectories by zooming in/out and rotate, and 
+then resume.
 
 You can also examine the current object details displayed at the bottom of the Orbital Control window. 
 Legend is:
