@@ -2,7 +2,7 @@
 An accurate interactive 3D representation of the solar system featuring inner and outter planets, asteroids and 
 comets. Also includes the asteroid belt, Kuiper belt and inner Oort cloud.
 
-3D orbit of major objects in the solar system is rendered and can be zoomed in and out as well as rotated. Each 
+3D orbit of major objects in the solar system are rendered and can be zoomed in and out as well as rotated. Each 
 object, is located at its actual orbit position at the time of rendering. 
 
 Interacting with the simulation:
