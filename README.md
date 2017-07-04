@@ -38,26 +38,26 @@ The Orbital control modal window will take about 30 sec to load as PHA, Asteroid
 and rendered during this initial phase, but inner planets are displayed right away and can be interacted with.
 
 Once the Orbital Control modal pops up, you may visualize the other major bodies in the solar system: Gas giants, 
-dwarf planets or Asteroid and Kuiper belts. All PHAs, Big Asteroids and Comets orbits can be displayed by using the 
+dwarf planets or Asteroid / Kuiper belts. All PHAs, Big Asteroids and Comets orbits can be displayed by using the 
 Animate feature. You may pause at any time to take a closer look at trajectories by zooming in/out and rotate, and 
 then resume.
 
-You can also examine the current object details displayed at the bottom of the Orbital Control window. 
+You can also examine the current object orbital elements displayed at the bottom of the Orbital Control window. 
 Legend is:
 
 	i: Orbital Inclinaison
 	N: Longitude of Ascending node
-	w: Augument of Perihelion
+	w: Argument of Perihelion
 	e: Orbit Eccentricity
 	q: Perihelion distance to the sun
 
-	M: mass in kg
+	M: Mass in kg
 	R: Average radius in Km
 	P: Orbital Period in years
 
 	Moid: Minimum Orbital Intersection Distance (in this case with Earth)
 
-Note: there is a bug in the autoscale feature in vpython. If you are in a very comprehensive view that includes far objects like
+Note: There is a bug in the autoscale feature in vpython. If you are in a very expansive view that includes far objects like
 dwarf planets and also closer to the sun objects like inner planets, unchecking the far objects and refresh the scene may "autoscale" you back inside the sun (even though everything looks black). To get out, simply zoom out of it.
 
 
