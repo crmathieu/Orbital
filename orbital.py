@@ -22,11 +22,10 @@ SOFTWARE.
 """
 from visual import *
 from visual.controls import *
-from PIL import Image
 
 import sys
 import numpy as np
-from matplotlib import *
+
 from random import *
 import scipy.special as sp
 import datetime
