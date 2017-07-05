@@ -813,21 +813,11 @@ class makeBody:
 			# data comes from data files or predefined values
 			self.updateElements(planets_data[index])
 
-		# generate 2d coordinate in the initial orbital plane, with +X pointing
+		# generate 2d coordinates in the initial orbital plane, with +X pointing
 		# towards periapsis. Make sure to convert degree to radians before using
 		# any sin or cos function
 
-		curr_E_rad = deg2rad(self.E)
-		self.X = self.a * (cos(curr_E_rad) - self.e)
-		self.Y = self.a * sqrt(1 - self.e**2) * sin(curr_E_rad)
-		self.Z = 0
-
-		# Now calculate current Radius and true Anomaly
-		self.R = sqrt(self.X**2 + self.Y**2)
-		self.Nu = atan2(self.Y,self.X)
-		# Note that atan2 returns an angle in
-		# radian, so Nu is always in radian
-
+		self.setPolarCoordinates(deg2rad(self.E))
 		self.b = getSemiMinor(self.a, self.e)
 		self.Aphelion = getAphelion(self.a, self.e)	# body aphelion
 
@@ -851,7 +841,7 @@ class makeBody:
 		self.i = deg2rad(self.Inclinaison)
 
 		# go polar to Cartesian
-		self.computeCartesianCoordinates()
+		self.setCartesianCoordinates()
 
 		sizeCorrection = { INNERPLANET: 500, GASGIANT: 1500, DWARFPLANET: 100, ASTEROID:1, COMET:0.001, SMALL_ASTEROID: 0.1, BIG_ASTEROID:0.1, PHA: 0.003}[sizeCorrectionType]
 		shape = { INNERPLANET: "sphere", OUTTERPLANET: "sphere", DWARFPLANET: "sphere", ASTEROID:"cube", COMET:"cone", SMALL_ASTEROID:"cube", BIG_ASTEROID:"sphere", PHA:"cube"}[bodyType]
@@ -899,8 +889,8 @@ class makeBody:
 		self.Longitude_of_perihelion = elts["W"] + (elts["Wr"] * T)
 		self.Longitude_of_ascendingnode = elts["N"] + (elts["Nr"] * T)
 
-		# compute Argument of perihelion w = Longitude of Perihelion - Longitude of ascending Node
-		self.Argument_of_perihelion 	= self.Longitude_of_perihelion - self.Longitude_of_ascendingnode
+		# compute Argument of perihelion w
+		self.Argument_of_perihelion = self.Longitude_of_perihelion - self.Longitude_of_ascendingnode
 
 		# compute mean Anomaly M = L - W
 		M = toRange(L-self.Longitude_of_perihelion) #W)
@@ -913,7 +903,7 @@ class makeBody:
 			print "Could not converge for "+self.Name+", E = "+str(self.E)+", last precision = "+str(dE)
 
 	def updateElements(self, elts):
-		# data comes from data files or predefined values
+		# data comes from data file or predefined values
 		self.e 							= elts["e"]
 		self.Longitude_of_perihelion 	= elts["longitude_of_perihelion"]
 		self.Longitude_of_ascendingnode = elts["longitude_of_ascendingnode"]
@@ -927,8 +917,6 @@ class makeBody:
 		self.revolution					= elts["revolution"]
 
 		# calculate current position based on orbital elements
-		# the formula is E - esinE = (t - T)n
-
 		dT = daysSinceEpochJD(self.Epoch)
 		N = self.Longitude_of_ascendingnode + 0.013967 * (2000.0 - getCurrentYear()) + 3.82394e-5 * dT
 		self.Longitude_of_ascendingnode = N
@@ -954,14 +942,7 @@ class makeBody:
 			increment = pi/180
 
 		for E in np.arange(increment, 2*pi+increment, increment):
-
-			X = self.a * (cos(E+rad_E) - self.e)
-			Y = self.a * sqrt(1 - self.e**2)*sin(E+rad_E)
-			Z = 0
-
-			self.R = sqrt(X**2 + Y**2)
-			self.Nu = atan2(Y, X) # the result is in rads, so no need to convert
-
+			self.setPolarCoordinates(E+rad_E)
 			# from R and Nu, calculate 3D coordinates and update current position
 			self.updatePosition(E*180/pi)
 			rate(5000)
@@ -969,16 +950,24 @@ class makeBody:
 		if self.BodyShape.visible:
 			self.Trail.visible = true
 
-	def computeCartesianCoordinates(self):
+	def setCartesianCoordinates(self):
 		self.Position[X_COOR] = self.R * DIST_FACTOR * ( cos(self.N) * cos(self.Nu+self.w) - sin(self.N) * sin(self.Nu+self.w) * cos(self.i) )
 		self.Position[Y_COOR] = self.R * DIST_FACTOR * ( sin(self.N) * cos(self.Nu+self.w) + cos(self.N) * sin(self.Nu+self.w) * cos(self.i) )
 	 	self.Position[Z_COOR] = self.R * DIST_FACTOR * ( sin(self.Nu+self.w) * sin(self.i) )
 
 		self.Position = self.Rotation_VernalEquinox * self.Position
 
+	def setPolarCoordinates(self, E_rad):
+		X = self.a * (cos(E_rad) - self.e)
+		Y = self.a * sqrt(1 - self.e**2) * sin(E_rad)
+		# Now calculate current Radius and true Anomaly
+		self.R = sqrt(X**2 + Y**2)
+		self.Nu = atan2(Y, X)
+		# Note that atan2 returns an angle in
+		# radian, so Nu is always in radian
 
 	def updatePosition(self, trace = true):
-		self.computeCartesianCoordinates()
+		self.setCartesianCoordinates()
 		self.BodyShape.pos = vector(self.Position[X_COOR],self.Position[Y_COOR],self.Position[Z_COOR])
 		if trace:
 			if self.Position[Z_COOR] < 0:
