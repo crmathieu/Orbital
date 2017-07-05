@@ -851,12 +851,7 @@ class makeBody:
 		self.i = deg2rad(self.Inclinaison)
 
 		# go polar to Cartesian
-		self.Position[X_COOR] = self.R * DIST_FACTOR * ( cos(self.N) * cos(self.Nu+self.w) - sin(self.N) * sin(self.Nu+self.w) * cos(self.i) )
-		self.Position[Y_COOR] = self.R * DIST_FACTOR * ( sin(self.N) * cos(self.Nu+self.w) + cos(self.N) * sin(self.Nu+self.w) * cos(self.i) )
-	 	self.Position[Z_COOR] = self.R * DIST_FACTOR * ( sin(self.Nu+self.w) * sin(self.i) )
-
-		# Last, rotate 180 degrees to match the vernal equinox referential
-		self.Position = self.Rotation_VernalEquinox * self.Position
+		self.computeCartesianCoordinates()
 
 		sizeCorrection = { INNERPLANET: 500, GASGIANT: 1500, DWARFPLANET: 100, ASTEROID:1, COMET:0.001, SMALL_ASTEROID: 0.1, BIG_ASTEROID:0.1, PHA: 0.003}[sizeCorrectionType]
 		shape = { INNERPLANET: "sphere", OUTTERPLANET: "sphere", DWARFPLANET: "sphere", ASTEROID:"cube", COMET:"cone", SMALL_ASTEROID:"cube", BIG_ASTEROID:"sphere", PHA:"cube"}[bodyType]
@@ -974,14 +969,16 @@ class makeBody:
 		if self.BodyShape.visible:
 			self.Trail.visible = true
 
-	def updatePosition(self, trace = true):
-
+	def computeCartesianCoordinates(self):
 		self.Position[X_COOR] = self.R * DIST_FACTOR * ( cos(self.N) * cos(self.Nu+self.w) - sin(self.N) * sin(self.Nu+self.w) * cos(self.i) )
 		self.Position[Y_COOR] = self.R * DIST_FACTOR * ( sin(self.N) * cos(self.Nu+self.w) + cos(self.N) * sin(self.Nu+self.w) * cos(self.i) )
 	 	self.Position[Z_COOR] = self.R * DIST_FACTOR * ( sin(self.Nu+self.w) * sin(self.i) )
 
 		self.Position = self.Rotation_VernalEquinox * self.Position
 
+
+	def updatePosition(self, trace = true):
+		self.computeCartesianCoordinates()
 		self.BodyShape.pos = vector(self.Position[X_COOR],self.Position[Y_COOR],self.Position[Z_COOR])
 		if trace:
 			if self.Position[Z_COOR] < 0:
