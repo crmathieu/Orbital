@@ -33,9 +33,9 @@ import datetime
 import wx
 
 date_elements = {
-				"d_to_m" :{1:0, 2:31, 3:59, 4:90, 5:120, 6:151, 7:181, 8:212, 9:243, 10:273, 11:304, 12:334},
-				"d_to_m_leap" :{1:0, 2:31, 3:60, 4:91, 5:121, 6:152, 7:182, 8:213, 9:244, 10:274, 11:305, 12:335},
-				"d_since_J2000":{1995:-1827.5, 1996: -1462.5, 1997: -1096.5, 1998: -731.5, 1999:-366.5, 2000:-1.5, 2001: 364.5, 2002: 729.5, 2003:1094.5, 2004:1459.5, 2005:1825.5}
+	"d_to_m" :{1:0, 2:31, 3:59, 4:90, 5:120, 6:151, 7:181, 8:212, 9:243, 10:273, 11:304, 12:334},
+	"d_to_m_leap" :{1:0, 2:31, 3:60, 4:91, 5:121, 6:152, 7:182, 8:213, 9:244, 10:274, 11:305, 12:335},
+	"d_since_J2000":{1995:-1827.5, 1996: -1462.5, 1997: -1096.5, 1998: -731.5, 1999:-366.5, 2000:-1.5, 2001: 364.5, 2002: 729.5, 2003:1094.5, 2004:1459.5, 2005:1825.5}
 }
 
 INNERPLANET = 0x01
@@ -274,14 +274,6 @@ class controlWindow(wx.Frame):
 		# is about,
 		for body in self.solarsystem.bodies:
 			if body.BodyType == self.Source: #PHA:
-				if 0 and self.checkboxList[self.Source].GetValue() == True:
-					self.checkboxList[self.Source].SetValue(False)
-					self.solarsystem.ShowBodies = (self.solarsystem.ShowBodies & ~self.Source)
-					AnimationState = self.solarsystem.AnimationInProgress
-					self.solarsystem.AnimationInProgress = False
-					glbRefresh(self.solarsystem)
-					self.solarsystem.AnimationInProgress = AnimationState
-
 				glbRefresh(self.solarsystem) ##
 				self.InfoTitle.SetLabel(body.Name)
 
@@ -289,7 +281,6 @@ class controlWindow(wx.Frame):
 				radius = str(body.BodyRadius)+" km" if body.BodyRadius <> 0 else "Not Provided"
 				moid = str(body.Moid/1000)+" km" if body.Moid <> 0 else "N/A"
 				rev = str(body.Revolution / 365.25)
-				#self.Info1.SetLabel("{0:3} : ".format("i", str(body.Inclinaison)+" deg\n")) #N : "+str(body.Longitude_of_ascendingnode)+"\nw : "+str(body.Argument_of_perihelion)+"\ne : "+str(body.e)+"\nq : "+str(body.Perihelion/1000)+" km")
 
 				self.Info1.SetLabel("i  : "+str(body.Inclinaison)+" deg\nN : "+str(body.Longitude_of_ascendingnode)+" deg\nw : "+str(body.Argument_of_perihelion)+" deg\ne : "+str(body.e)+"\nq : "+str(body.Perihelion/1000)+" km")
 				self.Info2.SetLabel("Mass : "+mass+"\nRadius : "+radius+"\nPeriod: "+rev+" yr"+"\n\nMoid :"+moid)
@@ -299,10 +290,11 @@ class controlWindow(wx.Frame):
 				body.Label.visible = True
 				body.Trail.visible = True
 				for i in range(0,2):
-					#print "*"
 					rate(1)
+
 				while (self.PauseAnimation and self.solarsystem.AbortAnimation == False):
 					rate(1)
+
 				body.BodyShape.visible = False
 				body.Label.visible = False
 				body.Trail.visible = False
@@ -310,6 +302,7 @@ class controlWindow(wx.Frame):
 					self.solarsystem.AbortAnimation = False
 					self.solarsystem.AnimationInProgress = False
 					return
+
 		self.solarsystem.AnimationInProgress = False
 		self.Pause.Hide()
 		self.Animate.SetLabel("Start")
@@ -318,239 +311,254 @@ class controlWindow(wx.Frame):
 		self.Info2.SetLabel('')
 
 planets_data = {
-				"neptune" :{"type": TYPE_PLANET,
-							"material":1,
-							"name": "Neptune",
-							"mass":102e24,
-							"radius":24622e3,
-							"perihelion":4444.45e9,
-							"e":0.00858587,
-							"revolution":164.179 * 365,
-							"orbital_inclinaison":1.769,
-							"longitude_of_ascendingnode":131.72169,
-							"longitude_of_perihelion":44.97135,
-							"orbital_obliquity": 28.3,
-							"kep_elt":{"a" : 30.06952752, "ar": 0.00006447,"e" : 0.00895439,"er": 0.00000818,"i" : 1.77005520,"ir": 0.00022400,"L" : 304.22289287,"Lr": 218.46515314,"W" : 46.68158724,"Wr": 0.01009938,"N" : 131.78635853,"Nr": -0.00606302,"b" : -0.00041348,"c" : 0.68346318,"s" : -0.10162547,"f" : 7.67025000}
-							},
+	"neptune" :{
+		"type": TYPE_PLANET,
+		"material":1,
+		"name": "Neptune",
+		"mass":102e24,
+		"radius":24622e3,
+		"perihelion":4444.45e9,
+		"e":0.00858587,
+		"revolution":164.179 * 365,
+		"orbital_inclinaison":1.769,
+		"longitude_of_ascendingnode":131.72169,
+		"longitude_of_perihelion":44.97135,
+		"orbital_obliquity": 28.3,
+		"kep_elt":{"a" : 30.06952752, "ar": 0.00006447,"e" : 0.00895439,"er": 0.00000818,"i" : 1.77005520,"ir": 0.00022400,"L" : 304.22289287,"Lr": 218.46515314,"W" : 46.68158724,"Wr": 0.01009938,"N" : 131.78635853,"Nr": -0.00606302,"b" : -0.00041348,"c" : 0.68346318,"s" : -0.10162547,"f" : 7.67025000}
+		},
 
-				"uranus" : {"type": TYPE_PLANET,
-							"material":1,
-							"name": "Uranus",
-							"mass":86.8e24,
-							"radius":25362e3,
-							"perihelion":2741.30e9,
-							"e":0.04716771,
-							"revolution":84.011 * 365,
-							"orbital_inclinaison":0.770,
-							"longitude_of_ascendingnode":74.22988,
-							"longitude_of_perihelion":170.96424,
-							"orbital_obliquity": 97.8,
-							"kep_elt":{"a" : 19.18797948, "ar": -0.00020455, "e" : 0.04685740, "er": -0.00001550, "i" : 0.77298127, "ir": -0.00180155, "L" : 314.20276625, "Lr": 428.49512595, "W" : 172.43404441, "Wr": 0.09266985, "N": 73.96250215, "Nr": 0.05739699, "b" : 0.00058331, "c" : -0.97731848, "s" : 0.17689245, "f" : 7.67025000}
-							},
+	"uranus" : {
+		"type": TYPE_PLANET,
+		"material":1,
+		"name": "Uranus",
+		"mass":86.8e24,
+		"radius":25362e3,
+		"perihelion":2741.30e9,
+		"e":0.04716771,
+		"revolution":84.011 * 365,
+		"orbital_inclinaison":0.770,
+		"longitude_of_ascendingnode":74.22988,
+		"longitude_of_perihelion":170.96424,
+		"orbital_obliquity": 97.8,
+		"kep_elt":{"a" : 19.18797948, "ar": -0.00020455, "e" : 0.04685740, "er": -0.00001550, "i" : 0.77298127, "ir": -0.00180155, "L" : 314.20276625, "Lr": 428.49512595, "W" : 172.43404441, "Wr": 0.09266985, "N": 73.96250215, "Nr": 0.05739699, "b" : 0.00058331, "c" : -0.97731848, "s" : 0.17689245, "f" : 7.67025000}
+		},
 
-				"saturn" : {"type": TYPE_PLANET,
-							"material":1,
-							"name": "Saturn",
-							"mass":568e24,
-							"radius":58232e3,
-							"perihelion":1352.55e9,
-							"e":0.05415060,
-							"revolution":29.457 * 365,
-							"orbital_inclinaison":2.484,
-							"longitude_of_ascendingnode":113.71504,
-							"longitude_of_perihelion":92.43194,
-							"orbital_obliquity": 26.7,
-							"kep_elt":{"a" : 9.54149883, "ar": -0.00003065, "e" : 0.05550825, "er": -0.00032044, "i" : 2.49424102, "ir": 0.00451969, "L" : 50.07571329, "Lr": 1222.11494724, "W" : 92.86136063, "Wr": 0.54179478, "N": 113.63998702, "Nr": -0.25015002, "b" : 0.00025899, "c" : -0.13434469, "s" : 0.87320147, "f" : 38.35125}
-							},
+	"saturn" : {
+		"type": TYPE_PLANET,
+		"material":1,
+		"name": "Saturn",
+		"mass":568e24,
+		"radius":58232e3,
+		"perihelion":1352.55e9,
+		"e":0.05415060,
+		"revolution":29.457 * 365,
+		"orbital_inclinaison":2.484,
+		"longitude_of_ascendingnode":113.71504,
+		"longitude_of_perihelion":92.43194,
+		"orbital_obliquity": 26.7,
+		"kep_elt":{"a" : 9.54149883, "ar": -0.00003065, "e" : 0.05550825, "er": -0.00032044, "i" : 2.49424102, "ir": 0.00451969, "L" : 50.07571329, "Lr": 1222.11494724, "W" : 92.86136063, "Wr": 0.54179478, "N": 113.63998702, "Nr": -0.25015002, "b" : 0.00025899, "c" : -0.13434469, "s" : 0.87320147, "f" : 38.35125}
+		},
 
-				"jupiter" :{"type": TYPE_PLANET,
-							"material":1,
-							"name": "Jupiter",
-							"mass":1898e24,
-							"radius":69911e3,
-							"perihelion":740.52e9,
-							"e":0.04839266,
-							"revolution":11.862 * 365,
-							"orbital_inclinaison":1.305,
-							"longitude_of_ascendingnode":100.55615,
-							"longitude_of_perihelion":14.75385,
-							"orbital_obliquity": 3.1,
-							"kep_elt":{"a" : 5.20248019, "ar": -0.00002864, "e" : 0.04853590, "er": 0.00018026, "i" : 1.29861416, "ir": -0.00322699, "L" : 34.33479152, "Lr": 3034.90371757, "W" : 14.27495244, "Wr": 0.18199196, "N": 100.29282654, "Nr": 0.13024619, "b" : -0.00012452, "c" : 0.06064060, "s" : -0.35635438, "f" : 38.35125}
-							},
-				"mars" : {	"type": TYPE_PLANET,
-							"material":1,
-							"name": "Mars",
-							"mass":0.642e24,
-							"radius":3389e3,
-							"perihelion":206.62e9,
-							"e":0.09341233,
-							"revolution":686.98,
-							"orbital_inclinaison":1.851,
-							"longitude_of_ascendingnode":49.57854,
-							"longitude_of_perihelion":336.04084,
-							"orbital_obliquity": 25.2,
-							"kep_elt":{'a' : 1.52371243, 'ar': 9.7e-07, 'e' : 0.09336511, 'er':9.149e-05, 'i' :1.85181869, 'ir':-0.00724757, 'L' :-4.56813164, 'Lr':19140.2993424, 'W' :-23.91744784, 'Wr':0.45223625, 'N' :49.71320984, 'Nr':-0.26852431, 'b' :0.0, 'c' :0.0, 's':0.0, 'f' :0.0}
-							},
+	"jupiter" :{
+		"type": TYPE_PLANET,
+		"material":1,
+		"name": "Jupiter",
+		"mass":1898e24,
+		"radius":69911e3,
+		"perihelion":740.52e9,
+		"e":0.04839266,
+		"revolution":11.862 * 365,
+		"orbital_inclinaison":1.305,
+		"longitude_of_ascendingnode":100.55615,
+		"longitude_of_perihelion":14.75385,
+		"orbital_obliquity": 3.1,
+		"kep_elt":{"a" : 5.20248019, "ar": -0.00002864, "e" : 0.04853590, "er": 0.00018026, "i" : 1.29861416, "ir": -0.00322699, "L" : 34.33479152, "Lr": 3034.90371757, "W" : 14.27495244, "Wr": 0.18199196, "N": 100.29282654, "Nr": 0.13024619, "b" : -0.00012452, "c" : 0.06064060, "s" : -0.35635438, "f" : 38.35125}
+		},
 
-				"mercury" :{"type": TYPE_PLANET,
-							"material":1,
-							"name": "Mercury",
-							"mass":0.330e24,
-							"radius":2439e3,
-							"perihelion":46.0e9,
-							"e":0.20563069,
-							"revolution":87.969,
-							"orbital_inclinaison":7.005,
-							"longitude_of_ascendingnode":48.33167,
-							"longitude_of_perihelion":77.45645,
-							"orbital_obliquity": 0.034,
-							"kep_elt":{'a' : 0.38709843, 'ar': 0.0, 'e' : 0.20563661, 'er':0.00002123, 'i' :7.00559432, 'ir':-0.00590158, 'L' :252.25166724, 'Lr':149472.674866, 'W' :77.45771895, 'Wr':0.15940013, 'N' :48.33961819, 'Nr':-0.12214182, 'b' :0.0, 'c' :0.0, 's':0.0, 'f' :0.0},
-							},
+	"mars" : {
+		"type": TYPE_PLANET,
+		"material":1,
+		"name": "Mars",
+		"mass":0.642e24,
+		"radius":3389e3,
+		"perihelion":206.62e9,
+		"e":0.09341233,
+		"revolution":686.98,
+		"orbital_inclinaison":1.851,
+		"longitude_of_ascendingnode":49.57854,
+		"longitude_of_perihelion":336.04084,
+		"orbital_obliquity": 25.2,
+		"kep_elt":{'a' : 1.52371243, 'ar': 9.7e-07, 'e' : 0.09336511, 'er':9.149e-05, 'i' :1.85181869, 'ir':-0.00724757, 'L' :-4.56813164, 'Lr':19140.2993424, 'W' :-23.91744784, 'Wr':0.45223625, 'N' :49.71320984, 'Nr':-0.26852431, 'b' :0.0, 'c' :0.0, 's':0.0, 'f' :0.0}
+		},
 
-				"venus" : {	"type": TYPE_PLANET,
-							"material":1,
-							"name": "Venus",
-							"mass":4.87e24,
-							"radius":6052e3,
-							"perihelion":107.48e9,
-							"e":0.00677323,
-							"revolution":224.701,
-							"orbital_inclinaison":3.3947,
-							"longitude_of_ascendingnode":76.68069,
-							"longitude_of_perihelion":131.53298,
-							"orbital_obliquity": 177.4,
-							"kep_elt":{'a' : 0.72332102, 'ar': -2.6e-07, 'e' : 0.00676399, 'er':-5.107e-05, 'i' :3.39777545, 'ir':0.00043494, 'L' :181.9797085, 'Lr':58517.8156026, 'W' :131.76755713, 'Wr':0.05679648, 'N' :76.67261496, 'Nr':-0.27274174, 'b' :0.0, 'c' :0.0, 's':0.0, 'f' :0.0},
-							},
+	"mercury" :{
+		"type": TYPE_PLANET,
+		"material":1,
+		"name": "Mercury",
+		"mass":0.330e24,
+		"radius":2439e3,
+		"perihelion":46.0e9,
+		"e":0.20563069,
+		"revolution":87.969,
+		"orbital_inclinaison":7.005,
+		"longitude_of_ascendingnode":48.33167,
+		"longitude_of_perihelion":77.45645,
+		"orbital_obliquity": 0.034,
+		"kep_elt":{'a' : 0.38709843, 'ar': 0.0, 'e' : 0.20563661, 'er':0.00002123, 'i' :7.00559432, 'ir':-0.00590158, 'L' :252.25166724, 'Lr':149472.674866, 'W' :77.45771895, 'Wr':0.15940013, 'N' :48.33961819, 'Nr':-0.12214182, 'b' :0.0, 'c' :0.0, 's':0.0, 'f' :0.0},
+		},
 
-				"earth" : {	"type": TYPE_PLANET,
-							"material":1,
-							"name": "Earth",
-							"mass":5.972e24,
-							"radius":6371e3,
-							"perihelion":147.09e9,
-							"e":0.01671022,
-							"revolution":365.256,
-							"orbital_inclinaison":0,
-							"longitude_of_ascendingnode":-11.26064,
-							"longitude_of_perihelion":102.94719,
-							"orbital_obliquity": 23.4,
-							"kep_elt":{'a' : 1.00000018, 'ar': -3e-08, 'e' : 0.01673163, 'er':-3.661e-05, 'i' :-0.00054346, 'ir':-0.01337178, 'L' :100.46691572, 'Lr':35999.3730633, 'W' :102.93005885, 'Wr':0.3179526, 'N' :-5.11260389, 'Nr':-0.24123856, 'b' :0.0, 'c' :0.0, 's':0.0, 'f' :0.0},
-							},
+	"venus" : {
+		"type": TYPE_PLANET,
+		"material":1,
+		"name": "Venus",
+		"mass":4.87e24,
+		"radius":6052e3,
+		"perihelion":107.48e9,
+		"e":0.00677323,
+		"revolution":224.701,
+		"orbital_inclinaison":3.3947,
+		"longitude_of_ascendingnode":76.68069,
+		"longitude_of_perihelion":131.53298,
+		"orbital_obliquity": 177.4,
+		"kep_elt":{'a' : 0.72332102, 'ar': -2.6e-07, 'e' : 0.00676399, 'er':-5.107e-05, 'i' :3.39777545, 'ir':0.00043494, 'L' :181.9797085, 'Lr':58517.8156026, 'W' :131.76755713, 'Wr':0.05679648, 'N' :76.67261496, 'Nr':-0.27274174, 'b' :0.0, 'c' :0.0, 's':0.0, 'f' :0.0},
+		},
 
-				"pluto" : {	"type": TYPE_PLANET,
-							"material":1,
-							"name": "Pluto",
-							"mass":0.0146e24,
-							"radius":1195e3,
-							"perihelion":4436.82e+9,
-							"e":0.24880766,
-							"revolution":247.68 * 365,
-							"orbital_inclinaison":17.142,
-							"longitude_of_ascendingnode":110.30347,
-							"longitude_of_perihelion":224.06676,
-							"orbital_obliquity": 122.5,
-							"kep_elt":{'a' : 39.48686035, 'ar': 0.00449751, 'e' : 0.24885238, 'er':6.016e-05, 'i' :17.1410426, 'ir':5.01e-06, 'L' :238.96535011, 'Lr':145.18042903, 'W' :224.09702598, 'Wr':-0.00968827, 'N' :110.30167986, 'Nr':-0.00809981, 'b' :-0.01262724, 'c' :0.0, 's':0.0, 'f' :0.0}
-							},
+	"earth" : {
+		"type": TYPE_PLANET,
+		"material":1,
+		"name": "Earth",
+		"mass":5.972e24,
+		"radius":6371e3,
+		"perihelion":147.09e9,
+		"e":0.01671022,
+		"revolution":365.256,
+		"orbital_inclinaison":0,
+		"longitude_of_ascendingnode":-11.26064,
+		"longitude_of_perihelion":102.94719,
+		"orbital_obliquity": 23.4,
+		"kep_elt":{'a' : 1.00000018, 'ar': -3e-08, 'e' : 0.01673163, 'er':-3.661e-05, 'i' :-0.00054346, 'ir':-0.01337178, 'L' :100.46691572, 'Lr':35999.3730633, 'W' :102.93005885, 'Wr':0.3179526, 'N' :-5.11260389, 'Nr':-0.24123856, 'b' :0.0, 'c' :0.0, 's':0.0, 'f' :0.0},
+		},
 
-				"eris" : {	"type": TYPE_DWARF_PLANET,
-							"material":0,
-							"name": "Eris",
-							"mass":1.66e22,
-							"radius":1163e3,
-							"perihelion":5.723e12,
-							"e":0.4417142619088136,
-							"revolution": 203830,
-							"orbital_inclinaison":44.0445,
-							"longitude_of_ascendingnode": 35.87791199490014,
-							"longitude_of_perihelion":186.9301,
+	"pluto" : {
+		"type": TYPE_PLANET,
+		"material":1,
+		"name": "Pluto",
+		"mass":0.0146e24,
+		"radius":1195e3,
+		"perihelion":4436.82e+9,
+		"e":0.24880766,
+		"revolution":247.68 * 365,
+		"orbital_inclinaison":17.142,
+		"longitude_of_ascendingnode":110.30347,
+		"longitude_of_perihelion":224.06676,
+		"orbital_obliquity": 122.5,
+		"kep_elt":{'a' : 39.48686035, 'ar': 0.00449751, 'e' : 0.24885238, 'er':6.016e-05, 'i' :17.1410426, 'ir':5.01e-06, 'L' :238.96535011, 'Lr':145.18042903, 'W' :224.09702598, 'Wr':-0.00968827, 'N' :110.30167986, 'Nr':-0.00809981, 'b' :-0.01262724, 'c' :0.0, 's':0.0, 'f' :0.0}
+		},
 
-							"Time_of_perihelion_passage_JD": 2545575.799683113451,
-							"mean_motion":.001771354370292503,
-							"epochJD": 2458000.5,
-							"mean_anomaly": 204.8731101766414,
+	"eris" : {
+		"type": TYPE_DWARF_PLANET,
+		"material":0,
+		"name": "Eris",
+		"mass":1.66e22,
+		"radius":1163e3,
+		"perihelion":5.723e12,
+		"e":0.4417142619088136,
+		"revolution": 203830,
+		"orbital_inclinaison":44.0445,
+		"longitude_of_ascendingnode": 35.87791199490014,
+		"longitude_of_perihelion":186.9301,
 
-							"orbital_obliquity": 0
-							},
+		"Time_of_perihelion_passage_JD": 2545575.799683113451,
+		"mean_motion":.001771354370292503,
+		"epochJD": 2458000.5,
+		"mean_anomaly": 204.8731101766414,
 
+		"orbital_obliquity": 0
+		},
 
-				"makemake":{"type": TYPE_DWARF_PLANET,
-							"material":0,
-							"name": "Makemake",
-							"mass":4.4e21,
-							"radius":739e3,
-							"perihelion":5.77298e12,
-							"e":.154682767507142,
-							"revolution": 112897.9710682497,
-							"orbital_inclinaison":29.00685,
-							"longitude_of_ascendingnode": 79.3659,
-							"longitude_of_perihelion":376.6059,
+	"makemake":{
+		"type": TYPE_DWARF_PLANET,
+		"material":0,
+		"name": "Makemake",
+		"mass":4.4e21,
+		"radius":739e3,
+		"perihelion":5.77298e12,
+		"e":.154682767507142,
+		"revolution": 112897.9710682497,
+		"orbital_inclinaison":29.00685,
+		"longitude_of_ascendingnode": 79.3659,
+		"longitude_of_perihelion":376.6059,
 
-							"Time_of_perihelion_passage_JD": 2407499.827534289027,
-							"mean_motion":.003188719837864677,
-							"epochJD": 2458000.5,
-							"mean_anomaly": 161.032496116919,
+		"Time_of_perihelion_passage_JD": 2407499.827534289027,
+		"mean_motion":.003188719837864677,
+		"epochJD": 2458000.5,
+		"mean_anomaly": 161.032496116919,
 
-							"orbital_obliquity": 0
-							},
+		"orbital_obliquity": 0
+		},
 
-				"sedna":   {"type": TYPE_DWARF_PLANET,
-							"material":0,
-							"name": "Sedna",
-							"mass":4.4e21, # mass is undetermined
-							"radius":995e3,
-							"perihelion":1.1423e13,
-							"e":0.85491,
-							"revolution": 3934726.687924069,
-							"orbital_inclinaison":11.92872,
-							"longitude_of_ascendingnode":144.546,
-							"longitude_of_perihelion":455.836,
+	"sedna":   {
+		"type": TYPE_DWARF_PLANET,
+		"material":0,
+		"name": "Sedna",
+		"mass":4.4e21, # mass is undetermined
+		"radius":995e3,
+		"perihelion":1.1423e13,
+		"e":0.85491,
+		"revolution": 3934726.687924069,
+		"orbital_inclinaison":11.92872,
+		"longitude_of_ascendingnode":144.546,
+		"longitude_of_perihelion":455.836,
 
-							"Time_of_perihelion_passage_JD": 2479566.507375652123,
-							"mean_motion":9.149301299753888e-5,
-							"epochJD": 2458000.5,
-							"mean_anomaly": 358.0268610068745,
+		"Time_of_perihelion_passage_JD": 2479566.507375652123,
+		"mean_motion":9.149301299753888e-5,
+		"epochJD": 2458000.5,
+		"mean_anomaly": 358.0268610068745,
 
-							"orbital_obliquity": 0
-							},
+		"orbital_obliquity": 0
+		},
 
-				"haumea":  {"type": TYPE_DWARF_PLANET,
-							"material":0,
-							"name": "Haumea",
-							"mass":4.006e21,
-							"radius":620e3,
-							"perihelion":35.14529440338772*AU,
-							"e":0.1893662787361186,
-							"revolution": 104270.6801862633,
-							"orbital_inclinaison":28.20363151617822,
-							"longitude_of_ascendingnode":121.9702799705751,
-							"longitude_of_perihelion":360.8407349965672,
+	"haumea":  {
+		"type": TYPE_DWARF_PLANET,
+		"material":0,
+		"name": "Haumea",
+		"mass":4.006e21,
+		"radius":620e3,
+		"perihelion":35.14529440338772*AU,
+		"e":0.1893662787361186,
+		"revolution": 104270.6801862633,
+		"orbital_inclinaison":28.20363151617822,
+		"longitude_of_ascendingnode":121.9702799705751,
+		"longitude_of_perihelion":360.8407349965672,
 
-							"Time_of_perihelion_passage_JD": 2500269.703252029540,
-							"mean_motion":.003452552523460249,
-							"epochJD": 2458000.5,
-							"mean_anomaly": 214.0633556475513,
+		"Time_of_perihelion_passage_JD": 2500269.703252029540,
+		"mean_motion":.003452552523460249,
+		"epochJD": 2458000.5,
+		"mean_anomaly": 214.0633556475513,
 
-							"orbital_obliquity": 0
-							},
-				"MU69" : {"type": TYPE_TRANS_N,
-							"material":0,
-							"name": "NHorizon (2014 MU69)",
-							"mass":4.006e21,
-							"radius":620e3,
-							"perihelion":42.36382619492954 * AU,
-							"e":0.04710496472429965,
-							"revolution": 108273.8543019219,
-							"orbital_inclinaison":2.451806641801155,
-							"longitude_of_ascendingnode": 158.9860995817701,
-							"longitude_of_perihelion":342.6477922062032,
+		"orbital_obliquity": 0
+		},
 
-							"Time_of_perihelion_passage_JD": 2474149.642000547787,
-							"mean_motion":0.003324902418234221,
-							"epochJD": 2458000.5,
-							"mean_anomaly": 306.3056787099708,
+	"MU69" : {
+		"type": TYPE_TRANS_N,
+		"material":0,
+		"name": "NHorizon (2014 MU69)",
+		"mass":4.006e21,
+		"radius":620e3,
+		"perihelion":42.36382619492954 * AU,
+		"e":0.04710496472429965,
+		"revolution": 108273.8543019219,
+		"orbital_inclinaison":2.451806641801155,
+		"longitude_of_ascendingnode": 158.9860995817701,
+		"longitude_of_perihelion":342.6477922062032,
 
-							"orbital_obliquity": 0
-							}
+		"Time_of_perihelion_passage_JD": 2474149.642000547787,
+		"mean_motion":0.003324902418234221,
+		"epochJD": 2458000.5,
+		"mean_anomaly": 306.3056787099708,
+
+		"orbital_obliquity": 0
+		}
 }
 
 belt_data = {
@@ -1078,7 +1086,8 @@ def bessel_E(M, e, depth):
 
 # Calculates Eccentric Anomaly (E) given the mean anomaly (M), the depth and the
 # precision required using an iterative method. If the precision has been reached
-# within the maximum iteration depth, returns (True, E) or (False, E) otherwise
+# within the maximum iteration depth, returns (True, E, precision, #it) or
+# (False, E, precision, #it) otherwise
 
 def solveKepler(M, e, depth, precision = 1.e-8):
 	M = deg2rad(M)
@@ -1110,6 +1119,7 @@ def getTrueAnomalyAndRadius(E, e, a):
 		ta = ta + 2*math.pi
 	return ta, R
 
+# load orbital parameters stored in a file
 def loadBodies(solarsystem, type, filename):
 	fo  = open(filename, "r")
 	limit = 10000
