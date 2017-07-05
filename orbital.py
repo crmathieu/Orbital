@@ -790,21 +790,21 @@ class makeBelt:
 class makeBody:
 
 	def __init__(self, system, index, color, trueAnomaly, bodyType = INNERPLANET, sizeCorrectionType = INNERPLANET):  # change default values during instantiation
-		self.solarsystem = system
-		self.Ring = false
-		self.OrbitalObliquity 				= planets_data[index]["orbital_obliquity"]
-		self.Name 							= planets_data[index]["name"]		# body name
-		self.Mass 							= planets_data[index]["mass"]		# body mass
-		self.BodyRadius 					= planets_data[index]["radius"]	# body radius at perhelion
-		self.Color 							= color
-		self.BodyType 						= bodyType
-		self.Revolution 					= planets_data[index]["revolution"]
-		self.Perihelion 					= planets_data[index]["perihelion"]	# body perhelion
-		self.Distance 						= planets_data[index]["perihelion"]	# body distance at perige from focus
+		self.solarsystem 			= system
+		self.Ring 					= false
+		self.OrbitalObliquity		= planets_data[index]["orbital_obliquity"]
+		self.Name					= planets_data[index]["name"]		# body name
+		self.Mass 					= planets_data[index]["mass"]		# body mass
+		self.BodyRadius 			= planets_data[index]["radius"]	# body radius at perhelion
+		self.Color 					= color
+		self.BodyType 				= bodyType
+		self.Revolution 			= planets_data[index]["revolution"]
+		self.Perihelion 			= planets_data[index]["perihelion"]	# body perhelion
+		self.Distance 				= planets_data[index]["perihelion"]	# body distance at perige from focus
 		if "earth_moid" in planets_data[index]:
-			self.Moid 						= planets_data[index]["earth_moid"]
+			self.Moid 				= planets_data[index]["earth_moid"]
 		else:
-			self.Moid 						= 0
+			self.Moid 				= 0
 
 		if "kep_elt" in planets_data[index]:
 			# we have built-in data to calculate the body's current position on orbit
@@ -905,8 +905,6 @@ class makeBody:
 		self.Longitude_of_ascendingnode = elts["N"] + (elts["Nr"] * T)
 
 		# compute Argument of perihelion w = Longitude of Perihelion - Longitude of ascending Node
-		#self.Longitude_of_perihelion 	= W
-		#self.Longitude_of_ascendingnode = N
 		self.Argument_of_perihelion 	= self.Longitude_of_perihelion - self.Longitude_of_ascendingnode
 
 		# compute mean Anomaly M = L - W
@@ -920,33 +918,33 @@ class makeBody:
 			print "Could not converge for "+self.Name+", E = "+str(self.E)+", last precision = "+str(dE)
 
 	def updateElements(self, elts):
-			# data comes from data files or predefined values
-			self.e 							= elts["e"]
-			self.Longitude_of_perihelion 	= elts["longitude_of_perihelion"]
-			self.Longitude_of_ascendingnode = elts["longitude_of_ascendingnode"]
-			self.Argument_of_perihelion 	= self.Longitude_of_perihelion - self.Longitude_of_ascendingnode
-			self.a 							= getSemiMajor(self.Perihelion, self.e)
-			self.Inclinaison 				= elts["orbital_inclinaison"]
-			self.Time_of_perihelion_passage = elts["Time_of_perihelion_passage_JD"]
-			self.Mean_motion				= elts["mean_motion"]
-			self.Epoch						= elts["epochJD"]
-			self.Mean_anomaly				= elts["mean_anomaly"]
-			self.revolution					= elts["revolution"]
+		# data comes from data files or predefined values
+		self.e 							= elts["e"]
+		self.Longitude_of_perihelion 	= elts["longitude_of_perihelion"]
+		self.Longitude_of_ascendingnode = elts["longitude_of_ascendingnode"]
+		self.Argument_of_perihelion 	= self.Longitude_of_perihelion - self.Longitude_of_ascendingnode
+		self.a 							= getSemiMajor(self.Perihelion, self.e)
+		self.Inclinaison 				= elts["orbital_inclinaison"]
+		self.Time_of_perihelion_passage = elts["Time_of_perihelion_passage_JD"]
+		self.Mean_motion				= elts["mean_motion"]
+		self.Epoch						= elts["epochJD"]
+		self.Mean_anomaly				= elts["mean_anomaly"]
+		self.revolution					= elts["revolution"]
 
-			# calculate current position based on orbital elements
-			# the formula is E - esinE = (t - T)n
+		# calculate current position based on orbital elements
+		# the formula is E - esinE = (t - T)n
 
-			dT = daysSinceEpochJD(self.Epoch)
-			N = self.Longitude_of_ascendingnode + 0.013967 * (2000.0 - getCurrentYear()) + 3.82394e-5 * dT
-			self.Longitude_of_ascendingnode = N
+		dT = daysSinceEpochJD(self.Epoch)
+		N = self.Longitude_of_ascendingnode + 0.013967 * (2000.0 - getCurrentYear()) + 3.82394e-5 * dT
+		self.Longitude_of_ascendingnode = N
 
-			# adjust Mean Anomaly with time elapsed since epoch
-			M = self.Mean_anomaly + self.Mean_motion * dT
-			M = toRange(M)
+		# adjust Mean Anomaly with time elapsed since epoch
+		M = self.Mean_anomaly + self.Mean_motion * dT
+		M = toRange(M)
 
-			success, self.E, dE, it = solveKepler(M, self.e, 20000)
-			if success == False:
-				print self.Name+" Warning Could not converge - E = "+str(self.E)
+		success, self.E, dE, it = solveKepler(M, self.e, 20000)
+		if success == False:
+			print self.Name+" Warning Could not converge - E = "+str(self.E)
 
 	def draw(self):
 
