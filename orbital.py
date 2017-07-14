@@ -54,8 +54,11 @@ LIT_SCENE = 0x1000
 REFERENTIAL = 0x2000
 ORBITS = 0x4000
 GASGIANT = 0x8000
+TRANS_NEPT = 0x10000
+LABELS = 0x20000
+JTROJANS = 0x40000
 
-TYPE_MASK = 0xFFFF
+TYPE_MASK = 0xFFFFF
 
 SATELLITE_M = 100
 THREE_D = False
@@ -79,6 +82,7 @@ TYPE_COMET = 4
 TYPE_TRANS_N = 5
 
 AU = 149597870691
+DEFAULT_RADIUS = 2.78787878
 
 JPL_FULLNAME = 0
 JPL_DESIGNATION = 1
@@ -142,7 +146,7 @@ class controlWindow(wx.Frame):
 	def createCheckBox(self, panel, title, type, xpos, ypos):
 
 		cb = wx.CheckBox(panel, label=title, pos=(xpos, ypos))
-		if self.solarsystem.ShowBodies & type <> 0:
+		if self.solarsystem.ShowFeatures & type <> 0:
 			cb.SetValue(True)
 		else:
 			cb.SetValue(False)
@@ -154,45 +158,55 @@ class controlWindow(wx.Frame):
 		font = wx.Font(10, wx.DEFAULT, wx.NORMAL, wx.BOLD)
 		heading = wx.StaticText(pnl, label='Show', pos=(20, 20))
 		heading.SetFont(font)
+		today = wx.StaticText(pnl, label="", pos=(200, 20))
+		today.SetFont(wx.Font(10, wx.DEFAULT, wx.NORMAL, wx.NORMAL)) #, wx.BOLD))
+		today.Wrap(230)
+		today.SetLabel("UTC: "+str(datetime.datetime.utcnow()))
 
 		INNER_Y = 40
 		ORB_Y = INNER_Y + 20
 		GASG_Y = ORB_Y + 20
 		DWARF_Y = GASG_Y + 20
+		#TNO_Y = DWARF_Y + 20
 		AB_Y = DWARF_Y + 20
-		KB_Y = AB_Y + 20
+		JT_Y = AB_Y + 20
+		KB_Y = JT_Y + 20
 		IOC_Y = KB_Y + 20
 		ECL_Y = IOC_Y + 20
-		LIT_Y = ECL_Y + 20
+		LABEL_Y = ECL_Y + 20
+		LIT_Y = LABEL_Y + 20
 		AXIS_Y = LIT_Y + 20
 		REF_Y = AXIS_Y + 20
 
 		STRT_Y = REF_Y
 		PAU_Y = REF_Y + 40
-		DET_Y = PAU_Y + 100
+		DET_Y = PAU_Y + 130
 
 		self.createCheckBox(pnl, "Inner Planets", INNERPLANET, 20, INNER_Y)
 		self.createCheckBox(pnl, "Orbits", ORBITS, 20, ORB_Y)
 		self.createCheckBox(pnl, "Outter Planets", OUTTERPLANET, 20, GASG_Y)
 		self.createCheckBox(pnl, "Dwarf Planets", DWARFPLANET, 20, DWARF_Y)
+		#self.createCheckBox(pnl, "TransNeptunian Objects", TRANS_NEPT, 20, TNO_Y)
 		self.createCheckBox(pnl, "Asteroids Belt", ASTEROID_BELT, 20, AB_Y)
+		self.createCheckBox(pnl, "Jupiter Trojans", JTROJANS, 20, JT_Y)
 		self.createCheckBox(pnl, "Kuiper Belt", KUIPER_BELT, 20, KB_Y)
 		self.createCheckBox(pnl, "Inner Oort Cloud", INNER_OORT_CLOUD, 20, IOC_Y)
 		self.createCheckBox(pnl, "Ecliptic", ECLIPTIC_PLANE, 20, ECL_Y)
+		self.createCheckBox(pnl, "Labels", LABELS, 20, LABEL_Y)
 		self.createCheckBox(pnl, "Lit Scene", LIT_SCENE, 20, LIT_Y)
 		self.createCheckBox(pnl, "Referential", REFERENTIAL, 20, AXIS_Y)
 
 		cbtn = wx.Button(pnl, label='Refresh', pos=(20, REF_Y))
 		cbtn.Bind(wx.EVT_BUTTON, self.OnRefresh)
 
-		lblList = ['PHA', 'Comets', 'Big Asteroids']
+		lblList = ['PHA', 'Comets', 'Major Asteroids', 'Trans Neptunians']
 		self.rbox = wx.RadioBox(pnl,label = 'Animate', pos = (200, REF_Y), choices = lblList ,majorDimension = 1, style = wx.RA_SPECIFY_COLS)
 		self.rbox.Bind(wx.EVT_RADIOBOX,self.OnRadioBox)
 
-		self.Animate = wx.Button(pnl, label='Start', pos=(340, REF_Y))
+		self.Animate = wx.Button(pnl, label='Start', pos=(360, REF_Y))
 		self.Animate.Bind(wx.EVT_BUTTON, self.OnAnimate)
 
-		self.Pause = wx.Button(pnl, label='Pause', pos=(340, PAU_Y))
+		self.Pause = wx.Button(pnl, label='Pause', pos=(360, PAU_Y))
 		self.Pause.Bind(wx.EVT_BUTTON, self.OnPauseAnimate)
 		self.Pause.Hide()
 
@@ -214,7 +228,7 @@ class controlWindow(wx.Frame):
 
 	def OnRadioBox(self, e):
 		index = self.rbox.GetSelection()
-		self.Source = {0: PHA, 1: COMET, 2:BIG_ASTEROID}[index]
+		self.Source = {0: PHA, 1: COMET, 2:BIG_ASTEROID, 3:TRANS_NEPT}[index]
 		self.solarsystem.currentSource = self.Source
 
 	def onCharEvent(self, event):
@@ -236,9 +250,9 @@ class controlWindow(wx.Frame):
 	def OnRefresh(self, e):
 		for type, cbox in self.checkboxList.iteritems():
 			if cbox.GetValue() == True:
-				self.solarsystem.ShowBodies |= type
+				self.solarsystem.ShowFeatures |= type
 			else:
-				self.solarsystem.ShowBodies = (self.solarsystem.ShowBodies & ~type)
+				self.solarsystem.ShowFeatures = (self.solarsystem.ShowFeatures & ~type)
 		glbRefresh(self.solarsystem)
 
 	def OnPauseAnimate(self, e):
@@ -274,21 +288,24 @@ class controlWindow(wx.Frame):
 		# is about,
 		for body in self.solarsystem.bodies:
 			if body.BodyType == self.Source: #PHA:
-				glbRefresh(self.solarsystem) ##
+				glbRefresh(self.solarsystem)
 				self.InfoTitle.SetLabel(body.Name)
 
 				mass = str(body.Mass)+" kg" if body.Mass <> 0 else "Not Provided"
-				radius = str(body.BodyRadius)+" km" if body.BodyRadius <> 0 else "Not Provided"
+				radius = str(body.BodyRadius)+" km" if body.BodyRadius <> 0 and body.BodyRadius <> DEFAULT_RADIUS else "Not Provided"
 				moid = str(body.Moid/1000)+" km" if body.Moid <> 0 else "N/A"
 				rev = str(body.Revolution / 365.25)
+				velocity = str(round(body.getCurrentVelocity()*100)/100000)+ " km/s"
 
 				self.Info1.SetLabel("i  : "+str(body.Inclinaison)+" deg\nN : "+str(body.Longitude_of_ascendingnode)+" deg\nw : "+str(body.Argument_of_perihelion)+" deg\ne : "+str(body.e)+"\nq : "+str(body.Perihelion/1000)+" km")
-				self.Info2.SetLabel("Mass : "+mass+"\nRadius : "+radius+"\nPeriod: "+rev+" yr"+"\n\nMoid :"+moid)
+				self.Info2.SetLabel("Mass : "+mass+"\nRadius : "+radius+"\nPeriod: "+rev+" yr"+"\nMoid :"+moid+"\nVelocity: "+velocity)
 
 
 				body.BodyShape.visible = True
-				body.Label.visible = True
+				for i in range(len(body.Label)):
+					body.Label[i].visible = True
 				body.Trail.visible = True
+
 				for i in range(0,2):
 					rate(1)
 
@@ -296,7 +313,9 @@ class controlWindow(wx.Frame):
 					rate(1)
 
 				body.BodyShape.visible = False
-				body.Label.visible = False
+				for i in range(len(body.Label)):
+					body.Label[i].visible = False
+
 				body.Trail.visible = False
 				if self.solarsystem.AbortAnimation:
 					self.solarsystem.AbortAnimation = False
@@ -538,35 +557,14 @@ planets_data = {
 
 		"orbital_obliquity": 0
 		},
-
-	"MU69" : {
-		"type": TYPE_TRANS_N,
-		"material":0,
-		"name": "NHorizon (2014 MU69)",
-		"mass":4.006e21,
-		"radius":620e3,
-		"perihelion":42.36382619492954 * AU,
-		"e":0.04710496472429965,
-		"revolution": 108273.8543019219,
-		"orbital_inclinaison":2.451806641801155,
-		"longitude_of_ascendingnode": 158.9860995817701,
-		"longitude_of_perihelion":342.6477922062032,
-
-		"Time_of_perihelion_passage_JD": 2474149.642000547787,
-		"mean_motion":0.003324902418234221,
-		"epochJD": 2458000.5,
-		"mean_anomaly": 306.3056787099708,
-
-		"orbital_obliquity": 0
-		}
 }
 
 belt_data = {
 	"jupiterTrojan": {
 		"radius_min":5.05,
-		"radius_max":5.35,
+		"radius_max":5.65, #5.35,
 		"thickness": 0.6,
-		"thickness_factor":5.e4},
+		"thickness_factor":15.e4},
 	"asteroid":	{
 		"radius_min":2.06,
 		"radius_max":3.27,
@@ -650,24 +648,29 @@ class solarSystem:
 		return None
 
 	def refresh(self):
-		if self.ShowBodies & ORBITS <> 0:
+		orbitTrace = False
+		if self.ShowFeatures & ORBITS <> 0:
 			orbitTrace = True
-		else:
-			orbitTrace = False
+
+		labelVisible = False
+		if self.ShowFeatures & LABELS <> 0:
+			labelVisible = True
 
 		for body in self.bodies:
-			if body.BodyType in [OUTTERPLANET, INNERPLANET, ASTEROID, COMET, DWARFPLANET, PHA, BIG_ASTEROID]:
+			if body.BodyType in [OUTTERPLANET, INNERPLANET, ASTEROID, COMET, DWARFPLANET, PHA, BIG_ASTEROID, TRANS_NEPT]:
 				if body.BodyShape.visible == True:
 					body.Trail.visible = orbitTrace
+					for i in range(len(body.Label)):
+						body.Label[i].visible = labelVisible
 
-		if self.ShowBodies & LIT_SCENE <> 0:
+		if self.ShowFeatures & LIT_SCENE <> 0:
 			self.Scene.ambient = color.white
 			self.sunLight.visible = False
 		else:
 			self.Scene.ambient = color.black
 			self.sunLight.visible = True
 
-		if self.ShowBodies & REFERENTIAL <> 0:
+		if self.ShowFeatures & REFERENTIAL <> 0:
 			for i in range(3):
 				self.Axis[i].visible = True
 				self.AxisLabel[i].visible = True
@@ -685,8 +688,8 @@ class solarSystem:
 			body.Y = R * sin(trueAnomaly)
 			body.updatePosition(false)
 			if LEGEND:
-				body.Label.visible = false
-				body.Label = label(pos=(body.Position[X_COOR],body.Position[Y_COOR],body.Position[Z_COOR]), text=body.Name, xoffset=20, yoffset=12, space=0, height=10, color=body.Color, border=6, box=false, font='sans')
+				body.Label.append(label(pos=(body.Position[X_COOR],body.Position[Y_COOR],body.Position[Z_COOR]), text=body.Name, xoffset=20, yoffset=12, space=0, height=10, color=body.Color, border=6, box=false, font='sans'))
+				body.Label[0].visible = false
 
 	def makeRings(self, system, bodyName, density = 1):  # change default values during instantiation
 		global planets_data
@@ -699,7 +702,7 @@ class solarSystem:
 			planet.InnerRing = curve(color=planet.Color)
 			planet.OutterRing = curve(color=planet.Color)
 
-			if (self.solarsystem.ShowBodies & planet.BodyType) == 0:
+			if (self.solarsystem.ShowFeatures & planet.BodyType) == 0:
 				planet.InnerRing.visible = false
 				planet.OutterRing.visible = false
 
@@ -731,7 +734,7 @@ class makeEcliptic:
 		self.BodyType = ECLIPTIC_PLANE
 
 	def refresh(self):
-		if self.solarsystem.ShowBodies & ECLIPTIC_PLANE <> 0:
+		if self.solarsystem.ShowFeatures & ECLIPTIC_PLANE <> 0:
 			#self.solarsystem.Scene.autoscale = 0
 			self.Ecliptic.visible = True
 		else:
@@ -745,7 +748,8 @@ class makeEcliptic:
 
 class makeBelt:
 
-	def __init__(self, system, index, name, bodyType, color, size, density = 1):  # change default values during instantiation
+	def __init__(self, system, index, name, bodyType, color, size, density = 1, planetname = None):  # change default values during instantiation
+		self.Label = []
 		self.Name = name
 		self.solarsystem = system
 		self.Density = density		# body name
@@ -753,6 +757,7 @@ class makeBelt:
 		self.RadiusMaxAU = belt_data[index]["radius_max"]	# in AU
 		self.Thickness = belt_data[index]["thickness"]	# in AU
 		self.ThicknessFactor = belt_data[index]["thickness_factor"]
+		self.PlanetName = planetname
 		self.Color = color
 		self.BodyType = bodyType
 		self.BodyShape =	points(pos=(self.RadiusMinAU, 0, 0), size=size, color=color)
@@ -771,47 +776,96 @@ class makeBelt:
 			# generate random radius between Min and MAX
 			RandomRadius = randint(round(self.RadiusMinAU * AU * DIST_FACTOR, 3) * 1000, round(self.RadiusMaxAU * AU * DIST_FACTOR, 3) * 1000) / 1000
 			MAX = self.getGaussian(RandomRadius) * self.Thickness * AU * DIST_FACTOR * self.ThicknessFactor
-			eclipticHeight = {0: 0, 1:1, 2:-1}[randint(0,2)] * randint(0, int(round(MAX, 6)*1.e6))/1e6
-			self.BodyShape.append(pos=(RandomRadius * cos(i), RandomRadius * sin(i), eclipticHeight))
+			heightToEcliptic = {0: 0, 1:1, 2:-1}[randint(0,2)] * randint(0, int(round(MAX, 6)*1.e6))/1e6
+			self.BodyShape.append(pos=(RandomRadius * cos(i), RandomRadius * sin(i), heightToEcliptic))
 
-		self.Label = label(pos=(self.RadiusMaxAU * AU * DIST_FACTOR * cos(i), self.RadiusMaxAU * AU * DIST_FACTOR * sin(i), 0), text=self.Name, xoffset=20, yoffset=12, space=0, height=10, border=6, box=false, font='sans')
-		self.Label.visible = False
+		#self.Label[0] = label(pos=(self.RadiusMaxAU * AU * DIST_FACTOR * cos(i), self.RadiusMaxAU * AU * DIST_FACTOR * sin(i), 0), text=self.Name, xoffset=20, yoffset=12, space=0, height=10, border=6, box=false, font='sans')
+		self.Label.append(label(pos=(self.RadiusMaxAU * AU * DIST_FACTOR * cos(i), self.RadiusMaxAU * AU * DIST_FACTOR * sin(i), 0), text=self.Name, xoffset=20, yoffset=12, space=0, height=10, border=6, box=false, font='sans'))
+		self.Label[0].visible = False
 
 	def refresh(self):
-		if self.BodyType & self.solarsystem.ShowBodies <> 0:
+		if self.solarsystem.ShowFeatures & self.BodyType <> 0:
 			if self.BodyShape.visible == false:
 				self.BodyShape.visible = true
-				self.Label.visible = true
+				#self.Label.visible = true
+			if self.solarsystem.ShowFeatures & LABELS <> 0:
+				labelVisible = True
+			else:
+				labelVisible = False
+
+			for i in range(len(self.Label)):
+				self.Label[i].visible = labelVisible
+
 		else:
 			if self.BodyShape.visible == true:
 				self.BodyShape.visible = false
-				self.Label.visible = false
+				for i in range(len(self.Label)):
+					self.Label[i].visible = False
+
+class makeJtrojan(makeBelt):
+
+	def __init__(self, system, index, name, bodyType, color, size, density = 1, planetname = None):
+		makeBelt.__init__(self, system, index, name, bodyType, color, size, density, planetname)
+
+	def updateThickness(self, increment):
+		self.RadiusMinAU = belt_data["jupiterTrojan"]["radius_min"]	- sqrt(increment) # in AU
+		self.RadiusMaxAU = belt_data["jupiterTrojan"]["radius_max"]	+ sqrt(increment) # in AU
+		self.Thickness = belt_data["jupiterTrojan"]["thickness"]	+ sqrt(increment)
+
+	def draw(self): # TODO
+		# determine where the body is
+		if self.PlanetName == None:
+			return
+
+		# grab Jupiter's current True Anomaly and add the Long of perihelion to it
+		planet = self.solarsystem.getBodyFromName(planets_data[self.PlanetName]['name'])
+		Nu = deg2rad(toRange(rad2deg(planet.Nu) + planet.Longitude_of_perihelion))
+
+		# get Lagrangian L4 and L5 based on body position
+		L4 = (Nu + 4*pi/3 ) #% 2*pi
+		L5 = (Nu + 2*pi/3)
+		delta = deg2rad(25)
+
+		for i in np.arange(pi/(180*self.Density), delta, pi/(180*self.Density)):
+			# generate random radius between Min and MAX
+			self.updateThickness(i)
+			#RandomRadius = randint(round(self.RadiusMinAU * AU * DIST_FACTOR, 3) * 1000, round(self.RadiusMaxAU * AU * DIST_FACTOR, 3) * 1000) / 1000
+			RandomRadius = uniform(round(self.RadiusMinAU * AU * DIST_FACTOR, 3) * 1000, round(self.RadiusMaxAU * AU * DIST_FACTOR, 3) * 1000) / 1000
+			RandomTail = uniform(round(belt_data["jupiterTrojan"]["radius_min"]  * AU * DIST_FACTOR, 3) * 1000, round(belt_data["jupiterTrojan"]["radius_max"] * AU * DIST_FACTOR, 3) * 1000) / 1000
+			MAX = self.getGaussian(RandomRadius) * self.Thickness * AU * DIST_FACTOR * self.ThicknessFactor
+			MAXTAIL = self.getGaussian(RandomTail) * self.Thickness * AU * DIST_FACTOR * self.ThicknessFactor
+
+			heightToEcliptic = {0:1, 1:-1}[randint(0,1)] * uniform(1 * AU * DIST_FACTOR, int(round(MAX*sqrt(19*i), 6)*1.e6))/1e6
+			heightToEclipticTail = {0:1, 1:-1}[randint(0,1)] * uniform(1 * AU * DIST_FACTOR, int(round(MAXTAIL*sqrt(delta-i), 6)*1.e6))/1e6
+			self.BodyShape.append(pos=(RandomTail * cos(L4+delta+i), RandomTail * sin(L4+delta+i), heightToEclipticTail))
+			self.BodyShape.append(pos=(RandomTail * cos(L5-delta-i), RandomTail * sin(L5-delta-i), heightToEclipticTail))
+
+			self.BodyShape.append(pos=(RandomRadius * cos(L4-delta+i), RandomRadius * sin(L4-delta+i), heightToEcliptic))
+			self.BodyShape.append(pos=(RandomRadius * cos(L4+delta-i), RandomRadius * sin(L4+delta-i), heightToEcliptic))
+			self.BodyShape.append(pos=(RandomRadius * cos(L5-delta+i), RandomRadius * sin(L5-delta+i), heightToEcliptic))
+			self.BodyShape.append(pos=(RandomRadius * cos(L5+delta-i), RandomRadius * sin(L5+delta-i), heightToEcliptic))
+
+		self.Label.append(label(pos=(self.RadiusMaxAU * AU * DIST_FACTOR * cos(L4), self.RadiusMaxAU * AU * DIST_FACTOR * sin(L4), 0), text="L4 Trojans", xoffset=20, yoffset=12, space=0, height=10, border=6, box=false, font='sans', visible = False))
+		self.Label.append(label(pos=(self.RadiusMaxAU * AU * DIST_FACTOR * cos(L5), self.RadiusMaxAU * AU * DIST_FACTOR * sin(L5), 0), text="L5 Trojans", xoffset=20, yoffset=12, space=0, height=10, border=6, box=false, font='sans', visible = False))
 
 class makeBody:
 
 	def __init__(self, system, index, color, trueAnomaly, bodyType = INNERPLANET, sizeCorrectionType = INNERPLANET):  # change default values during instantiation
+		self.Label = []
 		self.solarsystem 			= system
 		self.Ring 					= false
 		self.OrbitalObliquity		= planets_data[index]["orbital_obliquity"]
 		self.Name					= planets_data[index]["name"]		# body name
 		self.Mass 					= planets_data[index]["mass"]		# body mass
-		self.BodyRadius 			= planets_data[index]["radius"]	# body radius at perhelion
+		self.BodyRadius 			= planets_data[index]["radius"]		# body radius
 		self.Color 					= color
 		self.BodyType 				= bodyType
 		self.Revolution 			= planets_data[index]["revolution"]
 		self.Perihelion 			= planets_data[index]["perihelion"]	# body perhelion
 		self.Distance 				= planets_data[index]["perihelion"]	# body distance at perige from focus
-		if "earth_moid" in planets_data[index]:
-			self.Moid 				= planets_data[index]["earth_moid"]
-		else:
-			self.Moid 				= 0
 
-		if "kep_elt" in planets_data[index]:
-			# we have built-in data to calculate the body's current position on orbit
-			self.updateKeplerianElements(planets_data[index]["kep_elt"])
-		else:
-			# data comes from data files or predefined values
-			self.updateElements(planets_data[index])
+		self.Moid = planets_data[index]["earth_moid"] if "earth_moid" in planets_data[index] else 0
+		self.setOrbitalElements(index)
 
 		# generate 2d coordinates in the initial orbital plane, with +X pointing
 		# towards periapsis. Make sure to convert degree to radians before using
@@ -834,47 +888,53 @@ class makeBody:
 		)
 
 		# calculate current position of body on its orbit knowing
-		# its current distance from Sun (R) and angle (Nu)
+		# its current distance from Sun (R) and angle (Nu) that
+		# were set up in setPolarCoordinates
 
 		self.N = deg2rad(self.Longitude_of_ascendingnode)
 		self.w = deg2rad(self.Argument_of_perihelion)
 		self.i = deg2rad(self.Inclinaison)
 
-		# go polar to Cartesian
+		# convert polar to Cartesian in Sun referential
 		self.setCartesianCoordinates()
 
-		sizeCorrection = { INNERPLANET: 500, GASGIANT: 1500, DWARFPLANET: 100, ASTEROID:1, COMET:0.001, SMALL_ASTEROID: 0.1, BIG_ASTEROID:0.1, PHA: 0.003}[sizeCorrectionType]
-		shape = { INNERPLANET: "sphere", OUTTERPLANET: "sphere", DWARFPLANET: "sphere", ASTEROID:"cube", COMET:"cone", SMALL_ASTEROID:"cube", BIG_ASTEROID:"sphere", PHA:"cube"}[bodyType]
+		sizeCorrection = { INNERPLANET: 700, GASGIANT: 1900, DWARFPLANET: 100, ASTEROID:1, COMET:0.01, SMALL_ASTEROID: 0.1, BIG_ASTEROID:0.1, PHA: 0.003, TRANS_NEPT: 0.001}[sizeCorrectionType]
+		shape = { INNERPLANET: "sphere", OUTTERPLANET: "sphere", DWARFPLANET: "sphere", ASTEROID:"cube", COMET:"cone", SMALL_ASTEROID:"cube", BIG_ASTEROID:"sphere", PHA:"cube", TRANS_NEPT: "cube"}[bodyType]
 		self.SizeCorrection = getSigmoid(self.Perihelion, sizeCorrection)
 
 		if shape == "sphere":
 			self.BodyShape = sphere(pos=(self.Position[X_COOR],self.Position[Y_COOR],self.Position[Z_COOR]), radius=self.BodyRadius/self.SizeCorrection, make_trail=false)
 			self.Angle = pi/2 + deg2rad(self.OrbitalObliquity)
 		else:
-			self.BodyShape = ellipsoid(pos=(self.Position[X_COOR],self.Position[Y_COOR],self.Position[Z_COOR]), length=(self.BodyRadius * randint(1, 5))/self.SizeCorrection, height=(self.BodyRadius * randint(1, 5))/self.SizeCorrection, width=(self.BodyRadius * randint(1, 5))/self.SizeCorrection, make_trail=false)
+			self.BodyShape = ellipsoid(pos=(self.Position[X_COOR],self.Position[Y_COOR],self.Position[Z_COOR]), length=(self.BodyRadius * randint(1, 3))/self.SizeCorrection, height=(self.BodyRadius * randint(1, 3))/self.SizeCorrection, width=(self.BodyRadius * randint(1, 3))/self.SizeCorrection, make_trail=false)
 			self.Angle = pi/randint(2,6)
 
 		# attach a curve to the object to display its orbit
 		self.Trail = curve(color=self.Color)
 		self.Trail.append(pos=self.BodyShape.pos)
 
-		if planets_data[index]["material"] <> 0:
-			data = materials.loadTGA("./img/"+index)
-		else:
-			data = materials.loadTGA("./img/asteroid")
+		data = materials.loadTGA("./img/"+index) if planets_data[index]["material"] <> 0 else materials.loadTGA("./img/asteroid")
 
 		self.BodyShape.material = materials.texture(data=data, mapping="spherical", interpolate=False)
 		self.BodyShape.rotate(angle=self.Angle)
 
 		# add LEGEND
-		self.Label = label(pos=(self.Position[X_COOR],self.Position[Y_COOR],self.Position[Z_COOR]), text=self.Name, xoffset=20, yoffset=12, space=0, height=10, color=color, border=6, box=false, font='sans')
-		if (self.solarsystem.ShowBodies & bodyType) == 0:
+		#self.Label[0] = label(pos=(self.Position[X_COOR],self.Position[Y_COOR],self.Position[Z_COOR]), text=self.Name, xoffset=20, yoffset=12, space=0, height=10, color=color, border=6, box=false, font='sans')
+		self.Label.append(label(pos=(self.Position[X_COOR],self.Position[Y_COOR],self.Position[Z_COOR]), text=self.Name, xoffset=20, yoffset=12, space=0, height=10, color=color, border=6, box=false, font='sans'))
+		if (self.solarsystem.ShowFeatures & bodyType) == 0:
 			self.BodyShape.visible = false
-			self.Label.visible = false
+			self.Label[0].visible = false
+
+	def setOrbitalElements(self, index):
+		# For comets, asteroids or dwarf planets, data comes from data
+		# files -or- predefined values. Orbital Position is calculated
+		# from the last time of perihelion passage. This is the default
+		# behavior
+		self.setOrbitalFromPredefinedElements(planets_data[index])
 
 	# will calculate current value of approximate position of the major planets
 	# including pluto. This won't work for Asteroid, Comets or Dwarf planets
-	def updateKeplerianElements(self, elts):
+	def setOrbitalFromKeplerianElements(self, elts):
 		# get number of days since J2000 epoch
 		T = daysSinceJ2000UTC()/36525.
 
@@ -893,16 +953,14 @@ class makeBody:
 		self.Argument_of_perihelion = self.Longitude_of_perihelion - self.Longitude_of_ascendingnode
 
 		# compute mean Anomaly M = L - W
-		M = toRange(L-self.Longitude_of_perihelion) #W)
+		M = toRange(L - self.Longitude_of_perihelion) #W)
 
-		"""
 		# Obtain ecc. Anomaly E (in degrees) from M using an approx method of resolution:
-		"""
 		success, self.E, dE, it = solveKepler(M, self.e, 12000)
 		if success == False:
 			print "Could not converge for "+self.Name+", E = "+str(self.E)+", last precision = "+str(dE)
 
-	def updateElements(self, elts):
+	def setOrbitalFromPredefinedElements(self, elts):
 		# data comes from data file or predefined values
 		self.e 							= elts["e"]
 		self.Longitude_of_perihelion 	= elts["longitude_of_perihelion"]
@@ -918,28 +976,28 @@ class makeBody:
 
 		# calculate current position based on orbital elements
 		dT = daysSinceEpochJD(self.Epoch)
-		N = self.Longitude_of_ascendingnode + 0.013967 * (2000.0 - getCurrentYear()) + 3.82394e-5 * dT
-		self.Longitude_of_ascendingnode = N
+		# compute Longitude of Ascending node taking into account the time elapsed since epoch
+		#N = self.Longitude_of_ascendingnode + 0.013967 * (2000.0 - getCurrentYear()) + 3.82394e-5 * dT
+		#self.Longitude_of_ascendingnode = N
+		self.Longitude_of_ascendingnode +=  0.013967 * (2000.0 - getCurrentYear()) + 3.82394e-5 * dT
 
 		# adjust Mean Anomaly with time elapsed since epoch
-		M = self.Mean_anomaly + self.Mean_motion * dT
-		M = toRange(M)
-
+		#M = self.Mean_anomaly + self.Mean_motion * dT
+		#M = toRange(M)
+		M = toRange(self.Mean_anomaly + self.Mean_motion * dT)
 		success, self.E, dE, it = solveKepler(M, self.e, 20000)
 		if success == False:
 			print self.Name+" Warning Could not converge - E = "+str(self.E)
+
+	def getIncrement(self):
+		# provide 1 degree increment in radians
+		return pi/180
 
 	def draw(self):
 
 		self.Trail.visible = false
 		rad_E = deg2rad(self.E)
-		if self.BodyType == COMET:
-			# for comets, due to their sometimes high eccentricity, an increment of 1 deg may not be small enough
-			# to insure a smooth curve, hence we need to take smaller increments of 12.5 arcminutes in radians
-			increment = pi/(180 * 4)
-		else:
-			# Otherwise use 1 degree increment in radians
-			increment = pi/180
+		increment = self.getIncrement()
 
 		for E in np.arange(increment, 2*pi+increment, increment):
 			self.setPolarCoordinates(E+rad_E)
@@ -949,13 +1007,6 @@ class makeBody:
 
 		if self.BodyShape.visible:
 			self.Trail.visible = true
-
-	def setCartesianCoordinates(self):
-		self.Position[X_COOR] = self.R * DIST_FACTOR * ( cos(self.N) * cos(self.Nu+self.w) - sin(self.N) * sin(self.Nu+self.w) * cos(self.i) )
-		self.Position[Y_COOR] = self.R * DIST_FACTOR * ( sin(self.N) * cos(self.Nu+self.w) + cos(self.N) * sin(self.Nu+self.w) * cos(self.i) )
-	 	self.Position[Z_COOR] = self.R * DIST_FACTOR * ( sin(self.Nu+self.w) * sin(self.i) )
-
-		self.Position = self.Rotation_VernalEquinox * self.Position
 
 	def setPolarCoordinates(self, E_rad):
 		X = self.a * (cos(E_rad) - self.e)
@@ -979,26 +1030,45 @@ class makeBody:
 			else:
 				self.Trail.append(pos=self.BodyShape.pos, color=self.Color)
 
+	#def animate(self, timeIncrement):
+
+
+	def setCartesianCoordinates(self):
+		self.Position[X_COOR] = self.R * DIST_FACTOR * ( cos(self.N) * cos(self.Nu+self.w) - sin(self.N) * sin(self.Nu+self.w) * cos(self.i) )
+		self.Position[Y_COOR] = self.R * DIST_FACTOR * ( sin(self.N) * cos(self.Nu+self.w) + cos(self.N) * sin(self.Nu+self.w) * cos(self.i) )
+	 	self.Position[Z_COOR] = self.R * DIST_FACTOR * ( sin(self.Nu+self.w) * sin(self.i) )
+
+		self.Position = self.Rotation_VernalEquinox * self.Position
 
 	def refresh(self):
 		if self.solarsystem.AnimationInProgress and self.BodyType == self.solarsystem.currentSource:
 			return
 
-		if self.BodyType & self.solarsystem.ShowBodies <> 0 or self.Name == 'Earth':
+		if self.BodyType & self.solarsystem.ShowFeatures <> 0 or self.Name == 'Earth':
 			if self.BodyShape.visible == False:
 				self.BodyShape.visible = True
-				self.Label.visible = True
-				if self.solarsystem.ShowBodies & ORBITS <> 0:
+				for i in range(len(self.Label)):
+					self.Label[i].visible = True
+
+				if self.solarsystem.ShowFeatures & ORBITS <> 0:
 					self.Trail.visible = True
 				else:
 					self.Trail.visible = False
+
+				if self.solarsystem.ShowFeatures & LABELS <> 0:
+					for i in range(len(self.Label)):
+						self.Label[i].visible = True
+				else:
+					for i in range(len(self.Label)):
+						self.Label[i].visible = False
 
 				if self.Ring:
 					self.InnerRing.visible = True
 					self.OutterRing.visible = True
 		else:
 			self.BodyShape.visible = False
-			self.Label.visible = False
+			for i in range(len(self.Label)):
+				self.Label[i].visible = False
 			self.Trail.visible = False
 			if self.Ring:
 				self.InnerRing.visible = False
@@ -1011,7 +1081,37 @@ class makeBody:
 
 	def getCurrentVelocity(self):
 		# the formulat is v^2 = GM(2/r - 1/a)
-		return sqrt(G*SUN_M*((2/self.Distance) - (1/self.a)))
+		return sqrt(G*SUN_M*((2/self.R) - (1/self.a)))
+
+
+class planet(makeBody):
+	def __init__(self, system, index, color, trueAnomaly, type, size):
+		makeBody.__init__(self, system, index, color, trueAnomaly, type, size)
+
+	def setOrbitalElements(self, index):
+		# for the Major planets (default) includig Pluto, we have Keplerian
+		# elements to calculate the body's current approximate position on orbit
+		self.setOrbitalFromKeplerianElements(planets_data[index]["kep_elt"])
+
+class comet(makeBody):
+	def __init__(self, system, index, color, trueAnomaly):
+		makeBody.__init__(self, system, index, color, trueAnomaly, COMET, COMET)
+
+	def getIncrement(self):
+		# for comets, due to their sometimes high eccentricity, an increment of 1 deg may not be small enough
+		# to insure a smooth curve, hence we need to take smaller increments of 12.5 arcminutes in radians
+		return pi/(180 * 4)
+
+
+class asteroid(makeBody):
+	def __init__(self, system, index, color, trueAnomaly, type, size):
+		makeBody.__init__(self, system, index, color, trueAnomaly, type, size)
+
+
+class dwarfPlanet(makeBody):
+	def __init__(self, system, index, color, trueAnomaly):
+		makeBody.__init__(self, system, index, color, trueAnomaly, DWARFPLANET, DWARFPLANET)
+
 
 #
 # various functions
@@ -1044,11 +1144,11 @@ def glbRefresh(solarSystem):
 
 def hideBelt(beltname):
 	beltname.BodyShape.visible = false
-	beltname.Label.visible = false
+	beltname.Label[0].visible = false
 
 def showBelt(beltname):
 	beltname.BodyShape.visible = true
-	beltname.Label.visible = true
+	beltname.Label[0].visible = true
 
 def setBodyPosition(body, theta):
 	theta = (math.pi * theta)/180
@@ -1057,8 +1157,8 @@ def setBodyPosition(body, theta):
 	body.Y = R*sin(theta)
 	body.updatePosition(false)
 	if LEGEND:
-		body.Label.visible = false
-		body.Label = label(pos=(body.Position[X_COOR],body.Position[Y_COOR],body.Position[Z_COOR]), text=body.Name, xoffset=20, yoffset=12, space=0, height=10, color=body.Color, border=6, box=false, font='sans')
+		body.Label.append(label(pos=(body.Position[X_COOR],body.Position[Y_COOR],body.Position[Z_COOR]), text=body.Name, xoffset=20, yoffset=12, space=0, height=10, color=body.Color, border=6, box=false, font='sans'))
+		body.Label[0].visible = false
 
 def getColor():
 	return { 0: color.white, 1: color.red, 2: color.orange, 3: color.yellow, 4: color.cyan, 5: color.magenta, 6: color.green}[randint(0,6)]
@@ -1104,9 +1204,8 @@ def getTrueAnomalyAndRadius(E, e, a):
 	return ta, R
 
 # load orbital parameters stored in a file
-def loadBodies(solarsystem, type, filename):
+def loadBodies(solarsystem, type, filename, maxentries = 1000):
 	fo  = open(filename, "r")
-	limit = 10000
 	token = []
 	print "Loading "+filename
 	for line in fo:
@@ -1119,7 +1218,7 @@ def loadBodies(solarsystem, type, filename):
 					"material": 0,
 					"name": token[JPL_FULLNAME],
 					"mass": (float(token[JPL_GM])/G)*1.e+9 if token[JPL_GM] else 0, # convert km3 to m3
-					"radius": float(token[JPL_DIAMETER])/2 if token[JPL_DIAMETER] else 0,
+					"radius": float(token[JPL_DIAMETER])/2 if token[JPL_DIAMETER] else DEFAULT_RADIUS,
 					"perihelion": float(token[JPL_OE_q]) * AU,
 					"e": float(token[JPL_OE_e]),
 					"revolution": float(token[JPL_OE_Pd]),
@@ -1135,9 +1234,14 @@ def loadBodies(solarsystem, type, filename):
 					"orbital_obliquity": 0 # in deg
 				}
 
-				solarsystem.addTo(makeBody(solarsystem, token[JPL_DESIGNATION], getColor(), 0, type, type))
-				limit = limit - 1
-				if limit <= 0:
+				#print "Radius = "+str(planets_data[token[JPL_DESIGNATION]]["radius"])
+				if type == COMET:
+					body = comet(solarsystem, token[JPL_DESIGNATION], getColor(), 0)
+				else:
+					body = asteroid(solarsystem, token[JPL_DESIGNATION], getColor(), 0, type, type)
+				solarsystem.addTo(body)
+				maxentries -= 1
+				if maxentries <= 0:
 					break
 	fo.close()
 
@@ -1217,39 +1321,42 @@ def rad2deg(rad):
 
 def main():
 	solarsystem = solarSystem()
-	solarsystem.ShowBodies = INNERPLANET|ORBITS
+	# set what is displayed by default
+	solarsystem.ShowFeatures = INNERPLANET|ORBITS|LABELS
 
 	solarsystem.addTo(makeEcliptic(solarsystem, color.white))
-	solarsystem.addTo(makeBody(solarsystem, 'mercury', color.green, 70))
-	solarsystem.addTo(makeBody(solarsystem, 'venus', color.yellow, 0))
-	solarsystem.addTo(makeBody(solarsystem, 'earth', color.cyan, 225))
-	solarsystem.addTo(makeBody(solarsystem, 'mars', color.red, 0))
-	solarsystem.addTo(makeBody(solarsystem, 'jupiter', color.magenta, 0, OUTTERPLANET, GASGIANT))
-	solarsystem.addTo(makeBody(solarsystem, 'saturn', color.cyan, 20, OUTTERPLANET, GASGIANT))
-	solarsystem.addTo(makeBody(solarsystem, 'uranus', color.yellow, 0, OUTTERPLANET, GASGIANT))
-	solarsystem.addTo(makeBody(solarsystem, 'neptune', color.orange, 0, OUTTERPLANET, GASGIANT))
-	solarsystem.addTo(makeBody(solarsystem, 'pluto', color.green, 0, OUTTERPLANET, DWARFPLANET))
+	solarsystem.addTo(planet(solarsystem, 'mercury', color.green, 70, INNERPLANET, INNERPLANET))
+	solarsystem.addTo(planet(solarsystem, 'venus', color.yellow, 0, INNERPLANET, INNERPLANET))
+	solarsystem.addTo(planet(solarsystem, 'earth', color.cyan, 225, INNERPLANET, INNERPLANET))
+	solarsystem.addTo(planet(solarsystem, 'mars', color.red, 0, INNERPLANET, INNERPLANET))
+	solarsystem.addTo(planet(solarsystem, 'jupiter', color.magenta, 0, OUTTERPLANET, GASGIANT))
+	solarsystem.addTo(planet(solarsystem, 'saturn', color.cyan, 20, OUTTERPLANET, GASGIANT))
+	solarsystem.addTo(planet(solarsystem, 'uranus', color.yellow, 0, OUTTERPLANET, GASGIANT))
+	solarsystem.addTo(planet(solarsystem, 'neptune', color.orange, 0, OUTTERPLANET, GASGIANT))
+	solarsystem.addTo(planet(solarsystem, 'pluto', color.green, 0, OUTTERPLANET, DWARFPLANET))
 
 	solarsystem.makeRings(solarsystem, "saturn")
 
 	# generate DWARF planets
-	solarsystem.addTo(makeBody(solarsystem, 'eris', color.yellow, 0, DWARFPLANET, DWARFPLANET))
-	solarsystem.addTo(makeBody(solarsystem, 'makemake', color.magenta, 0, DWARFPLANET, DWARFPLANET))
-	solarsystem.addTo(makeBody(solarsystem, 'sedna', color.orange, 0, DWARFPLANET, DWARFPLANET))
-	solarsystem.addTo(makeBody(solarsystem, 'haumea', color.white, 0, DWARFPLANET, DWARFPLANET))
-	solarsystem.addTo(makeBody(solarsystem, 'MU69', color.red, 0, DWARFPLANET, DWARFPLANET))
+	solarsystem.addTo(dwarfPlanet(solarsystem, 'eris', color.yellow, 0))
+	solarsystem.addTo(dwarfPlanet(solarsystem, 'makemake', color.magenta, 0))
+	solarsystem.addTo(dwarfPlanet(solarsystem, 'sedna', color.orange, 0))
+	solarsystem.addTo(dwarfPlanet(solarsystem, 'haumea', color.white, 0))
 
 	# generate Belts
 	solarsystem.addTo(makeBelt(solarsystem, 'kuiper', 'Kuiper Belt', KUIPER_BELT, color.cyan, 2, 4))
 	solarsystem.addTo(makeBelt(solarsystem, 'asteroid', 'Asteroid Belt', ASTEROID_BELT, color.white, 2, 2))
 	solarsystem.addTo(makeBelt(solarsystem, 'inneroort', 'Inner Oort Cloud', INNER_OORT_CLOUD, color.white, 2, 5))
 
+	solarsystem.addTo(makeJtrojan(solarsystem, 'jupiterTrojan', 'Jupiter Trojans', JTROJANS, color.green, 2, 5, 'jupiter'))
+
 	LOAD_SMALL_OBJECTS = True
 
 	if LOAD_SMALL_OBJECTS:
-		loadBodies(solarsystem, PHA, "200m+PHA_orbital_elements.txt")
+		loadBodies(solarsystem, PHA, "200m+PHA_orbital_elements.txt", 10)
 		loadBodies(solarsystem, BIG_ASTEROID,"200km+asteroids_orbital_elements.txt")
-		loadBodies(solarsystem, COMET, "200m+comets_orbital_elements.txt")
+		loadBodies(solarsystem, COMET, "200m+comets_orbital_elements.txt", 10)
+		loadBodies(solarsystem, TRANS_NEPT, "transNeptunian_objects.txt")
 
 	solarsystem.drawAllBodiesTrajectory()
 
