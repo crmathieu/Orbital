@@ -812,24 +812,23 @@ class makeJtrojan(makeBelt):
 		self.RadiusMaxAU = belt_data["jupiterTrojan"]["radius_max"]	+ sqrt(increment) # in AU
 		self.Thickness = belt_data["jupiterTrojan"]["thickness"]	+ sqrt(increment)
 
-	def draw(self): # TODO
+	def draw(self):
 		# determine where the body is
 		if self.PlanetName == None:
 			return
 
-		# grab Jupiter's current True Anomaly and add the Long of perihelion to it
+		# grab Jupiter's current True Anomaly and add the Long. of perihelion to capture
+		# the current angle in the fixed referential
 		planet = self.solarsystem.getBodyFromName(planets_data[self.PlanetName]['name'])
 		Nu = deg2rad(toRange(rad2deg(planet.Nu) + planet.Longitude_of_perihelion))
 
 		# get Lagrangian L4 and L5 based on body position
-		L4 = (Nu + 4*pi/3 ) #% 2*pi
+		L4 = (Nu + 4*pi/3 )
 		L5 = (Nu + 2*pi/3)
 		delta = deg2rad(25)
 
 		for i in np.arange(pi/(180*self.Density), delta, pi/(180*self.Density)):
-			# generate random radius between Min and MAX
 			self.updateThickness(i)
-			#RandomRadius = randint(round(self.RadiusMinAU * AU * DIST_FACTOR, 3) * 1000, round(self.RadiusMaxAU * AU * DIST_FACTOR, 3) * 1000) / 1000
 			RandomRadius = uniform(round(self.RadiusMinAU * AU * DIST_FACTOR, 3) * 1000, round(self.RadiusMaxAU * AU * DIST_FACTOR, 3) * 1000) / 1000
 			RandomTail = uniform(round(belt_data["jupiterTrojan"]["radius_min"]  * AU * DIST_FACTOR, 3) * 1000, round(belt_data["jupiterTrojan"]["radius_max"] * AU * DIST_FACTOR, 3) * 1000) / 1000
 			MAX = self.getGaussian(RandomRadius) * self.Thickness * AU * DIST_FACTOR * self.ThicknessFactor
@@ -837,9 +836,10 @@ class makeJtrojan(makeBelt):
 
 			heightToEcliptic = {0:1, 1:-1}[randint(0,1)] * uniform(1 * AU * DIST_FACTOR, int(round(MAX*sqrt(19*i), 6)*1.e6))/1e6
 			heightToEclipticTail = {0:1, 1:-1}[randint(0,1)] * uniform(1 * AU * DIST_FACTOR, int(round(MAXTAIL*sqrt(delta-i), 6)*1.e6))/1e6
+			# calculate positions on 1/2 values for small tail
 			self.BodyShape.append(pos=(RandomTail * cos(L4+delta+i), RandomTail * sin(L4+delta+i), heightToEclipticTail))
 			self.BodyShape.append(pos=(RandomTail * cos(L5-delta-i), RandomTail * sin(L5-delta-i), heightToEclipticTail))
-
+			# calculate positions on 1/2 values and complete by symetry for the rest
 			self.BodyShape.append(pos=(RandomRadius * cos(L4-delta+i), RandomRadius * sin(L4-delta+i), heightToEcliptic))
 			self.BodyShape.append(pos=(RandomRadius * cos(L4+delta-i), RandomRadius * sin(L4+delta-i), heightToEcliptic))
 			self.BodyShape.append(pos=(RandomRadius * cos(L5-delta+i), RandomRadius * sin(L5-delta+i), heightToEcliptic))
