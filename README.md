@@ -17,8 +17,8 @@ Keep in mind that
 	- All distances between each object and the sun are proportional to the actual distance.
 	- Objects sizes are NOT proportional to their actual size (this is by design in order to 
 	  view all objects properly).
-	- Asteroid belt, Kuiper belt and Oort Cloud are included for illustration purpose only. Even though their 
-	  size and thickness is proportional to their actual dimension, the distribution pattern within 
+	- Asteroid belt, Kuiper belt, Jupiter Trojans and Oort Cloud are included for illustration purpose only. Even though their 
+	  size and thickness is somehow proportional to their actual dimension, the distribution pattern within 
 	  the belt is purely random/aesthetic.
 	- This code is a work in progress, so you may see some under development portions of the script that are 
 	  unused at this moment.
