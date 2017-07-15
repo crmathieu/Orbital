@@ -21,9 +21,7 @@ SOFTWARE.
 
 """
 from visual import *
-#from visual.controls import *
 
-#import sys
 import numpy as np
 from planetsdata import *
 from random import *
