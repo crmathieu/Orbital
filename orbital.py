@@ -21,115 +21,23 @@ SOFTWARE.
 
 """
 from visual import *
-from visual.controls import *
+#from visual.controls import *
 
-import sys
+#import sys
 import numpy as np
-
+from planetsdata import *
 from random import *
 import scipy.special as sp
 import datetime
 
 import wx
-
+"""
 date_elements = {
 	"d_to_m" :{1:0, 2:31, 3:59, 4:90, 5:120, 6:151, 7:181, 8:212, 9:243, 10:273, 11:304, 12:334},
 	"d_to_m_leap" :{1:0, 2:31, 3:60, 4:91, 5:121, 6:152, 7:182, 8:213, 9:244, 10:274, 11:305, 12:335},
 	"d_since_J2000":{1995:-1827.5, 1996: -1462.5, 1997: -1096.5, 1998: -731.5, 1999:-366.5, 2000:-1.5, 2001: 364.5, 2002: 729.5, 2003:1094.5, 2004:1459.5, 2005:1825.5}
 }
-
-INNERPLANET = 0x01
-OUTTERPLANET = 0x02
-DWARFPLANET = 0x04
-ASTEROID = 0x08
-COMET = 0x10
-SMALL_ASTEROID = 0x20
-BIG_ASTEROID = 0x40
-PHA = 0x80
-ASTEROID_BELT = 0x100
-KUIPER_BELT = 0x200
-INNER_OORT_CLOUD = 0x400
-ECLIPTIC_PLANE = 0x800
-LIT_SCENE = 0x1000
-REFERENTIAL = 0x2000
-ORBITS = 0x4000
-GASGIANT = 0x8000
-TRANS_NEPT = 0x10000
-LABELS = 0x20000
-JTROJANS = 0x40000
-
-TYPE_MASK = 0xFFFFF
-
-SATELLITE_M = 100
-THREE_D = False
-MAX_P_D = 1.1423e13
-MIN_P_D = 46.0e9
-LEGEND = true
-
-SUN_M = 1.989e+30
-SUN_R = 696e+6
-G = 6.67384e-11	# Universal gravitational constant
-Mu = G * SUN_M
-DIST_FACTOR = 10e-7
-X_COOR = 0
-Y_COOR = 1
-Z_COOR = 2
-
-TYPE_PLANET = 1
-TYPE_ASTEROID = 2
-TYPE_DWARF_PLANET = 3
-TYPE_COMET = 4
-TYPE_TRANS_N = 5
-
-AU = 149597870691
-DEFAULT_RADIUS = 2.78787878
-
-JPL_FULLNAME = 0
-JPL_DESIGNATION = 1
-JPL_IAU_NAME = 2
-JPL_PREFIX = 3
-JPL_NEAR_EARTH_ORBIT = 4
-JPL_PHA = 5
-JPL_MAG_H = 6
-JPL_MAG_G = 7
-JPL_MAG_M1 = 8
-JPL_MAG_M2 = 9
-JPL_MAG_K1 = 10
-JPL_MAG_K2 = 11
-JPL_MAG_PC = 12
-JPL_DIAMETER = 13
-JPL_EXTENT = 14
-JPL_ALBEDO = 15
-JPL_ROT_PER = 16
-JPL_GM = 17
-JPL_MAG_BV = 18
-JPL_MAG_UB = 19
-JPL_MAG_IR = 20
-JPL_SPEC_1 = 21
-JPL_SPEC_2 = 22
-JPL_H_SIGMA = 23
-JPL_DIAMETER_SIGMA = 24
-JPL_ORBIT_ID = 25
-JPL_EPOCH_JD = 26
-JPL_EPOCH_MJD = 27
-JPL_EPOCH_ET = 28
-JPL_EQUINOX = 29
-JPL_OE_e = 30
-JPL_OE_a = 31
-JPL_OE_q = 32
-JPL_OE_i = 33
-JPL_OE_N = 34
-JPL_OE_w = 35
-JPL_OE_M = 36
-JPL_OE_Q = 37
-JPL_OE_n = 38
-JPL_OE_tp_JD = 39
-JPL_OE_tp_ET = 40
-JPL_OE_Pd = 41
-JPL_OE_Py = 42
-JPL_EARTH_MOID_AU = 43
-JPL_EARTH_MOID_LD = 44
-JPL_JUPITER_MOID_AU = 45
+"""
 
 class controlWindow(wx.Frame):
 
@@ -186,7 +94,6 @@ class controlWindow(wx.Frame):
 		self.createCheckBox(pnl, "Orbits", ORBITS, 20, ORB_Y)
 		self.createCheckBox(pnl, "Outter Planets", OUTTERPLANET, 20, GASG_Y)
 		self.createCheckBox(pnl, "Dwarf Planets", DWARFPLANET, 20, DWARF_Y)
-		#self.createCheckBox(pnl, "TransNeptunian Objects", TRANS_NEPT, 20, TNO_Y)
 		self.createCheckBox(pnl, "Asteroids Belt", ASTEROID_BELT, 20, AB_Y)
 		self.createCheckBox(pnl, "Jupiter Trojans", JTROJANS, 20, JT_Y)
 		self.createCheckBox(pnl, "Kuiper Belt", KUIPER_BELT, 20, KB_Y)
@@ -300,10 +207,9 @@ class controlWindow(wx.Frame):
 				self.Info1.SetLabel("i  : "+str(body.Inclinaison)+" deg\nN : "+str(body.Longitude_of_ascendingnode)+" deg\nw : "+str(body.Argument_of_perihelion)+" deg\ne : "+str(body.e)+"\nq : "+str(body.Perihelion/1000)+" km")
 				self.Info2.SetLabel("Mass : "+mass+"\nRadius : "+radius+"\nPeriod: "+rev+" yr"+"\nMoid :"+moid+"\nVelocity: "+velocity)
 
-
 				body.BodyShape.visible = True
-				for i in range(len(body.Label)):
-					body.Label[i].visible = True
+				for i in range(len(body.Labels)):
+					body.Labels[i].visible = True
 				body.Trail.visible = True
 
 				for i in range(0,2):
@@ -313,8 +219,8 @@ class controlWindow(wx.Frame):
 					rate(1)
 
 				body.BodyShape.visible = False
-				for i in range(len(body.Label)):
-					body.Label[i].visible = False
+				for i in range(len(body.Labels)):
+					body.Labels[i].visible = False
 
 				body.Trail.visible = False
 				if self.solarsystem.AbortAnimation:
@@ -328,259 +234,6 @@ class controlWindow(wx.Frame):
 		self.InfoTitle.SetLabel('')
 		self.Info1.SetLabel('')
 		self.Info2.SetLabel('')
-
-planets_data = {
-	"neptune" :{
-		"type": TYPE_PLANET,
-		"material":1,
-		"name": "Neptune",
-		"mass":102e24,
-		"radius":24622e3,
-		"perihelion":4444.45e9,
-		"e":0.00858587,
-		"revolution":164.179 * 365,
-		"orbital_inclinaison":1.769,
-		"longitude_of_ascendingnode":131.72169,
-		"longitude_of_perihelion":44.97135,
-		"orbital_obliquity": 28.3,
-		"kep_elt":{"a" : 30.06952752, "ar": 0.00006447,"e" : 0.00895439,"er": 0.00000818,"i" : 1.77005520,"ir": 0.00022400,"L" : 304.22289287,"Lr": 218.46515314,"W" : 46.68158724,"Wr": 0.01009938,"N" : 131.78635853,"Nr": -0.00606302,"b" : -0.00041348,"c" : 0.68346318,"s" : -0.10162547,"f" : 7.67025000}
-		},
-
-	"uranus" : {
-		"type": TYPE_PLANET,
-		"material":1,
-		"name": "Uranus",
-		"mass":86.8e24,
-		"radius":25362e3,
-		"perihelion":2741.30e9,
-		"e":0.04716771,
-		"revolution":84.011 * 365,
-		"orbital_inclinaison":0.770,
-		"longitude_of_ascendingnode":74.22988,
-		"longitude_of_perihelion":170.96424,
-		"orbital_obliquity": 97.8,
-		"kep_elt":{"a" : 19.18797948, "ar": -0.00020455, "e" : 0.04685740, "er": -0.00001550, "i" : 0.77298127, "ir": -0.00180155, "L" : 314.20276625, "Lr": 428.49512595, "W" : 172.43404441, "Wr": 0.09266985, "N": 73.96250215, "Nr": 0.05739699, "b" : 0.00058331, "c" : -0.97731848, "s" : 0.17689245, "f" : 7.67025000}
-		},
-
-	"saturn" : {
-		"type": TYPE_PLANET,
-		"material":1,
-		"name": "Saturn",
-		"mass":568e24,
-		"radius":58232e3,
-		"perihelion":1352.55e9,
-		"e":0.05415060,
-		"revolution":29.457 * 365,
-		"orbital_inclinaison":2.484,
-		"longitude_of_ascendingnode":113.71504,
-		"longitude_of_perihelion":92.43194,
-		"orbital_obliquity": 26.7,
-		"kep_elt":{"a" : 9.54149883, "ar": -0.00003065, "e" : 0.05550825, "er": -0.00032044, "i" : 2.49424102, "ir": 0.00451969, "L" : 50.07571329, "Lr": 1222.11494724, "W" : 92.86136063, "Wr": 0.54179478, "N": 113.63998702, "Nr": -0.25015002, "b" : 0.00025899, "c" : -0.13434469, "s" : 0.87320147, "f" : 38.35125}
-		},
-
-	"jupiter" :{
-		"type": TYPE_PLANET,
-		"material":1,
-		"name": "Jupiter",
-		"mass":1898e24,
-		"radius":69911e3,
-		"perihelion":740.52e9,
-		"e":0.04839266,
-		"revolution":11.862 * 365,
-		"orbital_inclinaison":1.305,
-		"longitude_of_ascendingnode":100.55615,
-		"longitude_of_perihelion":14.75385,
-		"orbital_obliquity": 3.1,
-		"kep_elt":{"a" : 5.20248019, "ar": -0.00002864, "e" : 0.04853590, "er": 0.00018026, "i" : 1.29861416, "ir": -0.00322699, "L" : 34.33479152, "Lr": 3034.90371757, "W" : 14.27495244, "Wr": 0.18199196, "N": 100.29282654, "Nr": 0.13024619, "b" : -0.00012452, "c" : 0.06064060, "s" : -0.35635438, "f" : 38.35125}
-		},
-
-	"mars" : {
-		"type": TYPE_PLANET,
-		"material":1,
-		"name": "Mars",
-		"mass":0.642e24,
-		"radius":3389e3,
-		"perihelion":206.62e9,
-		"e":0.09341233,
-		"revolution":686.98,
-		"orbital_inclinaison":1.851,
-		"longitude_of_ascendingnode":49.57854,
-		"longitude_of_perihelion":336.04084,
-		"orbital_obliquity": 25.2,
-		"kep_elt":{'a' : 1.52371243, 'ar': 9.7e-07, 'e' : 0.09336511, 'er':9.149e-05, 'i' :1.85181869, 'ir':-0.00724757, 'L' :-4.56813164, 'Lr':19140.2993424, 'W' :-23.91744784, 'Wr':0.45223625, 'N' :49.71320984, 'Nr':-0.26852431, 'b' :0.0, 'c' :0.0, 's':0.0, 'f' :0.0}
-		},
-
-	"mercury" :{
-		"type": TYPE_PLANET,
-		"material":1,
-		"name": "Mercury",
-		"mass":0.330e24,
-		"radius":2439e3,
-		"perihelion":46.0e9,
-		"e":0.20563069,
-		"revolution":87.969,
-		"orbital_inclinaison":7.005,
-		"longitude_of_ascendingnode":48.33167,
-		"longitude_of_perihelion":77.45645,
-		"orbital_obliquity": 0.034,
-		"kep_elt":{'a' : 0.38709843, 'ar': 0.0, 'e' : 0.20563661, 'er':0.00002123, 'i' :7.00559432, 'ir':-0.00590158, 'L' :252.25166724, 'Lr':149472.674866, 'W' :77.45771895, 'Wr':0.15940013, 'N' :48.33961819, 'Nr':-0.12214182, 'b' :0.0, 'c' :0.0, 's':0.0, 'f' :0.0},
-		},
-
-	"venus" : {
-		"type": TYPE_PLANET,
-		"material":1,
-		"name": "Venus",
-		"mass":4.87e24,
-		"radius":6052e3,
-		"perihelion":107.48e9,
-		"e":0.00677323,
-		"revolution":224.701,
-		"orbital_inclinaison":3.3947,
-		"longitude_of_ascendingnode":76.68069,
-		"longitude_of_perihelion":131.53298,
-		"orbital_obliquity": 177.4,
-		"kep_elt":{'a' : 0.72332102, 'ar': -2.6e-07, 'e' : 0.00676399, 'er':-5.107e-05, 'i' :3.39777545, 'ir':0.00043494, 'L' :181.9797085, 'Lr':58517.8156026, 'W' :131.76755713, 'Wr':0.05679648, 'N' :76.67261496, 'Nr':-0.27274174, 'b' :0.0, 'c' :0.0, 's':0.0, 'f' :0.0},
-		},
-
-	"earth" : {
-		"type": TYPE_PLANET,
-		"material":1,
-		"name": "Earth",
-		"mass":5.972e24,
-		"radius":6371e3,
-		"perihelion":147.09e9,
-		"e":0.01671022,
-		"revolution":365.256,
-		"orbital_inclinaison":0,
-		"longitude_of_ascendingnode":-11.26064,
-		"longitude_of_perihelion":102.94719,
-		"orbital_obliquity": 23.4,
-		"kep_elt":{'a' : 1.00000018, 'ar': -3e-08, 'e' : 0.01673163, 'er':-3.661e-05, 'i' :-0.00054346, 'ir':-0.01337178, 'L' :100.46691572, 'Lr':35999.3730633, 'W' :102.93005885, 'Wr':0.3179526, 'N' :-5.11260389, 'Nr':-0.24123856, 'b' :0.0, 'c' :0.0, 's':0.0, 'f' :0.0},
-		},
-
-	"pluto" : {
-		"type": TYPE_PLANET,
-		"material":1,
-		"name": "Pluto",
-		"mass":0.0146e24,
-		"radius":1195e3,
-		"perihelion":4436.82e+9,
-		"e":0.24880766,
-		"revolution":247.68 * 365,
-		"orbital_inclinaison":17.142,
-		"longitude_of_ascendingnode":110.30347,
-		"longitude_of_perihelion":224.06676,
-		"orbital_obliquity": 122.5,
-		"kep_elt":{'a' : 39.48686035, 'ar': 0.00449751, 'e' : 0.24885238, 'er':6.016e-05, 'i' :17.1410426, 'ir':5.01e-06, 'L' :238.96535011, 'Lr':145.18042903, 'W' :224.09702598, 'Wr':-0.00968827, 'N' :110.30167986, 'Nr':-0.00809981, 'b' :-0.01262724, 'c' :0.0, 's':0.0, 'f' :0.0}
-		},
-
-	"eris" : {
-		"type": TYPE_DWARF_PLANET,
-		"material":0,
-		"name": "Eris",
-		"mass":1.66e22,
-		"radius":1163e3,
-		"perihelion":5.723e12,
-		"e":0.4417142619088136,
-		"revolution": 203830,
-		"orbital_inclinaison":44.0445,
-		"longitude_of_ascendingnode": 35.87791199490014,
-		"longitude_of_perihelion":186.9301,
-
-		"Time_of_perihelion_passage_JD": 2545575.799683113451,
-		"mean_motion":.001771354370292503,
-		"epochJD": 2458000.5,
-		"mean_anomaly": 204.8731101766414,
-
-		"orbital_obliquity": 0
-		},
-
-	"makemake":{
-		"type": TYPE_DWARF_PLANET,
-		"material":0,
-		"name": "Makemake",
-		"mass":4.4e21,
-		"radius":739e3,
-		"perihelion":5.77298e12,
-		"e":.154682767507142,
-		"revolution": 112897.9710682497,
-		"orbital_inclinaison":29.00685,
-		"longitude_of_ascendingnode": 79.3659,
-		"longitude_of_perihelion":376.6059,
-
-		"Time_of_perihelion_passage_JD": 2407499.827534289027,
-		"mean_motion":.003188719837864677,
-		"epochJD": 2458000.5,
-		"mean_anomaly": 161.032496116919,
-
-		"orbital_obliquity": 0
-		},
-
-	"sedna":   {
-		"type": TYPE_DWARF_PLANET,
-		"material":0,
-		"name": "Sedna",
-		"mass":4.4e21, # mass is undetermined
-		"radius":995e3,
-		"perihelion":1.1423e13,
-		"e":0.85491,
-		"revolution": 3934726.687924069,
-		"orbital_inclinaison":11.92872,
-		"longitude_of_ascendingnode":144.546,
-		"longitude_of_perihelion":455.836,
-
-		"Time_of_perihelion_passage_JD": 2479566.507375652123,
-		"mean_motion":9.149301299753888e-5,
-		"epochJD": 2458000.5,
-		"mean_anomaly": 358.0268610068745,
-
-		"orbital_obliquity": 0
-		},
-
-	"haumea":  {
-		"type": TYPE_DWARF_PLANET,
-		"material":0,
-		"name": "Haumea",
-		"mass":4.006e21,
-		"radius":620e3,
-		"perihelion":35.14529440338772*AU,
-		"e":0.1893662787361186,
-		"revolution": 104270.6801862633,
-		"orbital_inclinaison":28.20363151617822,
-		"longitude_of_ascendingnode":121.9702799705751,
-		"longitude_of_perihelion":360.8407349965672,
-
-		"Time_of_perihelion_passage_JD": 2500269.703252029540,
-		"mean_motion":.003452552523460249,
-		"epochJD": 2458000.5,
-		"mean_anomaly": 214.0633556475513,
-
-		"orbital_obliquity": 0
-		},
-}
-
-belt_data = {
-	"jupiterTrojan": {
-		"radius_min":5.05,
-		"radius_max":5.65, #5.35,
-		"thickness": 0.6,
-		"thickness_factor":15.e4},
-	"asteroid":	{
-		"radius_min":2.06,
-		"radius_max":3.27,
-		"thickness": 0,
-		"thickness_factor":5.e4},
-	"kuiper":   {
-		"radius_min":30,
-		"radius_max":50,
-		"thickness": 10,
-		"thickness_factor":1.e6},
-	"inneroort":	{
-		"radius_min":2000,
-		"radius_max":20000,
-		"thickness": 0,
-		"thickness_factor":1.e9},
-}
 
 class solarSystem:
 
@@ -660,8 +313,8 @@ class solarSystem:
 			if body.BodyType in [OUTTERPLANET, INNERPLANET, ASTEROID, COMET, DWARFPLANET, PHA, BIG_ASTEROID, TRANS_NEPT]:
 				if body.BodyShape.visible == True:
 					body.Trail.visible = orbitTrace
-					for i in range(len(body.Label)):
-						body.Label[i].visible = labelVisible
+					for i in range(len(body.Labels)):
+						body.Labels[i].visible = labelVisible
 
 		if self.ShowFeatures & LIT_SCENE <> 0:
 			self.Scene.ambient = color.white
@@ -688,8 +341,8 @@ class solarSystem:
 			body.Y = R * sin(trueAnomaly)
 			body.updatePosition(false)
 			if LEGEND:
-				body.Label.append(label(pos=(body.Position[X_COOR],body.Position[Y_COOR],body.Position[Z_COOR]), text=body.Name, xoffset=20, yoffset=12, space=0, height=10, color=body.Color, border=6, box=false, font='sans'))
-				body.Label[0].visible = false
+				body.Labels.append(label(pos=(body.Position[X_COOR],body.Position[Y_COOR],body.Position[Z_COOR]), text=body.Name, xoffset=20, yoffset=12, space=0, height=10, color=body.Color, border=6, box=false, font='sans'))
+				body.Labels[0].visible = false
 
 	def makeRings(self, system, bodyName, density = 1):  # change default values during instantiation
 		global planets_data
@@ -749,7 +402,7 @@ class makeEcliptic:
 class makeBelt:
 
 	def __init__(self, system, index, name, bodyType, color, size, density = 1, planetname = None):  # change default values during instantiation
-		self.Label = []
+		self.Labels = []
 		self.Name = name
 		self.solarsystem = system
 		self.Density = density		# body name
@@ -779,28 +432,28 @@ class makeBelt:
 			heightToEcliptic = {0: 0, 1:1, 2:-1}[randint(0,2)] * randint(0, int(round(MAX, 6)*1.e6))/1e6
 			self.BodyShape.append(pos=(RandomRadius * cos(i), RandomRadius * sin(i), heightToEcliptic))
 
-		#self.Label[0] = label(pos=(self.RadiusMaxAU * AU * DIST_FACTOR * cos(i), self.RadiusMaxAU * AU * DIST_FACTOR * sin(i), 0), text=self.Name, xoffset=20, yoffset=12, space=0, height=10, border=6, box=false, font='sans')
-		self.Label.append(label(pos=(self.RadiusMaxAU * AU * DIST_FACTOR * cos(i), self.RadiusMaxAU * AU * DIST_FACTOR * sin(i), 0), text=self.Name, xoffset=20, yoffset=12, space=0, height=10, border=6, box=false, font='sans'))
-		self.Label[0].visible = False
+		#self.Labels[0] = label(pos=(self.RadiusMaxAU * AU * DIST_FACTOR * cos(i), self.RadiusMaxAU * AU * DIST_FACTOR * sin(i), 0), text=self.Name, xoffset=20, yoffset=12, space=0, height=10, border=6, box=false, font='sans')
+		self.Labels.append(label(pos=(self.RadiusMaxAU * AU * DIST_FACTOR * cos(i), self.RadiusMaxAU * AU * DIST_FACTOR * sin(i), 0), text=self.Name, xoffset=20, yoffset=12, space=0, height=10, border=6, box=false, font='sans'))
+		self.Labels[0].visible = False
 
 	def refresh(self):
 		if self.solarsystem.ShowFeatures & self.BodyType <> 0:
 			if self.BodyShape.visible == false:
 				self.BodyShape.visible = true
-				#self.Label.visible = true
+				#self.Labels.visible = true
 			if self.solarsystem.ShowFeatures & LABELS <> 0:
 				labelVisible = True
 			else:
 				labelVisible = False
 
-			for i in range(len(self.Label)):
-				self.Label[i].visible = labelVisible
+			for i in range(len(self.Labels)):
+				self.Labels[i].visible = labelVisible
 
 		else:
 			if self.BodyShape.visible == true:
 				self.BodyShape.visible = false
-				for i in range(len(self.Label)):
-					self.Label[i].visible = False
+				for i in range(len(self.Labels)):
+					self.Labels[i].visible = False
 
 class makeJtrojan(makeBelt):
 
@@ -845,13 +498,13 @@ class makeJtrojan(makeBelt):
 			self.BodyShape.append(pos=(RandomRadius * cos(L5-delta+i), RandomRadius * sin(L5-delta+i), heightToEcliptic))
 			self.BodyShape.append(pos=(RandomRadius * cos(L5+delta-i), RandomRadius * sin(L5+delta-i), heightToEcliptic))
 
-		self.Label.append(label(pos=(self.RadiusMaxAU * AU * DIST_FACTOR * cos(L4), self.RadiusMaxAU * AU * DIST_FACTOR * sin(L4), 0), text="L4 Trojans", xoffset=20, yoffset=12, space=0, height=10, border=6, box=false, font='sans', visible = False))
-		self.Label.append(label(pos=(self.RadiusMaxAU * AU * DIST_FACTOR * cos(L5), self.RadiusMaxAU * AU * DIST_FACTOR * sin(L5), 0), text="L5 Trojans", xoffset=20, yoffset=12, space=0, height=10, border=6, box=false, font='sans', visible = False))
+		self.Labels.append(label(pos=(self.RadiusMaxAU * AU * DIST_FACTOR * cos(L4), self.RadiusMaxAU * AU * DIST_FACTOR * sin(L4), 0), text="L4 Trojans", xoffset=20, yoffset=12, space=0, height=10, border=6, box=false, font='sans', visible = False))
+		self.Labels.append(label(pos=(self.RadiusMaxAU * AU * DIST_FACTOR * cos(L5), self.RadiusMaxAU * AU * DIST_FACTOR * sin(L5), 0), text="L5 Trojans", xoffset=20, yoffset=12, space=0, height=10, border=6, box=false, font='sans', visible = False))
 
 class makeBody:
 
 	def __init__(self, system, index, color, trueAnomaly, bodyType = INNERPLANET, sizeCorrectionType = INNERPLANET):  # change default values during instantiation
-		self.Label = []
+		self.Labels = []
 		self.solarsystem 			= system
 		self.Ring 					= false
 		self.OrbitalObliquity		= planets_data[index]["orbital_obliquity"]
@@ -919,11 +572,11 @@ class makeBody:
 		self.BodyShape.rotate(angle=self.Angle)
 
 		# add LEGEND
-		#self.Label[0] = label(pos=(self.Position[X_COOR],self.Position[Y_COOR],self.Position[Z_COOR]), text=self.Name, xoffset=20, yoffset=12, space=0, height=10, color=color, border=6, box=false, font='sans')
-		self.Label.append(label(pos=(self.Position[X_COOR],self.Position[Y_COOR],self.Position[Z_COOR]), text=self.Name, xoffset=20, yoffset=12, space=0, height=10, color=color, border=6, box=false, font='sans'))
+		#self.Labels[0] = label(pos=(self.Position[X_COOR],self.Position[Y_COOR],self.Position[Z_COOR]), text=self.Name, xoffset=20, yoffset=12, space=0, height=10, color=color, border=6, box=false, font='sans')
+		self.Labels.append(label(pos=(self.Position[X_COOR],self.Position[Y_COOR],self.Position[Z_COOR]), text=self.Name, xoffset=20, yoffset=12, space=0, height=10, color=color, border=6, box=false, font='sans'))
 		if (self.solarsystem.ShowFeatures & bodyType) == 0:
 			self.BodyShape.visible = false
-			self.Label[0].visible = false
+			self.Labels[0].visible = false
 
 	def setOrbitalElements(self, index):
 		# For comets, asteroids or dwarf planets, data comes from data
@@ -1047,8 +700,8 @@ class makeBody:
 		if self.BodyType & self.solarsystem.ShowFeatures <> 0 or self.Name == 'Earth':
 			if self.BodyShape.visible == False:
 				self.BodyShape.visible = True
-				for i in range(len(self.Label)):
-					self.Label[i].visible = True
+				for i in range(len(self.Labels)):
+					self.Labels[i].visible = True
 
 				if self.solarsystem.ShowFeatures & ORBITS <> 0:
 					self.Trail.visible = True
@@ -1056,19 +709,19 @@ class makeBody:
 					self.Trail.visible = False
 
 				if self.solarsystem.ShowFeatures & LABELS <> 0:
-					for i in range(len(self.Label)):
-						self.Label[i].visible = True
+					for i in range(len(self.Labels)):
+						self.Labels[i].visible = True
 				else:
-					for i in range(len(self.Label)):
-						self.Label[i].visible = False
+					for i in range(len(self.Labels)):
+						self.Labels[i].visible = False
 
 				if self.Ring:
 					self.InnerRing.visible = True
 					self.OutterRing.visible = True
 		else:
 			self.BodyShape.visible = False
-			for i in range(len(self.Label)):
-				self.Label[i].visible = False
+			for i in range(len(self.Labels)):
+				self.Labels[i].visible = False
 			self.Trail.visible = False
 			if self.Ring:
 				self.InnerRing.visible = False
@@ -1144,11 +797,11 @@ def glbRefresh(solarSystem):
 
 def hideBelt(beltname):
 	beltname.BodyShape.visible = false
-	beltname.Label[0].visible = false
+	beltname.Labels[0].visible = false
 
 def showBelt(beltname):
 	beltname.BodyShape.visible = true
-	beltname.Label[0].visible = true
+	beltname.Labels[0].visible = true
 
 def setBodyPosition(body, theta):
 	theta = (math.pi * theta)/180
@@ -1157,8 +810,8 @@ def setBodyPosition(body, theta):
 	body.Y = R*sin(theta)
 	body.updatePosition(false)
 	if LEGEND:
-		body.Label.append(label(pos=(body.Position[X_COOR],body.Position[Y_COOR],body.Position[Z_COOR]), text=body.Name, xoffset=20, yoffset=12, space=0, height=10, color=body.Color, border=6, box=false, font='sans'))
-		body.Label[0].visible = false
+		body.Labels.append(label(pos=(body.Position[X_COOR],body.Position[Y_COOR],body.Position[Z_COOR]), text=body.Name, xoffset=20, yoffset=12, space=0, height=10, color=body.Color, border=6, box=false, font='sans'))
+		body.Labels[0].visible = false
 
 def getColor():
 	return { 0: color.white, 1: color.red, 2: color.orange, 3: color.yellow, 4: color.cyan, 5: color.magenta, 6: color.green}[randint(0,6)]
@@ -1197,10 +850,10 @@ def toRange (angle):
 # Anomaly (E), the orbit eccentricity and the semi-majour axis
 
 def getTrueAnomalyAndRadius(E, e, a):
-	ta = 2 * arctan(sqrt((1+e)/(1-e)) * tan(E/2))
+	ta = 2 * atan(sqrt((1+e)/(1-e)) * tan(E/2))
 	R = a * (1 - e*cos(E))
 	if ta < 0:
-		ta = ta + 2*math.pi
+		ta = ta + 2*pi
 	return ta, R
 
 # load orbital parameters stored in a file
