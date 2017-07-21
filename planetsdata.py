@@ -92,7 +92,7 @@ JPL_EARTH_MOID_AU = 43
 JPL_EARTH_MOID_LD = 44
 JPL_JUPITER_MOID_AU = 45
 
-planets_data = {
+objects_data = {
 	"neptune" :{
 		"type": TYPE_PLANET,
 		"material":1,
