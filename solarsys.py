@@ -54,7 +54,7 @@ def main():
 
 	solarsystem.addJTrojans(makeJtrojan(solarsystem, 'jupiterTrojan', 'Jupiter Trojans', JTROJANS, color.green, 2, 5, 'jupiter'))
 
-	MAX_OBJECTS = 1000
+	MAX_OBJECTS = 3
 
 	loadBodies(solarsystem, PHA, "200m+PHA_orbital_elements.txt", MAX_OBJECTS)
 	loadBodies(solarsystem, BIG_ASTEROID,"200km+asteroids_orbital_elements.txt", MAX_OBJECTS)

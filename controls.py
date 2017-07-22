@@ -334,11 +334,12 @@ class controlWindow(wx.Frame):
 				glbRefresh(self.SolarSystem, self.AnimationInProgress)
 				self.InfoTitle.SetLabel(body.Name)
 
+				self.velocity = body.animate(self.DeltaT)
 				mass = str(body.Mass)+" kg" if body.Mass <> 0 else "Not Provided"
 				radius = str(body.BodyRadius)+" km" if body.BodyRadius <> 0 and body.BodyRadius <> DEFAULT_RADIUS else "Not Provided"
 				moid = str(body.Moid/1000)+" km" if body.Moid <> 0 else "N/A"
 				rev = str(body.Revolution / 365.25)
-				self.velocity = body.getCurrentVelocity()
+				#self.velocity = body.getCurrentVelocity()
 				self.Info1.SetLabel("i  : "+str(body.Inclinaison)+" deg\nN : "+str(body.Longitude_of_ascendingnode)+" deg\nw : "+str(body.Argument_of_perihelion)+" deg\ne : "+str(body.e)+"\nq : "+str(body.Perihelion/1000)+" km")
 				self.Info2.SetLabel("Mass : "+mass+"\nRadius : "+radius+"\nPeriod: "+rev+" yr"+"\nMoid :"+moid+"\nVelocity: ") #)+self.velocity)
 				self.refreshDate()
