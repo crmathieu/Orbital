@@ -66,12 +66,14 @@ Legend is:
 	Velocity: The current velocity on orbit (this will be updated during animation)
 
 Files:
+
 	solarsys.py: 	Main file
 	orbital.py:  	Orbits trajectory and belts calculations classes
 	controls.py:	Orbital controller class used for user interaction
 	planetsdata.py:	Orbital elements for major planets and belts
 	
 To launch the application, go to the folder where you downloaded the project and type:
+
 	> python2.7.exe solarsys.py
 	
 
