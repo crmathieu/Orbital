@@ -70,7 +70,6 @@ class controlWindow(wx.Frame):
 		wx.Frame.__init__(self, None)
 		self.checkboxList = {}
 		self.ResumeSlideShowLabel = False
-		self.InterruptAnimation = True
 		self.AnimationInProgress = False
 		self.Source = PHA
 		self.TimeIncrement = 1
@@ -277,7 +276,6 @@ class controlWindow(wx.Frame):
 		glbRefresh(self.SolarSystem, self.AnimationInProgress)
 
 	def OnPauseSlideShow(self, e):
-		self.InterruptAnimation = True
 		self.AnimationInProgress = False
 
 		if self.ResumeSlideShowLabel == True:
@@ -288,7 +286,6 @@ class controlWindow(wx.Frame):
 			self.ResumeSlideShowLabel = True
 
 	def OnSlideShow(self, e):
-		self.InterruptAnimation = True
 		self.AnimationInProgress = False
 		if self.SolarSystem.SlideShowInProgress:
 			# click on the Stop button
@@ -358,7 +355,6 @@ class controlWindow(wx.Frame):
 	def OnStepper(self, e):
 		self.StepByStep = True
 		self.disableBeltsForAnimation()
-		self.InterruptAnimation = True
 		self.AnimationInProgress = False
 		self.OneTimeIncrement()
 
@@ -381,9 +377,6 @@ class controlWindow(wx.Frame):
 			return
 
 		self.disableBeltsForAnimation()
-		self.InterruptAnimation = False
 		self.AnimationInProgress = True
-		while self.InterruptAnimation == False:
+		while self.AnimationInProgress:
 			self.OneTimeIncrement()
-
-		self.AnimationInProgress = False
