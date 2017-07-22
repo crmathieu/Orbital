@@ -40,16 +40,20 @@ the number of objects being loaded by updating the constant MAX_OBJECTS in solar
 the upper limit of objects to load per data file.
 
 Once the Orbital Control modal pops up, you may visualize the other major bodies in the solar system: Gas giants, 
-dwarf planets or Asteroid / Kuiper belts etc... All orbits of PHAs, Big Asteroids, Comets and Trans-Neptunian can 
-be displayed by using the SlideShow feature. You may pause at any time to take a closer look at trajectories by 
+dwarf planets or Asteroid / Kuiper belts etc... All orbits of PHAs, Big Asteroids, Comets and Trans-Neptunian objects
+can be displayed with the SlideShow feature. You may pause at any time to take a closer look at trajectories by 
 zooming in/out and rotate, and then resume. You may also animate the current object from the slideshow along
 with other visible objects by using the ">" button. You may also do it step by step using the "+" button. 
 
-Animations can be played at speeds varying between -x20 to +x20, allowing to go back in time as well as in the future.
-Specific dates can also be entered directly to examin orbits relative positions. That is an important feature to verify
-passed events, such as close encounters between earth and PHAs (ie The asteroid named Toutatis on December 12, 2012).
+Animations can be played at increased or decreased speeds between - x20 to + x20, allowing to go back in time as well 
+as in the future. Specific dates can also be entered directly to examin orbits relative positions. That is an interesting 
+feature to verify passed events, such as close encounters between earth and PHAs (ie The asteroid named Toutatis on 
+December 12, 2012). Remember that planets sizes are not realistic (they are much bigger than their actual size), so even 
+though objects may look sometime very close to each other, the actual distance is much farther away. A good way to figure
+that out is to look at the Earth MOID parameter that display the closest distance between the object's orbit and the earth's
+orbit.
 
-The current object orbital elements are displayed at the bottom of the Orbital Control window. 
+The current object orbital elements are displayed at the bottom of the Orbital Control dialog. 
 Legend is:
 
 	i: Orbital Inclinaison
