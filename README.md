@@ -69,7 +69,7 @@ Files:
 
 	solarsys.py: 	Main file
 	orbital.py:  	Orbits trajectory and belts calculations classes
-	controls.py:	Orbital controller class used for user interaction
+	controls.py:	Orbital controller class used in the "Orbital Control" user interface
 	planetsdata.py:	Orbital elements for major planets and belts
 	
 To launch the application, go to the folder where you downloaded the project and type:
