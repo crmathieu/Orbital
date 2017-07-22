@@ -83,4 +83,6 @@ To launch the application, go to the folder where you downloaded the project and
 
 Note: There is a bug in the autoscale feature in vpython. If you are in a very expansive view that includes far objects such as dwarf planets and also closer to the sun objects like inner planets, unchecking the far objects and refreshing the scene may "autoscale" you back inside the sun (even though everything looks black). To eliminate the problem, simply perform a zoom out.
 
+One Last thing: Planets do not rotate on their axis during animation. Since the minimum time increment is 1 earth day, the earth does 
+not rotate on its axis, so to keep things as simple as possible, no planet rotate on their axis.
 
