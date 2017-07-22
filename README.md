@@ -49,8 +49,8 @@ Animations can be played at increased or decreased speeds between - x20 to + x20
 as in the future. Specific dates can also be entered directly to examin orbits relative positions. That is an interesting 
 feature to verify passed events, such as close encounters between earth and PHAs (ie The asteroid named Toutatis on 
 December 12, 2012). Remember that planets sizes are not realistic (they are much bigger than their actual size), so even 
-though objects may look sometime very close to each other, the actual distance is much farther away. A good way to figure
-that out is to look at the Earth MOID parameter that display the closest distance between the object's orbit and the earth's
+though objects may look sometime very close to each other, the actual distance is much larger. A good way to figure
+that out is to look at the Earth MOID parameter that displays the closest distance between the object's orbit and the earth's
 orbit.
 
 The current object orbital elements are displayed at the bottom of the Orbital Control dialog. 
