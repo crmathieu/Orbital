@@ -193,7 +193,6 @@ class controlWindow(wx.Frame):
 		self.Show(True)
 
 	def OnValidateDate(self, e):
-		#newdate = self.todayDate + datetime.timedelta(days = self.dateDSpin.GetValue(), months=self.DateMSpin.GetValue(), years=self.DateYSpin.GetValue())
 		newdate = datetime.date(self.dateYSpin.GetValue(),self.dateMSpin.GetValue(),self.dateDSpin.GetValue())
 		self.DeltaT = (newdate - self.todayDate).days
 		self.OneTimeIncrement()
@@ -259,22 +258,6 @@ class controlWindow(wx.Frame):
 	def ResetSpinner(self, e):
 		self.dateDSpin.SetValue(e.day)
 
-	def onCharEvent(self, event):
-		keycode = event.GetKeyCode()
-		controlDown = event.CmdDown()
-		altDown = event.AltDown()
-		shiftDown = event.ShiftDown()
-
-		#print keycode
-		if keycode == wx.WXK_SPACE:
-			print "you pressed the spacebar!"
-		elif controlDown and altDown:
-			print keycode
-		event.Skip()
-
-	def OnKeyDown(self, e):
-		return
-
 	def OnRefresh(self, e):
 
 		if self.AnimationInProgress == False:
@@ -339,7 +322,7 @@ class controlWindow(wx.Frame):
 				radius = str(body.BodyRadius)+" km" if body.BodyRadius <> 0 and body.BodyRadius <> DEFAULT_RADIUS else "Not Provided"
 				moid = str(body.Moid/1000)+" km" if body.Moid <> 0 else "N/A"
 				rev = str(body.Revolution / 365.25)
-				#self.velocity = body.getCurrentVelocity()
+
 				self.Info1.SetLabel("i  : "+str(body.Inclinaison)+" deg\nN : "+str(body.Longitude_of_ascendingnode)+" deg\nw : "+str(body.Argument_of_perihelion)+" deg\ne : "+str(body.e)+"\nq : "+str(body.Perihelion/1000)+" km")
 				self.Info2.SetLabel("Mass : "+mass+"\nRadius : "+radius+"\nPeriod: "+rev+" yr"+"\nMoid :"+moid+"\nVelocity: ") #)+self.velocity)
 				self.refreshDate()
@@ -404,4 +387,3 @@ class controlWindow(wx.Frame):
 			self.OneTimeIncrement()
 
 		self.AnimationInProgress = False
-		#self.enableBelts()
