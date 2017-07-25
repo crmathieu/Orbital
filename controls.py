@@ -44,13 +44,14 @@ LIT_Y = LABEL_Y + 20
 AXIS_Y = LIT_Y + 20
 
 REF_Y = AXIS_Y + 20
-SLDS_Y = DATE_Y + 60
+LSTB_Y = DATE_Y + 60
+SLDS_Y = LSTB_Y + 40
 
 STRT_Y = SLDS_Y
 PAU_Y = STRT_Y + 40
 SIMU_Y = PAU_Y + 40
-DET_Y = REF_Y + 60
-ANI_Y = SIMU_Y + 120
+DET_Y = REF_Y + 70
+ANI_Y = SIMU_Y + 100
 
 date_elements = {
 	"d_p_m" : {1:31, 2:28, 3:31, 4:30, 5:31, 6:30, 7:31, 8:31, 9:30, 10:31, 11:20, 12:31},
@@ -61,7 +62,7 @@ date_elements = {
 }
 
 def isLeapYear(year):
-    return year % 4 == 0 and (year % 100 != 0 or year % 400 == 0)
+    return year % 4 == 0 and (year % 100 <> 0 or year % 400 == 0)
 
 class controlWindow(wx.Frame):
 
@@ -78,12 +79,35 @@ class controlWindow(wx.Frame):
 		self.todayDate = datetime.date.today()
 		self.DeltaT = 0 # number of days from today - used for animation into future or past (detalT < 0)
 		self.velocity = 0
+		self.list = []
+		self.listjplid = []
+		self.DetailsOn = False
+		self.currentBody = None
 
 		# Associate some events with methods of this class
 		self.InitUI()
 
-	def createCheckBox(self, panel, title, type, xpos, ypos):
+	def createBodyList(self, panel, xpos, ypos):
 
+		for body in self.SolarSystem.bodies:
+			if body.BodyType in [PHA, BIG_ASTEROID, COMET, TRANS_NEPT]:
+				self.list.append(body.Name)
+				self.listjplid.append(body.JPL_designation)
+		self.comb = wx.ComboBox(panel, id=wx.ID_ANY, value="Select Object", size=wx.DefaultSize, pos=(xpos, ypos), choices=self.list, style=(wx.CB_READONLY))
+		self.comb.Bind(wx.EVT_COMBOBOX, self.OnSelect)
+
+	def OnSelect(self, e):
+		if self.SolarSystem.SlideShowInProgress == False:
+			index = e.GetSelection()
+			jpl_designation = self.listjplid[index]
+			if self.currentBody <> None:
+				self.currentBody.hide()
+
+			self.currentBody = self.SolarSystem.getBodyFromName(jpl_designation)
+			self.currentBody.Details = True
+			self.showCurrentObject(self.currentBody)
+
+	def createCheckBox(self, panel, title, type, xpos, ypos):
 		cb = wx.CheckBox(panel, label=title, pos=(xpos, ypos))
 		if self.SolarSystem.ShowFeatures & type <> 0:
 			cb.SetValue(True)
@@ -101,21 +125,16 @@ class controlWindow(wx.Frame):
 		dateLabel = wx.StaticText(pnl, label='Orbital Date', pos=(200, DATE_Y))
 		dateLabel.SetFont(self.BoldFont)
 
-		#self.today = wx.StaticText(pnl, label="", pos=(200, 20), size=(130, 25))
-		#self.today.SetFont(self.RegFont)
-		#self.today.Wrap(230)
-		#self.today.SetLabel("Date: "+str(self.todayDate))
-
 		self.dateMSpin = wx.SpinCtrl(pnl, id=wx.ID_ANY, initial=self.todayDate.month, min=1, max=12, pos=(200, DATE_SLD_Y), size=(65, 25), style=wx.SP_ARROW_KEYS)
 		self.dateMSpin.Bind(wx.EVT_SPINCTRL,self.OnTimeSpin)
 
 		self.dateDSpin = wx.SpinCtrl(pnl, id=wx.ID_ANY, initial=self.todayDate.day, min=1, max=31, pos=(265, DATE_SLD_Y), size=(65, 25), style=wx.SP_ARROW_KEYS)
 		self.dateDSpin.Bind(wx.EVT_SPINCTRL,self.OnTimeSpin)
 
-		# we need now to create a custom event in order to update the content of the day spinner if its value is out-of-range
+		# Create a custom event in order to update the content of the day spinner if its value is out-of-range
 		self.CustomEvent, EVT_RESET_SPINNER = wx.lib.newevent.NewEvent()
 		self.dateDSpin.Bind(EVT_RESET_SPINNER, self.ResetSpinner) # bind it as usual
-		# So, the day spinner has 2 events. one triggered when clicking on the arrow, and one
+		# The day spinner has 2 events. one triggered when clicking on an arrow, and one
 		# triggered programmatically to update the value of the day spinner in order to correct it
 		# The firing of the EVT_RESET_SPINNER is programmatically done during the execution
 		# of the EVT_SPINCTRL handler
@@ -124,7 +143,7 @@ class controlWindow(wx.Frame):
 		self.dateYSpin = wx.SpinCtrl(pnl, id=wx.ID_ANY, initial=self.todayDate.year, min=-3000, max=3000, pos=(330, DATE_SLD_Y), size=(65, 25), style=wx.SP_ARROW_KEYS)
 		self.dateYSpin.Bind(wx.EVT_SPINCTRL,self.OnTimeSpin)
 
-		self.ValidateDate = wx.Button(pnl, label='!', pos=(400, DATE_SLD_Y), size=(60, 25))
+		self.ValidateDate = wx.Button(pnl, label='Set', pos=(400, DATE_SLD_Y), size=(60, 25))
 		self.ValidateDate.Bind(wx.EVT_BUTTON, self.OnValidateDate)
 
 
@@ -140,6 +159,8 @@ class controlWindow(wx.Frame):
 		self.createCheckBox(pnl, "Labels", LABELS, 20, LABEL_Y)
 		self.createCheckBox(pnl, "Lit Scene", LIT_SCENE, 20, LIT_Y)
 		self.createCheckBox(pnl, "Referential", REFERENTIAL, 20, AXIS_Y)
+
+		self.createBodyList(pnl, 200, LSTB_Y)
 
 		cbtn = wx.Button(pnl, label='Refresh', pos=(20, REF_Y))
 		cbtn.Bind(wx.EVT_BUTTON, self.OnRefresh)
@@ -167,7 +188,6 @@ class controlWindow(wx.Frame):
 
 		self.Animate = wx.Button(pnl, label='>', pos=(360, ANI_Y), size=(40, 40))
 		self.Animate.Bind(wx.EVT_BUTTON, self.OnAnimate)
-		#self.Animate.Hide()
 
 		self.Stepper = wx.Button(pnl, label='+', pos=(405, ANI_Y), size=(40, 40))
 		self.Stepper.Bind(wx.EVT_BUTTON, self.OnStepper)
@@ -199,7 +219,7 @@ class controlWindow(wx.Frame):
 		self.DeltaT -= self.TimeIncrement
 		self.refreshDate()
 
-		if self.SolarSystem.SlideShowInProgress == True:
+		if self.DetailsOn == True:
 			self.ObjVelocity.SetLabel(str(round(self.velocity/1000, 2))+" km/s")
 
 	def refreshDate(self):
@@ -208,7 +228,8 @@ class controlWindow(wx.Frame):
 		self.dateMSpin.SetValue(newdate.month)
 		self.dateYSpin.SetValue(newdate.year)
 
-		if self.SolarSystem.SlideShowInProgress == True:
+		#if self.SolarSystem.SlideShowInProgress == True:
+		if self.DetailsOn == True:
 			self.ObjVelocity.SetLabel(str(round(self.velocity/1000, 2))+" km/s")
 
 	def disableBeltsForAnimation(self):
@@ -272,7 +293,6 @@ class controlWindow(wx.Frame):
 			else:
 				self.SolarSystem.ShowFeatures = (self.SolarSystem.ShowFeatures & ~type)
 
-
 		glbRefresh(self.SolarSystem, self.AnimationInProgress)
 
 	def OnPauseSlideShow(self, e):
@@ -285,6 +305,25 @@ class controlWindow(wx.Frame):
 			e.GetEventObject().SetLabel("Resume")
 			self.ResumeSlideShowLabel = True
 
+	def showCurrentObject(self, body):
+		self.InfoTitle.SetLabel(body.Name)
+		self.velocity = body.animate(self.DeltaT)
+		mass = str(body.Mass)+" kg" if body.Mass <> 0 else "Not Provided"
+		radius = str(body.BodyRadius)+" km" if body.BodyRadius <> 0 and body.BodyRadius <> DEFAULT_RADIUS else "Not Provided"
+		moid = str(body.Moid/AU)+" AU" if body.Moid <> 0 else "N/A"
+		rev = str(body.Revolution / 365.25)
+
+		self.DetailsOn = True
+		self.Info1.SetLabel("i  : "+str(body.Inclinaison)+" deg\nN : "+str(body.Longitude_of_ascendingnode)+" deg\nw : "+str(body.Argument_of_perihelion)+" deg\ne : "+str(body.e)+"\nq : "+str(body.Perihelion/1000)+" km")
+		self.Info2.SetLabel("Mass : "+mass+"\nRadius : "+radius+"\nPeriod: "+rev+" yr"+"\nMoid :"+moid+"\nVelocity: ") #)+self.velocity)
+		self.refreshDate()
+
+		body.BodyShape.visible = True
+		for i in range(len(body.Labels)):
+			body.Labels[i].visible = True
+		body.Trail.visible = True
+
+
 	def OnSlideShow(self, e):
 		self.AnimationInProgress = False
 		if self.SolarSystem.SlideShowInProgress:
@@ -292,13 +331,7 @@ class controlWindow(wx.Frame):
 			self.SolarSystem.AbortSlideShow = True
 			self.ResumeSlideShowLabel = False
 			# reset label as 'Start'
-			e.GetEventObject().SetLabel("Start")
-			self.InfoTitle.SetLabel('')
-			self.Info1.SetLabel('')
-			self.Info2.SetLabel('')
-			self.ObjVelocity.SetLabel('')
-			self.Pause.SetLabel("Pause")
-			self.Pause.Hide()
+			self.resetSlideShow()
 			return
 		else:
 			# click on the start button
@@ -307,55 +340,48 @@ class controlWindow(wx.Frame):
 			# reset label as 'Stop'
 			self.SlideShow.SetLabel("Stop")
 
-		# loop through each body. If the bodyType matches what the Animation
-		# is about,
+		# loop through each body. If the bodyType matches
+		# what the slidshow is about, display it
 		for body in self.SolarSystem.bodies:
-			if body.BodyType == self.Source: #PHA:
+			if body.BodyType == self.Source:
 				glbRefresh(self.SolarSystem, self.AnimationInProgress)
-				self.InfoTitle.SetLabel(body.Name)
-
-				self.velocity = body.animate(self.DeltaT)
-				mass = str(body.Mass)+" kg" if body.Mass <> 0 else "Not Provided"
-				radius = str(body.BodyRadius)+" km" if body.BodyRadius <> 0 and body.BodyRadius <> DEFAULT_RADIUS else "Not Provided"
-				moid = str(body.Moid/1000)+" km" if body.Moid <> 0 else "N/A"
-				rev = str(body.Revolution / 365.25)
-
-				self.Info1.SetLabel("i  : "+str(body.Inclinaison)+" deg\nN : "+str(body.Longitude_of_ascendingnode)+" deg\nw : "+str(body.Argument_of_perihelion)+" deg\ne : "+str(body.e)+"\nq : "+str(body.Perihelion/1000)+" km")
-				self.Info2.SetLabel("Mass : "+mass+"\nRadius : "+radius+"\nPeriod: "+rev+" yr"+"\nMoid :"+moid+"\nVelocity: ") #)+self.velocity)
-				self.refreshDate()
-
-				body.BodyShape.visible = True
-				for i in range(len(body.Labels)):
-					body.Labels[i].visible = True
-				body.Trail.visible = True
-
+				self.showCurrentObject(body)
 				sleep(2)
 
 				while (self.ResumeSlideShowLabel and self.SolarSystem.AbortSlideShow == False):
-					sleep(1)
+					sleep(2)
 
-				body.BodyShape.visible = False
-				for i in range(len(body.Labels)):
-					body.Labels[i].visible = False
+				self.hideCurrentObject(body)
 
-				body.Trail.visible = False
 				if self.SolarSystem.AbortSlideShow:
 					self.SolarSystem.AbortSlideShow = False
 					self.SolarSystem.SlideShowInProgress = False
 					return
 
 		self.SolarSystem.SlideShowInProgress = False
-		self.Pause.Hide()
+		self.resetSlideShow()
+
+	def hideCurrentObject(self, body):
+		body.BodyShape.visible = False
+		for i in range(len(body.Labels)):
+			body.Labels[i].visible = False
+
+		body.Trail.visible = False
+
+	def resetSlideShow(self):
 		self.SlideShow.SetLabel("Start")
+		self.Pause.Hide()
 		self.InfoTitle.SetLabel('')
 		self.Info1.SetLabel('')
 		self.Info2.SetLabel('')
 		self.ObjVelocity.SetLabel('')
+		self.DetailsOn = False
+		self.Pause.SetLabel("Pause")
 
 	def OnStepper(self, e):
 		self.StepByStep = True
 		self.disableBeltsForAnimation()
-		self.AnimationInProgress = False
+		self.AnimationInProgress = False # stop potential animation in progress
 		self.OneTimeIncrement()
 
 	def OneTimeIncrement(self):
@@ -365,7 +391,7 @@ class controlWindow(wx.Frame):
 			if body.BodyType in [OUTTERPLANET, INNERPLANET, ASTEROID, COMET, DWARFPLANET, PHA, BIG_ASTEROID, TRANS_NEPT]:
 				if body.BodyShape.visible == True:
 					velocity = body.animate(self.DeltaT)
-					if body.BodyType == self.Source:
+					if body.BodyType == self.Source or body.Details == True:
 						self.velocity = velocity
 
 		sleep(1e-4)
@@ -374,9 +400,12 @@ class controlWindow(wx.Frame):
 	def OnAnimate(self, e):
 		self.StepByStep = False
 		if self.AnimationInProgress == True:
+			self.AnimationInProgress = False
+			self.Animate.SetLabel(">")
 			return
-
+		self.Animate.SetLabel("||")
 		self.disableBeltsForAnimation()
 		self.AnimationInProgress = True
 		while self.AnimationInProgress:
 			self.OneTimeIncrement()
+		self.Animate.SetLabel(">")

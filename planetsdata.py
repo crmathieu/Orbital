@@ -1,3 +1,25 @@
+"""
+	Copyright (c) 2017 Charles Mathieu
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
+
+"""
 
 INNERPLANET = 0x01
 OUTTERPLANET = 0x02
@@ -97,6 +119,8 @@ objects_data = {
 		"type": TYPE_PLANET,
 		"material":1,
 		"name": "Neptune",
+		"iau_name": "NEPTUNE",
+		"jpl_designation": "NEPTUNE",
 		"mass":102e24,
 		"radius":24622e3,
 		"perihelion":4444.45e9,
@@ -113,6 +137,8 @@ objects_data = {
 		"type": TYPE_PLANET,
 		"material":1,
 		"name": "Uranus",
+		"iau_name": "URANUS",
+		"jpl_designation": "URANUS",
 		"mass":86.8e24,
 		"radius":25362e3,
 		"perihelion":2741.30e9,
@@ -129,6 +155,8 @@ objects_data = {
 		"type": TYPE_PLANET,
 		"material":1,
 		"name": "Saturn",
+		"iau_name": "SATURN",
+		"jpl_designation": "SATURN",
 		"mass":568e24,
 		"radius":58232e3,
 		"perihelion":1352.55e9,
@@ -145,6 +173,8 @@ objects_data = {
 		"type": TYPE_PLANET,
 		"material":1,
 		"name": "Jupiter",
+		"iau_name": "JUPITER",
+		"jpl_designation": "JUPITER",
 		"mass":1898e24,
 		"radius":69911e3,
 		"perihelion":740.52e9,
@@ -161,6 +191,8 @@ objects_data = {
 		"type": TYPE_PLANET,
 		"material":1,
 		"name": "Mars",
+		"iau_name": "MARS",
+		"jpl_designation": "MARS",
 		"mass":0.642e24,
 		"radius":3389e3,
 		"perihelion":206.62e9,
@@ -177,6 +209,8 @@ objects_data = {
 		"type": TYPE_PLANET,
 		"material":1,
 		"name": "Mercury",
+		"iau_name": "MERCURY",
+		"jpl_designation": "MERCURY",
 		"mass":0.330e24,
 		"radius":2439e3,
 		"perihelion":46.0e9,
@@ -193,6 +227,8 @@ objects_data = {
 		"type": TYPE_PLANET,
 		"material":1,
 		"name": "Venus",
+		"iau_name": "VENUS",
+		"jpl_designation": "VENUS",
 		"mass":4.87e24,
 		"radius":6052e3,
 		"perihelion":107.48e9,
@@ -209,6 +245,8 @@ objects_data = {
 		"type": TYPE_PLANET,
 		"material":1,
 		"name": "Earth",
+		"iau_name": "EARTH",
+		"jpl_designation": "EARTH",
 		"mass":5.972e24,
 		"radius":6371e3,
 		"perihelion":147.09e9,
@@ -225,6 +263,8 @@ objects_data = {
 		"type": TYPE_PLANET,
 		"material":1,
 		"name": "Pluto",
+		"iau_name": "PLUTO",
+		"jpl_designation": "PLUTO",
 		"mass":0.0146e24,
 		"radius":1195e3,
 		"perihelion":4436.82e+9,
@@ -241,6 +281,8 @@ objects_data = {
 		"type": TYPE_DWARF_PLANET,
 		"material":0,
 		"name": "Eris",
+		"iau_name": "ERIS",
+		"jpl_designation": 136199,
 		"mass":1.66e22,
 		"radius":1163e3,
 		"perihelion":5.723e12,
@@ -262,6 +304,8 @@ objects_data = {
 		"type": TYPE_DWARF_PLANET,
 		"material":0,
 		"name": "Makemake",
+		"iau_name": "MAKEMAKE",
+		"jpl_designation": 136472,
 		"mass":4.4e21,
 		"radius":739e3,
 		"perihelion":5.77298e12,
@@ -283,6 +327,8 @@ objects_data = {
 		"type": TYPE_DWARF_PLANET,
 		"material":0,
 		"name": "Sedna",
+		"iau_name": "SEDNA",
+		"jpl_designation": 90377,
 		"mass":4.4e21, # mass is undetermined
 		"radius":995e3,
 		"perihelion":1.1423e13,
@@ -304,6 +350,8 @@ objects_data = {
 		"type": TYPE_DWARF_PLANET,
 		"material":0,
 		"name": "Haumea",
+		"iau_name": "HAUMEA",
+		"jpl_designation": 136108,
 		"mass":4.006e21,
 		"radius":620e3,
 		"perihelion":35.14529440338772*AU,
