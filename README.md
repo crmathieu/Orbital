@@ -33,25 +33,17 @@ you will also need the following libraries:
 	numpy
 	scipy
 
-The Orbital control modal window will take a little less than a minute to load as PHA, Asteroids, Comets and 
-trans-Neptunian objects orbits get calculated and rendered during this initial phase, but inner planets are 
-displayed right away and can be interacted with. If the loading time is too long for your taste, you may limit
-the number of objects being loaded by updating the constant MAX_OBJECTS in solarsys.py. The constant specifies
-the upper limit of objects to load per data file.
+To launch the application, go to the folder where the project was downloaded and type:
 
-Once the Orbital Control modal pops up, you may visualize the other major bodies in the solar system: Gas giants, 
-dwarf planets or Asteroid / Kuiper belts etc... All orbits of PHAs, Big Asteroids, Comets and Trans-Neptunian objects
-can be displayed with the SlideShow feature. You may pause at any time to take a closer look at trajectories by 
-zooming in/out and rotate, and then resume. You may also animate the current object from the slideshow along
-with other visible objects by using the ">" button. You may also do it step by step using the "+" button. 
+	> python2.7.exe solarsys.py
+	
+The vpython display window and the Orbital control modal window will take a few second to load. PHA, Asteroids, Comets and trans-Neptunian objects orbits get calculated and rendered as needed, but inner and outter planets orbits are displayed right away and can be interacted with. The constant MAX_OBJECTS in solarsys.py specifies the upper limit of objects to load per data file.
 
-Animations can be played at increased or decreased speeds between - x20 to + x20, allowing to go back in time as well 
-as in the future. Specific dates can also be entered directly to examin orbits relative positions. That is an interesting 
-feature to verify passed events, such as close encounters between earth and PHAs (ie The asteroid named Toutatis on 
-December 12, 2012). Remember that planets sizes are not realistic (they are much bigger than their actual size), so even 
-though objects may look sometime very close to each other, the actual distance is much larger. A good way to figure
-that out is to look at the Earth MOID parameter that displays the closest distance between the object's orbit and the earth's
-orbit.
+Once the Orbital Control modal pops up, you may visualize the other major bodies in the solar system: dwarf planets, Asteroid / Kuiper belts etc... All PHAs, Big Asteroids, Comets and Trans-Neptunian objects' orbits can be displayed with the SlideShow feature. You may pause at any time to take a closer look at trajectories by zooming in/out and rotate, and then resume. You may also animate the current object from the slideshow along with other visible objects by using the ">" button. You may also do it step by step using the "+" button. 
+
+Animations can be played at increased or decreased speeds between - x20 to + x20, allowing to go back in time as well as in the future. Specific dates can also be entered directly to examin orbits relative positions. That is an interesting feature to verify passed events, such as close encounters between earth and PHAs (ie, The asteroid named Toutatis on December 12, 2012). Remember that planets, comets or asteroids sizes are not realistic (they are much bigger than their actual size), so even though objects may look sometime very close to each other, the actual distance is much larger. A good way to figure that out is to look at the Earth MOID parameter that displays the closest distance between the object's orbit and the earth's orbit.
+
+You may also pick individual objects from the drop down box to display and animate their trajectories on orbit. When an animation or a slide show is in progress, the drop down box is disabled. A slide show must be fully stopped (not just paused) to enabled the drop down box again.
 
 The current object orbital elements are displayed at the bottom of the Orbital Control dialog. 
 Legend is:
@@ -66,8 +58,8 @@ Legend is:
 	R: Average radius in Km
 	P: Orbital Period in years
 
-	Moid: Minimum Orbital Intersection Distance (in this case with Earth)
-	Velocity: The current velocity on orbit (this will be updated during animation)
+	Moid: Minimum Orbital Intersection Distance (in this case with Earth) in Astronomical Units (AU)
+	Velocity: The current velocity on orbit (this will be updated during animation) in kilometers/sec
 
 Files:
 
@@ -76,9 +68,7 @@ Files:
 	controls.py:	Orbital controller class used in the "Orbital Control" user interface
 	planetsdata.py:	Orbital elements for major planets and belts
 	
-To launch the application, go to the folder where you downloaded the project and type:
 
-	> python2.7.exe solarsys.py
 	
 
 Note: There is a bug in the autoscale feature in vpython. If you are in a very expansive view that includes far objects such as dwarf planets and also closer to the sun objects like inner planets, unchecking the far objects and refreshing the scene may "autoscale" you back inside the sun (even though everything looks black). To eliminate the problem, simply perform a zoom out.
