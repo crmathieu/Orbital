@@ -41,9 +41,9 @@ The vpython display window and the Orbital control modal window will take a few 
 
 Once the Orbital Control modal pops up, you may visualize the other major bodies in the solar system: dwarf planets, Asteroid / Kuiper belts etc... All PHAs, Major Asteroids, Comets and Trans-Neptunian objects' orbits can be displayed with the slideshow feature. You may pause at any time to take a closer look at trajectories by zooming in/out and rotate, and then resume. You may also animate the current object from the slideshow along with other visible objects by using the ">" play button. You may also do it step by step using the "+" button. 
 
-Animations can be played at increased or decreased speeds between - x20 to + x20, allowing to go back in time as well as in the future. Specific dates can also be entered directly to examin orbits relative positions. That is an interesting feature to verify passed events, such as close encounters between earth and PHAs (ie, The asteroid named Toutatis on December 12, 2012). Remember that planets, comets or asteroids sizes are not realistic (they are much bigger than their actual size), so even though objects may look sometime very close to each other, the actual distance is much larger. A good way to figure that out is to look at the Earth MOID parameter that displays the closest distance between the object's orbit and the earth's orbit.
+Animations can be played at increased or decreased speeds between - x20 to + x20, allowing to go back in time as well as in the future. Specific dates can also be entered directly to examin orbits relative positions. That is an interesting feature to verify passed or future events, such as close encounters between earth and PHAs (ie, Asteroid Toutatis on December 12, 2012 -or- Asteroid Midas on March 21st 2018). Remember that planets, comets or asteroids sizes are not realistic (they are much bigger than their actual size), so even though objects may look sometime very close to each other, the actual distance that separate them is much larger. A good way to figure that out is to look at the Earth MOID parameter that displays the closest distance between the object's orbit and the earth's orbit.
 
-You may also pick individual objects from the drop down box to display and animate their trajectories on orbit. When an animation or a slideshow is in progress, the drop down box is disabled. A slideshow must be fully stopped (not just paused) to enabled the drop down box again.
+You may also pick individual objects from the drop down box to display and animate their trajectories on orbit. When an animation or a slideshow is in progress, the drop down box is disabled and picking an object will have no effect. A slideshow must be fully stopped (not just paused) to enabled the drop down box again.
 
 The current object orbital elements are displayed at the bottom of the Orbital Control dialog. 
 Legend is:
@@ -70,7 +70,6 @@ Files:
 	
 
 	
-
 Note: There is a bug in the autoscale feature in vpython. If you are in a very expansive view that includes far objects such as dwarf planets and also closer to the sun objects like inner planets, unchecking the far objects and refreshing the scene may "autoscale" you back inside the sun (even though everything looks black). To eliminate the problem, simply perform a zoom out.
 
 One Last thing: Planets do not rotate on their axis during animation. Since the time increment is always a multiple of 1 earth day, 
