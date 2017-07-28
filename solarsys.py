@@ -20,6 +20,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 
 """
+from scipy.sparse.csgraph import _validation  
 from controls import *
 
 def main():
@@ -63,7 +64,7 @@ def main():
 	solarsystem.drawAllBodiesTrajectory()
 
 	# Start control window
-	print wx.version()
+	#print wx.version()
 	ex = wx.App()
 	cw = controlWindow(None, solarsystem)
 

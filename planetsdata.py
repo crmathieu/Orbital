@@ -279,7 +279,7 @@ objects_data = {
 
 	"eris" : {
 		"type": TYPE_DWARF_PLANET,
-		"material":0,
+		"material":1,
 		"name": "Eris",
 		"iau_name": "ERIS",
 		"jpl_designation": 136199,
@@ -302,7 +302,7 @@ objects_data = {
 
 	"makemake":{
 		"type": TYPE_DWARF_PLANET,
-		"material":0,
+		"material":1,
 		"name": "Makemake",
 		"iau_name": "MAKEMAKE",
 		"jpl_designation": 136472,
@@ -348,7 +348,7 @@ objects_data = {
 
 	"haumea":  {
 		"type": TYPE_DWARF_PLANET,
-		"material":0,
+		"material":1,
 		"name": "Haumea",
 		"iau_name": "HAUMEA",
 		"jpl_designation": 136108,

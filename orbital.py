@@ -397,7 +397,7 @@ class makeBody:
 		self.Trail = curve(color=self.Color)
 		self.Trail.append(pos=self.BodyShape.pos)
 
-		data = materials.loadTGA("./img/"+index) if objects_data[index]["material"] <> 0 else materials.loadTGA("./img/asteroid")
+		data = materials.loadTGA("./img/New/"+index+"2k") if objects_data[index]["material"] <> 0 else materials.loadTGA("./img/asteroid")
 
 		self.BodyShape.material = materials.texture(data=data, mapping="spherical", interpolate=False)
 		self.BodyShape.rotate(angle=self.Angle)
