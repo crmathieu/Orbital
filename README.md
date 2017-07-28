@@ -75,3 +75,46 @@ Note: There is a bug in the autoscale feature in vpython. If you are in a very e
 One Last thing: Planets do not rotate on their axis during animation. Since the time increment is always a multiple of 1 earth day, 
 the earth does not rotate on its axis, so to keep things as simple as possible, there is no planet spin.
 
+Notes on how to install the platform on your computer:
+
+	1) Install python2.7 64 bits:
+	goto "https://www.python.org/downloads/release/python-279/" and under "Files", 
+	click on "Windows x86-64 MSI installer". Download the installer and run it.
+
+	use the default install configuration. Your python folder should be 
+	in c:\python27
+
+	If you get the error "error: Microsoft Visual C++ 9.0 is required. Get it from http://aka.ms/vcpython27" 
+	then from "https://www.microsoft.com/en-us/download/confirmation.aspx?id=44266" download the VC runtime
+	installer: VCForPython27.msi and run it to install the missing runtime library. Then try again:
+	add "c:\python27" and "c:\python27\scripts" to your PATH environment variable
+ 
+	2) download libs:
+	go to http://www.lfd.uci.edu/~gohlke/pythonlibs
+	- download numpy+mkl: "numpy-1.13.1+mkl-cp27-cp27m-win_amd64.whl"
+	- download scipy: "scipy-0.19.1-cp27-cp27m-win_amd64.whl"
+
+	3) In order to have a smooth library install, first make sure the
+	program "pip.exe" is up to date. From the command prompt type:
+
+	"> python -m pip install --upgrade pip"
+
+	4) then install the modules you previously downloaded:
+
+	pip install -U numpy-1.13.1+mkl-cp27-cp27m-win_amd64.whl
+	pip install -U scipy-0.19.1-cp27-cp27m-win_amd64.whl
+
+	if you get a message "<wheelname> is not a supported wheel on this platform", it means
+	that your pip program might be too old and you forgot step 3. To update it type:
+
+	"python -m pip install --upgrade pip" and try to install again
+
+	5) Install vPython:
+	goto http://vpython.org/contents/download_windows.html
+	and download the installer: "VPython-Win-64-Py2.7-6.11"
+
+	Once downloaded, run it. This installer will also install the wxPython 3.0 library.
+	That's it!
+
+Enjoy the simulation!
+
