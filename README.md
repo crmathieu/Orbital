@@ -86,8 +86,8 @@ Notes on how to install the platform on your Windows computer:
 
 	If you get the error "error: Microsoft Visual C++ 9.0 is required. Get it from http://aka.ms/vcpython27" 
 	then from "https://www.microsoft.com/en-us/download/confirmation.aspx?id=44266" download the VC runtime
-	installer: VCForPython27.msi and run it to install the missing runtime library. Then try to run the installer
-	again: 
+	installer: VCForPython27.msi and run it to install the missing runtime library. Then try to run the python27
+	installer again to finish installing python. 
 	
 	Add "c:\python27" and "c:\python27\scripts" to your PATH environment variable
  
@@ -96,19 +96,19 @@ Notes on how to install the platform on your Windows computer:
 	- download numpy+mkl: "numpy-1.13.1+mkl-cp27-cp27m-win_amd64.whl"
 	- download scipy: "scipy-0.19.1-cp27-cp27m-win_amd64.whl"
 
-	3) In order to have a smooth library install, first make sure the
-	program "pip.exe" is up to date. From the command prompt type:
+	3) In order to have a smooth library install, first make sure the program "pip.exe" is up to date. 
+	"pip.exe" is under c:\python27\Scripts. From the command prompt type:
 
-	"> python -m pip install --upgrade pip"
+	"python -m pip install --upgrade pip"
 
-	4) then install the modules you previously downloaded using the pip command:
+	4) then install the modules you previously downloaded using the pip program:
 
 	pip install -U numpy-1.13.1+mkl-cp27-cp27m-win_amd64.whl
 	pip install -U scipy-0.19.1-cp27-cp27m-win_amd64.whl
 
 	if you get a message "<wheelname> is not a supported wheel on this platform", despite the
-	fact that you already updated pip, it means you probably downloaded the wrong library.
-	Make sure the library is the correct one.
+	fact that you already updated pip, it means you probably downloaded the wrong library for this
+	version of python. Make sure the library is the correct one.
 	
 	5) Install vPython:
 	goto http://vpython.org/contents/download_windows.html
