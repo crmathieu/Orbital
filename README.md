@@ -75,6 +75,14 @@ Note: There is a bug in the autoscale feature in vpython. If you are in a very e
 One Last thing: Planets do not rotate on their axis during animation. Since the time increment is always a multiple of 1 earth day, 
 the earth does not rotate on its axis, so to keep things as simple as possible, there is no planet spin.
 
+List of a few close encounters between Potentially Harzardous Asteroids and earth:
+
+	YU55	 	11/08/2011
+	TOUTATIS 	12/12/2012
+	MIDAS    	03/21/2018
+	2004 XK50 	12/24/2025
+	
+
 Notes on how to install the platform on your Windows computer:
 
 	1) Install python2.7 64 bits:
