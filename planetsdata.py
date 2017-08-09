@@ -57,7 +57,6 @@ Mu = G * SUN_M
 DIST_FACTOR = 10e-7
 
 # EPOCH constants
-#JD2000_EPOCH = 2451543.5	# number of days ellapsed from 01-01-4713 BC GMT to 01-01-2000 AD GMT
 EPOCH_2000_JD = 2451544.5	# number of days ellapsed from 01-01-4713 BC GMT to 01-01-2000 AD GMT
 EPOCH_2000_MJD = 51544.0
 EPOCH_1970_JD = 2440587.5 # number of days ellapsed from 01-01-4713 BC GMT to 01-01-1970 AD GMT
