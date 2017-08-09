@@ -88,7 +88,6 @@ class solarSystem:
 		self.bodies.append(body)
 		i = len(self.bodies) - 1
 		self.nameIndex[body.JPL_designation] = i
-		#self.nameIndex[body.Name] = i
 		return i # this is the index of the added body in the collection
 
 	def addJTrojans(self, body):
@@ -101,7 +100,6 @@ class solarSystem:
 			self.bodies[self.JTrojansIndex].Labels = []
 			self.bodies[self.JTrojansIndex] = body
 
-		#self.bodies[self.JTrojansIndex].draw()
 		body.draw()
 
 	def getJTrojans(self):
@@ -111,15 +109,12 @@ class solarSystem:
 		for body in self.bodies:
 			if body.BodyType in [OUTTERPLANET, INNERPLANET, DWARFPLANET, KUIPER_BELT, ASTEROID_BELT, INNER_OORT_CLOUD, ECLIPTIC_PLANE]:
 				body.draw()
-				#sleep(1e-4)
+
 		self.Scene.autoscale = 1
 
 	def getBodyFromName(self, jpl_designation):
 		if jpl_designation in self.nameIndex:
 			return self.bodies[self.nameIndex[jpl_designation]]
-		#for body in self.bodies:
-		#	if body.Name == bodyname:
-		#		return body
 		return None
 
 	def refresh(self, animationInProgress = False):
@@ -164,18 +159,6 @@ class solarSystem:
 			for i in range(3):
 				self.Axis[i].visible = False
 				self.AxisLabel[i].visible = False
-
-	def setBodyPositionXX(self, bodyName, trueAnomaly):
-		body = self.getBodyFromName(bodyName)
-		if body <> None:
-			theta = (math.pi * trueAnomaly)/180 # convert degrees to radians
-			R = (body.a*(1 - body.e**2))/(1 + body.e*cos(trueAnomaly))
-			body.X = R * cos(trueAnomaly)
-			body.Y = R * sin(trueAnomaly)
-			body.updatePosition(false)
-			if LEGEND:
-				body.Labels.append(label(pos=(body.Position[X_COOR],body.Position[Y_COOR],body.Position[Z_COOR]), text=body.Name, xoffset=20, yoffset=12, space=0, height=10, color=body.Color, border=6, box=false, font='sans'))
-				body.Labels[0].visible = false
 
 	def makeRings(self, system, bodyName, density = 1):  # change default values during instantiation
 		global objects_data
@@ -223,11 +206,9 @@ class makeEcliptic:
 
 	def refresh(self):
 		if self.solarsystem.ShowFeatures & ECLIPTIC_PLANE <> 0:
-			#self.solarsystem.Scene.autoscale = 0
 			self.BodyShape.visible = True
 		else:
 			self.BodyShape.visible = False
-			#self.solarsystem.Scene.autoscale = 1
 
 	def draw(self):
 		self.BodyShape = cylinder(pos=vector(0,0,0), radius=250*AU*DIST_FACTOR, color=self.Color, length=100, opacity=0.2, axis=(0,0,1))
@@ -275,7 +256,7 @@ class makeBelt:
 		if self.solarsystem.ShowFeatures & self.BodyType <> 0:
 			if self.BodyShape.visible == False:
 				self.BodyShape.visible = True
-				#self.Labels.visible = true
+
 			if self.solarsystem.ShowFeatures & LABELS <> 0:
 				labelVisible = True
 			else:
@@ -314,7 +295,6 @@ class makeJtrojan(makeBelt):
 
 		# grab Jupiter's current True Anomaly and add the Long. of perihelion to capture
 		# the current angle in the fixed referential
-		#planet = self.solarsystem.getBodyFromName(objects_data[self.PlanetName]['jpl_designation'])
 		Nu = deg2rad(toRange(rad2deg(self.Planet.Nu) + self.Planet.Longitude_of_perihelion))
 
 		# get Lagrangian L4 and L5 based on body position
@@ -368,10 +348,6 @@ class makeBody:
 
 		self.Moid = objects_data[index]["earth_moid"] if "earth_moid" in objects_data[index] else 0
 		self.setOrbitalElements(index)
-
-		#print "--> "+str(self.JPL_designation)
-		#if self.Name == '3779437':
-		#	print "YUP!"
 
 		# generate 2d coordinates in the initial orbital plane, with +X pointing
 		# towards periapsis. Make sure to convert degree to radians before using
@@ -436,7 +412,6 @@ class makeBody:
 
 
 	def makeShape(self):
-		#zob = convex(pos=(self.Position[X_COOR],self.Position[Y_COOR],self.Position[Z_COOR]), points=((0,0,0),(radiusToShow * randint(10, 20)/10)/self.SizeCorrection, 0, (radiusToShow * randint(10, 20)/10)/self.SizeCorrection))
 		self.BodyShape = ellipsoid(	pos=(self.Position[X_COOR],self.Position[Y_COOR],self.Position[Z_COOR]),
 									length=(self.radiusToShow * randint(10, 20)/10)/self.SizeCorrection[self.sizeType],
 									height=(self.radiusToShow * randint(10, 20)/10)/self.SizeCorrection[self.sizeType],
@@ -466,9 +441,6 @@ class makeBody:
 		# update position
 		self.setOrbitalElements(self.ObjectIndex, timeIncrement)
 		self.setPolarCoordinates(deg2rad(self.E))
-
-		#self.b = getSemiMinor(self.a, self.e)
-		#self.Aphelion = getAphelion(self.a, self.e)	# body aphelion
 
 		# initial acceleration
 		self.Acceleration = vector(0,0,0)
@@ -550,8 +522,6 @@ class makeBody:
 		# calculate current position based on orbital elements
 		dT = daysSinceEpochJD(self.Epoch) + timeincrement # timeincrement comes in days
 		# compute Longitude of Ascending node taking into account the time elapsed since epoch
-		#N = self.Longitude_of_ascendingnode + 0.013967 * (2000.0 - getCurrentYear()) + 3.82394e-5 * dT
-		#self.Longitude_of_ascendingnode = N
 		incrementYears = timeincrement / 365.25
 		self.Longitude_of_ascendingnode +=  0.013967 * (2000.0 - (getCurrentYear() + incrementYears)) + 3.82394e-5 * dT
 
@@ -566,7 +536,6 @@ class makeBody:
 		return pi/180
 
 	def draw(self):
-		#print "Rendering "+self.Name+" orbit"
 		self.Trail.visible = false
 		rad_E = deg2rad(self.E)
 		increment = self.getIncrement()
@@ -801,16 +770,6 @@ def showBelt(beltname):
 	beltname.BodyShape.visible = true
 	beltname.Labels[0].visible = true
 
-def setBodyPositionXX(body, theta):
-	theta = (math.pi * theta)/180
-	R = (body.a*(1 - body.e**2))/(1 + body.e*cos(theta))
-	body.X = R*cos(theta)
-	body.Y = R*sin(theta)
-	body.updatePosition(false)
-	if LEGEND:
-		body.Labels.append(label(pos=(body.Position[X_COOR],body.Position[Y_COOR],body.Position[Z_COOR]), text=body.Name, xoffset=20, yoffset=12, space=0, height=10, color=body.Color, border=6, box=false, font='sans'))
-		body.Labels[0].visible = false
-
 def getColor():
 	return { 0: color.white, 1: color.red, 2: color.orange, 3: color.yellow, 4: color.cyan, 5: color.magenta, 6: color.green}[randint(0,6)]
 
@@ -853,39 +812,6 @@ def getTrueAnomalyAndRadius(E, e, a):
 	if ta < 0:
 		ta = ta + 2*pi
 	return ta, R
-
-def loadBodyHeader(type, filename):
-	fo  = open(filename, "r")
-	token = []
-	for line in fo:
-		if line[0] == '#':
-			continue
-		else:
-			token = line.split('|')
-			if len(token) > 0:
-				objects_data[token[LOOKUP_SPKID]] = {
-					"material": 0,
-					"name": token[LOOKUP_NAME],
-					"iau_name": token[LOOKUP_IAU_NAME],
-					"jpl_designation": token[LOOKUP_JPL_DESIGNATION],
-					"mass": 0.0, #(float(token[JPL_GM])/G)*1.e+9 if token[JPL_GM] else 0, # convert km3 to m3
-					"radius": 0.0, #float(token[JPL_DIAMETER])/2 if token[JPL_DIAMETER] else DEFAULT_RADIUS,
-					"perihelion": 0.0, #float(token[JPL_OE_q]) * AU,
-					"e": 0.0, #float(token[JPL_OE_e]),
-					"revolution": 0.0, #float(token[JPL_OE_Pd]),
-					"orbital_inclination": 	0.0, #float(token[JPL_OE_i]),
-					"longitude_of_ascendingnode":0.0, #float(token[JPL_OE_N]),
-					"argument_of_perihelion": 0.0, #float(token[JPL_OE_w]),
-					"longitude_of_perihelion":0.0, #float(token[JPL_OE_N])+float(token[JPL_OE_w]),
-					"Time_of_perihelion_passage_JD":0.0, #float(token[JPL_OE_tp_JD]),
-					"mean_motion": 0.0, #float(token[JPL_OE_n]) if token[JPL_OE_n] else 0,
-					"mean_anomaly": 0.0, #float(token[JPL_OE_M]) if token[JPL_OE_M] else 0,
-					"epochJD": 0.0, #float(token[JPL_EPOCH_JD]),
-					"earth_moid": 0.0, #(float(token[JPL_EARTH_MOID_AU])*AU) if token[JPL_EARTH_MOID_AU] else 0,
-					"orbital_obliquity": 0.0 # in deg
-				}
-
-	fo.close()
 
 # load orbital parameters stored in a file
 def loadBodies(solarsystem, type, filename, maxentries = 0):
