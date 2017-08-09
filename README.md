@@ -74,10 +74,14 @@ Legend is:
 	planetsdata.py:	Orbital elements for major planets and belts
 	
 # Close Approach Data:
-If you click on the "Close Approach Data" tab, you will be able to download the list of objects that are at their closest position from earth for this particular day. Once the list has been downloaded, you may also get the list from the previous of the next day. Double clicking on any row in that list will automatically display the orbit and position of the object as well as switch back to the "Main" tab to detail its orbital elements.
+If you click on the "Close Approach Data" tab, you will be able to download the list of objects that are at their closest position from earth for this particular day. 
 
 <img src="./screenshot-2.jpg">
 	
+Once the list has been downloaded, you may also get the list from the previous or the next day. Double clicking on a row in that list will automatically display the orbit and position of the corresponding object, as well as switch back to the "Main" tab to detail its orbital elements.
+
+<img src="./screenshot-3.jpg">
+
 Note: There is a bug in the autoscale feature in vpython. If you are in a very expansive view that includes far objects such as dwarf planets and also closer to the sun objects like inner planets, unchecking the far objects and refreshing the scene may "autoscale" you back inside the sun (even though everything looks black). To eliminate the problem, simply perform a zoom out.
 
 One Last thing: Planets do not rotate on their axis during animation. Since the time increment is always a multiple of 1 earth day, 
