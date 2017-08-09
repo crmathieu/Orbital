@@ -40,6 +40,7 @@ GASGIANT = 0x8000
 TRANS_NEPT = 0x10000
 LABELS = 0x20000
 JTROJANS = 0x40000
+REALSIZE = 0x80000
 
 TYPE_MASK = 0xFFFFF
 
@@ -54,6 +55,13 @@ SUN_R = 696e+6
 G = 6.67384e-11	# Universal gravitational constant
 Mu = G * SUN_M
 DIST_FACTOR = 10e-7
+
+# EPOCH constants
+#JD2000_EPOCH = 2451543.5	# number of days ellapsed from 01-01-4713 BC GMT to 01-01-2000 AD GMT
+EPOCH_2000_JD = 2451544.5	# number of days ellapsed from 01-01-4713 BC GMT to 01-01-2000 AD GMT
+EPOCH_2000_MJD = 51544.0
+EPOCH_1970_JD = 2440587.5 # number of days ellapsed from 01-01-4713 BC GMT to 01-01-1970 AD GMT
+
 X_COOR = 0
 Y_COOR = 1
 Z_COOR = 2
@@ -66,6 +74,13 @@ TYPE_TRANS_N = 5
 
 AU = 149597870691
 DEFAULT_RADIUS = 2.78787878
+
+LOOKUP_SPKID = 0
+LOOKUP_NAME = 1
+LOOKUP_JPL_DESIGNATION = 2
+LOOKUP_IAU_NAME = 3
+LOOKUP_DIAMETER = 5
+
 
 JPL_FULLNAME = 0
 JPL_DESIGNATION = 1
@@ -97,6 +112,7 @@ JPL_EPOCH_JD = 26
 JPL_EPOCH_MJD = 27
 JPL_EPOCH_ET = 28
 JPL_EQUINOX = 29
+
 JPL_OE_e = 30
 JPL_OE_a = 31
 JPL_OE_q = 32
@@ -113,6 +129,7 @@ JPL_OE_Py = 42
 JPL_EARTH_MOID_AU = 43
 JPL_EARTH_MOID_LD = 44
 JPL_JUPITER_MOID_AU = 45
+JPL_ORBIT_CLASS = 58
 
 objects_data = {
 	"neptune" :{
@@ -126,7 +143,7 @@ objects_data = {
 		"perihelion":4444.45e9,
 		"e":0.00858587,
 		"revolution":164.179 * 365,
-		"orbital_inclinaison":1.769,
+		"orbital_inclination":1.769,
 		"longitude_of_ascendingnode":131.72169,
 		"longitude_of_perihelion":44.97135,
 		"orbital_obliquity": 28.3,
@@ -144,7 +161,7 @@ objects_data = {
 		"perihelion":2741.30e9,
 		"e":0.04716771,
 		"revolution":84.011 * 365,
-		"orbital_inclinaison":0.770,
+		"orbital_inclination":0.770,
 		"longitude_of_ascendingnode":74.22988,
 		"longitude_of_perihelion":170.96424,
 		"orbital_obliquity": 97.8,
@@ -162,7 +179,7 @@ objects_data = {
 		"perihelion":1352.55e9,
 		"e":0.05415060,
 		"revolution":29.457 * 365,
-		"orbital_inclinaison":2.484,
+		"orbital_inclination":2.484,
 		"longitude_of_ascendingnode":113.71504,
 		"longitude_of_perihelion":92.43194,
 		"orbital_obliquity": 26.7,
@@ -180,7 +197,7 @@ objects_data = {
 		"perihelion":740.52e9,
 		"e":0.04839266,
 		"revolution":11.862 * 365,
-		"orbital_inclinaison":1.305,
+		"orbital_inclination":1.305,
 		"longitude_of_ascendingnode":100.55615,
 		"longitude_of_perihelion":14.75385,
 		"orbital_obliquity": 3.1,
@@ -198,7 +215,7 @@ objects_data = {
 		"perihelion":206.62e9,
 		"e":0.09341233,
 		"revolution":686.98,
-		"orbital_inclinaison":1.851,
+		"orbital_inclination":1.851,
 		"longitude_of_ascendingnode":49.57854,
 		"longitude_of_perihelion":336.04084,
 		"orbital_obliquity": 25.2,
@@ -216,7 +233,7 @@ objects_data = {
 		"perihelion":46.0e9,
 		"e":0.20563069,
 		"revolution":87.969,
-		"orbital_inclinaison":7.005,
+		"orbital_inclination":7.005,
 		"longitude_of_ascendingnode":48.33167,
 		"longitude_of_perihelion":77.45645,
 		"orbital_obliquity": 0.034,
@@ -234,7 +251,7 @@ objects_data = {
 		"perihelion":107.48e9,
 		"e":0.00677323,
 		"revolution":224.701,
-		"orbital_inclinaison":3.3947,
+		"orbital_inclination":3.3947,
 		"longitude_of_ascendingnode":76.68069,
 		"longitude_of_perihelion":131.53298,
 		"orbital_obliquity": 177.4,
@@ -252,7 +269,7 @@ objects_data = {
 		"perihelion":147.09e9,
 		"e":0.01671022,
 		"revolution":365.256,
-		"orbital_inclinaison":0,
+		"orbital_inclination":0,
 		"longitude_of_ascendingnode":-11.26064,
 		"longitude_of_perihelion":102.94719,
 		"orbital_obliquity": 23.4,
@@ -270,7 +287,7 @@ objects_data = {
 		"perihelion":4436.82e+9,
 		"e":0.24880766,
 		"revolution":247.68 * 365,
-		"orbital_inclinaison":17.142,
+		"orbital_inclination":17.142,
 		"longitude_of_ascendingnode":110.30347,
 		"longitude_of_perihelion":224.06676,
 		"orbital_obliquity": 122.5,
@@ -288,7 +305,7 @@ objects_data = {
 		"perihelion":5.723e12,
 		"e":0.4417142619088136,
 		"revolution": 203830,
-		"orbital_inclinaison":44.0445,
+		"orbital_inclination":44.0445,
 		"longitude_of_ascendingnode": 35.87791199490014,
 		"longitude_of_perihelion":186.9301,
 
@@ -296,7 +313,7 @@ objects_data = {
 		"mean_motion":.001771354370292503,
 		"epochJD": 2458000.5,
 		"mean_anomaly": 204.8731101766414,
-
+		"orbit_class" : "TNO",
 		"orbital_obliquity": 0
 		},
 
@@ -311,7 +328,7 @@ objects_data = {
 		"perihelion":5.77298e12,
 		"e":.154682767507142,
 		"revolution": 112897.9710682497,
-		"orbital_inclinaison":29.00685,
+		"orbital_inclination":29.00685,
 		"longitude_of_ascendingnode": 79.3659,
 		"longitude_of_perihelion":376.6059,
 
@@ -319,7 +336,7 @@ objects_data = {
 		"mean_motion":.003188719837864677,
 		"epochJD": 2458000.5,
 		"mean_anomaly": 161.032496116919,
-
+		"orbit_class" : "TNO",
 		"orbital_obliquity": 0
 		},
 
@@ -334,7 +351,7 @@ objects_data = {
 		"perihelion":1.1423e13,
 		"e":0.85491,
 		"revolution": 3934726.687924069,
-		"orbital_inclinaison":11.92872,
+		"orbital_inclination":11.92872,
 		"longitude_of_ascendingnode":144.546,
 		"longitude_of_perihelion":455.836,
 
@@ -342,7 +359,7 @@ objects_data = {
 		"mean_motion":9.149301299753888e-5,
 		"epochJD": 2458000.5,
 		"mean_anomaly": 358.0268610068745,
-
+		"orbit_class" : "TNO",
 		"orbital_obliquity": 0
 		},
 
@@ -357,7 +374,7 @@ objects_data = {
 		"perihelion":35.14529440338772*AU,
 		"e":0.1893662787361186,
 		"revolution": 104270.6801862633,
-		"orbital_inclinaison":28.20363151617822,
+		"orbital_inclination":28.20363151617822,
 		"longitude_of_ascendingnode":121.9702799705751,
 		"longitude_of_perihelion":360.8407349965672,
 
@@ -365,7 +382,7 @@ objects_data = {
 		"mean_motion":.003452552523460249,
 		"epochJD": 2458000.5,
 		"mean_anomaly": 214.0633556475513,
-
+		"orbit_class" : "TNO",
 		"orbital_obliquity": 0
 		},
 }
