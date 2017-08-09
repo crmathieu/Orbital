@@ -64,14 +64,13 @@ def main():
 	solarsystem.drawAllBodiesTrajectory()
 
 	# Start control window
-	#print wx.version()
+	print wx.version()
 	ex = wx.App(False)
-	#cw = controlWindow(None, solarsystem)
 	cw = controlWindow(solarsystem)
 	cw.Show()
 
 	while True:
-		rate(2)
+		sleep(2)
 
 if __name__ == '__main__' :
 	main()
