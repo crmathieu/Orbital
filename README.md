@@ -9,7 +9,7 @@ The 3D orbits of major objects in the solar system are rendered and can be zoome
 To zoom in/out: click on both mouse buttons and drag the mouse forward or backward.
 To rotate the scene: click on the mouse left button only and drag the mouse sideways.
 
-The data was collected from the JPL Small-Body Database Search Engine and the Nasa planetary factsheets. The Celestial mechanic concepts required to develop this program can be found in the Roger Bates's book "Introduction to Astrodynamics", as well as the document "Keplerian Elements for Approximate Positions of the Major Planets" (E.M. Standish from JPL Caltech)
+The data was collected from the JPL Small-Body Database Search Engine and the Nasa planetary factsheets. The Celestial mechanic concepts required to develop this program can be found in the Roger Bates's book "Introduction to Astrodynamics", as well as the document "Keplerian Elements for Approximate Positions of the Major Planets" (E.M. Standish from JPL Caltech).
 
 Keep in mind that
 
