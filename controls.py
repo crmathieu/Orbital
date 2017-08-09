@@ -218,6 +218,11 @@ class JPLpanel(wx.Panel):
 		self.parentFrame.orbitalBox.currentBody = self.SolarSystem.getBodyFromName(id)
 		self.parentFrame.orbitalBox.currentBody.Details = True
 		self.parentFrame.orbitalBox.showCurrentObject(self.parentFrame.orbitalBox.currentBody)
+		toggle = False
+		if self.SolarSystem.isRealsize():
+			toggle = True
+
+		self.parentFrame.orbitalBox.currentBody.toggleSize(toggle)
 
 	def loadBodyInfo(self, index):
 		entry = self.jsonResp["near_earth_objects"][self.fetchDateStr][index]

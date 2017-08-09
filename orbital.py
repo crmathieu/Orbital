@@ -117,6 +117,11 @@ class solarSystem:
 			return self.bodies[self.nameIndex[jpl_designation]]
 		return None
 
+	def isRealsize(self):
+		if self.ShowFeatures & REALSIZE <> 0:
+				return True
+		return False
+
 	def refresh(self, animationInProgress = False):
 		orbitTrace = False
 		if self.ShowFeatures & ORBITS <> 0:
