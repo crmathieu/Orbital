@@ -89,8 +89,8 @@ JPL_BRW_Y = JPL_LISTCTRL_Y + JPL_LIST_SZ + 15
 NASA_API_KEY = "KTTV4ZQFuTywtkoi3gA59Qdlk5H2V1ry6UdYL0xU"
 NASA_API_V1_FEED_TODAY = "https://api.nasa.gov/neo/rest/v1/feed/today?detailed=true&api_key="+NASA_API_KEY
 
-# PANELS numbers - Note that panels MUST be added with the same order to the parent notebook
-# in order to make it possible to switch from panel to panel programmatically
+# PANELS numbers - Note that panels MUST be added in the same order to the parent
+# notebook to make it possible to switch from panel to panel programmatically
 
 PANEL_MAIN = 0
 PANEL_CAPP = 1
