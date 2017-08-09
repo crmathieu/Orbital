@@ -1,21 +1,15 @@
 # Orbital
 
-"Orbital" is an accurate interactive 3D representation of the solar system featuring inner and outter planets, asteroids, 
-comets and Trans-Neptunian objects. Also includes the asteroid belt, Jupiter Trojans, Kuiper belt and inner 
-Oort cloud.
+"Orbital" is an accurate interactive 3D representation of the solar system featuring inner and outter planets, asteroids, comets and Trans-Neptunian objects. It also includes the asteroid belt, Jupiter Trojans, Kuiper belt and inner Oort cloud.
 
-The 3D orbits of major objects in the solar system are rendered and can be zoomed in and out as well as rotated. Each 
-object is located on its actual orbit position at the time of rendering.
+The 3D orbits of major objects in the solar system are rendered and can be zoomed in and out as well as rotated. Each object is located on its actual orbit position at the time of rendering.
 
 # Interacting with the simulation:
 
 To zoom in/out: click on both mouse buttons and drag the mouse forward or backward.
 To rotate the scene: click on the mouse left button only and drag the mouse sideways.
 
-The data was collected from the JPL Small-Body Database Search Engine and the Nasa planetary factsheets.
-The Celestial mechanic concepts required to develop this program can be found in the Roger Bates's book 
-"Introduction to Astrodynamics", as well as the document "Keplerian Elements for Approximate Positions
-of the Major Planets" (E.M. Standish from JPL Caltech)
+The data was collected from the JPL Small-Body Database Search Engine and the Nasa planetary factsheets. The Celestial mechanic concepts required to develop this program can be found in the Roger Bates's book "Introduction to Astrodynamics", as well as the document "Keplerian Elements for Approximate Positions of the Major Planets" (E.M. Standish from JPL Caltech)
 
 Keep in mind that
 
