@@ -97,7 +97,7 @@ List of a few close encounters between Potentially Harzardous Asteroids and eart
 	2004 XK50 	12/24/2025
 	
 
-# Notes on how to install the platform on your Windows computer:
+# How to install the platform on Windows computer:
 
 	1) Install python2.7 64 bits:
 	goto "https://www.python.org/downloads/release/python-279/" and under "Files", 
