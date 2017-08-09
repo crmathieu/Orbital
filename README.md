@@ -6,7 +6,7 @@ Oort cloud.
 The 3D orbits of major objects in the solar system are rendered and can be zoomed in and out as well as rotated. Each 
 object is located on its actual orbit position at the time of rendering.
 
-Interacting with the simulation:
+# Interacting with the simulation:
 
 To zoom in/out: click on both mouse buttons and drag the mouse forward or backward.
 To rotate the scene: click on the mouse left button only and drag the mouse sideways.
@@ -25,7 +25,7 @@ Keep in mind that
 	  Even though their size and thickness is somehow proportional to their actual dimension, the distribution 
 	  pattern within the belt is purely random/aesthetic.
 	
-Platform:
+# Platform:
 
 	python 2.7.9
 	vpython 6
@@ -46,9 +46,9 @@ The vpython display window and the Orbital control modal window will take only a
 
 Once the Orbital Control modal pops up, you may visualize the other major bodies in the solar system: dwarf planets, Asteroid / Kuiper belts etc... All PHAs, Major Asteroids, Comets and Trans-Neptunian objects orbits can be displayed with the slideshow feature. You may pause at any time to take a closer look at trajectories by zooming in/out and rotate, and then resume. You may also animate the current object from the slideshow along with other visible objects by using the ">" play button. You may also do it step by step using the "+" button. 
 
-Animations can be played at increased or decreased speeds between - x20 to + x20, allowing to go back in time as well as in the future. Specific dates can also be entered directly to examin orbits relative positions. That is an interesting feature to verify passed or future events, such as close encounters between earth and PHAs (ie, Asteroid Toutatis on December 12, 2012 -or- Asteroid Midas on March 21st 2018). Remember that planets, comets or asteroids sizes are not realistic (they are much bigger than their actual size), so even though objects may look sometime very close to each other, the actual distance that separate them is much larger. A good way to figure that out is to look at the Earth MOID parameter that displays the closest distance between the object's orbit and the earth's orbit.
+Animations can be played at increased or decreased speeds between - x20 to + x20, allowing to go back in time as well as in the future. Specific dates can also be entered directly to examin orbits relative positions. That is an interesting feature to verify passed or future events, such as close encounters between earth and PHAs (ie, Asteroid Toutatis on December 12, 2012 -or- Asteroid Midas on March 21st 2018). Remember that planets, comets or asteroids sizes are not realistic (they are much bigger than their actual size), so even though objects may look sometime very close to each other, the actual distance that separate them is much larger. A good way to figure that out is to look at the Earth MOID parameter that displays the closest distance between the object's orbit and the earth's orbit. To have a better idea of how close objects are from each other, use the checkbox "Adjust objects size" which will render a size closer to reality (but still not the real size either).
 
-You may also pick individual objects from the drop down box to display and animate their trajectories on orbit. When an animation or a slideshow is in progress, the drop down box is disabled and picking an object will have no effect. A slideshow must be fully stopped (not just paused) to enabled the drop down box again.
+You may also pick individual objects from the drop down box to display and animate their trajectories on orbit. When an animation or a slideshow is in progress, the drop down box is disabled and picking an object from it will have no effect. A slideshow must be fully stopped (not just paused) to enabled the drop down box again.
 
 The current object orbital elements are displayed at the bottom of the Orbital Control dialog. 
 Legend is:
@@ -66,14 +66,17 @@ Legend is:
 	Moid: Minimum Orbital Intersection Distance (in this case with Earth) in Astronomical Units (AU)
 	Velocity: The current velocity on orbit (this will be updated during animation) in kilometers/sec
 
-Files:
+# Files:
 
 	solarsys.py: 	Main file
 	orbital.py:  	Orbits trajectory and belts calculations classes
 	controls.py:	Orbital controller class used in the "Orbital Control" user interface
 	planetsdata.py:	Orbital elements for major planets and belts
 	
+# Close Approach Data:
+If you click on the "Close Approach Data" tab, you will be able to download the list of objects that are at their closest position from earth for this particular day. Once the list has been downloaded, you may also get the list from the previous of the next day. Double clicking on any row in that list will automatically display the orbit and position of the object as well as switch back to the "Main" tab to detail its orbital elements.
 
+<img src="./screenshot-2.jpg">
 	
 Note: There is a bug in the autoscale feature in vpython. If you are in a very expansive view that includes far objects such as dwarf planets and also closer to the sun objects like inner planets, unchecking the far objects and refreshing the scene may "autoscale" you back inside the sun (even though everything looks black). To eliminate the problem, simply perform a zoom out.
 
@@ -88,7 +91,7 @@ List of a few close encounters between Potentially Harzardous Asteroids and eart
 	2004 XK50 	12/24/2025
 	
 
-Notes on how to install the platform on your Windows computer:
+# Notes on how to install the platform on your Windows computer:
 
 	1) Install python2.7 64 bits:
 	goto "https://www.python.org/downloads/release/python-279/" and under "Files", 
