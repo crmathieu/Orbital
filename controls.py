@@ -189,12 +189,14 @@ class JPLpanel(wx.Panel):
 		self.ListIndex = 0
 		if self.jsonResp["element_count"] > 0:
 			for i in range(0, self.jsonResp["element_count"]-1):
-				self.list.InsertStringItem(self.ListIndex, self.jsonResp["near_earth_objects"][self.fetchDateStr][i]["name"])
-				self.list.SetStringItem(self.ListIndex, 1, self.jsonResp["near_earth_objects"][self.fetchDateStr][i]["neo_reference_id"])
-				self.list.SetStringItem(self.ListIndex, 2, self.jsonResp["near_earth_objects"][self.fetchDateStr][i]["close_approach_data"][0]["miss_distance"]["astronomical"] + " AU ")
-				# record the spk-id corresponding to this row
-				self.BodiesSPK_ID.append(self.jsonResp["near_earth_objects"][self.fetchDateStr][i]["neo_reference_id"])
-				self.ListIndex += 1
+				entry = self.jsonResp["near_earth_objects"][self.fetchDateStr][i]
+				if entry["close_approach_data"][0]["orbiting_body"].upper() == 'EARTH':
+					self.list.InsertStringItem(self.ListIndex, entry["name"])
+					self.list.SetStringItem(self.ListIndex, 1, entry["neo_reference_id"])
+					self.list.SetStringItem(self.ListIndex, 2, entry["close_approach_data"][0]["miss_distance"]["astronomical"] + " AU ")
+					# record the spk-id corresponding to this row
+					self.BodiesSPK_ID.append(entry["neo_reference_id"])
+					self.ListIndex += 1
 
 	def OnListClick(self, e):
 		#print e.GetText() + " - " + self.BodiesSPK_ID[e.m_itemIndex] + " - " + str(e.m_itemIndex)
