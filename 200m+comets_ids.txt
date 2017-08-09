@@ -1,0 +1,24 @@
+# Results:  	19 matching objects
+# Constraints:  	comets and NEOs and orbital class (ETc or PAR or CTc or JFC or JFc or HTC or COM) and
+#		diameter >= 0.2 (km) 
+# SPK-ID|object fullname|prim. desig.| IAU name|Diameter
+#
+1000140|109P/Swift-Tuttle|109P|Swift-Tuttle|26
+1000373|C/2001 OG108 (LONEOS)|2001 OG108|LONEOS|13.6
+1000129|C/1991 L3 (Levy)|1991 L3|Levy|11.6
+1000036|1P/Halley|1P|Halley|11.0
+1000061|96P/Machholz 1|96P|Machholz|6.4
+1000069|7P/Pons-Winnecke|7P|Pons-Winnecke|5.2
+1000025|2P/Encke|2P|Encke|4.8
+1000099|8P/Tuttle|8P|Tuttle|4.5
+1000012|67P/Churyumov-Gerasimenko|67P|Churyumov-Gerasimenko|4.0
+1000095|55P/Tempel-Tuttle|55P|Tempel-Tuttle|3.6
+1000022|79P/du Toit-Hartley|79P|du Toit-Hartley|2.8
+1000077|24P/Schaumasse|24P|Schaumasse|2.6
+1000034|26P/Grigg-Skjellerup|26P|Grigg-Skjellerup|2.6
+1000032|21P/Giacobini-Zinner|21P|Giacobini-Zinner|2.0
+1000056|104P/Kowal 2|104P|Kowal|2.0
+1000045|45P/Honda-Mrkos-Pajdusakova|45P|Honda-Mrkos-Pajdusakova|1.6
+1000041|103P/Hartley 2|103P|Hartley|1.6
+1000100|41P/Tuttle-Giacobini-Kresak|41P|Tuttle-Giacobini-Kresak|1.4
+1000109|46P/Wirtanen|46P|Wirtanen|1.2
