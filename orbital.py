@@ -28,6 +28,7 @@ from random import *
 import scipy.special as sp
 import datetime
 import time
+import sys
 
 class solarSystem:
 
@@ -58,6 +59,7 @@ class solarSystem:
 		self.Scene.up = (0,0,1)
 		self.Axis = [0,0,0]
 		self.AxisLabel = ["","",""]
+		self.CorrectionSize = self.BodyRadius*DIST_FACTOR/1.e-2
 
 		# make all light coming from origin
 		self.sunLight = local_light(pos=(0,0,0), color=color.white)
@@ -67,7 +69,7 @@ class solarSystem:
 			self.Scene.stereo='redcyan'
 			self.Scene.stereodepth = 1
 
-		self.BodyShape = sphere(pos=vector(0,0,0), radius=self.BodyRadius/(35000), color=color.white)
+		self.BodyShape = sphere(pos=vector(0,0,0), radius=self.BodyRadius/self.CorrectionSize, color=color.white)
 		self.BodyShape.material = materials.emissive
 
 		# make referential
@@ -99,7 +101,11 @@ class solarSystem:
 			self.bodies[self.JTrojansIndex].Labels = []
 			self.bodies[self.JTrojansIndex] = body
 
-		self.bodies[self.JTrojansIndex].draw()
+		#self.bodies[self.JTrojansIndex].draw()
+		body.draw()
+
+	def getJTrojans(self):
+		return self.bodies[self.JTrojansIndex]
 
 	def drawAllBodiesTrajectory(self):
 		for body in self.bodies:
@@ -125,8 +131,14 @@ class solarSystem:
 		if self.ShowFeatures & LABELS <> 0:
 			labelVisible = True
 
+		realisticSize = False
+		if self.ShowFeatures & REALSIZE <> 0:
+			realisticSize = True
+
 		for body in self.bodies:
 			if body.BodyType in [OUTTERPLANET, INNERPLANET, ASTEROID, COMET, DWARFPLANET, PHA, BIG_ASTEROID, TRANS_NEPT]:
+				body.toggleSize(realisticSize)
+
 				if body.BodyShape.visible == True:
 					body.Trail.visible = orbitTrace
 					for i in range(len(body.Labels)):
@@ -170,8 +182,8 @@ class solarSystem:
 		self.solarsystem = system
 		planet = self.getBodyFromName(objects_data[bodyName]['jpl_designation'])
 		if planet <> None:
-			InnerRadius = planet.BodyRadius * self.INNER_RING_COEF / planet.SizeCorrection
-			OutterRadius = planet.BodyRadius * self.OUTTER_RING_COEF / planet.SizeCorrection
+			InnerRadius = planet.BodyRadius * self.INNER_RING_COEF / planet.SizeCorrection[planet.sizeType]
+			OutterRadius = planet.BodyRadius * self.OUTTER_RING_COEF / planet.SizeCorrection[planet.sizeType]
 			planet.Ring = true
 			planet.InnerRing = curve(color=planet.Color)
 			planet.OutterRing = curve(color=planet.Color)
@@ -254,7 +266,7 @@ class makeBelt:
 			# generate random radius between Min and MAX
 			RandomRadius = randint(round(self.RadiusMinAU * AU * DIST_FACTOR, 3) * 1000, round(self.RadiusMaxAU * AU * DIST_FACTOR, 3) * 1000) / 1000
 			MAX = self.getGaussian(RandomRadius) * self.Thickness * AU * DIST_FACTOR * self.ThicknessFactor
-			heightToEcliptic = {0: 0, 1:1, 2:-1}[randint(0,2)] * randint(0, int(round(MAX, 6)*1.e6))/1e6
+			heightToEcliptic = {0: 0, 1:1, 2:-1}[randint(0,2)] * randint(0, int(round(MAX, 6)*1.e6))/1.e6
 			self.BodyShape.append(pos=(RandomRadius * cos(i), RandomRadius * sin(i), heightToEcliptic))
 
 		self.Labels.append(label(pos=(self.RadiusMaxAU * AU * DIST_FACTOR * cos(i), self.RadiusMaxAU * AU * DIST_FACTOR * sin(i), 0), text=self.Name, xoffset=20, yoffset=12, space=0, height=10, border=6, box=false, font='sans', visible = False))
@@ -282,6 +294,13 @@ class makeJtrojan(makeBelt):
 
 	def __init__(self, system, index, name, bodyType, color, size, density = 1, planetname = None):
 		makeBelt.__init__(self, system, index, name, bodyType, color, size, density, planetname)
+		self.Planet = self.solarsystem.getBodyFromName(objects_data[self.PlanetName]['jpl_designation'])
+		if self.Planet <> None:
+			self.JupiterX = self.Planet.Position[X_COOR]
+			self.JupiterY = self.Planet.Position[Y_COOR]
+		else:
+			self.JupiterX = 0
+			self.JupiterY = 0
 
 	def updateThickness(self, increment):
 		self.RadiusMinAU = belt_data["jupiterTrojan"]["radius_min"]	- sqrt(increment) # in AU
@@ -295,8 +314,8 @@ class makeJtrojan(makeBelt):
 
 		# grab Jupiter's current True Anomaly and add the Long. of perihelion to capture
 		# the current angle in the fixed referential
-		planet = self.solarsystem.getBodyFromName(objects_data[self.PlanetName]['jpl_designation'])
-		Nu = deg2rad(toRange(rad2deg(planet.Nu) + planet.Longitude_of_perihelion))
+		#planet = self.solarsystem.getBodyFromName(objects_data[self.PlanetName]['jpl_designation'])
+		Nu = deg2rad(toRange(rad2deg(self.Planet.Nu) + self.Planet.Longitude_of_perihelion))
 
 		# get Lagrangian L4 and L5 based on body position
 		L4 = (Nu + 4*pi/3 )
@@ -327,6 +346,8 @@ class makeJtrojan(makeBelt):
 class makeBody:
 
 	def __init__(self, system, index, color, trueAnomaly, bodyType = INNERPLANET, sizeCorrectionType = INNERPLANET):  # change default values during instantiation
+
+
 		self.Labels = []
 		self.ObjectIndex = index
 		self.solarsystem 			= system
@@ -348,6 +369,10 @@ class makeBody:
 		self.Moid = objects_data[index]["earth_moid"] if "earth_moid" in objects_data[index] else 0
 		self.setOrbitalElements(index)
 
+		#print "--> "+str(self.JPL_designation)
+		#if self.Name == '3779437':
+		#	print "YUP!"
+
 		# generate 2d coordinates in the initial orbital plane, with +X pointing
 		# towards periapsis. Make sure to convert degree to radians before using
 		# any sin or cos function
@@ -359,6 +384,8 @@ class makeBody:
 		# initial acceleration
 		self.Acceleration = vector(0,0,0)
 		self.Interval = 0
+		self.SizeCorrection = [1] * 2
+		self.sizeType = 0
 
 		self.Position = np.matrix([[0],[0],[0]], np.float64)
 
@@ -379,19 +406,18 @@ class makeBody:
 		# convert polar to Cartesian in Sun referential
 		self.setCartesianCoordinates()
 
-		sizeCorrection = { INNERPLANET: 700, GASGIANT: 1900, DWARFPLANET: 100, ASTEROID:1, COMET:0.02, SMALL_ASTEROID: 0.1, BIG_ASTEROID:0.1, PHA: 0.0013, TRANS_NEPT: 0.001}[sizeCorrectionType]
-		shape = { INNERPLANET: "sphere", OUTTERPLANET: "sphere", DWARFPLANET: "sphere", ASTEROID:"cube", COMET:"cone", SMALL_ASTEROID:"cube", BIG_ASTEROID:"sphere", PHA:"cube", TRANS_NEPT: "cube"}[bodyType]
-		self.SizeCorrection = getSigmoid(self.Perihelion, sizeCorrection)
-		if self.BodyRadius < 2:
-			Radius = 2
+		sizeCorrection = { INNERPLANET: 1200, GASGIANT: 1900, DWARFPLANET: 100, ASTEROID:1, COMET:0.02, SMALL_ASTEROID: 0.1, BIG_ASTEROID:0.1, PHA: 0.0013, TRANS_NEPT: 0.001}[sizeCorrectionType]
+		self.shape = { INNERPLANET: "sphere", OUTTERPLANET: "sphere", DWARFPLANET: "sphere", ASTEROID:"cube", COMET:"cone", SMALL_ASTEROID:"cube", BIG_ASTEROID:"sphere", PHA:"cube", TRANS_NEPT: "cube"}[bodyType]
+
+		self.SizeCorrection[0] = getSigmoid(self.Perihelion, sizeCorrection)
+		self.SizeCorrection[1] = self.getRealisticSizeCorrection()
+
+		if self.BodyRadius < DEFAULT_RADIUS:
+			self.radiusToShow = DEFAULT_RADIUS
 		else:
-			Radius = self.BodyRadius
-		if shape == "sphere":
-			self.BodyShape = sphere(pos=(self.Position[X_COOR],self.Position[Y_COOR],self.Position[Z_COOR]), radius=Radius/self.SizeCorrection, make_trail=false)
-			self.Angle = pi/2 + deg2rad(self.OrbitalObliquity)
-		else:
-			self.BodyShape = ellipsoid(pos=(self.Position[X_COOR],self.Position[Y_COOR],self.Position[Z_COOR]), length=(Radius * randint(1, 2))/self.SizeCorrection, height=(Radius * randint(1, 2))/self.SizeCorrection, width=(Radius * randint(1, 3))/self.SizeCorrection, make_trail=false)
-			self.Angle = pi/randint(2,6)
+			self.radiusToShow = self.BodyRadius
+
+		self.makeShape()
 
 		# attach a curve to the object to display its orbit
 		self.Trail = curve(color=self.Color)
@@ -408,6 +434,31 @@ class makeBody:
 			self.BodyShape.visible = False
 			self.Labels[0].visible = False
 
+
+	def makeShape(self):
+		#zob = convex(pos=(self.Position[X_COOR],self.Position[Y_COOR],self.Position[Z_COOR]), points=((0,0,0),(radiusToShow * randint(10, 20)/10)/self.SizeCorrection, 0, (radiusToShow * randint(10, 20)/10)/self.SizeCorrection))
+		self.BodyShape = ellipsoid(	pos=(self.Position[X_COOR],self.Position[Y_COOR],self.Position[Z_COOR]),
+									length=(self.radiusToShow * randint(10, 20)/10)/self.SizeCorrection[self.sizeType],
+									height=(self.radiusToShow * randint(10, 20)/10)/self.SizeCorrection[self.sizeType],
+									width=(self.radiusToShow * randint(10, 20)/10)/self.SizeCorrection[self.sizeType], make_trail=false)
+		self.Angle = pi/randint(2,6)
+
+	def getRealisticSizeCorrection(self):
+		return 1e-7/(DIST_FACTOR*5)
+
+	def toggleSize(self, realisticSize):
+
+		x = 1 if realisticSize == True else 0
+		if x == self.sizeType:
+			return
+		else:
+			self.sizeType = x
+
+		asteroidRandom = [(randint(10, 20)/10, randint(10, 20)/10, randint(10, 20)/10), (1,1,1)]
+		self.BodyShape.length = self.radiusToShow * asteroidRandom[self.sizeType][0] / self.SizeCorrection[self.sizeType]
+		self.BodyShape.height = self.radiusToShow * asteroidRandom[self.sizeType][1] / self.SizeCorrection[self.sizeType]
+		self.BodyShape.width  = self.radiusToShow * asteroidRandom[self.sizeType][2] / self.SizeCorrection[self.sizeType]
+
 	def animate(self, timeIncrement):
 
 		if self.hasRenderedOrbit == False:
@@ -416,15 +467,15 @@ class makeBody:
 		self.setOrbitalElements(self.ObjectIndex, timeIncrement)
 		self.setPolarCoordinates(deg2rad(self.E))
 
-		self.b = getSemiMinor(self.a, self.e)
-		self.Aphelion = getAphelion(self.a, self.e)	# body aphelion
+		#self.b = getSemiMinor(self.a, self.e)
+		#self.Aphelion = getAphelion(self.a, self.e)	# body aphelion
 
 		# initial acceleration
 		self.Acceleration = vector(0,0,0)
 
-		# calculate current position of body on its orbit knowing
-		# its current distance from Sun (R) and angle (Nu) that
-		# were set up in setPolarCoordinates
+		# calculate current body position on its orbit knowing
+		# its current distance from Sun (R) and True anomaly (Nu)
+		# that were set in setPolarCoordinates
 
 		self.N = deg2rad(self.Longitude_of_ascendingnode)
 		self.w = deg2rad(self.Argument_of_perihelion)
@@ -438,6 +489,8 @@ class makeBody:
 		if self.Ring == True:
 			self.InnerRing.visible = False
 			self.OutterRing.visible = False
+			self.InnerRing = None
+			self.OutterRing = None
 			self.solarsystem.makeRings(self.solarsystem, self.ObjectIndex)
 
 		return self.getCurrentVelocity()
@@ -486,12 +539,13 @@ class makeBody:
 		self.Longitude_of_ascendingnode = elts["longitude_of_ascendingnode"]
 		self.Argument_of_perihelion 	= self.Longitude_of_perihelion - self.Longitude_of_ascendingnode
 		self.a 							= getSemiMajor(self.Perihelion, self.e)
-		self.Inclinaison 				= elts["orbital_inclinaison"]
+		self.Inclinaison 				= elts["orbital_inclination"]
 		self.Time_of_perihelion_passage = elts["Time_of_perihelion_passage_JD"]
 		self.Mean_motion				= elts["mean_motion"]
 		self.Epoch						= elts["epochJD"]
 		self.Mean_anomaly				= elts["mean_anomaly"]
 		self.revolution					= elts["revolution"]
+		self.OrbitClass					= elts["orbit_class"]
 
 		# calculate current position based on orbital elements
 		dT = daysSinceEpochJD(self.Epoch) + timeincrement # timeincrement comes in days
@@ -502,8 +556,6 @@ class makeBody:
 		self.Longitude_of_ascendingnode +=  0.013967 * (2000.0 - (getCurrentYear() + incrementYears)) + 3.82394e-5 * dT
 
 		# adjust Mean Anomaly with time elapsed since epoch
-		#M = self.Mean_anomaly + self.Mean_motion * dT
-		#M = toRange(M)
 		M = toRange(self.Mean_anomaly + self.Mean_motion * dT)
 		success, self.E, dE, it = solveKepler(M, self.e, 20000)
 		if success == False:
@@ -514,7 +566,7 @@ class makeBody:
 		return pi/180
 
 	def draw(self):
-
+		#print "Rendering "+self.Name+" orbit"
 		self.Trail.visible = false
 		rad_E = deg2rad(self.E)
 		increment = self.getIncrement()
@@ -564,6 +616,7 @@ class makeBody:
 	def show(self):
 		if self.hasRenderedOrbit == False:
 			self.draw()
+
 		self.BodyShape.visible = True
 		for i in range(len(self.Labels)):
 			self.Labels[i].visible = True
@@ -592,17 +645,8 @@ class makeBody:
 			self.InnerRing.visible = False
 			self.OutterRing.visible = False
 
+
 	def refresh(self):
-		if self.solarsystem.SlideShowInProgress and self.BodyType == self.solarsystem.currentSource:
-			return
-
-		if self.BodyType & self.solarsystem.ShowFeatures <> 0 or self.Name == 'Earth' or self.Details == True:
-			if self.BodyShape.visible == False:
-				self.show()
-		else:
-			self.hide()
-
-	def refreshSAVE(self):
 		if self.solarsystem.SlideShowInProgress and self.BodyType == self.solarsystem.currentSource:
 			return
 
@@ -622,13 +666,38 @@ class makeBody:
 
 
 class planet(makeBody):
-	def __init__(self, system, index, color, trueAnomaly, type, size):
-		makeBody.__init__(self, system, index, color, trueAnomaly, type, size)
+	def __init__(self, system, index, color, trueAnomaly, type, sizeCorrectionType):
+		makeBody.__init__(self, system, index, color, trueAnomaly, type, sizeCorrectionType)
+
+	def makeShape(self):
+		self.BodyShape = sphere(pos=(self.Position[X_COOR],self.Position[Y_COOR],self.Position[Z_COOR]), radius=self.radiusToShow/self.SizeCorrection[self.sizeType], make_trail=false)
+		self.Angle = pi/2 + deg2rad(self.OrbitalObliquity)
+
+	def getRealisticSizeCorrection(self):
+		return 1/(DIST_FACTOR * 50)
+
+	def toggleSize(self, realisticSize):
+		x = 1 if realisticSize == True else 0
+		if x == self.sizeType:
+			return
+		else:
+			self.sizeType = x
+
+		self.BodyShape.radius = self.radiusToShow  / self.SizeCorrection[self.sizeType]
+
+		if self.Ring == True:
+			self.InnerRing.visible = False
+			self.OutterRing.visible = False
+			self.InnerRing = None
+			self.OutterRing = None
+			self.solarsystem.makeRings(self.solarsystem, self.ObjectIndex)
+
 
 	def setOrbitalElements(self, index, timeincrement = 0):
 		# for the Major planets (default) includig Pluto, we have Keplerian
-		# elements to calculate the body's current approximate position on orbit
+		# elements to calculate the body's current approximated position on orbit
 		self.setOrbitalFromKeplerianElements(objects_data[index]["kep_elt"], timeincrement)
+
 
 class comet(makeBody):
 	def __init__(self, system, index, color, trueAnomaly):
@@ -636,18 +705,64 @@ class comet(makeBody):
 
 	def getIncrement(self):
 		# for comets, due to their sometimes high eccentricity, an increment of 1 deg may not be small enough
-		# to insure a smooth curve, hence we need to take smaller increments of 12.5 arcminutes in radians
+		# to insure a smooth curve, hence we need to take smaller increments of 12.5 arcminutes or less in radians
 		return pi/(180 * 4)
 
-
 class asteroid(makeBody):
-	def __init__(self, system, index, color, trueAnomaly, type, size):
-		makeBody.__init__(self, system, index, color, trueAnomaly, type, size)
+	def __init__(self, system, index, color, trueAnomaly):
+		makeBody.__init__(self, system, index, color, trueAnomaly, BIG_ASTEROID, BIG_ASTEROID)
+
+	def makeShape(self):
+		self.BodyShape = sphere(pos=(self.Position[X_COOR],self.Position[Y_COOR],self.Position[Z_COOR]), radius=self.radiusToShow/self.SizeCorrection[self.sizeType], make_trail=false)
+		self.Angle = pi/2 + deg2rad(self.OrbitalObliquity)
+
+	def getRealisticSizeCorrection(self):
+		return 1e-2/(DIST_FACTOR*5)
+
+	def toggleSize(self, realisticSize):
+		x = 1 if realisticSize == True else 0
+		if x == self.sizeType:
+			return
+		else:
+			self.sizeType = x
+
+		self.BodyShape.radius = self.radiusToShow / self.SizeCorrection[self.sizeType]
+
+
+class pha(makeBody):
+	def __init__(self, system, index, color, trueAnomaly):
+		makeBody.__init__(self, system, index, color, trueAnomaly, PHA, PHA)
+
+
+class smallAsteroid(makeBody):
+	def __init__(self, system, index, color, trueAnomaly):
+		makeBody.__init__(self, system, index, color, trueAnomaly, SMALL_ASTEROID, SMALL_ASTEROID)
 
 
 class dwarfPlanet(makeBody):
 	def __init__(self, system, index, color, trueAnomaly):
 		makeBody.__init__(self, system, index, color, trueAnomaly, DWARFPLANET, DWARFPLANET)
+
+	def getRealisticSizeCorrection(self):
+		return 1e-2/(DIST_FACTOR*5)
+
+	def toggleSize(self, realisticSize):
+		x = 1 if realisticSize == True else 0
+		if x == self.sizeType:
+			return
+		else:
+			self.sizeType = x
+
+		self.BodyShape.radius = self.BodyRadius / self.SizeCorrection[self.sizeType]
+
+	def makeShape(self):
+		self.BodyShape = sphere(pos=(self.Position[X_COOR],self.Position[Y_COOR],self.Position[Z_COOR]), radius=self.radiusToShow/self.SizeCorrection[self.sizeType], make_trail=false)
+		self.Angle = pi/2 + deg2rad(self.OrbitalObliquity)
+
+
+class transNeptunian(makeBody):
+	def __init__(self, system, index, color, trueAnomaly):
+		makeBody.__init__(self, system, index, color, trueAnomaly, TRANS_NEPT, TRANS_NEPT)
 
 #
 # various functions
@@ -739,6 +854,39 @@ def getTrueAnomalyAndRadius(E, e, a):
 		ta = ta + 2*pi
 	return ta, R
 
+def loadBodyHeader(type, filename):
+	fo  = open(filename, "r")
+	token = []
+	for line in fo:
+		if line[0] == '#':
+			continue
+		else:
+			token = line.split('|')
+			if len(token) > 0:
+				objects_data[token[LOOKUP_SPKID]] = {
+					"material": 0,
+					"name": token[LOOKUP_NAME],
+					"iau_name": token[LOOKUP_IAU_NAME],
+					"jpl_designation": token[LOOKUP_JPL_DESIGNATION],
+					"mass": 0.0, #(float(token[JPL_GM])/G)*1.e+9 if token[JPL_GM] else 0, # convert km3 to m3
+					"radius": 0.0, #float(token[JPL_DIAMETER])/2 if token[JPL_DIAMETER] else DEFAULT_RADIUS,
+					"perihelion": 0.0, #float(token[JPL_OE_q]) * AU,
+					"e": 0.0, #float(token[JPL_OE_e]),
+					"revolution": 0.0, #float(token[JPL_OE_Pd]),
+					"orbital_inclination": 	0.0, #float(token[JPL_OE_i]),
+					"longitude_of_ascendingnode":0.0, #float(token[JPL_OE_N]),
+					"argument_of_perihelion": 0.0, #float(token[JPL_OE_w]),
+					"longitude_of_perihelion":0.0, #float(token[JPL_OE_N])+float(token[JPL_OE_w]),
+					"Time_of_perihelion_passage_JD":0.0, #float(token[JPL_OE_tp_JD]),
+					"mean_motion": 0.0, #float(token[JPL_OE_n]) if token[JPL_OE_n] else 0,
+					"mean_anomaly": 0.0, #float(token[JPL_OE_M]) if token[JPL_OE_M] else 0,
+					"epochJD": 0.0, #float(token[JPL_EPOCH_JD]),
+					"earth_moid": 0.0, #(float(token[JPL_EARTH_MOID_AU])*AU) if token[JPL_EARTH_MOID_AU] else 0,
+					"orbital_obliquity": 0.0 # in deg
+				}
+
+	fo.close()
+
 # load orbital parameters stored in a file
 def loadBodies(solarsystem, type, filename, maxentries = 0):
 	fo  = open(filename, "r")
@@ -756,11 +904,11 @@ def loadBodies(solarsystem, type, filename, maxentries = 0):
 					"iau_name": token[JPL_IAU_NAME],
 					"jpl_designation": token[JPL_DESIGNATION],
 					"mass": (float(token[JPL_GM])/G)*1.e+9 if token[JPL_GM] else 0, # convert km3 to m3
-					"radius": float(token[JPL_DIAMETER])/2 if token[JPL_DIAMETER] else DEFAULT_RADIUS,
+					"radius": float(token[JPL_DIAMETER])/2 if token[JPL_DIAMETER] else 0, #DEFAULT_RADIUS,
 					"perihelion": float(token[JPL_OE_q]) * AU,
 					"e": float(token[JPL_OE_e]),
 					"revolution": float(token[JPL_OE_Pd]),
-					"orbital_inclinaison": 	float(token[JPL_OE_i]),
+					"orbital_inclination": 	float(token[JPL_OE_i]),
 					"longitude_of_ascendingnode":float(token[JPL_OE_N]),
 					"argument_of_perihelion": float(token[JPL_OE_w]),
 					"longitude_of_perihelion":float(token[JPL_OE_N])+float(token[JPL_OE_w]),
@@ -769,13 +917,16 @@ def loadBodies(solarsystem, type, filename, maxentries = 0):
 					"mean_anomaly": float(token[JPL_OE_M]) if token[JPL_OE_M] else 0,
 					"epochJD": float(token[JPL_EPOCH_JD]),
 					"earth_moid": (float(token[JPL_EARTH_MOID_AU])*AU) if token[JPL_EARTH_MOID_AU] else 0,
+					"orbit_class":token[JPL_ORBIT_CLASS],
 					"orbital_obliquity": 0 # in deg
 				}
+				body = {COMET: 			comet,
+						BIG_ASTEROID: 	asteroid,
+						PHA:			pha,
+						TRANS_NEPT:		transNeptunian,
+						SMALL_ASTEROID:	smallAsteroid,
+						}[type](solarsystem, token[JPL_DESIGNATION], getColor(), 0)
 
-				if type == COMET:
-					body = comet(solarsystem, token[JPL_DESIGNATION], getColor(), 0)
-				else:
-					body = asteroid(solarsystem, token[JPL_DESIGNATION], getColor(), 0, type, type)
 				solarsystem.addTo(body)
 				maxentries -= 1
 				if maxentries <= 0:
@@ -804,15 +955,15 @@ def getCurrentYear(year = 0):
 
 def JDdaydiff(jd):
 	# note that if jd corresponds to a date before 2000
-	# jd - 2451543.5 will be a negative value
-	return float(jd - 2451543.5)
+	# jd - EPOCH_2000_JD will be a negative value
+	return float(jd - EPOCH_2000_JD)
 
 def MJDdaydiff(mjd):
-	return float(mjd - 51543.0)
+	return float(mjd - EPOCH_2000_MJD)
 
 # returns number of days since J2000 from current JDE
 def JDE2day(jde):
-	return float(jde - 2451543.5)
+	return float(jde - EPOCH_2000_JD)
 
 # calculate the number of days since epoch
 def currentdate2JDE():
@@ -836,15 +987,30 @@ def JDEtoJulian(jdediff_indays):
 	days = (Y - years)*365.25
 	return days
 
+def makeJulianDate(utc, delta):
+	# Fliegel / Van Flandern Formula - "delta" is in days
+	return delta + 367*utc.year - (7*(utc.year + ((utc.month+9)/12)))/4 + (275*utc.month)/9 + utc.day - 730530 + (utc.hour + utc.minute/60)/24
+
 # will compute the number of days since J2000 UTC
 def daysSinceJ2000UTC(delta = 0):
 	utc = datetime.datetime.utcnow()
-	return delta + 367*utc.year - (7*(utc.year + ((utc.month+9)/12)))/4 + (275*utc.month)/9 + utc.day - 730530 + (utc.hour + utc.minute/60)/24
+	return makeJulianDate(utc, delta)
 
-def daysSinceEpochJD(epochJD):
-	if epochJD == 0:
+def daysSinceEpochJD(julianDate):
+	if julianDate == 0:
 		# when epoch is not known, epoch is set to zero
 		return 0
 	# otherwise determine number of days since epoch
 	days = daysSinceJ2000UTC() # days from 2000
-	return days - (epochJD - 2451543.5)
+	return days - (julianDate - EPOCH_2000_JD)
+
+def daysSinceEpochJDfromUnixTimeStamp(UnixTimestamp):
+	# Unix timestamp are the number of seconds since 01-01-1970 GMT.
+	# first let's convert that number in a number of days, by a)
+	# calculating the number of days since 1970 and b) add the number
+	# of JULIAN DAYS corresponding to 01-01-1970
+	ndays = (UnixTimeStamp / 86400.0) + EPOCH_1970_JD
+
+	# second convert that number of days into the number of days since
+	# 01-01-2000
+	return daysSinceEpochJD(ndays)
