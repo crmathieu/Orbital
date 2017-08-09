@@ -100,7 +100,7 @@ List of a few close encounters between Potentially Harzardous Asteroids and eart
 # How to install the platform on Windows computer:
 
 	1) Install python2.7 64 bits:
-	goto "https://www.python.org/downloads/release/python-279/" and under "Files", 
+	go to "https://www.python.org/downloads/release/python-279/" and under "Files", 
 	click on "Windows x86-64 MSI installer". Download the installer and run it.
 
 	use the default install configuration. Your python folder should be 
@@ -133,7 +133,7 @@ List of a few close encounters between Potentially Harzardous Asteroids and eart
 	version of python. Make sure the library is the correct one.
 	
 	5) Install vPython:
-	goto http://vpython.org/contents/download_windows.html
+	go to http://vpython.org/contents/download_windows.html
 	and download the installer: "VPython-Win-64-Py2.7-6.11"
 
 	Once downloaded, run it. This installer will also install the wxPython 3.0 library.
