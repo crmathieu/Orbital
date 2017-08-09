@@ -24,12 +24,8 @@ SOFTWARE.
 from orbital import *
 import urllib2
 import json
-
-#import urllib.parse
-#import urllib.request
-
 import wx
-import wx.lib.newevent
+import wx.lib.newevent # necessary for custom event
 
 HEADING_Y = 40
 DATE_Y = HEADING_Y
