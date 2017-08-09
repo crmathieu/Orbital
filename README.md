@@ -1,6 +1,6 @@
 # Orbital
 
-An accurate interactive 3D representation of the solar system featuring inner and outter planets, asteroids, 
+"Orbital" is an accurate interactive 3D representation of the solar system featuring inner and outter planets, asteroids, 
 comets and Trans-Neptunian objects. Also includes the asteroid belt, Jupiter Trojans, Kuiper belt and inner 
 Oort cloud.
 
@@ -76,7 +76,7 @@ Legend is:
 	
 # Close Approach Data:
 
-If you click on the "Close Approach Data" tab, you will be able to download the list of objects that are at their closest position from earth for this particular day. 
+"Orbital" allows you to find out which "close encounters" are happening between asteroids and earth on a daily basis. If you click on the "Close Approach Data" tab, you will be able to directly fetch from the JPL database the list of objects that are at their closest position from earth for the current day. 
 
 <img src="./screenshot-2.jpg">
 	
