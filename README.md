@@ -3,7 +3,7 @@ An accurate interactive 3D representation of the solar system featuring inner an
 comets and Trans-Neptunian objects. Also includes the asteroid belt, Jupiter Trojans, Kuiper belt and inner 
 Oort cloud.
 
-3D orbits of major objects in the solar system are rendered and can be zoomed in and out as well as rotated. Each 
+The 3D orbits of major objects in the solar system are rendered and can be zoomed in and out as well as rotated. Each 
 object is located on its actual orbit position at the time of rendering.
 
 Interacting with the simulation:
@@ -11,7 +11,10 @@ Interacting with the simulation:
 To zoom in/out: click on both mouse buttons and drag the mouse forward or backward.
 To rotate the scene: click on the mouse left button only and drag the mouse sideways.
 
-All data was collected from the JPL Small-Body Database Search Engine and the Nasa planetary factsheets.
+The data was collected from the JPL Small-Body Database Search Engine and the Nasa planetary factsheets.
+The Celestial mechanic concepts required to develop this program can be found in the Roger Bates's book 
+"Introduction to Astrodynamics", as well as the document "Keplerian Elements for Approximate Positions
+of the Major Planets" (E.M. Standish from JPL Caltech)
 
 Keep in mind that
 
@@ -37,7 +40,9 @@ To launch the application, go to the folder where the project was downloaded and
 
 	> python2.7.exe solarsys.py
 	
-The vpython display window and the Orbital control modal window will take a few seconds to load. PHA, Asteroids, Comets and trans-Neptunian objects orbits get calculated and rendered as needed, but inner and outter planets orbits are displayed right away and can be interacted with. The constant MAX_OBJECTS in solarsys.py specifies the upper limit of objects to load per data file.
+The vpython display window and the Orbital control modal window will take only a few seconds to load. PHA, Asteroids, Comets and trans-Neptunian objects orbits get calculated and rendered as needed, but inner and outter planets orbits are displayed right away and can be interacted with. The constant MAX_OBJECTS in solarsys.py specifies the upper limit of objects to load per data file.
+
+<img src="./screenshot-1.jpg">
 
 Once the Orbital Control modal pops up, you may visualize the other major bodies in the solar system: dwarf planets, Asteroid / Kuiper belts etc... All PHAs, Major Asteroids, Comets and Trans-Neptunian objects orbits can be displayed with the slideshow feature. You may pause at any time to take a closer look at trajectories by zooming in/out and rotate, and then resume. You may also animate the current object from the slideshow along with other visible objects by using the ">" play button. You may also do it step by step using the "+" button. 
 
