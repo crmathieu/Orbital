@@ -1,6 +1,6 @@
 # Orbital
 
-"Orbital" is an accurate interactive 3D representation of the solar system featuring inner and outter planets, asteroids, comets and Trans-Neptunian objects. It also includes the asteroid belt, Jupiter Trojans, Kuiper belt and inner Oort cloud.
+"Orbital" is an accurate interactive 3D representation of the solar system featuring inner and outer planets, asteroids, comets and Trans-Neptunian objects. It also includes the asteroid belt, Jupiter Trojans, Kuiper belt and inner Oort cloud.
 
 The 3D orbits of major objects in the solar system are rendered and can be zoomed in and out as well as rotated. Each object is located on its actual orbit position at the time of rendering.
 
