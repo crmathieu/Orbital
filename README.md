@@ -41,7 +41,7 @@ The vpython display window and the Orbital control modal window will take only a
 
 Once the Orbital Control modal pops up, you may visualize the other major bodies in the solar system: dwarf planets, Asteroid, Kuiper belts etc... All PHAs, Major Asteroids, Comets and Trans-Neptunian objects orbits can be displayed with the slideshow feature. You may pause at any time to take a closer look at trajectories by zooming in/out and rotate, and then resume. You may also animate the current object from the slideshow along with other visible objects by using the ">" play button. You may also do it step by step using the "+" button. The animation minimum increment is 1 day. 
 
-Animations can be played at increased or decreased speed between - x20 to + x20, allowing to go back in time as well as in the future. Specific dates can also be entered directly to examin orbits relative positions. That is an interesting feature to verify passed or future events, such as close encounters between earth and PHAs (ie, Asteroid Toutatis on December 12, 2012 -or- Asteroid Midas on March 21st 2018). Remember that planets, comets or asteroids sizes are not realistic (they are much bigger than their actual size), so even though objects may look sometime very close to each other, the actual distance that separate them is much larger. A good way to figure that out is to look at the Earth MOID parameter that displays the closest distance between the object's orbit and the earth's orbit. To have a better idea of how close objects are from each other, use the checkbox "Adjust objects size" which will render a size a little closer to reality.
+Animations can be played at increased or decreased speed between - x20 to + x20, allowing to go back in time as well as in the future. The time increment is 10 minutes per frame. Specific dates can also be entered directly to examin orbits relative positions. That is an interesting feature to verify passed or future events, such as close encounters between earth and PHAs (ie, Asteroid Toutatis on December 12, 2012 -or- Asteroid Midas on March 21st 2018). Remember that planets, comets or asteroids sizes are not realistic (they are much bigger than their actual size), so even though objects may look sometime very close to each other, the actual distance that separate them is much larger. A good way to figure that out is to look at the Earth MOID parameter that displays the closest distance between the object's orbit and the earth's orbit. To have a better idea of how close objects are from each other, use the checkbox "Adjust objects size" which will render a size a closer to reality.
 
 You may also pick individual objects from the drop down box to display and animate their trajectories on orbit. When an animation or a slideshow is in progress, the drop down box is disabled and picking an object from it will have no effect. A slideshow must be fully stopped (not just paused) to enabled the drop down box again.
 
@@ -63,7 +63,7 @@ Legend is:
 
 # POV:
 
-You have the ability to change the reference POV to any object of your choice. By default, the POV is focused on the Sun, but it can be set on any of the major inner or outer planets - or - on the body that you are currently studying. To come back to the default POV, click on the "Sun" radio button or on the "Reset" button.
+You have the ability to change the reference POV to any object of your choice. By default, the POV is focused on the Sun, but it can be set on any of the major inner or outer planets - or - on the body that you are currently studying.
 
 # Files:
 
@@ -71,6 +71,7 @@ You have the ability to change the reference POV to any object of your choice. B
 	orbital.py:  	Orbits trajectory and belts calculations classes
 	controls.py:	Orbital controller class used in the "Orbital Control" user interface
 	planetsdata.py:	Orbital elements for major planets and belts
+	numberfmt: 	String precision formatting
 	
 # Close Approach Data:
 
@@ -84,8 +85,7 @@ Once the list has been downloaded, you may also get the list from the previous o
 
 Note: There is a bug in the autoscale feature in vpython. If you are in a very expansive view that includes far objects such as dwarf planets and also closer to the sun objects like inner planets, unchecking the far objects and refreshing the scene may "autoscale" you back inside the sun (even though everything looks black). To eliminate the problem, simply perform a zoom out.
 
-One Last thing: Planets do not rotate on their axis during animation. Since the time increment is always a multiple of 1 earth day, 
-the earth does not rotate on its axis, so to keep things as simple as possible, there is no planet spin.
+Planets rotate on their axis in a realistic way. You may note that Venus and Pluto seem to have a retrograde motion, but that's because their north pole is reversed. A good way to clarify what is happening is to check the "Show Local Referential" checkbox in the"Animation POV" tab.
 
 List of a few close encounters between Potentially Harzardous Asteroids and earth:
 
