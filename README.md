@@ -65,6 +65,8 @@ Legend is:
 
 You have the ability to change the reference POV to any object of your choice. By default, the POV is focused on the Sun, but it can be set on any of the major inner / outer planets, the dwarf planets - or - on the body that you are currently studying.
 
+<img src="./screenshot-3.jpg">
+
 # Files:
 
 	solarsys.py: 	Main file
@@ -80,8 +82,6 @@ You have the ability to change the reference POV to any object of your choice. B
 <img src="./screenshot-2.jpg">
 	
 Once the list has been downloaded, you may also get the list from the previous or the next day. Double clicking on a row in that list will automatically display the orbit and position of the corresponding object, as well as switch back to the "Main" tab to detail its orbital elements.
-
-<img src="./screenshot-3.jpg">
 
 Note: The autoscale feature in vpython is a bit erratic. If you are in a very expansive view that includes far objects such as dwarf planets and also closer to the sun objects like inner planets, unchecking the far objects and refreshing the scene may "autoscale" you back inside the sun (even though everything looks black). To eliminate the problem, simply perform a zoom out.
 
