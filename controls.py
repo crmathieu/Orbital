@@ -162,7 +162,7 @@ class POVpanel(wx.Panel):
 		else:
 			mass = setPrecision(str(Body.Mass), 3)
 
-		radius = round(float(Body.BodyRadius) * 1000)/1000 if Body.BodyRadius <> 0 and Body.BodyRadius <> DEFAULT_RADIUS else 0
+		radius = Body.BodyRadius/1000 if Body.BodyRadius <> 0 and Body.BodyRadius <> DEFAULT_RADIUS else 0
 		rev = round(float(Body.Revolution / 365.25) * 1000)/1000
 
 		i = round(float(Body.Inclination) * 1000)/1000
