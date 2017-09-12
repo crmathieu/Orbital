@@ -20,18 +20,18 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 
 """
-
 from orbital import *
+from numberfmt import *
 import urllib2
 import json
 import wx
 import wx.lib.newevent # necessary for custom event
 
-HEADING_Y = 40
-DATE_Y = HEADING_Y
+MAIN_HEADING_Y = 40
+DATE_Y = MAIN_HEADING_Y
 DATE_SLD_Y = DATE_Y + 20
 JPL_BRW_Y = DATE_SLD_Y
-INNER_Y = HEADING_Y + 20
+INNER_Y = MAIN_HEADING_Y + 20
 ORB_Y = INNER_Y + 20
 GASG_Y = ORB_Y + 20
 DWARF_Y = GASG_Y + 20
@@ -79,21 +79,209 @@ def isLeapYear(year):
 # JPL API search Panel
 #
 
-HEADING_Y = 25
-JPL_DOWNLOAD_Y = HEADING_Y-15
-JPL_LISTCTRL_Y = HEADING_Y + 25
+MAIN_HEADING_Y = 25
+JPL_DOWNLOAD_Y = MAIN_HEADING_Y-15
+JPL_LISTCTRL_Y = MAIN_HEADING_Y + 25
 
 JPL_LIST_SZ = TOTAL_Y-160
 JPL_BRW_Y = JPL_LISTCTRL_Y + JPL_LIST_SZ + 15
 
 NASA_API_KEY = "KTTV4ZQFuTywtkoi3gA59Qdlk5H2V1ry6UdYL0xU"
 NASA_API_V1_FEED_TODAY = "https://api.nasa.gov/neo/rest/v1/feed/today?detailed=true&api_key="+NASA_API_KEY
-
 # PANELS numbers - Note that panels MUST be added in the same order to the parent
 # notebook to make it possible to switch from panel to panel programmatically
 
 PANEL_MAIN = 0
-PANEL_CAPP = 1
+PANEL_POV = 1
+PANEL_CAPP = 2
+
+POV_Y = 15
+POV_FOCUS_Y = POV_Y+150
+
+class POVpanel(wx.Panel):
+	def __init__(self, parent, notebook, solarsystem):
+		wx.Panel.__init__(self, parent=notebook)
+		self.parentFrame = parent
+		self.nb = notebook
+		self.SolarSystem = solarsystem
+		self.ca_deltaT = 0
+		self.InitUI()
+		self.resetPOV()
+		self.Hide()
+
+	def InitUI(self):
+		self.BoldFont = wx.Font(10, wx.SWISS, wx.NORMAL, wx.BOLD)
+		self.RegFont = wx.Font(10, wx.SWISS, wx.NORMAL, wx.NORMAL)
+
+		#self.Header = wx.StaticText(self, label="", pos=(20, POV_Y), size=(TOTAL_X-40, 140))
+		self.Header = wx.StaticText(self, label="", pos=(220, POV_Y), size=(TOTAL_X-210, 200))
+		self.Header.SetFont(self.RegFont)
+		self.Header.Wrap(self.GetSize().width)
+		self.Header.SetLabel("Select which body the animation should focus on. 'Current\nObject' will follow the last object selected, whether it comes\nfrom the Drop down selection, a paused slideshow selection\nor a Close Approach object pick.\n\nYou may also choose any particular planet or the sun." )
+		size2 = "Select which body the animation\nshould focus on. 'Current Object'\nwill follow the last object selected,\nwhether it comes from the Drop\ndown selection, a paused slide-\nshow selection or a Close App-\nroach object pick.\n\nYou may also choose any parti-\ncular planet or the sun."
+		self.Header.SetLabel(size2)
+		lblList = ['Current Object', 'Sun', 'Earth', 'Mercury', 'Venus', 'Mars', 'Jupiter', 'Saturn', 'Uranus', 'Neptune', 'Pluto', 'Sedna', 'Makemake', 'Haumea','Eris']
+		self.rbox = wx.RadioBox(self, label = ' Focus on ', pos = (20, POV_Y), size=(170, 500), choices = lblList ,majorDimension = 1, style = wx.RA_SPECIFY_COLS)
+		self.rbox.SetFont(self.RegFont)
+		self.rbox.Bind(wx.EVT_RADIOBOX,self.OnRadioBox)
+
+		self.cb = wx.CheckBox(self, label="Show Local Referential", pos=(20, POV_Y+510))
+		self.cb.SetValue(False)
+		self.cb.Bind(wx.EVT_CHECKBOX,self.OnLocalRef)
+
+		self.Title = wx.StaticText(self, label="", pos=(200, POV_FOCUS_Y+60), size=(TOTAL_X-210, TOTAL_Y-160))
+		self.Title.SetFont(self.BoldFont)
+		self.Info = wx.StaticText(self, label="", pos=(200, POV_FOCUS_Y+80), size=(TOTAL_X-210, TOTAL_Y-160))
+		self.Info.SetFont(wx.Font(10, wx.MODERN, wx.NORMAL, wx.NORMAL)) #self.RegFont)
+
+		self.Info.Wrap(self.GetSize().width)
+		self.setSunFocus()
+
+	def OnLocalRef(self, e):
+		self.setLocalRef()
+
+	def setLocalRef(self):
+		self.SolarSystem.setFeature(LOCAL_REFERENTIAL, self.cb.GetValue())
+		glbRefresh(self.SolarSystem, self.parentFrame.orbitalBox.AnimationInProgress)
+
+	def setCurrentBodyFocus(self):
+		if self.parentFrame.orbitalBox.currentBody == None:
+			self.rbox.SetSelection(1)
+			#self.SolarSystem.resetView()
+			self.setSunFocus()
+
+		else:
+			self.SolarSystem.currentPOV = self.parentFrame.orbitalBox.currentBody
+			self.parentFrame.orbitalBox.updateCameraPOV()
+			self.setBodyFocus(self.SolarSystem.currentPOV)
+
+	def setBodyFocus(self, Body):
+		# display planet Info
+		if Body.Mass == 0:
+			mass = "???"
+		else:
+			mass = setPrecision(str(Body.Mass), 3)
+
+		radius = round(float(Body.BodyRadius) * 1000)/1000 if Body.BodyRadius <> 0 and Body.BodyRadius <> DEFAULT_RADIUS else 0
+		rev = round(float(Body.Revolution / 365.25) * 1000)/1000
+
+		i = round(float(Body.Inclination) * 1000)/1000
+		N = round(float(Body.Longitude_of_ascendingnode) * 1000)/1000
+		w = round(float(Body.Argument_of_perihelion) * 1000)/1000
+		e = round(float(Body.e) * 1000)/1000
+		q = round(float(Body.Perihelion/AU) * 1000)/1000
+		a = round(float(Body.Aphelion/AU) * 1000)/1000
+
+		######
+		self.Title.SetLabel(Body.Name)
+		self.Info.SetLabel("{:<17}{:>10}\n{:<20}{:>7.1f}\n{:<15}{:>12.4f}\n{:<15}{:>12.4f}\n{:<14}{:>10.2f}\n{:<14}{:>10.2f}\n{:<14}{:>10.2f}\n{:<22}{:>5.2f}\n{:<12}{:>7.3f}\n{:<12}{:>7.3f}\n{:<20}{:>7.3f}\n{:<20}{:>7.2f}".
+		format(	"Mass(kg) ", mass,
+				"Radius(km) ", radius,
+				"Perihelion(AU) ", q,
+				"Aphelion(AU) ", a,
+				"Orb.Period(days) ", Body.Revolution,
+				"Orb.Period(yrs)  ", Body.Revolution/365.25,
+				"Rot.Period(days) ", Body.Rotation,
+				"Orb.Incli.(deg) ", i,
+				"Lg.of Asc Node(deg) ", N,
+				"Arg. of Perih.(deg) ", w,
+				"Eccentricity ", e,
+				"Axial Tilt(deg) ", Body.AxialTilt));
+
+		if self.SolarSystem.currentPOVselection != 'CUROBJ':
+			if (Body.solarsystem.ShowFeatures & Body.BodyType) == 0:
+				# if the body is not visible, Make it so
+				Body.BodyShape.visible = True
+				Body.Labels[0].visible = True
+				Body.solarsystem.setFeature(Body.BodyType, True)
+				self.parentFrame.orbitalBox.checkboxList[Body.BodyType].SetValue(True)
+
+		self.SolarSystem.currentPOV = Body
+		self.parentFrame.orbitalBox.updateCameraPOV()
+
+	def setPlanetFocus(self):
+		planetBody = self.SolarSystem.getBodyFromName(self.SolarSystem.currentPOVselection)
+		return self.setBodyFocus(planetBody)
+
+
+
+		# display planet Info
+		mass = setPrecision(str(planetBody.Mass), 3)
+
+		radius = planetBody.BodyRadius/1000
+		rev = round(float(planetBody.Revolution / 365.25) * 1000)/1000
+
+		i = round(float(planetBody.Inclination) * 1000)/1000
+		N = round(float(planetBody.Longitude_of_ascendingnode) * 1000)/1000
+		w = round(float(planetBody.Argument_of_perihelion) * 1000)/1000
+		e = round(float(planetBody.e) * 1000)/1000
+		q = round(float(planetBody.Perihelion/AU) * 1000)/1000
+		a = round(float(planetBody.Aphelion/AU) * 1000)/1000
+
+		self.Title.SetLabel(planetBody.Name)
+		self.Info.SetLabel("{:<17}{:>10}\n{:<20}{:>7.1f}\n{:<15}{:>12.4f}\n{:<15}{:>12.4f}\n{:<14}{:>10.2f}\n{:<14}{:>10.2f}\n{:<14}{:>10.2f}\n{:<22}{:>5.2f}\n{:<12}{:>7.3f}\n{:<12}{:>7.3f}\n{:<20}{:>7.3f}\n{:<20}{:>7.2f}".
+		format(	"Mass(kg) ", mass,
+				"Radius(km) ", radius,
+				"Perihelion(AU) ", q,
+				"Aphelion(AU) ", a,
+				"Orb.Period(days) ", planetBody.Revolution,
+				"Orb.Period(yrs)  ", planetBody.Revolution/365.25,
+				"Rot.Period(days) ", planetBody.Rotation,
+				"Orb.Incli.(deg) ", i,
+				"Lg.of Asc Node(deg) ", N,
+				"Arg. of Perih.(deg) ", w,
+				"Eccentricity ", e,
+				"Axial Tilt(deg) ", planetBody.AxialTilt));
+
+
+		if (planetBody.solarsystem.ShowFeatures & planetBody.BodyType) == 0:
+			# if the body is not visible, Make it so
+			planetBody.BodyShape.visible = True
+			planetBody.Labels[0].visible = True
+			planetBody.solarsystem.setFeature(planetBody.BodyType, True)
+			self.parentFrame.orbitalBox.checkboxList[planetBody.BodyType].SetValue(True)
+
+		self.SolarSystem.currentPOV = planetBody
+		self.parentFrame.orbitalBox.updateCameraPOV()
+
+	def setSunFocus(self):
+		mass = setPrecision(str(self.SolarSystem.Mass), 3)
+		self.Title.SetLabel(self.SolarSystem.Name)
+		self.Info.SetLabel("{:<17}{:>10}\n{:<19}{:>6.1f}\n{:<14}{:>10.2f}\n{:<20}{:>7.2f}".
+		format(	"Mass(kg) ", mass,
+				"Radius(km) ", self.SolarSystem.BodyRadius,
+				"Rot.Period(days) ", self.SolarSystem.Rotation,
+				"Axial Tilt(deg) ", self.SolarSystem.AxialTilt));
+
+		self.resetPOV()
+
+	def resetPOV(self):
+		self.SolarSystem.resetView()
+		self.rbox.SetSelection(1)
+		self.SolarSystem.currentPOVselection = "SUN"
+		self.SolarSystem.currentPOV = None
+
+	def OnRadioBox(self, e):
+		index = self.rbox.GetSelection()
+		self.SolarSystem.currentPOVselection = {0: "CUROBJ", 1: "SUN", 2:"EARTH", 3:"MERCURY", 4:"VENUS",
+												5: "MARS", 6:"JUPITER", 7:"SATURN", 8:"URANUS", 9:"NEPTUNE",
+												10:"PLUTO", 11:"SEDNA", 12:"MAKEMAKE", 13:"HAUMEA",14:"ERIS"}[index]
+		{0:	self.setCurrentBodyFocus, 1: self.setSunFocus,
+		 2: self.setPlanetFocus, 3: self.setPlanetFocus,
+		 4: self.setPlanetFocus, 5: self.setPlanetFocus,
+		 6: self.setPlanetFocus, 7: self.setPlanetFocus,
+		 8: self.setPlanetFocus, 9: self.setPlanetFocus,
+		 10: self.setPlanetFocus, 11: self.setPlanetFocus,
+		 12: self.setPlanetFocus, 13: self.setPlanetFocus,
+		 14: self.setPlanetFocus }[index]()
+
+		self.setLocalRef()
+
+	def getCurrentPOVselection(self):
+		return self.SolarSystem.currentPOVselection
+
+	def OnReset(self, e):
+		self.resetPOV()
 
 class JPLpanel(wx.Panel):
 
@@ -113,7 +301,7 @@ class JPLpanel(wx.Panel):
 		self.BoldFont = wx.Font(10, wx.SWISS, wx.NORMAL, wx.BOLD)
 		self.RegFont = wx.Font(10, wx.SWISS, wx.NORMAL, wx.NORMAL)
 
-		self.heading = wx.StaticText(self, label='Close Approach for '+self.fetchDateStr, pos=(20, HEADING_Y))
+		self.heading = wx.StaticText(self, label='Close Approach for '+self.fetchDateStr, pos=(20, MAIN_HEADING_Y))
 		self.heading.SetFont(self.BoldFont)
 
 		self.download = wx.Button(self, label='Download List', pos=(320, JPL_DOWNLOAD_Y))
@@ -129,9 +317,10 @@ class JPLpanel(wx.Panel):
 
 		self.ListIndex = 0
 		self.list = wx.ListCtrl(self, pos=(20, JPL_LISTCTRL_Y), size=(440, JPL_LIST_SZ), style = wx.LC_REPORT|wx.BORDER_SUNKEN|wx.LC_HRULES)
-		self.list.InsertColumn(0, 'Name', width = 150)
-		self.list.InsertColumn(1, 'SPK-ID', wx.LIST_FORMAT_CENTER, 70)
-		self.list.InsertColumn(2, 'Missing Distance ', wx.LIST_FORMAT_RIGHT, 220)
+		self.list.InsertColumn(0, 'Name', width = 145)
+		self.list.InsertColumn(1, 'PHA', wx.LIST_FORMAT_CENTER, width = 45)
+		self.list.InsertColumn(2, 'SPK-ID', wx.LIST_FORMAT_CENTER, width = 70)
+		self.list.InsertColumn(3, 'Miss Distance ', wx.LIST_FORMAT_RIGHT, width = 180)
 		self.Bind(wx.EVT_LIST_ITEM_ACTIVATED, self.OnListClick, self.list)
 
 		self.legend = wx.StaticText(self, label="", pos=(20, JPL_BRW_Y))
@@ -142,18 +331,18 @@ class JPLpanel(wx.Panel):
 		self.Centre()
 
 	def OnNext(self, e):
-		self.ca_deltaT += 1
-		self.fetchDate = datetime.date.today() + datetime.timedelta(days = self.ca_deltaT)
-		self.fetchDateStr = self.fetchDate.strftime('%Y-%m-%d')
-		self.fetchJPL(self.nextUrl)
-		self.heading.SetLabel('Close Approach for '+self.fetchDateStr)
+		self.oneDay(1, self.nextUrl)
 
 	def OnPrev(self, e):
-		self.ca_deltaT -= 1
+		self.oneDay(-1, self.prevUrl)
+
+	def oneDay(self, incr, url):
+		self.ca_deltaT += incr
 		self.fetchDate = datetime.date.today() + datetime.timedelta(days = self.ca_deltaT)
 		self.fetchDateStr = self.fetchDate.strftime('%Y-%m-%d')
-		self.fetchJPL(self.prevUrl)
+		self.fetchJPL(url)
 		self.heading.SetLabel('Close Approach for '+self.fetchDateStr)
+
 
 	def OnCloseApproach(self, event):
 		self.download.SetLabel("Fetching ...")
@@ -167,8 +356,7 @@ class JPLpanel(wx.Panel):
 		try:
 			response = urllib2.urlopen(url)
 		except urllib2.HTTPError as err:
-			print "Exception..."
-			print "Error: " + str(err.code)
+			print "Exception...\n\nError: " + str(err.code)
 			raise
 
 		self.BodiesSPK_ID = []
@@ -188,48 +376,43 @@ class JPLpanel(wx.Panel):
 				entry = self.jsonResp["near_earth_objects"][self.fetchDateStr][i]
 				if entry["close_approach_data"][0]["orbiting_body"].upper() == 'EARTH':
 					self.list.InsertStringItem(self.ListIndex, entry["name"])
-					self.list.SetStringItem(self.ListIndex, 1, entry["neo_reference_id"])
-					self.list.SetStringItem(self.ListIndex, 2, entry["close_approach_data"][0]["miss_distance"]["astronomical"] + " AU ")
+					if entry["is_potentially_hazardous_asteroid"] == True:
+							ch = "Y"
+					else:
+							ch = "N"
+					self.list.SetStringItem(self.ListIndex, 1, ch)
+					self.list.SetStringItem(self.ListIndex, 2, entry["neo_reference_id"])
+					self.list.SetStringItem(self.ListIndex, 3, str(round(float(entry["close_approach_data"][0]["miss_distance"]["lunar"]) * 100)/100)  +
+											" LD | " + str(round(float(entry["close_approach_data"][0]["miss_distance"]["astronomical"]) * 100)/100) + " AU ")
+					#self.list.SetStringItem(self.ListIndex, 3, entry["close_approach_data"][0]["miss_distance"]["astronomical"] + " AU ")
 					# record the spk-id corresponding to this row
 					self.BodiesSPK_ID.append(entry["neo_reference_id"])
 					self.ListIndex += 1
 
 	def OnListClick(self, e):
-		#print e.GetText() + " - " + self.BodiesSPK_ID[e.m_itemIndex] + " - " + str(e.m_itemIndex)
 		# load orbital elements
 		id = self.loadBodyInfo(e.m_itemIndex)
 		# switch to main panel to display orbit
 		self.nb.SetSelection(PANEL_MAIN)
-
-		self.parentFrame.orbitalBox.AnimationInProgress = False
-		#self.parentFrame.orbitalBox.SlideShowInProgress = False
-		if self.SolarSystem.SlideShowInProgress:
-			# click on the Stop button
-			self.SolarSystem.AbortSlideShow = True
-			self.parentFrame.orbitalBox.ResumeSlideShowLabel = False
-			# reset label as 'Start'
-			self.parentFrame.orbitalBox.resetSlideShow()
-
-		if self.parentFrame.orbitalBox.currentBody <> None:
-			self.parentFrame.orbitalBox.currentBody.hide()
-
+		# If slide show in progress, stop it, and reset body List
+		self.parentFrame.orbitalBox.stopSlideSHow()
+		self.parentFrame.orbitalBox.resetBodyList()
 		# make sure to reset the date to today's date
 		self.parentFrame.orbitalBox.resetDate(self.ca_deltaT)
-		self.parentFrame.orbitalBox.currentBody = self.SolarSystem.getBodyFromName(id)
-		self.parentFrame.orbitalBox.currentBody.Details = True
-		self.parentFrame.orbitalBox.showCurrentObject(self.parentFrame.orbitalBox.currentBody)
+		self.parentFrame.orbitalBox.setCurrentBodyFromId(id)
+		if self.SolarSystem.currentPOVselection == "CUROBJ":
+			self.SolarSystem.currentPOV = self.parentFrame.orbitalBox.currentBody
+			self.parentFrame.orbitalBox.updateCameraPOV()
 		toggle = False
 		if self.SolarSystem.isRealsize():
 			toggle = True
-
 		self.parentFrame.orbitalBox.currentBody.toggleSize(toggle)
 
 	def loadBodyInfo(self, index):
 		entry = self.jsonResp["near_earth_objects"][self.fetchDateStr][index]
-		#if the key already exists, the object has already been loaded, simply return its spk-id
+		# if the key already exists, the object has already been loaded, simply return its spk-id
 		if entry["neo_reference_id"] in objects_data:
 			return entry["neo_reference_id"]
-
 		# otherwise add data to dictionary
 		objects_data[entry["neo_reference_id"]] = {
 			"material": 0,
@@ -237,7 +420,7 @@ class JPLpanel(wx.Panel):
 			"iau_name": entry["name"],
 			"jpl_designation": entry["neo_reference_id"],
 			"mass": 0.0,
-			"radius": float(entry["estimated_diameter"]["kilometers"]["estimated_diameter_max"])/2 if float(entry["estimated_diameter"]["kilometers"]["estimated_diameter_max"])/2 > DEFAULT_RADIUS else DEFAULT_RADIUS,
+			"radius": float(entry["estimated_diameter"]["kilometers"]["estimated_diameter_max"])/2, # if float(entry["estimated_diameter"]["kilometers"]["estimated_diameter_max"])/2 > DEFAULT_RADIUS else DEFAULT_RADIUS,
 			"perihelion": float(entry["orbital_data"]["perihelion_distance"]) * AU,
 			"e": float(entry["orbital_data"]["eccentricity"]),
 			"revolution": float(entry["orbital_data"]["orbital_period"]),
@@ -251,9 +434,10 @@ class JPLpanel(wx.Panel):
 			"epochJD": float(entry["orbital_data"]["epoch_osculation"]),
 			"earth_moid": float(entry["orbital_data"]["minimum_orbit_intersection"]) * AU,
 			"orbit_class": "N/A",
-			"orbital_obliquity": 0.0
+			"absolute_mag": float(entry["absolute_magnitude_h"]),
+			"axial_tilt": 0.0
 		}
-		body = pha(self.SolarSystem, entry["neo_reference_id"], getColor(), 0)
+		body = pha(self.SolarSystem, entry["neo_reference_id"], getColor())
 		self.SolarSystem.addTo(body)
 		return entry["neo_reference_id"]
 
@@ -271,7 +455,7 @@ class orbitalCtrlPanel(wx.Panel):
 		self.ResumeSlideShowLabel = False
 		self.AnimationInProgress = False
 		self.Source = PHA
-		self.TimeIncrement = 1
+		self.TimeIncrement = INITIAL_TIMEINCR
 		self.AnimLoop = 0
 		self.SolarSystem = solarsystem
 		self.todayDate = datetime.date.today()
@@ -287,13 +471,7 @@ class orbitalCtrlPanel(wx.Panel):
 
 	def resetDate(self, deltaT):
 		self.DeltaT = deltaT
-		self.refreshDate()
-		for body in self.SolarSystem.bodies:
-			if body.BodyType in [OUTTERPLANET, INNERPLANET, ASTEROID, COMET, DWARFPLANET, PHA, BIG_ASTEROID, TRANS_NEPT]:
-				if body.BodyShape.visible == True:
-					velocity = body.animate(self.DeltaT)
-					if body.BodyType == self.Source or body.Details == True:
-						self.velocity = velocity
+		self.updateSolarSystem()
 
 	def createBodyList(self, xpos, ypos):
 		for body in self.SolarSystem.bodies:
@@ -304,16 +482,36 @@ class orbitalCtrlPanel(wx.Panel):
 		self.comb = wx.ComboBox(self, id=wx.ID_ANY, value="Select Object Individually", size=wx.DefaultSize, pos=(xpos, ypos), choices=self.list, style=(wx.CB_DROPDOWN))
 		self.comb.Bind(wx.EVT_COMBOBOX, self.OnSelect)
 
+	def resetBodyList(self):
+		self.comb.SetSelection(-1)
+		self.comb.SetValue("Select Object Individually")
+
 	def OnSelect(self, e):
-		if self.SolarSystem.SlideShowInProgress == False:
+		#if self.SolarSystem.SlideShowInProgress == False:
 			index = e.GetSelection()
 			jpl_designation = self.listjplid[index]
-			if self.currentBody <> None:
-				self.currentBody.hide()
+			self.setCurrentBodyFromId(jpl_designation)
+			if self.SolarSystem.currentPOVselection == "CUROBJ":
+				self.SolarSystem.currentPOV = self.currentBody
+				self.parentFrame.povBox.setBodyFocus(self.currentBody)
+				self.updateCameraPOV()
 
-			self.currentBody = self.SolarSystem.getBodyFromName(jpl_designation)
-			self.currentBody.Details = True
-			self.showCurrentObject(self.currentBody)
+
+	def setCurrentBody(self, body):
+		if self.currentBody <> None:
+			self.currentBody.hide()
+
+		self.currentBody = body
+		self.currentBody.Details = True
+		self.showObjectDetails(self.currentBody)
+
+	def setCurrentBodyFromId(self, id):
+		if self.currentBody <> None:
+			self.currentBody.hide()
+
+		self.currentBody = self.SolarSystem.getBodyFromName(id)
+		self.currentBody.Details = True
+		self.showObjectDetails(self.currentBody)
 
 	def createCheckBox(self, panel, title, type, xpos, ypos):
 		cb = wx.CheckBox(panel, label=title, pos=(xpos, ypos))
@@ -327,7 +525,7 @@ class orbitalCtrlPanel(wx.Panel):
 		self.BoldFont = wx.Font(10, wx.SWISS, wx.NORMAL, wx.BOLD)
 		self.RegFont = wx.Font(10, wx.SWISS, wx.NORMAL, wx.NORMAL)
 
-		heading = wx.StaticText(self, label='Show', pos=(20, HEADING_Y))
+		heading = wx.StaticText(self, label='Show', pos=(20, MAIN_HEADING_Y))
 		heading.SetFont(self.BoldFont)
 
 		dateLabel = wx.StaticText(self, label='Orbital Date', pos=(200, DATE_Y))
@@ -356,7 +554,7 @@ class orbitalCtrlPanel(wx.Panel):
 
 		self.createCheckBox(self, "Inner Planets", INNERPLANET, 20, INNER_Y)
 		self.createCheckBox(self, "Orbits", ORBITS, 20, ORB_Y)
-		self.createCheckBox(self, "Outter Planets", OUTTERPLANET, 20, GASG_Y)
+		self.createCheckBox(self, "Outer Planets", OUTERPLANET, 20, GASG_Y)
 		self.createCheckBox(self, "Dwarf Planets", DWARFPLANET, 20, DWARF_Y)
 		self.createCheckBox(self, "Asteroids Belt", ASTEROID_BELT, 20, AB_Y)
 		self.createCheckBox(self, "Jupiter Trojans", JTROJANS, 20, JT_Y)
@@ -385,13 +583,13 @@ class orbitalCtrlPanel(wx.Panel):
 		self.Pause.Bind(wx.EVT_BUTTON, self.OnPauseSlideShow)
 		self.Pause.Hide()
 
-		self.sliderTitle = wx.StaticText(self, label="Anim. Speed x", pos=(200, ANI_Y), size=(60, 20))
+		self.sliderTitle = wx.StaticText(self, label="Ani.Frame = ", pos=(200, ANI_Y), size=(60, 20))
 		self.sliderTitle.SetFont(self.BoldFont)
 
-		self.aniSpeed = wx.StaticText(self, label="1", pos=(315, ANI_Y), size=(15, 20))
+		self.aniSpeed = wx.StaticText(self, label="10 mi", pos=(305, ANI_Y), size=(15, 20))
 		self.aniSpeed.SetFont(self.BoldFont)
 
-		self.aniSlider = wx.Slider(self, id=wx.ID_ANY, value=1, minValue=-20, maxValue=20, pos=(195, ANI_Y+30), size=(150, 20), style=wx.SL_HORIZONTAL)
+		self.aniSlider = wx.Slider(self, id=wx.ID_ANY, value=1, minValue=-24, maxValue=24, pos=(195, ANI_Y+30), size=(150, 20), style=wx.SL_HORIZONTAL)
 		self.aniSlider.Bind(wx.EVT_SLIDER,self.OnAnimSlider)
 
 		self.Animate = wx.Button(self, label='>', pos=(370, ANI_Y), size=(40, 40))
@@ -404,17 +602,41 @@ class orbitalCtrlPanel(wx.Panel):
 		self.InfoTitle.SetFont(wx.Font(10, wx.SWISS, wx.NORMAL, wx.BOLD))
 
 		self.ObjVelocity = wx.StaticText(self, label="", pos=(240, DET_Y+20), size=(130, 20))
-		self.ObjVelocity.SetFont(self.RegFont)
+		#self.ObjVelocity.SetFont(self.RegFont)
+		self.ObjVelocity.SetFont(wx.Font(10, wx.MODERN, wx.NORMAL, wx.NORMAL))
 
 		self.Info1 = wx.StaticText(self, label="", pos=(20, INFO1_Y))
-		self.Info1.SetFont(self.RegFont)
+		self.Info1.SetFont(wx.Font(10, wx.MODERN, wx.NORMAL, wx.NORMAL)) #self.RegFont)
+		#self.Info1.SetFont(self.RegFont)
 		self.Info1.Wrap(230)
 		self.Info2 = wx.StaticText(self, label="", pos=(240, INFO1_Y+19))
-		self.Info2.SetFont(self.RegFont)
+		self.Info2.SetFont(wx.Font(10, wx.MODERN, wx.NORMAL, wx.NORMAL)) #self.RegFont)
 		self.Info2.Wrap(250)
 
 		self.SetSize((TOTAL_X, TOTAL_Y))
 		self.Centre()
+
+	def setCameraPOV(self, body):
+		self.SolarSystem.currentPOV = body
+
+	def updateCameraPOV(self):
+		self.SolarSystem.Scene.center = (self.SolarSystem.currentPOV.Position[X_COOR],
+										 self.SolarSystem.currentPOV.Position[Y_COOR],
+										 self.SolarSystem.currentPOV.Position[Z_COOR])
+
+	def updateSolarSystem(self):
+		self.refreshDate()
+		self.SolarSystem.animate(self.DeltaT)
+		for body in self.SolarSystem.bodies:
+			if body.BodyType in [OUTERPLANET, INNERPLANET, SATELLITE, ASTEROID, COMET, DWARFPLANET, PHA, BIG_ASTEROID, TRANS_NEPT]:
+				if body.BodyShape.visible == True:
+					velocity = body.animate(self.DeltaT)
+					if self.SolarSystem.currentPOV <> None:
+						if body.JPL_designation == self.SolarSystem.currentPOV.JPL_designation:
+							self.updateCameraPOV()
+
+					if body.BodyType == self.Source or body.Details == True:
+						self.velocity = velocity
 
 	def OnValidateDate(self, e):
 		newdate = datetime.date(self.dateYSpin.GetValue(),self.dateMSpin.GetValue(),self.dateDSpin.GetValue())
@@ -422,10 +644,12 @@ class orbitalCtrlPanel(wx.Panel):
 		self.OneTimeIncrement()
 		self.disableBeltsForAnimation()
 		self.DeltaT -= self.TimeIncrement
+
 		self.refreshDate()
 
+	def setVelocityLabel(self):
 		if self.DetailsOn == True:
-			self.ObjVelocity.SetLabel("Velocity: "+str(round(self.velocity/1000, 2))+" km/s")
+			self.ObjVelocity.SetLabel("{:<12}{:>10.4f}".format("Vel.(km/s)", round(self.velocity/1000, 2)))
 
 	def refreshDate(self):
 		newdate = self.todayDate + datetime.timedelta(days = self.DeltaT)
@@ -433,14 +657,14 @@ class orbitalCtrlPanel(wx.Panel):
 		self.dateMSpin.SetValue(newdate.month)
 		self.dateYSpin.SetValue(newdate.year)
 
-		if self.DetailsOn == True:
-			self.ObjVelocity.SetLabel("Velocity: "+str(round(self.velocity/1000, 2))+" km/s")
+		self.setVelocityLabel()
 
 	def disableBeltsForAnimation(self):
 		self.checkboxList[JTROJANS].SetValue(False)
 		self.checkboxList[ASTEROID_BELT].SetValue(False)
 		self.checkboxList[KUIPER_BELT].SetValue(False)
-		self.SolarSystem.ShowFeatures = (self.SolarSystem.ShowFeatures & ~(JTROJANS|ASTEROID_BELT|KUIPER_BELT))
+		self.checkboxList[INNER_OORT_CLOUD].SetValue(False)
+		self.SolarSystem.setFeature(JTROJANS|ASTEROID_BELT|KUIPER_BELT|INNER_OORT_CLOUD, False)
 		glbRefresh(self.SolarSystem, self.AnimationInProgress)
 
 	def updateJTrojans(self):
@@ -454,13 +678,22 @@ class orbitalCtrlPanel(wx.Panel):
 		self.SolarSystem.addJTrojans(makeJtrojan(self.SolarSystem, 'jupiterTrojan', 'Jupiter Trojans', JTROJANS, color.green, 2, 5, 'jupiter'))
 
 	def OnRadioBox(self, e):
+		if self.ResumeSlideShowLabel == True or self.SolarSystem.SlideShowInProgress == True:
+			self.SolarSystem.AbortSlideShow = True
+			self.ResumeSlideShowLabel = False
+			self.SolarSystem.SlideShowInProgress = False
+			self.resetSlideShow()
+			self.resetBodyList()
+
 		index = self.rbox.GetSelection()
 		self.Source = {0: PHA, 1: COMET, 2:BIG_ASTEROID, 3:TRANS_NEPT}[index]
 		self.SolarSystem.currentSource = self.Source
 
 	def OnAnimSlider(self, e):
-		self.TimeIncrement = self.aniSlider.GetValue()
-		self.aniSpeed.SetLabel(str(self.TimeIncrement))
+		self.TimeIncrement = float(self.aniSlider.GetValue()) * INITIAL_TIMEINCR
+		# copy time increment to solarsystem class for realtime update
+		self.SolarSystem.setTimeIncrement(self.TimeIncrement)
+		self.aniSpeed.SetLabel(str(self.aniSlider.GetValue()*10)+" mi")
 		return
 
 	def OnTimeSpin(self, e):
@@ -498,10 +731,18 @@ class orbitalCtrlPanel(wx.Panel):
 			self.checkboxList[KUIPER_BELT].SetValue(False)
 
 		for type, cbox in self.checkboxList.iteritems():
+			self.SolarSystem.setFeature(type, cbox.GetValue())
+			#if self.SolarSystem.currentPOV <> None and self.SolarSystem.currentPOV.BodyType == type:
+			#		self.parentFrame.povBox.resetPOV()
+		"""
+		for type, cbox in self.checkboxList.iteritems():
 			if cbox.GetValue() == True:
 				self.SolarSystem.ShowFeatures |= type
 			else:
+				if self.SolarSystem.currentPOV <> None and self.SolarSystem.currentPOV.BodyType == type:
+					self.parentFrame.povBox.resetPOV()
 				self.SolarSystem.ShowFeatures = (self.SolarSystem.ShowFeatures & ~type)
+		"""
 
 		glbRefresh(self.SolarSystem, self.AnimationInProgress)
 
@@ -509,23 +750,51 @@ class orbitalCtrlPanel(wx.Panel):
 		self.AnimationInProgress = False
 
 		if self.ResumeSlideShowLabel == True:
+			self.resetBodyList()
 			e.GetEventObject().SetLabel("Pause")
 			self.ResumeSlideShowLabel = False
 		else:
 			e.GetEventObject().SetLabel("Resume")
 			self.ResumeSlideShowLabel = True
+			if self.SolarSystem.currentPOVselection == "CUROBJ":
+				self.SolarSystem.currentPOV = self.currentBody
+				self.updateCameraPOV()
 
-	def showCurrentObject(self, body):
-		self.InfoTitle.SetLabel(body.Name + " - Orbit Class: "+ body.OrbitClass)
+	def showObjectDetails(self, body):
+		self.InfoTitle.SetLabel(body.Name)
 		self.velocity = body.animate(self.DeltaT)
-		mass = str(body.Mass)+" kg" if body.Mass <> 0 else "Not Provided"
-		radius = str(body.BodyRadius)+" km" if body.BodyRadius <> 0 and body.BodyRadius <> DEFAULT_RADIUS else "Not Provided"
-		moid = str(body.Moid/AU)+" AU" if body.Moid <> 0 else "N/A"
-		rev = str(body.Revolution / 365.25)
+		if body.Mass == 0:
+			mass = "???"
+		else:
+			mass = setPrecision(str(body.Mass), 3)
+
+		radius = round(float(body.BodyRadius) * 1000)/1000 if body.BodyRadius <> 0 and body.BodyRadius <> DEFAULT_RADIUS else 0
+		moid = round(float(body.Moid/AU) * 10000)/10000 if body.Moid <> 0 else 0
+		rev = round(float(body.Revolution / 365.25) * 1000)/1000
+		H = body.Absolute_mag if body.Absolute_mag <> 0 else 0
+
+		i = round(float(body.Inclination) * 1000)/1000
+		N = round(float(body.Longitude_of_ascendingnode) * 1000)/1000
+		w = round(float(body.Argument_of_perihelion) * 1000)/1000
+		e = round(float(body.e) * 1000)/1000
+		q = round(float(body.Perihelion/AU) * 1000)/1000
 
 		self.DetailsOn = True
-		self.Info1.SetLabel("i  : "+str(body.Inclinaison)+" deg\nN : "+str(body.Longitude_of_ascendingnode)+" deg\nw : "+str(body.Argument_of_perihelion)+" deg\ne : "+str(body.e)+"\nq : "+str(body.Perihelion/1000)+" km")
-		self.Info2.SetLabel("Mass : "+mass+"\nRadius : "+radius+"\nPeriod: "+rev+" yr"+"\nMoid :"+moid); #+"\nVelocity: ") #)+self.velocity)
+		self.Info1.SetLabel("{:<12}{:>7.3f}\n{:<12}{:>7.3f}\n{:<12}{:>7.3f}\n{:<12}{:>7.3f}\n{:<12}{:>7.3f}\n{:<12}{:>7}".
+		format(	"i(deg) ", i,
+				"N(deg) ", N,
+				"w(deg) ", w,
+				"e ", e,
+				"q(AU) ", q,
+				"Orbit Class ", body.OrbitClass));
+
+		self.Info2.SetLabel("{:<12}{:>10}\n{:<12}{:>10.4f}\n{:<12}{:>10.4f}\n{:<12}{:>10.4f}\n{:<12}{:>10.4f}\n".
+		format(	"Mass(kg) ", mass,
+				"Radius(km) ", radius,
+				"Period(yr) ", rev,
+				"Moid(AU) ", moid,
+				"Abs. Mag. ", H));
+
 		self.refreshDate()
 
 		body.BodyShape.visible = True
@@ -533,29 +802,42 @@ class orbitalCtrlPanel(wx.Panel):
 			body.Labels[i].visible = True
 		body.Trail.visible = True
 
+	def stopSlideSHow(self):
+		if self.AnimationInProgress == True:
+			self.AnimationInProgress = False
+			self.Animate.SetLabel(">")
 
-	def OnSlideShow(self, e):
-		self.AnimationInProgress = False
 		if self.SolarSystem.SlideShowInProgress:
 			# click on the Stop button
 			self.SolarSystem.AbortSlideShow = True
 			self.ResumeSlideShowLabel = False
 			# reset label as 'Start'
 			self.resetSlideShow()
+			return True # when slideshow was in progress return true
+		return False	# else return false
+
+	def OnSlideShow(self, e):
+		if self.SolarSystem.currentPOVselection == 'CUROBJ':
+			self.parentFrame.povBox.resetPOV()
+
+		if self.stopSlideSHow() == True:
+			# slideshow was stop and reset. Exit
 			return
-		else:
-			# click on the start button
-			self.SolarSystem.SlideShowInProgress = True
-			self.Pause.Show()
-			# reset label as 'Stop'
-			self.SlideShow.SetLabel("Stop")
+
+		# Slideshow wasn't running: There was a click on the start button
+		self.resetBodyList() # deselect possible body from combo list
+		self.SolarSystem.SlideShowInProgress = True
+		self.Pause.Show()
+		# reset label as 'Stop'
+		self.SlideShow.SetLabel("Stop")
 
 		# loop through each body. If the bodyType matches
 		# what the slideshow is about, display it
 		for body in self.SolarSystem.bodies:
 			if body.BodyType == self.Source:
 				glbRefresh(self.SolarSystem, self.AnimationInProgress)
-				self.showCurrentObject(body)
+				#self.showObjectDetails(body)
+				self.setCurrentBody(body)
 				sleep(2)
 
 				while (self.ResumeSlideShowLabel and self.SolarSystem.AbortSlideShow == False):
@@ -584,7 +866,8 @@ class orbitalCtrlPanel(wx.Panel):
 		self.InfoTitle.SetLabel('')
 		self.Info1.SetLabel('')
 		self.Info2.SetLabel('')
-		self.ObjVelocity.SetLabel('Velocity: ')
+		#self.ObjVelocity.SetLabel("{:<12}{:>10.4f}".format("Vel.(km/s)", 0.0))
+		self.ObjVelocity.SetLabel("")
 		self.DetailsOn = False
 		self.Pause.SetLabel("Pause")
 
@@ -596,16 +879,8 @@ class orbitalCtrlPanel(wx.Panel):
 
 	def OneTimeIncrement(self):
 		self.DeltaT += self.TimeIncrement
-		self.refreshDate()
-		for body in self.SolarSystem.bodies:
-			if body.BodyType in [OUTTERPLANET, INNERPLANET, ASTEROID, COMET, DWARFPLANET, PHA, BIG_ASTEROID, TRANS_NEPT]:
-				if body.BodyShape.visible == True:
-					velocity = body.animate(self.DeltaT)
-					if body.BodyType == self.Source or body.Details == True:
-						self.velocity = velocity
-
+		self.updateSolarSystem()
 		sleep(1e-4)
-
 
 	def OnAnimate(self, e):
 		self.StepByStep = False
@@ -613,6 +888,7 @@ class orbitalCtrlPanel(wx.Panel):
 			self.AnimationInProgress = False
 			self.Animate.SetLabel(">")
 			return
+
 		self.Animate.SetLabel("||")
 		self.disableBeltsForAnimation()
 		self.AnimationInProgress = True
@@ -636,9 +912,11 @@ class controlWindow(wx.Frame):
 		# create subpanels to be used with tabs
 		self.orbitalBox = orbitalCtrlPanel(self, self.Notebook, solarsystem)
 		self.jplBox = JPLpanel(self, self.Notebook, solarsystem)
+		self.povBox = POVpanel(self, self.Notebook, solarsystem)
 
 		# Bind subpanels to tabs and name them.
 		self.Notebook.AddPage(self.orbitalBox, "Main")
+		self.Notebook.AddPage(self.povBox, "Animation POV")
 		self.Notebook.AddPage(self.jplBox, "Close Approach Data")
 
 		self.orbitalBox.Show()

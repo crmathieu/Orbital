@@ -26,27 +26,30 @@ from controls import *
 def main():
 	solarsystem = solarSystem()
 	# set what is displayed by default
-	solarsystem.ShowFeatures = INNERPLANET|ORBITS|LABELS|OUTTERPLANET
+	solarsystem.setDefaultFeatures(INNERPLANET|ORBITS|SATELLITE|LABELS|OUTERPLANET|LIT_SCENE)
 
 	solarsystem.addTo(makeEcliptic(solarsystem, color.white))
-	solarsystem.addTo(planet(solarsystem, 'mercury', color.green, 70, INNERPLANET, INNERPLANET))
-	solarsystem.addTo(planet(solarsystem, 'venus', color.yellow, 0, INNERPLANET, INNERPLANET))
-	earth = planet(solarsystem, 'earth', color.cyan, 225, INNERPLANET, INNERPLANET)
+	solarsystem.addTo(planet(solarsystem, 'mercury', color.green, INNERPLANET, INNERPLANET, PLANET_SZ_CORRECTION))
+	solarsystem.addTo(planet(solarsystem, 'venus', color.yellow, INNERPLANET, INNERPLANET, PLANET_SZ_CORRECTION))
+	earth = planet(solarsystem, 'earth', color.cyan, INNERPLANET, INNERPLANET, PLANET_SZ_CORRECTION)
 	solarsystem.addTo(earth)
-	solarsystem.addTo(planet(solarsystem, 'mars', color.red, 0, INNERPLANET, INNERPLANET))
-	solarsystem.addTo(planet(solarsystem, 'jupiter', color.magenta, 0, OUTTERPLANET, GASGIANT))
-	solarsystem.addTo(planet(solarsystem, 'saturn', color.cyan, 20, OUTTERPLANET, GASGIANT))
-	solarsystem.addTo(planet(solarsystem, 'uranus', color.yellow, 0, OUTTERPLANET, GASGIANT))
-	solarsystem.addTo(planet(solarsystem, 'neptune', color.orange, 0, OUTTERPLANET, GASGIANT))
-	solarsystem.addTo(planet(solarsystem, 'pluto', color.green, 0, OUTTERPLANET, DWARFPLANET))
+	mars = planet(solarsystem, 'mars', color.red, INNERPLANET, INNERPLANET, PLANET_SZ_CORRECTION)
+	solarsystem.addTo(mars)
+	solarsystem.addTo(planet(solarsystem, 'jupiter', color.magenta, OUTERPLANET, GASGIANT, PLANET_SZ_CORRECTION))
+	solarsystem.addTo(planet(solarsystem, 'saturn', color.cyan, OUTERPLANET, GASGIANT, PLANET_SZ_CORRECTION))
+	solarsystem.addTo(planet(solarsystem, 'uranus', color.yellow, OUTERPLANET, GASGIANT, PLANET_SZ_CORRECTION))
+	solarsystem.addTo(planet(solarsystem, 'neptune', color.orange, OUTERPLANET, GASGIANT, PLANET_SZ_CORRECTION))
+	pluto = planet(solarsystem, 'pluto', color.green, DWARFPLANET, DWARFPLANET, DWARFPLANET_SZ_CORRECTION) #OUTERPLANET, DWARFPLANET)
+	solarsystem.addTo(pluto)
 
-	solarsystem.makeRings(solarsystem, "saturn")
+	solarsystem.setRings(solarsystem, "saturn", [((0.8,0.8,0.8), 0.9), ((0.5,0.5,0.5), 0.2)]) #[color.gray(0.7), (0.5,0.5,0.5)])
+	solarsystem.setRings(solarsystem, "uranus", [((0.1,0.1,0.8), 0.1), ((0.2,0.2,0.7), 0.3)])
 
 	# generate DWARF planets
-	solarsystem.addTo(dwarfPlanet(solarsystem, 'eris', color.yellow, 0))
-	solarsystem.addTo(dwarfPlanet(solarsystem, 'makemake', color.magenta, 0))
-	solarsystem.addTo(dwarfPlanet(solarsystem, 'sedna', color.orange, 0))
-	solarsystem.addTo(dwarfPlanet(solarsystem, 'haumea', color.white, 0))
+	solarsystem.addTo(dwarfPlanet(solarsystem, 'eris', color.yellow))
+	solarsystem.addTo(dwarfPlanet(solarsystem, 'makemake', color.magenta))
+	solarsystem.addTo(dwarfPlanet(solarsystem, 'sedna', color.orange))
+	solarsystem.addTo(dwarfPlanet(solarsystem, 'haumea', color.white))
 
 	# generate Belts
 	solarsystem.addTo(makeBelt(solarsystem, 'kuiper', 'Kuiper Belt', KUIPER_BELT, color.cyan, 2, 4))
@@ -61,7 +64,9 @@ def main():
 	loadBodies(solarsystem, BIG_ASTEROID,"200km+asteroids_orbital_elements.txt", MAX_OBJECTS)
 	loadBodies(solarsystem, COMET, "200m+comets_orbital_elements.txt", MAX_OBJECTS)
 	loadBodies(solarsystem, TRANS_NEPT, "transNeptunian_objects.txt", MAX_OBJECTS)
+
 	solarsystem.drawAllBodiesTrajectory()
+	glbRefresh(solarsystem, False)
 
 	# Start control window
 	print wx.version()
