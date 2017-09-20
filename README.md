@@ -41,9 +41,9 @@ The vpython display window and the Orbital control modal window will take only a
 
 Once the Orbital Control modal pops up, you may visualize the other major bodies in the solar system: dwarf planets, Asteroid, Kuiper belts etc... All PHAs, Major Asteroids, Comets and Trans-Neptunian objects orbits can be displayed with the slideshow feature. You may pause at any time to take a closer look at trajectories by zooming in/out and rotate, and then resume. You may also animate the current object from the slideshow along with other visible objects by using the ">" play button. You may also do it frame by frame using the "+" button. The animation minimum increment is 10 minutes between frames. 
 
-Animations can be played at increased or decreased speed between - x24 to + x24, allowing to go back in time as well as in the future. The time increment may vary from 10 minutes to 240 minutes (4 hours) between frames. Specific dates can also be entered directly to examin orbits relative positions. This is an interesting feature to verify passed or future events, such as close encounters between earth and PHAs (ie, Asteroid Toutatis on December 12, 2012 -or- Asteroid Midas on March 21st 2018). Remember that planets, comets or asteroids sizes are not realistic (they are much bigger than their actual size), so even though objects may look sometime very close to each other, the actual distance that separate them is much larger. A good way to figure that out is to look at the Earth MOID parameter that displays the closest distance between the object's orbit and the earth's orbit. To have a better idea of how close objects are from each other, use the checkbox "Adjust objects size" which will render a size a closer to reality.
+Animations can be played at increased or decreased speed between - x24 to + x24, allowing to go back in time as well as in the future. The time increment may vary from 10 minutes to 240 minutes (4 hours) between frames. Specific dates can also be entered directly to examin orbits relative positions. This is an interesting feature to verify passed or future events, such as close encounters between earth and PHAs (ie, Asteroid Toutatis on December 12, 2012 -or- Asteroid Midas on March 21st 2018). Remember that planets, comets or asteroids sizes are not realistic (they are much bigger than their actual size), so even though objects may look sometime very close to each other, the actual distance that separate them is much larger. A good way to figure that out is to look at the Earth MOID parameter that displays the closest distance between the object's orbit and the earth's orbit. To have a better idea of how close objects are from each other, use the checkbox "Adjust objects size" which will render a size closer to reality.
 
-You may also pick individual objects from the drop down box to display and animate their trajectories on orbit. When an animation or a slideshow is in progress, the drop down box is disabled and picking an object from it will have no effect. A slideshow must be fully stopped (not just paused) to enabled the drop down box again.
+You may also pick individual objects from the dropdown box to display and animate their trajectories in orbit. When an animation or a slideshow is in progress, the drop down box is disabled and picking an object from it will have no effect. A slideshow must be fully stopped (not just paused) to enabled the drop down box again.
 
 The current object orbital elements are displayed at the bottom of the Orbital Control dialog. 
 Legend is:
@@ -55,7 +55,7 @@ Legend is:
 	q: Perihelion distance to the sun
 
 	M: Mass in kg
-	R: Average radius in Km
+	R: Average radius in km
 	P: Orbital Period in years
 
 	Moid: Minimum Orbital Intersection Distance (in this case with Earth) in Astronomical Units (AU)
