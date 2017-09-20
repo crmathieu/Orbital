@@ -2,7 +2,7 @@
 
 "Orbital" is an accurate interactive 3D representation of the solar system featuring inner and outer planets, asteroids, comets and Trans-Neptunian objects. It also includes the asteroid belt, Jupiter Trojans, Kuiper belt and inner Oort cloud.
 
-The 3D orbits of major objects in the solar system are rendered and can be zoomed in and out as well as rotated. Each object is located on its actual orbit position at the time of rendering. For a demo of the simulation go to https://youtu.be/WjiwySvZY3g
+The 3D orbits of major objects in the solar system are rendered and can be zoomed in and out as well as rotated. Each object is located on its actual orbit position at the time of rendering. For a demo of the simulation go to https://youtu.be/WjiwySvZY3g. (Note: When the video was made, body rotation was not implemented yet, hence you won't see the planets spinning, but this repository includes the code that implements body rotation).
 
 # Interacting with the simulation:
 
