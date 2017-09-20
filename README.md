@@ -85,7 +85,7 @@ Once the list has been downloaded, you may also get the list from the previous o
 
 Note: The autoscale feature in vpython is a bit erratic. If you are in a very expansive view that includes far objects such as dwarf planets and also closer to the sun objects like inner planets, unchecking the far objects and refreshing the scene may "autoscale" you back inside the sun (even though everything looks black). To eliminate the problem, simply perform a zoom out.
 
-The planets and the sun rotate on their axis in a realistic way, according to their rotation rate. You may note that Venus and Pluto seem to have a retrograde motion and that's because their north pole is reversed. A good way to clarify what is happening is to check the "Show Local Referential" checkbox in the"Animation POV" tab. Also note the great range of rotation rate among the planets, from really fast (the outter planets) to really slow (Venus).
+The planets and the sun rotate on their axis in a realistic way, according to their rotation rate. You may note that Venus and Pluto have a retrograde motion and it is because of their north pole reversion. A good way to clarify what is happening is to check the "Show Local Referential" checkbox in the"Animation POV" tab. Also note the great range of rotation rate among the planets, from really fast (the outter planets) to really slow (Venus).
 
 List of a few close encounters between Potentially Harzardous Asteroids and earth:
 
