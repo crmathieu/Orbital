@@ -258,51 +258,6 @@ class solarSystem:
 
 		self.setAxisVisibility(setRefTo, setRelTo)
 
-	def refreshSAVE(self, animationInProgress = False):
-		orbitTrace = False
-		if self.ShowFeatures & ORBITS <> 0:
-			orbitTrace = True
-
-		labelVisible = False
-		if self.ShowFeatures & LABELS <> 0:
-			labelVisible = True
-
-		realisticSize = False
-		if self.ShowFeatures & REALSIZE <> 0:
-			realisticSize = True
-
-		for body in self.bodies:
-			if body.BodyType in [OUTERPLANET, INNERPLANET, ASTEROID, COMET, SATELLITE, DWARFPLANET, PHA, BIG_ASTEROID, TRANS_NEPT]:
-				body.toggleSize(realisticSize)
-
-				if body.BodyShape.visible == True:
-					body.Trail.visible = orbitTrace
-					for i in range(len(body.Labels)):
-						body.Labels[i].visible = labelVisible
-			else: # belts / rings
-				if body.BodyShape.visible == True and animationInProgress == True:
-					body.BodyShape.visible = False
-					for i in range(len(body.Labels)):
-						body.Labels[i].visible = False
-
-		if self.ShowFeatures & LIT_SCENE <> 0:
-			self.Scene.ambient = color.white
-			self.sunLight.visible = False
-			self.BodyShape.material = materials.texture(data=materials.loadTGA("./img/sun"), mapping="spherical", interpolate=False)
-		else:
-			self.Scene.ambient = color.black
-			self.sunLight.visible = True
-			self.BodyShape.material = materials.emissive
-
-		setRefTo = True if self.ShowFeatures & REFERENTIAL <> 0 else False
-
-		if 	self.currentPOVselection == self.JPL_designation and \
-			self.ShowFeatures & LOCAL_REFERENTIAL:
-			setRelTo = True
-		else:
-			setRelTo = False
-
-		self.setAxisVisibility(setRefTo, setRelTo)
 
 	def setAxisVisibility(self, setRefTo, setRelTo):
 		for i in range(3):
@@ -327,40 +282,6 @@ class solarSystem:
 			planet.Rings.insert(i, cylinder(pos=(planet.Position[0], planet.Position[1], planet.Position[2]), radius=curRadius, color=planet.RingColors[i][0], length=(planet.RingThickness-(i*planet.RingThickness/10)), opacity=planet.RingColors[i][1], axis=planet.RotAxis))
 			if (self.solarsystem.ShowFeatures & planet.BodyType) == 0:
 				planet.Rings[i].visible = False
-
-
-	def makeRingsCirclesXX(self, system, bodyName, density = 1):  # change default values during instantiation
-		global objects_data
-		self.solarsystem = system
-		planet = self.getBodyFromName(objects_data[bodyName]['jpl_designation'])
-		if planet <> None:
-			InnerRadius = planet.BodyRadius * self.INNER_RING_COEF / planet.SizeCorrection[planet.sizeType]
-			OuterRadius = planet.BodyRadius * self.OUTER_RING_COEF / planet.SizeCorrection[planet.sizeType]
-			planet.Ring = true
-			planet.InnerRing = curve(color=planet.Color)
-			planet.OuterRing = curve(color=planet.Color)
-
-			if (self.solarsystem.ShowFeatures & planet.BodyType) == 0:
-				planet.InnerRing.visible = false
-				planet.OuterRing.visible = false
-
-			Position = np.matrix([[0],[0],[0]])
-			#angle = planet.Angle + pi/2
-			angle = deg2rad(planet.AxialTilt)
-			Rotation_3D = np.matrix([
-				[1, 0, 					0],
-				[0, cos(angle), 	-sin(angle)],
-				[0, sin(angle), 	cos(angle)]]
-			)
-
-			for i in np.arange(0, 2*pi, pi/(180*density)):
-				Position = [[(OuterRadius * cos(i))], [(OuterRadius * sin(i))], [0]]
-				Position = Rotation_3D * Position + planet.Position
-				planet.OuterRing.append(pos=(Position[X_COOR], Position[Y_COOR], Position[Z_COOR]), color=planet.Color) #radius=pointRadius/planet.SizeCorrection, size=1)
-
-				Position = [[(InnerRadius * cos(i))], [(InnerRadius * sin(i))], [0]]
-				Position = Rotation_3D * Position + planet.Position
-				planet.InnerRing.append(pos=(Position[X_COOR], Position[Y_COOR], Position[Z_COOR]), color=planet.Color) #radius=pointRadius/planet.SizeCorrection, size=1)
 
 
 class makeEcliptic:
