@@ -138,5 +138,23 @@ List of a few close encounters between Potentially Harzardous Asteroids and eart
 	Once downloaded, run it. This installer will also install the wxPython 3.0 library.
 	That's it!
 
+# How to install on a Mac
+
+	If you already have a version of VPython 6, it's a good idea to uninstall it before installing 
+	the new VPython 6.11. (If you have VPython 5 installed, you need to delete the old folders visual, 
+	vis, and vidle from /Library/Frameworks/Python.framework/Versions/2.7/lib/python2.7/site-packages.)
+
+	First, download and install Python-2.7.9 from python.org.
+	(https://www.python.org/ftp/python/2.7.9/python-2.7.9-macosx10.6.pkg)
+
+	Second, install VPython-Mac-Py2.7-6.11
+	(http://sourceforge.net/projects/vpythonwx/files/6.11-release/VPython-Mac-Py2.7-6.11.dmg/download)
+	
+	This version of VPython requires Python 2.7.x from python.org. VPython will not work with the version 
+	of Python 2.7 that is part of the standard OSX, nor will it work with versions of Python other than the 
+	one from python.org.
+
+	Open the VPython installer (Doubleclick VPython-Mac-Py2.7-6.11.pkg.)
+	
 Enjoy the simulation!
 
