@@ -20,7 +20,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 
 """
-from scipy.sparse.csgraph import _validation
+#sfrom scipy.sparse.csgraph import _validation
 from controls import *
 
 def main():
@@ -51,10 +51,16 @@ def main():
 	solarsystem.addTo(dwarfPlanet(solarsystem, 'sedna', color.orange))
 	solarsystem.addTo(dwarfPlanet(solarsystem, 'haumea', color.white))
 
+	# generate satellites
+	solarsystem.addTo(satellite(solarsystem, 'moon', color.white, earth))
+	#solarsystem.addTo(satellite(solarsystem, 'phobos', color.red, mars))
+	#solarsystem.addTo(satellite(solarsystem, 'deimos', color.white, mars))
+	#solarsystem.addTo(satellite(solarsystem, 'charon', color.white, pluto))
+
 	# generate Belts
 	solarsystem.addTo(makeBelt(solarsystem, 'kuiper', 'Kuiper Belt', KUIPER_BELT, color.cyan, 2, 4))
 	solarsystem.addTo(makeBelt(solarsystem, 'asteroid', 'Asteroid Belt', ASTEROID_BELT, color.white, 2, 2))
-	solarsystem.addTo(makeBelt(solarsystem, 'inneroort', 'Inner Oort Cloud', INNER_OORT_CLOUD, color.white, 2, 5))
+	#solarsystem.addTo(makeBelt(solarsystem, 'inneroort', 'Inner Oort Cloud', INNER_OORT_CLOUD, color.white, 2, 5))
 
 	solarsystem.addJTrojans(makeJtrojan(solarsystem, 'jupiterTrojan', 'Jupiter Trojans', JTROJANS, color.green, 2, 5, 'jupiter'))
 
@@ -64,12 +70,15 @@ def main():
 	loadBodies(solarsystem, BIG_ASTEROID,"200km+asteroids_orbital_elements.txt", MAX_OBJECTS)
 	loadBodies(solarsystem, COMET, "200m+comets_orbital_elements.txt", MAX_OBJECTS)
 	loadBodies(solarsystem, TRANS_NEPT, "transNeptunian_objects.txt", MAX_OBJECTS)
+	#loadBodies(solarsystem, SATELLITE, "satellites.txt", MAX_OBJECTS)
 
 	solarsystem.drawAllBodiesTrajectory()
 	glbRefresh(solarsystem, False)
 
 	# Start control window
 	print wx.version()
+	#print julian(1, 1, 2000)
+
 	ex = wx.App(False)
 	cw = controlWindow(solarsystem)
 	cw.Show()
