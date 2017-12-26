@@ -156,5 +156,8 @@ List of a few close encounters between Potentially Harzardous Asteroids and eart
 
 	Open the VPython installer (Doubleclick VPython-Mac-Py2.7-6.11.pkg.)
 	
+	Note: The "Close Approach" feature requires a library that seems to have a bug on the Mac platform. 
+	So it is possible that close approach objects won't be available on Mac.
+	
 Enjoy the simulation!
 
