@@ -78,7 +78,7 @@ You have the ability to change the Point Of View (POV) to reset the center of th
 	
 # Close Approach Data:
 
-"Orbital" allows you to find out which asteroids "close encounters" are happening with earth on a daily basis. If you click on the "Close Approach Data" tab, you will be able to directly fetch from the JPL database the list of objects that are at their closest position to earth for the current day. 
+"Orbital" allows you to find out which asteroids "close encounters" with earth are happening on a daily basis. If you click on the "Close Approach Data" tab, you will be able to directly fetch from the JPL database the list of objects that are at their closest position to earth for the current day. 
 
 <img src="./screenshot-2.jpg">
 	
