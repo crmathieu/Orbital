@@ -55,7 +55,7 @@ class solarSystem:
 		self.Scene = display(title = 'Solar System', width = 1300, height = 740, range=3, center = (0,0,0))
 
 		self.Scene.lights = []
-		self.Scene.forward = (0,0,-1)
+		self.Scene.forward = (2,0,-1) #(0,0,-1)
 		self.Scene.fov = math.pi/3
 		self.Scene.userspin = True
 		self.Scene.userzoom = True
@@ -1057,6 +1057,7 @@ class planet(makeBody):
 		return 1/(DIST_FACTOR * 5)
 
 	def toggleSize(self, realisticSize):
+
 		x = SCALE_NORMALIZED if realisticSize == True else SCALE_OVERSIZED
 		if x == self.sizeType:
 			return
