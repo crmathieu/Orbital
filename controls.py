@@ -22,7 +22,9 @@ SOFTWARE.
 """
 from orbital import *
 from numberfmt import *
-import urllib2
+#import urllib2
+import httplib
+
 import json
 import wx
 import wx.lib.newevent # necessary for custom event
@@ -88,6 +90,11 @@ JPL_BRW_Y = JPL_LISTCTRL_Y + JPL_LIST_SZ + 15
 
 NASA_API_KEY = "KTTV4ZQFuTywtkoi3gA59Qdlk5H2V1ry6UdYL0xU"
 NASA_API_V1_FEED_TODAY = "https://api.nasa.gov/neo/rest/v1/feed/today?detailed=true&api_key="+NASA_API_KEY
+
+NASA_API_V1_FEED_TODAY_HOST = "api.nasa.gov"
+NASA_API_V1_FEED_TODAY_URL = "/neo/rest/v1/feed/today?detailed=true&api_key="+NASA_API_KEY
+NASA_API_HTTPS_HOST = "https://api.nasa.gov"
+
 # PANELS numbers - Note that panels MUST be added in the same order to the parent
 # notebook to make it possible to switch from panel to panel programmatically
 
@@ -343,42 +350,52 @@ class JPLpanel(wx.Panel):
 		self.Centre()
 
 	def OnNext(self, e):
-		self.oneDay(1, self.nextUrl)
+		self.oneDay(1, NASA_API_V1_FEED_TODAY_HOST, self.nextUrl)
 
 	def OnPrev(self, e):
-		self.oneDay(-1, self.prevUrl)
+		self.oneDay(-1, NASA_API_V1_FEED_TODAY_HOST, self.prevUrl)
 
-	def oneDay(self, incr, url):
+	def oneDay(self, incr, host, url):
 		self.ca_deltaT += incr
 		self.fetchDate = datetime.date.today() + datetime.timedelta(days = self.ca_deltaT)
 		self.fetchDateStr = self.fetchDate.strftime('%Y-%m-%d')
-		self.fetchJPL(url)
+		self.fetchJPL(host, url)
 		self.heading.SetLabel('Close Approach for '+self.fetchDateStr)
 
 
 	def OnCloseApproach(self, event):
 		self.download.SetLabel("Fetching ...")
-		self.fetchJPL(NASA_API_V1_FEED_TODAY)
+		self.fetchJPL(NASA_API_V1_FEED_TODAY_HOST, NASA_API_V1_FEED_TODAY_URL)
 		self.download.Hide()
 		self.next.Show()
 		self.prev.Show()
 		self.legend.SetLabel("To display orbit details, double click on desired row")
 
-	def fetchJPL(self, url):
+	def fetchJPL(self, host, url):
+		print "host="+host+", URL="+url+"\n"
 		try:
-			response = urllib2.urlopen(url)
+			#opener = urllib2.build_opener()
+			#opener.addheaders = [('User-Agent', 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_12_2) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/55.0.2883.95 Safari/537.36')]
+			#response = opener.open(url)
+
+			c = httplib.HTTPSConnection(host)
+			c.request("GET", url)
+			response = c.getresponse()
+			#response = urllib2.urlopen(url, headers={'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_12_2) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/55.0.2883.95 Safari/537.36'})
 		except urllib2.HTTPError as err:
-			print ("Exception...")
-			print ("Error: " + str(err.code))
+			print "Exception...\n\nError: " + str(err.code)
 			raise
+
+
+		#response = requests.get(url, headers={'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_12_2) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/55.0.2883.95 Safari/537.36'})
 
 		self.BodiesSPK_ID = []
 		rawResp = response.read()
 		self.jsonResp = json.loads(rawResp)
 
-		self.nextUrl = self.jsonResp["links"]["next"]
-		self.prevUrl = self.jsonResp["links"]["prev"]
-		self.selfUrl = self.jsonResp["links"]["self"]
+		self.nextUrl = self.jsonResp["links"]["next"][len(NASA_API_HTTPS_HOST):]
+		self.prevUrl = self.jsonResp["links"]["prev"][len(NASA_API_HTTPS_HOST):]
+		self.selfUrl = self.jsonResp["links"]["self"][len(NASA_API_HTTPS_HOST):]
 
 		if self.ListIndex != 0:
 			self.list.DeleteAllItems()
