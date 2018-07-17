@@ -159,5 +159,6 @@ List of a few close encounters between Potentially Harzardous Asteroids and eart
 
 Enjoy the simulation!
 
-### Share
-[<img src="./twitter.png">](https://twitter.com/intent/tweet?text=Download+Orbital,+the+Solar+System+Simulation&url=https://github.com/crmathieu/Orbital)
+### Share [<img src="./twitter.png">](https://twitter.com/intent/tweet?text=Download+Orbital,+the+Solar+System+Simulation&url=https://github.com/crmathieu/Orbital)
+[<img src="./fb.png">](https://www.facebook.com/sharer/sharer.php?t=Download+Orbital,+the+Solar+System+Simulation&u=https://github.com/crmathieu/Orbital)
+[<img src="./linkedin.png">](https://linkedin.com/shareArticle?mini=true&title=Download+Orbital,+the+Solar+System+Simulation&url=https://github.com/crmathieu/Orbital)
