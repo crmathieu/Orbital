@@ -155,6 +155,8 @@ List of a few close encounters between Potentially Harzardous Asteroids and eart
 	one from python.org.
 
 	Open the VPython installer (Doubleclick VPython-Mac-Py2.7-6.11.pkg.)
-	
+
 
 Enjoy the simulation!
+
+[Share on Twitter](https://twitter.com/intent/tweet?text=Download+Orbital,+the+Solar+System+Simulation&url=https://github.com/crmathieu/Orbital)
