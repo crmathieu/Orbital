@@ -89,10 +89,12 @@ JPL_LIST_SZ = TOTAL_Y-160
 JPL_BRW_Y = JPL_LISTCTRL_Y + JPL_LIST_SZ + 15
 
 NASA_API_KEY = "KTTV4ZQFuTywtkoi3gA59Qdlk5H2V1ry6UdYL0xU"
-NASA_API_V1_FEED_TODAY = "https://api.nasa.gov/neo/rest/v1/feed/today?detailed=true&api_key="+NASA_API_KEY
+#NASA_API_V1_FEED_TODAY = "https://api.nasa.gov/neo/rest/v1/feed/today?detailed=true&api_key="+NASA_API_KEY
+NASA_API_V1_FEED_TODAY = "https://api.nasa.gov/neo/rest/v1/neo/browse?api_key="+NASA_API_KEY
 
 NASA_API_V1_FEED_TODAY_HOST = "api.nasa.gov"
-NASA_API_V1_FEED_TODAY_URL = "/neo/rest/v1/feed/today?detailed=true&api_key="+NASA_API_KEY
+#NASA_API_V1_FEED_TODAY_URL = "/neo/rest/v1/feed/today?detailed=true&api_key="+NASA_API_KEY
+NASA_API_V1_FEED_TODAY_URL = "/neo/rest/v1/neo/browse?api_key="+NASA_API_KEY
 NASA_API_HTTPS_HOST = "https://api.nasa.gov"
 
 # PANELS numbers - Note that panels MUST be added in the same order to the parent
@@ -393,10 +395,11 @@ class JPLpanel(wx.Panel):
 		rawResp = response.read()
 		self.jsonResp = json.loads(rawResp)
 
-		self.nextUrl = self.jsonResp["links"]["next"][len(NASA_API_HTTPS_HOST):]
-		self.prevUrl = self.jsonResp["links"]["prev"][len(NASA_API_HTTPS_HOST):]
-		self.selfUrl = self.jsonResp["links"]["self"][len(NASA_API_HTTPS_HOST):]
-
+		# use if "prev" not in "links"  
+		self.nextUrl = self.jsonResp["links"]["next"] if "next" in self.jsonResp["links"] else ""
+		self.prevUrl = self.jsonResp["links"]["prev"] if "prev" in self.jsonResp["links"] else ""
+		self.selfUrl = self.jsonResp["links"]["self"] if "self" in self.jsonResp["links"] else ""
+ 
 		if self.ListIndex != 0:
 			self.list.DeleteAllItems()
 

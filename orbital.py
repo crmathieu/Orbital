@@ -1132,6 +1132,54 @@ class satellite(makeBody):
 
 		self.hasRenderedOrbit = True
 
+class hyperbolic(makeBody):
+	def __init__(self, system, index, color, planetBody):
+		makeBody.__init__(self, system, index, color, HYPERBOLIC, HYPERBOLIC, HYPERBOLIC_SZ_CORRECTION, planetBody)
+		self.isMoon = false
+
+	def getRealisticSizeCorrectionXX(self):
+		#SATELLITE_SZ_CORRECTION = 1/(DIST_FACTOR * 5)
+		return 1/(DIST_FACTOR * 5)
+
+	def toggleSize(self, realisticSize):
+		x = SCALE_NORMALIZED if realisticSize == True else SCALE_OVERSIZED
+		if x == self.sizeType:
+			return
+		else:
+			self.sizeType = x
+
+		if self.SolarSystem.isFeatured(self.SatelliteOf.BodyType):
+			if self.sizeType == SCALE_OVERSIZED:
+				self.Labels[0].visible = False
+			else:
+				self.Labels[0].visible = True
+
+		self.BodyShape.radius = self.radiusToShow  / self.SizeCorrection[self.sizeType]
+
+	def setPolarCoordinates(self, E_rad):
+		# calculate coordinates for an hyperbolic curve
+		X = self.a * (cos(E_rad) - self.e)
+		Y = self.a * sqrt(1 - self.e**2) * sin(E_rad)
+		# Now calculate current Radius and true Anomaly
+		self.R = sqrt(X**2 + Y**2)
+		self.Nu = atan2(Y, X)
+		# Note that atan2 returns an angle in
+		# radian, so Nu is always in radian
+
+	def draw(self):
+		#print "drawing "+self.Name
+		self.Trail.visible = False
+		rad_E = deg2rad(self.E)
+		increment = self.getIncrement()
+
+		for E in np.arange(increment, 2*pi+increment, increment):
+			self.setPolarCoordinates(E+rad_E)
+			# from R and Nu, calculate 3D coordinates and update current position
+			self.updatePosition(trace=False) #E*180/pi, False)
+			#rate(5000)
+
+		self.hasRenderedOrbit = True
+
 class comet(makeBody):
 	def __init__(self, system, index, color):
 		makeBody.__init__(self, system, index, color, COMET, COMET, SMALLBODY_SZ_CORRECTION, system)
