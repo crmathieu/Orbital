@@ -22,7 +22,7 @@ SOFTWARE.
 """
 from orbital import *
 from numberfmt import *
-#import urllib2
+import urllib2
 import httplib
 
 import json
@@ -90,11 +90,11 @@ JPL_BRW_Y = JPL_LISTCTRL_Y + JPL_LIST_SZ + 15
 
 NASA_API_KEY = "KTTV4ZQFuTywtkoi3gA59Qdlk5H2V1ry6UdYL0xU"
 #NASA_API_V1_FEED_TODAY = "https://api.nasa.gov/neo/rest/v1/feed/today?detailed=true&api_key="+NASA_API_KEY
-NASA_API_V1_FEED_TODAY = "https://api.nasa.gov/neo/rest/v1/neo/browse?api_key="+NASA_API_KEY
+NASA_API_V1_FEED_TODAY = "https://api.nasa.gov/neo/rest/v1/feed?api_key="+NASA_API_KEY
 
-NASA_API_V1_FEED_TODAY_HOST = "api.nasa.gov"
+NASA_API_V1_FEED_TODAY_HOST = "https://api.nasa.gov"
 #NASA_API_V1_FEED_TODAY_URL = "/neo/rest/v1/feed/today?detailed=true&api_key="+NASA_API_KEY
-NASA_API_V1_FEED_TODAY_URL = "/neo/rest/v1/neo/browse?api_key="+NASA_API_KEY
+NASA_API_V1_FEED_TODAY_URL = "/neo/rest/v1/feed?api_key="+NASA_API_KEY
 NASA_API_HTTPS_HOST = "https://api.nasa.gov"
 
 # PANELS numbers - Note that panels MUST be added in the same order to the parent
@@ -195,7 +195,7 @@ class POVpanel(wx.Panel):
 				"Lg.of Asc Node(deg) ", N,
 				"Arg. of Perih.(deg) ", w,
 				"Eccentricity ", e,
-				"Axial Tilt(deg) ", Body.AxialTilt));
+				"Axial Tilt(deg) ", Body.AxialTilt))
 
 		if self.SolarSystem.currentPOVselection != 'CUROBJ':
 			if (Body.SolarSystem.ShowFeatures & Body.BodyType) == 0:
@@ -246,7 +246,7 @@ class POVpanel(wx.Panel):
 				"Lg.of Asc Node(deg) ", N,
 				"Arg. of Perih.(deg) ", w,
 				"Eccentricity ", e,
-				"Axial Tilt(deg) ", planetBody.AxialTilt));
+				"Axial Tilt(deg) ", planetBody.AxialTilt))
 
 
 		if (planetBody.SolarSystem.ShowFeatures & planetBody.BodyType) == 0:
@@ -272,7 +272,7 @@ class POVpanel(wx.Panel):
 		format(	"Mass(kg) ", mass,
 				"Radius(km) ", self.SolarSystem.BodyRadius,
 				"Rot.Period(days) ", self.SolarSystem.Rotation,
-				"Axial Tilt(deg) ", self.SolarSystem.AxialTilt));
+				"Axial Tilt(deg) ", self.SolarSystem.AxialTilt))
 
 		self.resetPOV()
 
@@ -352,10 +352,10 @@ class JPLpanel(wx.Panel):
 		self.Centre()
 
 	def OnNext(self, e):
-		self.oneDay(1, NASA_API_V1_FEED_TODAY_HOST, self.nextUrl)
+		self.oneDay(1, "", self.nextUrl) #NASA_API_V1_FEED_TODAY_HOST, self.nextUrl)
 
 	def OnPrev(self, e):
-		self.oneDay(-1, NASA_API_V1_FEED_TODAY_HOST, self.prevUrl)
+		self.oneDay(-1, "", self.prevUrl) #NASA_API_V1_FEED_TODAY_HOST, self.prevUrl)
 
 	def oneDay(self, incr, host, url):
 		self.ca_deltaT += incr
@@ -367,6 +367,8 @@ class JPLpanel(wx.Panel):
 
 	def OnCloseApproach(self, event):
 		self.download.SetLabel("Fetching ...")
+		self.fetchDate = datetime.date.today()
+		self.fetchDateStr = self.fetchDate.strftime('%Y-%m-%d')
 		self.fetchJPL(NASA_API_V1_FEED_TODAY_HOST, NASA_API_V1_FEED_TODAY_URL)
 		self.download.Hide()
 		self.next.Show()
@@ -374,15 +376,18 @@ class JPLpanel(wx.Panel):
 		self.legend.SetLabel("To display orbit details, double click on desired row")
 
 	def fetchJPL(self, host, url):
-		print "host="+host+", URL="+url+"\n"
+		url = url+"&start_date="+self.fetchDateStr
+		print host+url+"\n"
 		try:
-			#opener = urllib2.build_opener()
-			#opener.addheaders = [('User-Agent', 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_12_2) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/55.0.2883.95 Safari/537.36')]
-			#response = opener.open(url)
+			opener = urllib2.build_opener()
+			opener.addheaders = [('User-Agent', 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_12_2) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/55.0.2883.95 Safari/537.36')]
+			response = opener.open(host+url)
 
-			c = httplib.HTTPSConnection(host)
-			c.request("GET", url)
-			response = c.getresponse()
+			#c = httplib.HTTPSConnection(host)
+			#print url
+			#c.request("GET", url)
+			#response = c.getresponse()
+			print response
 			#response = urllib2.urlopen(url, headers={'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_12_2) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/55.0.2883.95 Safari/537.36'})
 		except urllib2.HTTPError as err:
 			print "Exception...\n\nError: " + str(err.code)
@@ -393,6 +398,61 @@ class JPLpanel(wx.Panel):
 
 		self.BodiesSPK_ID = []
 		rawResp = response.read()
+		#print rawResp
+		self.jsonResp = json.loads(rawResp)
+
+		# use if "prev" not in "links"  
+		self.nextUrl = self.jsonResp["links"]["next"] if "next" in self.jsonResp["links"] else ""
+		self.prevUrl = self.jsonResp["links"]["prev"] if "prev" in self.jsonResp["links"] else ""
+		self.selfUrl = self.jsonResp["links"]["self"] if "self" in self.jsonResp["links"] else ""
+ 
+		if self.ListIndex != 0:
+			self.list.DeleteAllItems()
+
+		self.ListIndex = 0
+		if self.jsonResp["element_count"] > 0:
+#			for i in range(0, len(self.jsonResp[self.fetchDateStr])-1):
+			today = self.jsonResp["near_earth_objects"][self.fetchDateStr]
+			for entry in today:
+				if entry["close_approach_data"][0]["orbiting_body"].upper() == 'EARTH':
+					self.list.InsertStringItem(self.ListIndex, entry["name"])
+					if entry["is_potentially_hazardous_asteroid"] == True:
+							ch = "Y"
+					else:
+							ch = "N"
+					self.list.SetStringItem(self.ListIndex, 1, ch)
+					self.list.SetStringItem(self.ListIndex, 2, entry["neo_reference_id"])
+					self.list.SetStringItem(self.ListIndex, 3, str(round(float(entry["close_approach_data"][0]["miss_distance"]["lunar"]) * 100)/100)  +
+											" LD | " + str(round(float(entry["close_approach_data"][0]["miss_distance"]["astronomical"]) * 100)/100) + " AU ")
+					#self.list.SetStringItem(self.ListIndex, 3, entry["close_approach_data"][0]["miss_distance"]["astronomical"] + " AU ")
+					# record the spk-id corresponding to this row
+					self.BodiesSPK_ID.append(entry["neo_reference_id"])
+					self.ListIndex += 1
+
+	def fetchJPLSAVE(self, host, url):
+		url = url+"&start_date="+self.fetchDateStr
+		print host+url+"\n"
+		try:
+			opener = urllib2.build_opener()
+			opener.addheaders = [('User-Agent', 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_12_2) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/55.0.2883.95 Safari/537.36')]
+			response = opener.open(host+url)
+
+			#c = httplib.HTTPSConnection(host)
+			#print url
+			#c.request("GET", url)
+			#response = c.getresponse()
+			print response
+			#response = urllib2.urlopen(url, headers={'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_12_2) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/55.0.2883.95 Safari/537.36'})
+		except urllib2.HTTPError as err:
+			print "Exception...\n\nError: " + str(err.code)
+			raise
+
+
+		#response = requests.get(url, headers={'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_12_2) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/55.0.2883.95 Safari/537.36'})
+
+		self.BodiesSPK_ID = []
+		rawResp = response.read()
+		#print rawResp
 		self.jsonResp = json.loads(rawResp)
 
 		# use if "prev" not in "links"  
