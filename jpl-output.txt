@@ -1,3 +1,7 @@
+***** details *****
+https://api.nasa.gov/neo/rest/v1/neo/3542519?api_key=DEMO_KEY
+
+*********** search results **********
 {
     "links":{
         "next":"http://www.neowsapp.com/rest/v1/feed?start_date=2019-06-06&end_date=2019-06-06&detailed=false&api_key=KTTV4ZQFuTywtkoi3gA59Qdlk5H2V1ry6UdYL0xU",

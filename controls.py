@@ -94,8 +94,10 @@ NASA_API_V1_FEED_TODAY = "https://api.nasa.gov/neo/rest/v1/feed?api_key="+NASA_A
 
 NASA_API_V1_FEED_TODAY_HOST = "https://api.nasa.gov"
 #NASA_API_V1_FEED_TODAY_URL = "/neo/rest/v1/feed/today?detailed=true&api_key="+NASA_API_KEY
-NASA_API_V1_FEED_TODAY_URL = "/neo/rest/v1/feed?api_key="+NASA_API_KEY
+NASA_API_V1_FEED_TODAY_URL = "/neo/rest/v1/feed?detailed=true&api_key="+NASA_API_KEY
 NASA_API_HTTPS_HOST = "https://api.nasa.gov"
+
+NASA_API_KEY_DETAILS = "https://api.nasa.gov/neo/rest/v1/neo/"
 
 # PANELS numbers - Note that panels MUST be added in the same order to the parent
 # notebook to make it possible to switch from panel to panel programmatically
@@ -409,6 +411,10 @@ class JPLpanel(wx.Panel):
 		if self.ListIndex != 0:
 			self.list.DeleteAllItems()
 
+ 		print "*****PREV"+self.prevUrl
+ 		print "*****CURR"+self.selfUrl
+ 		print "*****NEXT"+self.nextUrl
+
 		self.ListIndex = 0
 		if self.jsonResp["element_count"] > 0:
 #			for i in range(0, len(self.jsonResp[self.fetchDateStr])-1):
@@ -460,6 +466,7 @@ class JPLpanel(wx.Panel):
 		self.prevUrl = self.jsonResp["links"]["prev"] if "prev" in self.jsonResp["links"] else ""
 		self.selfUrl = self.jsonResp["links"]["self"] if "self" in self.jsonResp["links"] else ""
  
+
 		if self.ListIndex != 0:
 			self.list.DeleteAllItems()
 
@@ -481,6 +488,29 @@ class JPLpanel(wx.Panel):
 					# record the spk-id corresponding to this row
 					self.BodiesSPK_ID.append(entry["neo_reference_id"])
 					self.ListIndex += 1
+
+	def fetchDetails(self, link):
+		#https://api.nasa.gov/neo/rest/v1/neo/3542519?api_key=DEMO_KEY
+		#url = NASA_API_KEY_DETAILS+
+		#url = url+"&start_date="+self.fetchDateStr
+		#print host+url+"\n"
+		try:
+			opener = urllib2.build_opener()
+			opener.addheaders = [('User-Agent', 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_12_2) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/55.0.2883.95 Safari/537.36')]
+			response = opener.open(link)
+
+			#c = httplib.HTTPSConnection(host)
+			#print url
+			#c.request("GET", url)
+			#response = c.getresponse()
+			print response
+			rawResp = response.read()
+			#print rawResp
+			return json.loads(rawResp)
+			#response = urllib2.urlopen(url, headers={'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_12_2) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/55.0.2883.95 Safari/537.36'})
+		except urllib2.HTTPError as err:
+			print "Exception...\n\nError: " + str(err.code)
+			raise
 
 	def OnListClick(self, e):
 		#print e.GetText() + " - " + self.BodiesSPK_ID[e.m_itemIndex] + " - " + str(e.m_itemIndex)
@@ -504,11 +534,15 @@ class JPLpanel(wx.Panel):
 
 	def loadBodyInfo(self, index):
 		entry = self.jsonResp["near_earth_objects"][self.fetchDateStr][index]
-		print (entry)
+		#print entry
 
 		# if the key already exists, the object has already been loaded, simply return its spk-id
-		if entry["neo_reference_id"] in objects_data:
-			return entry["neo_reference_id"]
+		#if entry["neo_reference_id"] in objects_data:
+		#	return entry["neo_reference_id"]
+
+		# grab details link
+		#entry = self.fetchDetails(entry["links"]["self"])
+
 		# otherwise add data to dictionary
 		objects_data[entry["neo_reference_id"]] = {
 			"material": 0,
