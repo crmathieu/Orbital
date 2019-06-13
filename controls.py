@@ -363,7 +363,8 @@ class JPLpanel(wx.Panel):
 		self.ca_deltaT += incr
 		self.fetchDate = datetime.date.today() + datetime.timedelta(days = self.ca_deltaT)
 		self.fetchDateStr = self.fetchDate.strftime('%Y-%m-%d')
-		self.fetchJPL(host, url)
+#		self.fetchJPL(host, url)
+		self.fetchJPL(NASA_API_V1_FEED_TODAY_HOST, NASA_API_V1_FEED_TODAY_URL)
 		self.heading.SetLabel('Close Approach for '+self.fetchDateStr)
 
 
