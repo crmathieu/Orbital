@@ -157,8 +157,8 @@ DWARFPLANET_SZ_CORRECTION = 1e-2/(DIST_FACTOR*5)
 
 # adjustment factor
 #Adjustment_cte = 1.85
-ADJUSTMENT_FACTOR = 1.85
-
+ADJUSTMENT_FACTOR = 1.80
+ADJUSTMENT_FACTOR_PLANETS = 1.95
 objects_data = {
 	"moon" :{
 		"type": TYPE_SATELLITE,
