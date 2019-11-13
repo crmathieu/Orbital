@@ -155,6 +155,10 @@ HYPERBOLIC_SZ_CORRECTION = 1/(DIST_FACTOR * 5)
 ASTEROID_SZ_CORRECTION = 1e-2/(DIST_FACTOR*5)
 DWARFPLANET_SZ_CORRECTION = 1e-2/(DIST_FACTOR*5)
 
+# adjustment factor
+#Adjustment_cte = 1.85
+ADJUSTMENT_FACTOR = 1.85
+
 objects_data = {
 	"moon" :{
 		"type": TYPE_SATELLITE,

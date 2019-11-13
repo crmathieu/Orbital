@@ -36,7 +36,7 @@ class solarSystem:
 	INNER_RING_COEF = 1.3
 	OUTER_RING_COEF = 1.9
 	RING_INCREMENT = 0.6
-
+	
 	bodies = []
 
 	def __init__(self):
@@ -796,41 +796,11 @@ class makeBody:
 		# behavior
 		self.setOrbitalFromPredefinedElements(objects_data[index], timeincrement) #-0.7)
 
-	# will calculate current value of approximate position of the major planets
-	# including pluto. This won't work for Asteroid, Comets or Dwarf planets
-	def setOrbitalFromKeplerianElements(self, elts, timeincrement):
-		# get number of days since J2000 epoch and obtain the fraction of century
-		# (the rate adjustment is given as a rate per century)
-		days = daysSinceJ2000UTC() + timeincrement # - 1.43
-		#T = (daysSinceJ2000UTC() + timeincrement)/36525. # T is in centuries
-		T = days/36525. # T is in centuries
-
-		self.a = (elts["a"] + (elts["ar"] * T)) * AU
-		self.e = elts["e"] + (elts["er"] * T)
-		self.Inclination = elts["i"] + (elts["ir"] * T)
-
-		# compute mean Longitude with correction factors beyond jupiter M = L - W + bT^2 +ccos(ft) + ssin(ft)
-		L = elts["L"] + (elts["Lr"] * T) + (elts["b"] * T**2  +
-											elts["c"] * cos(elts["f"] * T) +
-											elts["s"] * sin(elts["f"] * T))
-		self.Longitude_of_perihelion = elts["W"] + (elts["Wr"] * T)
-		self.Longitude_of_ascendingnode = elts["N"] + (elts["Nr"] * T)
-
-		# compute Argument of perihelion w
-		self.Argument_of_perihelion = self.Longitude_of_perihelion - self.Longitude_of_ascendingnode
-
-		# compute mean Anomaly M = L - W
-		M = toRange(L - self.Longitude_of_perihelion) #W)
-
-		# Obtain ecc. Anomaly E (in degrees) from M using an approx method of resolution:
-		success, self.E, dE, it = solveKepler(M, self.e, 12000)
-		if success == False:
-			print ("Could not converge for "+self.Name+", E = "+str(self.E)+", last precision = "+str(dE))
-
+	# unused
 	def setEarthOrbitalFromKeplerianElements(self, elts, timeincrement):
 		# get number of days since J2000 epoch and obtain the fraction of century
 		# (the rate adjustment is given as a rate per century)
-		days = daysSinceJ2000UTC() + timeincrement - 1.5
+		days = daysSinceJ2000UTC() + timeincrement # what the hell was that thing - 1.5
 		#T = (daysSinceJ2000UTC() + timeincrement)/36525. # T is in centuries
 		T = days/36525. # T is in centuries
 
@@ -868,6 +838,40 @@ class makeBody:
 		if success == False:
 			print ("Could not converge for "+self.Name+", E = "+str(self.E)+", last precision = "+str(dE))
 
+
+
+	# will calculate current value of approximate position of the major planets
+	# including pluto. This won't work for Asteroid, Comets or Dwarf planets
+	def setOrbitalFromKeplerianElements(self, elts, timeincrement):
+		# get number of days since J2000 epoch and obtain the fraction of century
+		# (the rate adjustment is given as a rate per century)
+		days = daysSinceJ2000UTC() + timeincrement - ADJUSTMENT_FACTOR # - 1.43
+		#T = (daysSinceJ2000UTC() + timeincrement)/36525. # T is in centuries
+		T = days/36525. # T is in centuries
+
+		self.a = (elts["a"] + (elts["ar"] * T)) * AU
+		self.e = elts["e"] + (elts["er"] * T)
+		self.Inclination = elts["i"] + (elts["ir"] * T)
+
+		# compute mean Longitude with correction factors beyond jupiter M = L - W + bT^2 +ccos(ft) + ssin(ft)
+		L = elts["L"] + (elts["Lr"] * T) + (elts["b"] * T**2  +
+											elts["c"] * cos(elts["f"] * T) +
+											elts["s"] * sin(elts["f"] * T))
+		self.Longitude_of_perihelion = elts["W"] + (elts["Wr"] * T)
+		self.Longitude_of_ascendingnode = elts["N"] + (elts["Nr"] * T)
+
+		# compute Argument of perihelion w
+		self.Argument_of_perihelion = self.Longitude_of_perihelion - self.Longitude_of_ascendingnode
+
+		# compute mean Anomaly M = L - W
+		M = toRange(L - self.Longitude_of_perihelion) #W)
+
+		# Obtain ecc. Anomaly E (in degrees) from M using an approx method of resolution:
+		success, self.E, dE, it = solveKepler(M, self.e, 12000)
+		if success == False:
+			print ("Could not converge for "+self.Name+", E = "+str(self.E)+", last precision = "+str(dE))
+
+	
 	def setOrbitalFromPredefinedElements(self, elts, timeincrement):
 		# data comes from data file or predefined values
 		self.e 							= elts["e"]
@@ -885,7 +889,7 @@ class makeBody:
 
 		# calculate current position based on orbital elements
 		#dT = daysSinceEpochJD(self.Epoch) + timeincrement # timeincrement comes in days
-		dT = daysSinceEpochJD(self.Epoch) + timeincrement # - 0.6 # timeincrement comes in days
+		dT = daysSinceEpochJD(self.Epoch) + timeincrement - ADJUSTMENT_FACTOR # - 0.6 # timeincrement comes in days
 		# compute Longitude of Ascending node taking into account the time elapsed since epoch
 		incrementYears = timeincrement / 365.25
 		self.Longitude_of_ascendingnode +=  0.013967 * (2000.0 - (getCurrentYear() + incrementYears)) + 3.82394e-5 * dT
