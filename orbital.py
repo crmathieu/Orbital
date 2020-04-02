@@ -663,21 +663,24 @@ class makeBody:
 		self.TiltAngle = deg2rad(self.AxialTilt+self.Inclination) # in the ecliptic coordinates system
 		#angle = deg2rad(45) #self.Inclination) # in the ecliptic coordinates system
 		#angle = 0
+		cosv = cos(self.TiltAngle)
+		sinv = sin(self.TiltAngle)
+
 		self.Rotation_ObliquityAroundY = np.matrix([
-			[cos(self.TiltAngle), 0, 	sin(self.TiltAngle)],
-			[0, 		 1, 		     0],
-			[-sin(self.TiltAngle), 0,	cos(self.TiltAngle)]]
+			[cosv, 		0, 		sinv],
+			[0, 		1, 		0	],
+			[-sinv, 	0,		cosv]]
 		)
 		self.Rotation_Obliquity = np.matrix([
-			[1,			0,			 		  0],
-			[0,			cos(self.TiltAngle),	-sin(self.TiltAngle)],
-			[0,			sin(self.TiltAngle), cos(self.TiltAngle)]]
+			[1,			0,		0	],
+			[0,			cosv,  -sinv],
+			[0,			sinv, 	cosv]]
 		)
 
 		self.Rotation_Obliquity_SatCorrection = np.matrix([
-			[1,			0,			 		  0],
-			[0,			cos(self.TiltAngle),	sin(self.TiltAngle)],
-			[0,			-sin(self.TiltAngle), cos(self.TiltAngle)]]
+			[1,			0,		0	],
+			[0,			cosv,	sinv],
+			[0,		   -sinv, 	cosv]]
 		)
 
 		# add LEGEND
@@ -1131,7 +1134,7 @@ class satellite(makeBody):
 		for E in np.arange(increment, 2*pi+increment, increment):
 			self.setPolarCoordinates(E+rad_E)
 			# from R and Nu, calculate 3D coordinates and update current position
-			self.updatePosition(trace=False) #E*180/pi, False)
+			self.updatePosition(trace=false) #E*180/pi, False)
 			#rate(5000)
 
 		self.hasRenderedOrbit = True
