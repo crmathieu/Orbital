@@ -36,7 +36,7 @@ class solarSystem:
 	INNER_RING_COEF = 1.3
 	OUTER_RING_COEF = 1.9
 	RING_INCREMENT = 0.6
-	
+
 	bodies = []
 
 	def __init__(self):
@@ -848,7 +848,7 @@ class makeBody:
 	def setOrbitalFromKeplerianElements(self, elts, timeincrement):
 		# get number of days since J2000 epoch and obtain the fraction of century
 		# (the rate adjustment is given as a rate per century)
-		days = daysSinceJ2000UTC() + timeincrement - ADJUSTMENT_FACTOR # - 1.43
+		days = daysSinceJ2000UTC() + timeincrement - ADJUSTMENT_FACTOR_PLANETS # - 1.43
 		#T = (daysSinceJ2000UTC() + timeincrement)/36525. # T is in centuries
 		T = days/36525. # T is in centuries
 
@@ -874,7 +874,7 @@ class makeBody:
 		if success == False:
 			print ("Could not converge for "+self.Name+", E = "+str(self.E)+", last precision = "+str(dE))
 
-	
+
 	def setOrbitalFromPredefinedElements(self, elts, timeincrement):
 		# data comes from data file or predefined values
 		self.e 							= elts["e"]
