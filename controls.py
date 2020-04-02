@@ -131,7 +131,7 @@ class POVpanel(wx.Panel):
 		self.Header.SetLabel("Select which body the animation should focus on. 'Current\nObject' will follow the last object selected, whether it comes\nfrom the Drop down selection, a paused slideshow selection\nor a Close Approach object pick.\n\nYou may also choose any particular planet or the sun." )
 		size2 = "Select which body the animation\nshould focus on. 'Current Object'\nwill follow the last object selected,\nwhether it comes from the Drop\ndown selection, a paused slide-\nshow selection or a Close App-\nroach object pick.\n\nYou may also choose any parti-\ncular planet or the sun."
 		self.Header.SetLabel(size2)
-		lblList = ['Current Object', 'Sun', 'Earth', 'Mercury', 'Venus', 'Mars', 'Jupiter', 'Saturn', 'Uranus', 'Neptune', 'Pluto', 'Sedna', 'Makemake', 'Haumea','Eris']
+		lblList = ['Current Object', 'Sun', 'Earth', 'Mercury', 'Venus', 'Mars', 'Jupiter', 'Saturn', 'Uranus', 'Neptune', 'Pluto', 'Sedna', 'Makemake', 'Haumea','Eris','moon']
 		self.rbox = wx.RadioBox(self, label = ' Focus on ', pos = (20, POV_Y), size=(170, 500), choices = lblList ,majorDimension = 1, style = wx.RA_SPECIFY_COLS)
 		self.rbox.SetFont(self.RegFont)
 		self.rbox.Bind(wx.EVT_RADIOBOX,self.OnRadioBox)
@@ -217,9 +217,8 @@ class POVpanel(wx.Panel):
 	def setPlanetFocus(self):
 		#print "Focusing on "+self.SolarSystem.currentPOVselection
 		planetBody = self.SolarSystem.getBodyFromName(self.SolarSystem.currentPOVselection)
+		print planetBody.Name
 		return self.setBodyFocus(planetBody)
-
-
 
 		# display planet Info
 		mass = setPrecision(str(planetBody.Mass), 3)
@@ -265,6 +264,7 @@ class POVpanel(wx.Panel):
 		self.parentFrame.orbitalBox.updateCameraPOV()
 		#print "END setPlanetFocus..."
 
+
 	def setSunFocus(self):
 		mass = setPrecision(str(self.SolarSystem.Mass), 3)
 		#radius = self.SolarSystem.BodyRadius * 1e-3
@@ -288,7 +288,7 @@ class POVpanel(wx.Panel):
 		index = self.rbox.GetSelection()
 		self.SolarSystem.currentPOVselection = {0: "CUROBJ", 1: "SUN", 2:"EARTH", 3:"MERCURY", 4:"VENUS",
 												5: "MARS", 6:"JUPITER", 7:"SATURN", 8:"URANUS", 9:"NEPTUNE",
-												10:"PLUTO", 11:"SEDNA", 12:"MAKEMAKE", 13:"HAUMEA",14:"ERIS"}[index]
+												10:"PLUTO", 11:"SEDNA", 12:"MAKEMAKE", 13:"HAUMEA",14:"ERIS", 15:"MOON"}[index]
 		{0:	self.setCurrentBodyFocus, 1: self.setSunFocus,
 		 2: self.setPlanetFocus, 3: self.setPlanetFocus,
 		 4: self.setPlanetFocus, 5: self.setPlanetFocus,
@@ -296,7 +296,7 @@ class POVpanel(wx.Panel):
 		 8: self.setPlanetFocus, 9: self.setPlanetFocus,
 		 10: self.setPlanetFocus, 11: self.setPlanetFocus,
 		 12: self.setPlanetFocus, 13: self.setPlanetFocus,
-		 14: self.setPlanetFocus }[index]()
+		 14: self.setPlanetFocus, 15: self.setPlanetFocus }[index]()
 
 		self.setLocalRef()
 
@@ -765,9 +765,9 @@ class orbitalCtrlPanel(wx.Panel):
 		# (0, 1,-1): freezes rotation and looks down towards the right
 
 		#self.SolarSystem.Scene.forward = (0, 0, -1)
-		self.SolarSystem.Scene.center = (self.SolarSystem.currentPOV.Position[X_COOR],
-										 self.SolarSystem.currentPOV.Position[Y_COOR],
-										 self.SolarSystem.currentPOV.Position[Z_COOR])
+		self.SolarSystem.Scene.center = (self.SolarSystem.currentPOV.Position[X_COOR]+self.SolarSystem.currentPOV.Foci[X_COOR],
+										 self.SolarSystem.currentPOV.Position[Y_COOR]+self.SolarSystem.currentPOV.Foci[Y_COOR],
+										 self.SolarSystem.currentPOV.Position[Z_COOR]+self.SolarSystem.currentPOV.Foci[Z_COOR])
 
 	def updateSolarSystem(self):
 		self.refreshDate()
