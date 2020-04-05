@@ -20,10 +20,13 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 
 """
-#sfrom scipy.sparse.csgraph import _validation
+#from scipy.sparse.csgraph import _validation
 from controls import *
 
 def main():
+	# determine where this program runs 
+	#locationInfo = location()
+
 	solarsystem = solarSystem()
 	# set what is displayed by default
 	solarsystem.setDefaultFeatures(INNERPLANET|ORBITS|SATELLITE|LABELS|OUTERPLANET|LIT_SCENE)
@@ -53,9 +56,9 @@ def main():
 
 	# generate satellites
 	solarsystem.addTo(satellite(solarsystem, 'moon', color.white, earth))
-	#solarsystem.addTo(satellite(solarsystem, 'phobos', color.red, mars))
-	#solarsystem.addTo(satellite(solarsystem, 'deimos', color.white, mars))
-	#solarsystem.addTo(satellite(solarsystem, 'charon', color.white, pluto))
+	solarsystem.addTo(satellite(solarsystem, 'phobos', color.red, mars))
+	solarsystem.addTo(satellite(solarsystem, 'deimos', color.white, mars))
+	solarsystem.addTo(satellite(solarsystem, 'charon', color.white, pluto))
 
 	# generate Belts
 	solarsystem.addTo(makeBelt(solarsystem, 'kuiper', 'Kuiper Belt', KUIPER_BELT, color.cyan, 2, 4))
@@ -85,6 +88,7 @@ def main():
 
 	while True:
 		sleep(2)
+		earth.updateStillPosition(2)
 
 if __name__ == '__main__' :
 	main()

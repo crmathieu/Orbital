@@ -20,7 +20,6 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 
 """
-
 from planetsdata import *
 from visual import *
 #from vpython import *
@@ -30,6 +29,9 @@ import scipy.special as sp
 import datetime
 import time
 import sys
+from location import *
+
+locationInfo = Timeloc() 
 
 class solarSystem:
 
@@ -84,16 +86,18 @@ class solarSystem:
 			self.Scene.stereodepth = 1
 
 		self.TiltAngle = deg2rad(self.AxialTilt)
+		cosv = cos(self.TiltAngle)
+		sinv = sin(self.TiltAngle)
 		self.Rotation_ObliquityAroundY = np.matrix([
-			[cos(self.TiltAngle), 0, 	sin(self.TiltAngle)],
-			[0, 		 1, 		     0],
-			[-sin(self.TiltAngle), 0,	cos(self.TiltAngle)]]
+			[cosv, 	0, 	sinv],
+			[0, 	1, 	   0],
+			[-sinv, 0,	cosv]]
 		)
 
 		self.Rotation_Obliquity = np.matrix([
-			[1,			0,			 		  0],
-			[0,			cos(self.TiltAngle),	-sin(self.TiltAngle)],
-			[0,			sin(self.TiltAngle), cos(self.TiltAngle)]]
+			[1,		0,	      0],
+			[0,		cosv, -sinv],
+			[0,		sinv,  cosv]]
 		)
 
 		self.BodyShape = sphere(pos=vector(0,0,0), radius=self.BodyRadius/self.CorrectionSize, color=color.white)
@@ -106,6 +110,8 @@ class solarSystem:
 			self.makeCelestialSphere()
 
 		#self.Scene.scale = self.Scene.scale/100
+
+
 
 
 	def makeCelestialSphere(self): # Unused
@@ -408,11 +414,13 @@ class solarSystem:
 			)
 
 			for i in np.arange(0, 2*pi, pi/(180*density)):
-				Position = [[(OuterRadius * cos(i))], [(OuterRadius * sin(i))], [0]]
+				cosv = cos(i)
+				sinv = sin(i)
+				Position = [[OuterRadius * cosv], [OuterRadius * sinv], [0]]
 				Position = Rotation_3D * Position + planet.Position
 				planet.OuterRing.append(pos=(Position[X_COOR], Position[Y_COOR], Position[Z_COOR]), color=planet.Color) #radius=pointRadius/planet.SizeCorrection, size=1)
 
-				Position = [[(InnerRadius * cos(i))], [(InnerRadius * sin(i))], [0]]
+				Position = [[InnerRadius * cosv], [InnerRadius * sinv], [0]]
 				Position = Rotation_3D * Position + planet.Position
 				planet.InnerRing.append(pos=(Position[X_COOR], Position[Y_COOR], Position[Z_COOR]), color=planet.Color) #radius=pointRadius/planet.SizeCorrection, size=1)
 
@@ -443,17 +451,17 @@ class makeEcliptic:
 
 class makeBelt:
 
-	def __init__(self, system, index, name, bodyType, color, size, density = 1, planetname = None):  # change default values during instantiation
+	def __init__(self, system, key, name, bodyType, color, size, density = 1, planetname = None):  # change default values during instantiation
 		self.Labels = []
 		self.Name = name
 		self.Iau_name = name
 		self.JPL_designation = name
 		self.SolarSystem = system
 		self.Density = density		# body name
-		self.RadiusMinAU = belt_data[index]["radius_min"]	# in AU
-		self.RadiusMaxAU = belt_data[index]["radius_max"]	# in AU
-		self.Thickness = belt_data[index]["thickness"]	# in AU
-		self.ThicknessFactor = belt_data[index]["thickness_factor"]
+		self.RadiusMinAU = belt_data[key]["radius_min"]	# in AU
+		self.RadiusMaxAU = belt_data[key]["radius_max"]	# in AU
+		self.Thickness = belt_data[key]["thickness"]	# in AU
+		self.ThicknessFactor = belt_data[key]["thickness_factor"]
 		self.PlanetName = planetname
 		self.Color = color
 		self.BodyType = bodyType
@@ -500,8 +508,8 @@ class makeBelt:
 
 class makeJtrojan(makeBelt):
 
-	def __init__(self, system, index, name, bodyType, color, size, density = 1, planetname = None):
-		makeBelt.__init__(self, system, index, name, bodyType, color, size, density, planetname)
+	def __init__(self, system, key, name, bodyType, color, size, density = 1, planetname = None):
+		makeBelt.__init__(self, system, key, name, bodyType, color, size, density, planetname)
 		self.Planet = self.SolarSystem.getBodyFromName(objects_data[self.PlanetName]['jpl_designation'])
 		if self.Planet != None:
 			self.JupiterX = self.Planet.Position[X_COOR]
@@ -553,7 +561,8 @@ class makeJtrojan(makeBelt):
 class makeBody:
 
 	RING_BASE_THICKNESS = 2000
-	def __init__(self, system, index, color, bodyType = INNERPLANET, sizeCorrectionType = INNERPLANET, RealisticCorrectionSize = SMALLBODY_SZ_CORRECTION, satelliteof = None):  # change default values during instantiation
+	STILL_ROTATION_INTERVAL = 50 #5 * 60 # (in seconds)
+	def __init__(self, system, key, color, bodyType = INNERPLANET, sizeCorrectionType = INNERPLANET, RealisticCorrectionSize = SMALLBODY_SZ_CORRECTION, satelliteof = None):  # change default values during instantiation
 
 		self.Labels = []
 		self.SatelliteOf = satelliteof
@@ -565,25 +574,34 @@ class makeBody:
 		#else:
 		self.Foci = vector(satelliteof.Position[X_COOR], satelliteof.Position[Y_COOR], satelliteof.Position[Z_COOR])
 
-		self.ObjectIndex = index
+		self.ObjectIndex = key
 		self.SolarSystem 			= system
 		self.Ring 					= False
-		self.AxialTilt				= objects_data[index]["axial_tilt"]
-		self.Name					= objects_data[index]["name"]		# body name
-		self.Iau_name				= objects_data[index]["iau_name"]		# body iau name
-		self.JPL_designation 		= objects_data[index]["jpl_designation"]
-		self.Mass 					= objects_data[index]["mass"]		# body mass
-		self.BodyRadius 			= objects_data[index]["radius"]		# body radius
+		self.AxialTilt				= objects_data[key]["axial_tilt"]
+		self.Name					= objects_data[key]["name"]		# body name
+		self.Iau_name				= objects_data[key]["iau_name"]		# body iau name
+		self.JPL_designation 		= objects_data[key]["jpl_designation"]
+		self.Mass 					= objects_data[key]["mass"]		# body mass
+		self.BodyRadius 			= objects_data[key]["radius"]		# body radius
 		self.Color 					= color
 		self.BodyType 				= bodyType
-		self.Revolution 			= objects_data[index]["revolution"]
-		self.Perihelion 			= objects_data[index]["perihelion"]	# body perhelion
-		self.Distance 				= objects_data[index]["perihelion"]	# body distance at perige from focus
+		self.Revolution 			= objects_data[key]["revolution"]
+		self.Perihelion 			= objects_data[key]["perihelion"]	# body perhelion
+		self.Distance 				= objects_data[key]["perihelion"]	# body distance at perige from focus
 		self.Details				= False
 		self.hasRenderedOrbit		= False
-		self.Absolute_mag			= objects_data[index]["absolute_mag"]
+		self.Absolute_mag			= objects_data[key]["absolute_mag"]
 		self.Axis 					= [None,None,None]
 		self.AxisLabel 				= ["","",""]
+
+		if "tga_name" in objects_data[key]:
+			self.Tga 				= objects_data[key]["tga_name"]
+		else:
+			self.Tga 				= ""
+
+		self.wasAnimated 			= false
+		self.rotationInterval 		= self.STILL_ROTATION_INTERVAL
+
 		# for planets with rings
 		self.Rings = []
 		#w, h = 8, 2;
@@ -595,11 +613,11 @@ class makeBody:
 		self.sizeCorrectionType = sizeCorrectionType
 		self.BodyShape = None
 
-		self.Rotation = objects_data[index]["rotation"] if "rotation" in objects_data[index] else 0
+		self.Rotation = objects_data[key]["rotation"] if "rotation" in objects_data[key] else 0
 		self.RotAngle = 0
 
-		self.Moid = objects_data[index]["earth_moid"] if "earth_moid" in objects_data[index] else 0
-		self.setOrbitalElements(index)
+		self.Moid = objects_data[key]["earth_moid"] if "earth_moid" in objects_data[key] else 0
+		self.setOrbitalElements(key)
 
 		# generate 2d coordinates in the initial orbital plane, with +X pointing
 		# towards periapsis. Make sure to convert degree to radians before using
@@ -691,11 +709,12 @@ class makeBody:
 			self.Labels[0].visible = False
 
 		self.makeAxis(self.radiusToShow/self.SizeCorrection[self.sizeType], self.Position) #(self.Position[X_COOR],self.Position[Y_COOR],self.Position[Z_COOR]))
-		self.setAspect(index)
+		self.setAspect(key)
 		self.initRotation()
 
-	def setAspect(self, index):
-		data = materials.loadTGA("./img/"+index) if objects_data[index]["material"] != 0 else materials.loadTGA("./img/asteroid")
+	def setAspect(self, key):
+		#data = materials.loadTGA("./img/"+key) if objects_data[key]["material"] != 0 else materials.loadTGA("./img/asteroid")
+		data = materials.loadTGA("./img/"+self.Tga) if objects_data[key]["material"] != 0 else materials.loadTGA("./img/asteroid")
 		self.BodyShape.material = materials.texture(data=data, mapping="spherical", interpolate=False)
 
 	def makeShape(self):
@@ -759,6 +778,8 @@ class makeBody:
 		if self.hasRenderedOrbit == False:
 			self.draw()
 
+		self.wasAnimated = true
+
 		# update position
 		self.setOrbitalElements(self.ObjectIndex, timeIncrement)
 		self.setPolarCoordinates(deg2rad(self.E))
@@ -792,12 +813,12 @@ class makeBody:
 
 		return self.getCurrentVelocity(), self.getCurrentDistanceFromEarth()
 
-	def setOrbitalElements(self, index, timeincrement = 0):
+	def setOrbitalElements(self, key, timeincrement = 0):
 		# For comets, asteroids or dwarf planets, data comes from data
 		# files -or- predefined values. Orbital Position is calculated
 		# from the last time of perihelion passage. This is the default
 		# behavior
-		self.setOrbitalFromPredefinedElements(objects_data[index], timeincrement) #-0.7)
+		self.setOrbitalFromPredefinedElements(objects_data[key], timeincrement) #-0.7)
 
 	# unused
 	def setEarthOrbitalFromKeplerianElements(self, elts, timeincrement):
@@ -883,6 +904,9 @@ class makeBody:
 		self.Argument_of_perihelion 	= self.Longitude_of_perihelion - self.Longitude_of_ascendingnode
 		self.a 							= getSemiMajor(self.Perihelion, self.e)
 		self.Inclination 				= elts["orbital_inclination"]
+		if self.SatelliteOf != None:
+			self.Inclination -= self.SatelliteOf.AxialTilt
+
 		self.Time_of_perihelion_passage = elts["Time_of_perihelion_passage_JD"]
 		self.Mean_motion				= elts["mean_motion"]
 		self.Epoch						= elts["epochJD"]
@@ -936,10 +960,24 @@ class makeBody:
 
 	# default initRotation behavior
 	def initRotation(self):
-		# this is necessary to align the planet's texture properly
+		TEXTURE_POSITIONING_CORRECTION = pi/12
+		# we need to rotate around X axis by pi/2 to properly align the planet's texture
 		self.BodyShape.rotate(angle=(pi/2+self.TiltAngle), axis=self.XdirectionUnit, origine=(self.Position[X_COOR]+self.Foci[X_COOR],self.Position[Y_COOR]+self.Foci[Y_COOR],self.Position[Z_COOR]+self.Foci[Z_COOR]))
+		# then further rotation will apply to Z axis
 		self.RotAxis = self.ZdirectionUnit
 
+		#self.updateAxis()
+		# test
+		#LocalInitialAngle = deg2rad(locationInfo.Time2degree(locationInfo.RelativeTimeToDateline))
+		# the local initial angle between the normal to the sun and our location
+		self.LocalInitialAngle = deg2rad(locationInfo.Time2degree(locationInfo.RelativeTimeToDateline)) + deg2rad(locationInfo.solarT)
+
+		self.Gamma = - deg2rad(locationInfo.Time2degree(locationInfo.RelativeTimeToDateline)) + deg2rad(locationInfo.solarT)
+		self.LocalInitialAngle = pi/2 + self.Gamma
+		#self.BodyShape.rotate(angle=(pi/12+LocalInitialAngle), axis=self.RotAxis, origine=(self.Position[X_COOR]+self.Foci[X_COOR],self.Position[Y_COOR]+self.Foci[Y_COOR],self.Position[Z_COOR]+self.Foci[Z_COOR]))
+
+		self.BodyShape.rotate(angle=(self.LocalInitialAngle), axis=self.RotAxis, origine=(self.Position[X_COOR]+self.Foci[X_COOR],self.Position[Y_COOR]+self.Foci[Y_COOR],self.Position[Z_COOR]+self.Foci[Z_COOR]))
+		
 		# calculate current RA, to position the obliquity properly:
 		if "RA_1" in objects_data[self.ObjectIndex]:
 			T = daysSinceJ2000UTC()/36525. # T is in centuries
@@ -948,7 +986,11 @@ class makeBody:
 		#else:
 		#	print "No RA for " +self.Name
 
-
+	def incrementRotation(self):
+		newLocalInitialAngle = - deg2rad(locationInfo.Time2degree(locationInfo.RelativeTimeToDateline)) + deg2rad(locationInfo.solarT)
+		self.BodyShape.rotate(angle=(newLocalInitialAngle-self.Gamma), axis=self.RotAxis, origine=(self.Position[X_COOR]+self.Foci[X_COOR],self.Position[Y_COOR]+self.Foci[Y_COOR],self.Position[Z_COOR]+self.Foci[Z_COOR]))
+		print "rotating by ", newLocalInitialAngle - self.Gamma, " degree"
+		self.Gamma = newLocalInitialAngle
 
 	# default
 	def setRotation(self):
@@ -1055,8 +1097,20 @@ class makeBody:
 					(self.Position[Z_COOR] - self.SolarSystem.EarthRef.Position[Z_COOR])**2)/DIST_FACTOR/AU
 
 class planet(makeBody):
-	def __init__(self, system, index, color, type, sizeCorrectionType, defaultSizeCorrection):
-		makeBody.__init__(self, system, index, color, type, sizeCorrectionType, defaultSizeCorrection, system)
+	
+	def __init__(self, system, key, color, type, sizeCorrectionType, defaultSizeCorrection):
+		makeBody.__init__(self, system, key, color, type, sizeCorrectionType, defaultSizeCorrection, system)
+
+	def updateStillPosition(self, timeinsec):
+		if self.ObjectIndex != 'earth':
+			return
+		if self.wasAnimated == false:
+			self.rotationInterval -= timeinsec
+			print "rotation Interval = ", self.rotationInterval
+			if self.rotationInterval <= 0:
+				locationInfo.setSolarTime()
+				self.incrementRotation()
+				self.rotationInterval = self.STILL_ROTATION_INTERVAL
 
 	def getRealisticSizeCorrectionXX(self):
 		#return 1/(DIST_FACTOR * 50)
@@ -1079,10 +1133,10 @@ class planet(makeBody):
 				self.Rings[i] = None
 			self.SolarSystem.makeRings(self) #self.SolarSystem, self.ObjectIndex)
 
-	def setOrbitalElements(self, index, timeincrement = 0):
+	def setOrbitalElements(self, key, timeincrement = 0):
 		# for the Major planets (default) includig Pluto, we have Keplerian
 		# elements to calculate the body's current approximated position on orbit
-		elt = objects_data[index]["kep_elt_1"] if "kep_elt_1" in objects_data[index] else objects_data[index]["kep_elt"]
+		elt = objects_data[key]["kep_elt_1"] if "kep_elt_1" in objects_data[key] else objects_data[key]["kep_elt"]
 		"""
 		if self.Name == 'Earth':
 			#print "EARTH ORBITAL ELTS"
@@ -1090,13 +1144,13 @@ class planet(makeBody):
 		else:
 		"""
 		self.setOrbitalFromKeplerianElements(elt, timeincrement) #-1.4) #0.7)
-		#self.setOrbitalFromKeplerianElements(objects_data[index]["kep_elt"], timeincrement)
+		#self.setOrbitalFromKeplerianElements(objects_data[key]["kep_elt"], timeincrement)
 
 class satellite(makeBody):
-	def __init__(self, system, index, color, planetBody):
+	def __init__(self, system, key, color, planetBody):
 		#if planetBody != None:
-		#	print objects_data[index]['name']+" is a satellite of: "+planetBody.Name
-		makeBody.__init__(self, system, index, color, SATELLITE, SATELLITE, SATELLITE_SZ_CORRECTION, planetBody)
+		#	print objects_data[key]['name']+" is a satellite of: "+planetBody.Name
+		makeBody.__init__(self, system, key, color, SATELLITE, SATELLITE, SATELLITE_SZ_CORRECTION, planetBody)
 		self.isMoon = True
 
 	def getRealisticSizeCorrectionXX(self):
@@ -1140,8 +1194,8 @@ class satellite(makeBody):
 		self.hasRenderedOrbit = True
 
 class hyperbolic(makeBody):
-	def __init__(self, system, index, color, planetBody):
-		makeBody.__init__(self, system, index, color, HYPERBOLIC, HYPERBOLIC, HYPERBOLIC_SZ_CORRECTION, planetBody)
+	def __init__(self, system, key, color, planetBody):
+		makeBody.__init__(self, system, key, color, HYPERBOLIC, HYPERBOLIC, HYPERBOLIC_SZ_CORRECTION, planetBody)
 		self.isMoon = false
 
 	def getRealisticSizeCorrectionXX(self):
@@ -1188,16 +1242,16 @@ class hyperbolic(makeBody):
 		self.hasRenderedOrbit = True
 
 class comet(makeBody):
-	def __init__(self, system, index, color):
-		makeBody.__init__(self, system, index, color, COMET, COMET, SMALLBODY_SZ_CORRECTION, system)
+	def __init__(self, system, key, color):
+		makeBody.__init__(self, system, key, color, COMET, COMET, SMALLBODY_SZ_CORRECTION, system)
 
 	def makeShape(self):
 		self.BodyShape = ellipsoid(	pos=(self.Position[X_COOR],self.Position[Y_COOR],self.Position[Z_COOR]),
 									length=(self.radiusToShow * randint(10, 20)/10)/self.SizeCorrection[self.sizeType],
 									height=(self.radiusToShow * randint(10, 20)/10)/self.SizeCorrection[self.sizeType],
 									width=(self.radiusToShow * randint(10, 20)/10)/self.SizeCorrection[self.sizeType], make_trail=false)
-	def setAspect(self, index):
-		# we don't need index for comets
+	def setAspect(self, key):
+		# we don't need key for comets
 		#self.BodyShape.material = materials.marble
 		data = materials.loadTGA("./img/comet")
 		self.BodyShape.material = materials.texture(data=data, mapping="spherical", interpolate=False)
@@ -1235,8 +1289,8 @@ class comet(makeBody):
 		return pi/(180 * 4)
 
 class asteroid(makeBody):
-	def __init__(self, system, index, color):
-		makeBody.__init__(self, system, index, color, BIG_ASTEROID, BIG_ASTEROID, ASTEROID_SZ_CORRECTION, system)
+	def __init__(self, system, key, color):
+		makeBody.__init__(self, system, key, color, BIG_ASTEROID, BIG_ASTEROID, ASTEROID_SZ_CORRECTION, system)
 
 	def initRotation(self):
 		self.RotAngle = pi/6
@@ -1257,8 +1311,8 @@ class asteroid(makeBody):
 
 
 class pha(makeBody):
-	def __init__(self, system, index, color):
-		makeBody.__init__(self, system, index, color, PHA, PHA, SMALLBODY_SZ_CORRECTION, system)
+	def __init__(self, system, key, color):
+		makeBody.__init__(self, system, key, color, PHA, PHA, SMALLBODY_SZ_CORRECTION, system)
 
 	def makeShape(self):
 		"""
@@ -1301,8 +1355,8 @@ class pha(makeBody):
 		return
 
 class smallAsteroid(makeBody):
-	def __init__(self, system, index, color):
-		makeBody.__init__(self, system, index, color, SMALL_ASTEROID, SMALL_ASTEROID, SMALLBODY_SZ_CORRECTION, system)
+	def __init__(self, system, key, color):
+		makeBody.__init__(self, system, key, color, SMALL_ASTEROID, SMALL_ASTEROID, SMALLBODY_SZ_CORRECTION, system)
 
 	def makeShape(self):
 		self.BodyShape = ellipsoid(	pos=(self.Position[X_COOR],self.Position[Y_COOR],self.Position[Z_COOR]),
@@ -1336,8 +1390,8 @@ class smallAsteroid(makeBody):
 		return
 
 class dwarfPlanet(makeBody):
-	def __init__(self, system, index, color):
-		makeBody.__init__(self, system, index, color, DWARFPLANET, DWARFPLANET, DWARFPLANET_SZ_CORRECTION, system)
+	def __init__(self, system, key, color):
+		makeBody.__init__(self, system, key, color, DWARFPLANET, DWARFPLANET, DWARFPLANET_SZ_CORRECTION, system)
 
 	def getRealisticSizeCorrectionXX(self):
 		#DWARFPLANET_SZ_CORRECTION = 1e-2/(DIST_FACTOR*5)
@@ -1345,8 +1399,8 @@ class dwarfPlanet(makeBody):
 
 
 class transNeptunian(makeBody):
-	def __init__(self, system, index, color):
-		makeBody.__init__(self, system, index, color, TRANS_NEPT, TRANS_NEPT, SMALLBODY_SZ_CORRECTION, system)
+	def __init__(self, system, key, color):
+		makeBody.__init__(self, system, key, color, TRANS_NEPT, TRANS_NEPT, SMALLBODY_SZ_CORRECTION, system)
 
 	def makeShape(self):
 		self.BodyShape = ellipsoid(	pos=(self.Position[X_COOR],self.Position[Y_COOR],self.Position[Z_COOR]),
@@ -1432,8 +1486,8 @@ def bessel_E(M, e, depth):
 
 # Calculates Eccentric Anomaly (E) given the mean anomaly (M), the depth and the
 # precision required using an iterative method. If the precision has been reached
-# within the maximum iteration depth, returns (True, E, precision, #it) or
-# (False, E, precision, #it) otherwise
+# within the maximum iteration depth, returns (True, E, precision, #iterations) or
+# (False, E, precision, #iterations) otherwise
 
 def solveKepler(M, e, depth, precision = 1.e-8):
 	M = deg2rad(M)
@@ -1498,7 +1552,9 @@ def loadBodies(SolarSystem, type, filename, maxentries = 0):
 					"earth_moid": (float(token[JPL_EARTH_MOID_AU])*AU) if token[JPL_EARTH_MOID_AU] else 0,
 					"orbit_class":token[JPL_ORBIT_CLASS],
 					"absolute_mag": float(token[JPL_MAG_H]) if token[JPL_MAG_H] else 0,
-					"axial_tilt": 0 # in deg
+					"axial_tilt": 0, # in deg
+					"tga_name": token[JPL_FULLNAME]
+
 				}
 				body = {COMET: 			comet,
 						BIG_ASTEROID: 	asteroid,

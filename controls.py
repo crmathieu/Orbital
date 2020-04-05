@@ -24,7 +24,7 @@ from orbital import *
 from numberfmt import *
 import urllib2
 import httplib
-
+import re
 import json
 import wx
 import wx.lib.newevent # necessary for custom event
@@ -131,7 +131,8 @@ class POVpanel(wx.Panel):
 		self.Header.SetLabel("Select which body the animation should focus on. 'Current\nObject' will follow the last object selected, whether it comes\nfrom the Drop down selection, a paused slideshow selection\nor a Close Approach object pick.\n\nYou may also choose any particular planet or the sun." )
 		size2 = "Select which body the animation\nshould focus on. 'Current Object'\nwill follow the last object selected,\nwhether it comes from the Drop\ndown selection, a paused slide-\nshow selection or a Close App-\nroach object pick.\n\nYou may also choose any parti-\ncular planet or the sun."
 		self.Header.SetLabel(size2)
-		lblList = ['Current Object', 'Sun', 'Earth', 'Mercury', 'Venus', 'Mars', 'Jupiter', 'Saturn', 'Uranus', 'Neptune', 'Pluto', 'Sedna', 'Makemake', 'Haumea','Eris','moon']
+		#lblList = ['Current Object', 'Sun', 'Earth', 'Mercury', 'Venus', 'Mars', 'Jupiter', 'Saturn', 'Uranus', 'Neptune', 'Pluto', 'Sedna', 'Makemake', 'Haumea','Eris','moon']
+		lblList = ['Current Object', 'Sun', 'Earth', 'Mercury', 'Venus', 'Mars', 'Jupiter', 'Saturn', 'Uranus', 'Neptune', 'Pluto', 'Sedna', 'Deimos', 'Charon','Eris','Moon']
 		self.rbox = wx.RadioBox(self, label = ' Focus on ', pos = (20, POV_Y), size=(170, 500), choices = lblList ,majorDimension = 1, style = wx.RA_SPECIFY_COLS)
 		self.rbox.SetFont(self.RegFont)
 		self.rbox.Bind(wx.EVT_RADIOBOX,self.OnRadioBox)
@@ -288,7 +289,7 @@ class POVpanel(wx.Panel):
 		index = self.rbox.GetSelection()
 		self.SolarSystem.currentPOVselection = {0: "CUROBJ", 1: "SUN", 2:"EARTH", 3:"MERCURY", 4:"VENUS",
 												5: "MARS", 6:"JUPITER", 7:"SATURN", 8:"URANUS", 9:"NEPTUNE",
-												10:"PLUTO", 11:"SEDNA", 12:"MAKEMAKE", 13:"HAUMEA",14:"ERIS", 15:"MOON"}[index]
+												10:"PLUTO", 11:"SEDNA", 12:"DEIMOS", 13:"CHARON",14:"ERIS", 15:"MOON"}[index]
 		{0:	self.setCurrentBodyFocus, 1: self.setSunFocus,
 		 2: self.setPlanetFocus, 3: self.setPlanetFocus,
 		 4: self.setPlanetFocus, 5: self.setPlanetFocus,
@@ -765,6 +766,7 @@ class orbitalCtrlPanel(wx.Panel):
 		# (0, 1,-1): freezes rotation and looks down towards the right
 
 		#self.SolarSystem.Scene.forward = (0, 0, -1)
+		# For a planet, Foci(x, y, z) is (0,0,0). For a moon, Foci represents the position of the planet the moon orbits around
 		self.SolarSystem.Scene.center = (self.SolarSystem.currentPOV.Position[X_COOR]+self.SolarSystem.currentPOV.Foci[X_COOR],
 										 self.SolarSystem.currentPOV.Position[Y_COOR]+self.SolarSystem.currentPOV.Foci[Y_COOR],
 										 self.SolarSystem.currentPOV.Position[Z_COOR]+self.SolarSystem.currentPOV.Foci[Z_COOR])
@@ -998,6 +1000,7 @@ class orbitalCtrlPanel(wx.Panel):
 		self.resetBodyList() # deselect possible body from combo list
 		self.SolarSystem.SlideShowInProgress = True
 		self.Pause.Show()
+
 		# reset label as 'Stop'
 		self.SlideShow.SetLabel("Stop")
 
@@ -1089,5 +1092,35 @@ class controlWindow(wx.Frame):
 		self.Notebook.AddPage(self.orbitalBox, "Main")
 		self.Notebook.AddPage(self.povBox, "Animation POV")
 		self.Notebook.AddPage(self.jplBox, "Close Approach Data")
-
+		#self.getLocationFromIPaddress()
 		self.orbitalBox.Show()
+
+	"""
+	def getLocationFromIPaddress(self):
+		url = 'http://ipinfo.io/json'
+		print url+"\n"
+		try:
+			opener = urllib2.build_opener()
+			opener.addheaders = [('User-Agent', 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_12_2) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/55.0.2883.95 Safari/537.36')]
+			response = opener.open(url)
+			print response
+		except urllib2.HTTPError as err:
+			print "Exception...\n\nError: " + str(err.code)
+			raise
+
+
+		#response = requests.get(url, headers={'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_12_2) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/55.0.2883.95 Safari/537.36'})
+
+		rawResp = response.read()
+		data = json.loads(rawResp)
+
+		self.IP			 = data['ip']
+		self.org		 = data['org']
+		self.city 		 = data['city']
+		self.country	 = data['country']
+		self.region		 = data['region']
+		self.coordinates = data['loc']
+		self.timezone	 = data['timezone']
+		print 'Your IP detail\n '
+		print 'IP : {4} \nRegion : {1} \nCountry : {2} \nCity : {3} \nOrg : {0}'.format(org,region,country,city,IP)
+	"""
