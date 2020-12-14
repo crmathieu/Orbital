@@ -636,12 +636,20 @@ class makeBody:
 
 		self.Position = np.matrix([[0],[0],[0]], np.float64)
 
-		# 180 rotation so that vernal equinox points towards left
-		self.Rotation_VernalEquinox = np.matrix([
-			[-1,	 0, 	0],
-			[ 0,	-1,		0],
-			[ 0,	 0,		1]]
-		)
+		if satelliteof.Name == "Sun":
+			# 180 rotation so that vernal equinox points towards left
+			self.Rotation_VernalEquinox = np.matrix([
+				[-1,	 0, 	0],
+				[ 0,	-1,		0],
+				[ 0,	 0,		1]]
+			)
+		else:
+			# for satellite rotate 90 back
+			self.Rotation_VernalEquinox = np.matrix([  ###############################
+				[ 0,	1, 		0],
+				[-1,	0,		0],
+				[ 0,	0,		1]]
+			)
 
 		# calculate current position of body on its orbit knowing
 		# its current distance from Sun (R) and angle (Nu) that
@@ -678,7 +686,7 @@ class makeBody:
 			return
 
 		#angle = deg2rad(self.AxialTilt)
-		self.TiltAngle = deg2rad(self.AxialTilt+self.Inclination) # in the ecliptic coordinates system
+		self.TiltAngle = deg2rad(self.AxialTilt) # +self.Inclination) # in the ecliptic coordinates system
 		#angle = deg2rad(45) #self.Inclination) # in the ecliptic coordinates system
 		#angle = 0
 		cosv = cos(self.TiltAngle)
@@ -694,14 +702,13 @@ class makeBody:
 			[0,			cosv,  -sinv],
 			[0,			sinv, 	cosv]]
 		)
-
 		self.Rotation_Obliquity_SatCorrection = np.matrix([
 			[1,			0,		0	],
 			[0,			cosv,	sinv],
 			[0,		   -sinv, 	cosv]]
 		)
 
-		# add LEGEND
+		# add label
 		self.Labels.append(label(pos=(self.Position[X_COOR]+self.Foci[X_COOR],self.Position[Y_COOR]+self.Foci[Y_COOR],self.Position[Z_COOR]+self.Foci[Z_COOR]), text=self.Name, xoffset=20, yoffset=12, space=0, height=10, color=color, border=6, box=false, font='sans'))
 
 		if (self.SolarSystem.ShowFeatures & bodyType) == 0:
@@ -904,9 +911,10 @@ class makeBody:
 		self.Argument_of_perihelion 	= self.Longitude_of_perihelion - self.Longitude_of_ascendingnode
 		self.a 							= getSemiMajor(self.Perihelion, self.e)
 		self.Inclination 				= elts["orbital_inclination"]
-		if self.SatelliteOf != None:
-			self.Inclination -= self.SatelliteOf.AxialTilt
 
+		#if self.SatelliteOf != None:
+		#	self.Inclination -= self.SatelliteOf.AxialTilt
+			
 		self.Time_of_perihelion_passage = elts["Time_of_perihelion_passage_JD"]
 		self.Mean_motion				= elts["mean_motion"]
 		self.Epoch						= elts["epochJD"]
@@ -958,6 +966,34 @@ class makeBody:
 		# Note that atan2 returns an angle in
 		# radian, so Nu is always in radian
 
+	def initRotationSAVE(self):
+		TEXTURE_POSITIONING_CORRECTION = pi/12
+		# we need to rotate around X axis by pi/2 to properly align the planet's texture
+		self.BodyShape.rotate(angle=(pi/2+self.TiltAngle), axis=self.XdirectionUnit, origine=(self.Position[X_COOR]+self.Foci[X_COOR],self.Position[Y_COOR]+self.Foci[Y_COOR],self.Position[Z_COOR]+self.Foci[Z_COOR]))
+		# then further rotation will apply to Z axis
+		self.RotAxis = self.ZdirectionUnit
+
+		#self.updateAxis()
+		# test
+		#LocalInitialAngle = deg2rad(locationInfo.Time2degree(locationInfo.RelativeTimeToDateline))
+		# the local initial angle between the normal to the sun and our location
+		
+		self.LocalInitialAngle = deg2rad(locationInfo.Time2degree(locationInfo.RelativeTimeToDateline)) + deg2rad(locationInfo.solarT)
+
+		self.Gamma = - deg2rad(locationInfo.Time2degree(locationInfo.RelativeTimeToDateline)) + deg2rad(locationInfo.solarT)
+		self.LocalInitialAngle = pi/2 + self.Gamma
+		#self.BodyShape.rotate(angle=(pi/12+LocalInitialAngle), axis=self.RotAxis, origine=(self.Position[X_COOR]+self.Foci[X_COOR],self.Position[Y_COOR]+self.Foci[Y_COOR],self.Position[Z_COOR]+self.Foci[Z_COOR]))
+
+		self.BodyShape.rotate(angle=(self.LocalInitialAngle), axis=self.RotAxis, origine=(self.Position[X_COOR]+self.Foci[X_COOR],self.Position[Y_COOR]+self.Foci[Y_COOR],self.Position[Z_COOR]+self.Foci[Z_COOR]))
+		
+		# calculate current RA, to position the obliquity properly:
+		if "RA_1" in objects_data[self.ObjectIndex]:
+			T = daysSinceJ2000UTC()/36525. # T is in centuries
+			self.RA = objects_data[self.ObjectIndex]["RA_1"] + objects_data[self.ObjectIndex]["RA_2"] * T
+			self.BodyShape.rotate(angle=deg2rad(self.RA), axis=self.ZdirectionUnit, origine=(self.Position[X_COOR]+self.Foci[X_COOR],self.Position[Y_COOR]+self.Foci[Y_COOR],self.Position[Z_COOR]+self.Foci[Z_COOR]))
+		#else:
+		#	print "No RA for " +self.Name
+
 	# default initRotation behavior
 	def initRotation(self):
 		TEXTURE_POSITIONING_CORRECTION = pi/12
@@ -970,13 +1006,14 @@ class makeBody:
 		# test
 		#LocalInitialAngle = deg2rad(locationInfo.Time2degree(locationInfo.RelativeTimeToDateline))
 		# the local initial angle between the normal to the sun and our location
-		self.LocalInitialAngle = deg2rad(locationInfo.Time2degree(locationInfo.RelativeTimeToDateline)) + deg2rad(locationInfo.solarT)
 
-		self.Gamma = - deg2rad(locationInfo.Time2degree(locationInfo.RelativeTimeToDateline)) + deg2rad(locationInfo.solarT)
-		self.LocalInitialAngle = pi/2 + self.Gamma
-		#self.BodyShape.rotate(angle=(pi/12+LocalInitialAngle), axis=self.RotAxis, origine=(self.Position[X_COOR]+self.Foci[X_COOR],self.Position[Y_COOR]+self.Foci[Y_COOR],self.Position[Z_COOR]+self.Foci[Z_COOR]))
+		#self.LocalInitialAngle = deg2rad(locationInfo.Time2degree(locationInfo.RelativeTimeToDateline)) + deg2rad(locationInfo.solarT)
 
-		self.BodyShape.rotate(angle=(self.LocalInitialAngle), axis=self.RotAxis, origine=(self.Position[X_COOR]+self.Foci[X_COOR],self.Position[Y_COOR]+self.Foci[Y_COOR],self.Position[Z_COOR]+self.Foci[Z_COOR]))
+		#self.Gamma = - deg2rad(locationInfo.Time2degree(locationInfo.RelativeTimeToDateline)) + deg2rad(locationInfo.solarT)
+		#self.LocalInitialAngle = pi + self.Gamma
+		##self.BodyShape.rotate(angle=(pi/12+LocalInitialAngle), axis=self.RotAxis, origine=(self.Position[X_COOR]+self.Foci[X_COOR],self.Position[Y_COOR]+self.Foci[Y_COOR],self.Position[Z_COOR]+self.Foci[Z_COOR]))
+
+		#self.BodyShape.rotate(angle=(self.LocalInitialAngle), axis=self.RotAxis, origine=(self.Position[X_COOR]+self.Foci[X_COOR],self.Position[Y_COOR]+self.Foci[Y_COOR],self.Position[Z_COOR]+self.Foci[Z_COOR]))
 		
 		# calculate current RA, to position the obliquity properly:
 		if "RA_1" in objects_data[self.ObjectIndex]:
@@ -1152,10 +1189,22 @@ class satellite(makeBody):
 		#	print objects_data[key]['name']+" is a satellite of: "+planetBody.Name
 		makeBody.__init__(self, system, key, color, SATELLITE, SATELLITE, SATELLITE_SZ_CORRECTION, planetBody)
 		self.isMoon = True
+		#self.Rotation_VernalEquinox = np.matrix([  ###############################
+		#	[ 0,	1, 		0],
+		#	[-1,	0,		0],
+		#	[ 0,	0,		1]]
+		#)
 
 	def getRealisticSizeCorrectionXX(self):
 		#SATELLITE_SZ_CORRECTION = 1/(DIST_FACTOR * 5)
 		return 1/(DIST_FACTOR * 5)
+
+	def setCartesianCoordinatesXX(self): # added tis to avoid correcting for vernal equinox rotation when dealing with moons
+		self.Position[X_COOR] = self.R * DIST_FACTOR * ( cos(self.N) * cos(self.Nu+self.w) - sin(self.N) * sin(self.Nu+self.w) * cos(self.i) )
+		self.Position[Y_COOR] = self.R * DIST_FACTOR * ( sin(self.N) * cos(self.Nu+self.w) + cos(self.N) * sin(self.Nu+self.w) * cos(self.i) )
+		self.Position[Z_COOR] = self.R * DIST_FACTOR * ( sin(self.Nu+self.w) * sin(self.i) )
+
+		#self.Position = self.Rotation_VernalEquinox * self.Position
 
 	def toggleSize(self, realisticSize):
 		x = SCALE_NORMALIZED if realisticSize == True else SCALE_OVERSIZED

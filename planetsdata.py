@@ -246,8 +246,8 @@ objects_data = {
 		"jpl_designation": "CHARON",
 		"mass": 1.586e+21,
 		"radius": 15*606e+3,
-		"perihelion":100*1.959394328352395E+07, # 19596e+3,
-		"aphelion":100*1.959976480409748E+07, # 19596e+3,
+		"perihelion":100*1.959394328352395E+07, # 19596e+3, we multiply by 100 since pluto is bigger than it should
+		"aphelion":100*1.959976480409748E+07, # 19596e+3, we multiply by 100 since pluto is bigger than it should
 		"e":1.485320184688916E-04,
 		"revolution":6.387221715378253,
 		"rotation":6.387221715378253, # in days
