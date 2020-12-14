@@ -280,51 +280,6 @@ class solarSystem:
 
 		self.setAxisVisibility(setRefTo, setRelTo)
 
-	def refreshSAVE(self, animationInProgress = False):
-		orbitTrace = False
-		if self.ShowFeatures & ORBITS != 0:
-			orbitTrace = True
-
-		labelVisible = False
-		if self.ShowFeatures & LABELS != 0:
-			labelVisible = True
-
-		realisticSize = False
-		if self.ShowFeatures & REALSIZE != 0:
-			realisticSize = True
-
-		for body in self.bodies:
-			if body.BodyType in [OUTERPLANET, INNERPLANET, ASTEROID, COMET, SATELLITE, DWARFPLANET, PHA, BIG_ASTEROID, TRANS_NEPT]:
-				body.toggleSize(realisticSize)
-
-				if body.BodyShape.visible == True:
-					body.Trail.visible = orbitTrace
-					for i in range(len(body.Labels)):
-						body.Labels[i].visible = labelVisible
-			else: # belts / rings
-				if body.BodyShape.visible == True and animationInProgress == True:
-					body.BodyShape.visible = False
-					for i in range(len(body.Labels)):
-						body.Labels[i].visible = False
-
-		if self.ShowFeatures & LIT_SCENE != 0:
-			self.Scene.ambient = color.white
-			self.sunLight.visible = False
-			self.BodyShape.material = materials.texture(data=materials.loadTGA("./img/sun"), mapping="spherical", interpolate=False)
-		else:
-			self.Scene.ambient = color.black
-			self.sunLight.visible = True
-			self.BodyShape.material = materials.emissive
-
-		setRefTo = True if self.ShowFeatures & REFERENTIAL != 0 else False
-
-		if 	self.currentPOVselection == self.JPL_designation and \
-			self.ShowFeatures & LOCAL_REFERENTIAL:
-			setRelTo = True
-		else:
-			setRelTo = False
-
-		self.setAxisVisibility(setRefTo, setRelTo)
 
 	def setAxisVisibility(self, setRefTo, setRelTo):
 		for i in range(3):
@@ -363,7 +318,7 @@ class solarSystem:
 		for i in range(0, planet.nRings):
 			planet.Rings[i].pos = planet.BodyShape.pos #self.Position
 
-	def makeRingsSAVE(self, planet): #, system, bodyName, numberOfRings, colorArray):  # change default values during instantiation
+	def makeRingsV2(self, planet): #, system, bodyName, numberOfRings, colorArray):  # change default values during instantiation
 		for i in range(0, planet.nRings):
 			curRadius = planet.BodyRadius * (self.INNER_RING_COEF + i * self.RING_INCREMENT) / planet.SizeCorrection[planet.sizeType]
 			planet.Rings.insert(i, cylinder(pos=(planet.Position[0], planet.Position[1], planet.Position[2]), radius=curRadius, color=planet.RingColors[i][0], length=200-(i*20), opacity=planet.RingColors[i][1], axis=planet.RotAxis))
@@ -371,7 +326,7 @@ class solarSystem:
 				planet.Rings[i].visible = False
 				planet.Rings[i].visible = False
 
-	def makeRingsSAVE(self, system, bodyName):  # change default values during instantiation
+	def makeRingsV3(self, system, bodyName):  # change default values during instantiation
 		global objects_data
 		self.SolarSystem = system
 		planet = self.getBodyFromName(objects_data[bodyName]['jpl_designation'])
@@ -569,9 +524,6 @@ class makeBody:
 		self.isMoon = False
 		self.RealisticCorrectionSize = RealisticCorrectionSize
 
-		#if satelliteof == None:
-		#	self.Foci = vector(0,0,0)
-		#else:
 		self.Foci = vector(satelliteof.Position[X_COOR], satelliteof.Position[Y_COOR], satelliteof.Position[Z_COOR])
 
 		self.ObjectIndex = key
@@ -976,14 +928,13 @@ class makeBody:
 		#self.updateAxis()
 		# test
 		#LocalInitialAngle = deg2rad(locationInfo.Time2degree(locationInfo.RelativeTimeToDateline))
+
 		# the local initial angle between the normal to the sun and our location
 		
 		self.LocalInitialAngle = deg2rad(locationInfo.Time2degree(locationInfo.RelativeTimeToDateline)) + deg2rad(locationInfo.solarT)
 
 		self.Gamma = - deg2rad(locationInfo.Time2degree(locationInfo.RelativeTimeToDateline)) + deg2rad(locationInfo.solarT)
 		self.LocalInitialAngle = pi/2 + self.Gamma
-		#self.BodyShape.rotate(angle=(pi/12+LocalInitialAngle), axis=self.RotAxis, origine=(self.Position[X_COOR]+self.Foci[X_COOR],self.Position[Y_COOR]+self.Foci[Y_COOR],self.Position[Z_COOR]+self.Foci[Z_COOR]))
-
 		self.BodyShape.rotate(angle=(self.LocalInitialAngle), axis=self.RotAxis, origine=(self.Position[X_COOR]+self.Foci[X_COOR],self.Position[Y_COOR]+self.Foci[Y_COOR],self.Position[Z_COOR]+self.Foci[Z_COOR]))
 		
 		# calculate current RA, to position the obliquity properly:
