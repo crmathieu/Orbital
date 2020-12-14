@@ -34,7 +34,9 @@ def main():
 	solarsystem.addTo(makeEcliptic(solarsystem, color.white))
 	solarsystem.addTo(planet(solarsystem, 'mercury', color.green, INNERPLANET, INNERPLANET, PLANET_SZ_CORRECTION))
 	solarsystem.addTo(planet(solarsystem, 'venus', color.yellow, INNERPLANET, INNERPLANET, PLANET_SZ_CORRECTION))
-	earth = planet(solarsystem, 'earth', color.cyan, INNERPLANET, INNERPLANET, PLANET_SZ_CORRECTION)
+	#earth = planet(solarsystem, 'earth', color.cyan, INNERPLANET, INNERPLANET, PLANET_SZ_CORRECTION)
+	earth = makeEarth(solarsystem, color.cyan, INNERPLANET, INNERPLANET, PLANET_SZ_CORRECTION)
+
 	solarsystem.addTo(earth)
 	mars = planet(solarsystem, 'mars', color.red, INNERPLANET, INNERPLANET, PLANET_SZ_CORRECTION)
 	solarsystem.addTo(mars)

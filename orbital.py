@@ -918,32 +918,6 @@ class makeBody:
 		# Note that atan2 returns an angle in
 		# radian, so Nu is always in radian
 
-	def initRotationSAVE(self):
-		TEXTURE_POSITIONING_CORRECTION = pi/12
-		# we need to rotate around X axis by pi/2 to properly align the planet's texture
-		self.BodyShape.rotate(angle=(pi/2+self.TiltAngle), axis=self.XdirectionUnit, origine=(self.Position[X_COOR]+self.Foci[X_COOR],self.Position[Y_COOR]+self.Foci[Y_COOR],self.Position[Z_COOR]+self.Foci[Z_COOR]))
-		# then further rotation will apply to Z axis
-		self.RotAxis = self.ZdirectionUnit
-
-		#self.updateAxis()
-		# test
-		#LocalInitialAngle = deg2rad(locationInfo.Time2degree(locationInfo.RelativeTimeToDateline))
-
-		# the local initial angle between the normal to the sun and our location
-		
-		self.LocalInitialAngle = deg2rad(locationInfo.Time2degree(locationInfo.RelativeTimeToDateline)) + deg2rad(locationInfo.solarT)
-
-		self.Gamma = - deg2rad(locationInfo.Time2degree(locationInfo.RelativeTimeToDateline)) + deg2rad(locationInfo.solarT)
-		self.LocalInitialAngle = pi/2 + self.Gamma
-		self.BodyShape.rotate(angle=(self.LocalInitialAngle), axis=self.RotAxis, origine=(self.Position[X_COOR]+self.Foci[X_COOR],self.Position[Y_COOR]+self.Foci[Y_COOR],self.Position[Z_COOR]+self.Foci[Z_COOR]))
-		
-		# calculate current RA, to position the obliquity properly:
-		if "RA_1" in objects_data[self.ObjectIndex]:
-			T = daysSinceJ2000UTC()/36525. # T is in centuries
-			self.RA = objects_data[self.ObjectIndex]["RA_1"] + objects_data[self.ObjectIndex]["RA_2"] * T
-			self.BodyShape.rotate(angle=deg2rad(self.RA), axis=self.ZdirectionUnit, origine=(self.Position[X_COOR]+self.Foci[X_COOR],self.Position[Y_COOR]+self.Foci[Y_COOR],self.Position[Z_COOR]+self.Foci[Z_COOR]))
-		#else:
-		#	print "No RA for " +self.Name
 
 	# default initRotation behavior
 	def initRotation(self):
@@ -952,19 +926,6 @@ class makeBody:
 		self.BodyShape.rotate(angle=(pi/2+self.TiltAngle), axis=self.XdirectionUnit, origine=(self.Position[X_COOR]+self.Foci[X_COOR],self.Position[Y_COOR]+self.Foci[Y_COOR],self.Position[Z_COOR]+self.Foci[Z_COOR]))
 		# then further rotation will apply to Z axis
 		self.RotAxis = self.ZdirectionUnit
-
-		#self.updateAxis()
-		# test
-		#LocalInitialAngle = deg2rad(locationInfo.Time2degree(locationInfo.RelativeTimeToDateline))
-		# the local initial angle between the normal to the sun and our location
-
-		#self.LocalInitialAngle = deg2rad(locationInfo.Time2degree(locationInfo.RelativeTimeToDateline)) + deg2rad(locationInfo.solarT)
-
-		#self.Gamma = - deg2rad(locationInfo.Time2degree(locationInfo.RelativeTimeToDateline)) + deg2rad(locationInfo.solarT)
-		#self.LocalInitialAngle = pi + self.Gamma
-		##self.BodyShape.rotate(angle=(pi/12+LocalInitialAngle), axis=self.RotAxis, origine=(self.Position[X_COOR]+self.Foci[X_COOR],self.Position[Y_COOR]+self.Foci[Y_COOR],self.Position[Z_COOR]+self.Foci[Z_COOR]))
-
-		#self.BodyShape.rotate(angle=(self.LocalInitialAngle), axis=self.RotAxis, origine=(self.Position[X_COOR]+self.Foci[X_COOR],self.Position[Y_COOR]+self.Foci[Y_COOR],self.Position[Z_COOR]+self.Foci[Z_COOR]))
 		
 		# calculate current RA, to position the obliquity properly:
 		if "RA_1" in objects_data[self.ObjectIndex]:
@@ -974,11 +935,6 @@ class makeBody:
 		#else:
 		#	print "No RA for " +self.Name
 
-	def incrementRotation(self):
-		newLocalInitialAngle = - deg2rad(locationInfo.Time2degree(locationInfo.RelativeTimeToDateline)) + deg2rad(locationInfo.solarT)
-		self.BodyShape.rotate(angle=(newLocalInitialAngle-self.Gamma), axis=self.RotAxis, origine=(self.Position[X_COOR]+self.Foci[X_COOR],self.Position[Y_COOR]+self.Foci[Y_COOR],self.Position[Z_COOR]+self.Foci[Z_COOR]))
-		print "rotating by ", newLocalInitialAngle - self.Gamma, " degree"
-		self.Gamma = newLocalInitialAngle
 
 	# default
 	def setRotation(self):
@@ -1084,21 +1040,14 @@ class makeBody:
 					(self.Position[Y_COOR] - self.SolarSystem.EarthRef.Position[Y_COOR])**2 + \
 					(self.Position[Z_COOR] - self.SolarSystem.EarthRef.Position[Z_COOR])**2)/DIST_FACTOR/AU
 
+
 class planet(makeBody):
 	
 	def __init__(self, system, key, color, type, sizeCorrectionType, defaultSizeCorrection):
 		makeBody.__init__(self, system, key, color, type, sizeCorrectionType, defaultSizeCorrection, system)
 
 	def updateStillPosition(self, timeinsec):
-		if self.ObjectIndex != 'earth':
-			return
-		if self.wasAnimated == false:
-			self.rotationInterval -= timeinsec
-			print "rotation Interval = ", self.rotationInterval
-			if self.rotationInterval <= 0:
-				locationInfo.setSolarTime()
-				self.incrementRotation()
-				self.rotationInterval = self.STILL_ROTATION_INTERVAL
+		return
 
 	def getRealisticSizeCorrectionXX(self):
 		#return 1/(DIST_FACTOR * 50)
@@ -1133,6 +1082,58 @@ class planet(makeBody):
 		"""
 		self.setOrbitalFromKeplerianElements(elt, timeincrement) #-1.4) #0.7)
 		#self.setOrbitalFromKeplerianElements(objects_data[key]["kep_elt"], timeincrement)
+
+class makeEarth(planet):
+	
+	def __init__(self, system, color, type, sizeCorrectionType, defaultSizeCorrection):
+		# corrective angle (earth only)
+		self.Gamma = 0
+
+		planet.__init__(self, system, "earth", color, type, sizeCorrectionType, defaultSizeCorrection)
+
+
+	def initRotation(self):
+		TEXTURE_POSITIONING_CORRECTION = pi/12
+		# we need to rotate around X axis by pi/2 to properly align the planet's texture
+		self.BodyShape.rotate(angle=(pi/2+self.TiltAngle), axis=self.XdirectionUnit, origine=(self.Position[X_COOR]+self.Foci[X_COOR],self.Position[Y_COOR]+self.Foci[Y_COOR],self.Position[Z_COOR]+self.Foci[Z_COOR]))
+		# then further rotation will apply to Z axis
+		self.RotAxis = self.ZdirectionUnit
+
+		#self.updateAxis()
+		# test
+		#LocalInitialAngle = deg2rad(locationInfo.Time2degree(locationInfo.RelativeTimeToDateline))
+
+		# the local initial angle between the normal to the sun and our location
+		
+		self.LocalInitialAngle = deg2rad(locationInfo.Time2degree(locationInfo.RelativeTimeToDateline)) + deg2rad(locationInfo.solarT)
+
+		self.Gamma = - deg2rad(locationInfo.Time2degree(locationInfo.RelativeTimeToDateline)) + deg2rad(locationInfo.solarT)
+		self.LocalInitialAngle = pi/2 + self.Gamma
+		self.BodyShape.rotate(angle=(self.LocalInitialAngle), axis=self.RotAxis, origine=(self.Position[X_COOR]+self.Foci[X_COOR],self.Position[Y_COOR]+self.Foci[Y_COOR],self.Position[Z_COOR]+self.Foci[Z_COOR]))
+		
+		# calculate current RA, to position the obliquity properly:
+		if "RA_1" in objects_data[self.ObjectIndex]:
+			T = daysSinceJ2000UTC()/36525. # T is in centuries
+			self.RA = objects_data[self.ObjectIndex]["RA_1"] + objects_data[self.ObjectIndex]["RA_2"] * T
+			self.BodyShape.rotate(angle=deg2rad(self.RA), axis=self.ZdirectionUnit, origine=(self.Position[X_COOR]+self.Foci[X_COOR],self.Position[Y_COOR]+self.Foci[Y_COOR],self.Position[Z_COOR]+self.Foci[Z_COOR]))
+		#else:
+		#	print "No RA for " +self.Name
+
+	def updateStillPosition(self, timeinsec):
+		if self.wasAnimated == false:
+			self.rotationInterval -= timeinsec
+			print "rotation Interval = ", self.rotationInterval
+			if self.rotationInterval <= 0:
+				locationInfo.setSolarTime()
+				self.incrementRotation()
+				self.rotationInterval = self.STILL_ROTATION_INTERVAL
+
+	def incrementRotation(self):
+		newLocalInitialAngle = - deg2rad(locationInfo.Time2degree(locationInfo.RelativeTimeToDateline)) + deg2rad(locationInfo.solarT)
+		self.BodyShape.rotate(angle=(newLocalInitialAngle-self.Gamma), axis=self.RotAxis, origine=(self.Position[X_COOR]+self.Foci[X_COOR],self.Position[Y_COOR]+self.Foci[Y_COOR],self.Position[Z_COOR]+self.Foci[Z_COOR]))
+		print "rotating by ", newLocalInitialAngle - self.Gamma, " degree"
+		self.Gamma = newLocalInitialAngle
+
 
 class satellite(makeBody):
 	def __init__(self, system, key, color, planetBody):
