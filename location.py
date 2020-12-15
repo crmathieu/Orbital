@@ -59,37 +59,6 @@ class Timeloc:
 		print "Local current time :", self.localtime
 		return self.getSolarTime(self.localtime, self.longitude)
 
-	def solar_timestr(self, strDatetime, longit):
-		dt = datetime.datetime.strptime(strDatetime,  '%Y/%m/%d %H:%M:%S')
-
-		# get timezone in minutes from GT to current location. 
-		# When longitude is negative (west of GT), we need to change the sign
-		tz = time.timezone
-		if longit < 0:
-			tz = -tz
-
-		gamma = 2 * math.pi / 365 * (dt.timetuple().tm_yday - 1 + float(dt.hour - 12) / 24)
-		eqtime = 229.18 * (0.000075 + 0.001868 * math.cos(gamma) - 0.032077 * math.sin(gamma) \
-				- 0.014615 * math.cos(2 * gamma) - 0.040849 * math.sin(2 * gamma))
-		decl = 0.006918 - 0.399912 * math.cos(gamma) + 0.070257 * math.sin(gamma) \
-			- 0.006758 * math.cos(2 * gamma) + 0.000907 * math.sin(2 * gamma) \
-			- 0.002697 * math.cos(3 * gamma) + 0.00148 * math.sin(3 * gamma)
-		time_offset = eqtime + 4 * longit
-		tst = dt.hour * 60 + dt.minute + dt.second / 60 + time_offset
-		self.solarT = datetime.datetime.combine(dt.date(), datetime.time(0)) + datetime.timedelta(minutes=tst)
-		print "calculated solartime=", self.solarT
-
-
-		#time_offset = eqtime + (4 * longit)  - (tz/60)
-		self.TimeToGreenwich = tz  # in seconds
-		print time.timezone/3600
-		self.RelativeTimeToDateline = 86400/2 - abs(tz)
-		self.AbsoluteTimeToDateline = 86400/2 - tz
-
-		print "time zone=", self.TimeToGreenwich/3600
-		print "time-to-dateline=", self.RelativeTimeToDateline/3600 
-		return self.solarT
-
 	def getSolarTime(self, dt, longit):
 		"""
     	return ha
@@ -135,4 +104,37 @@ class Timeloc:
 		# 15 deg corresponds to 1hour (3600s). 1s -> 15/3600
 		return time_in_sec * 15/3600
 
-#locationInfo = Timeloc()
+"""
+	def solar_timestrXX(self, strDatetime, longit):
+		dt = datetime.datetime.strptime(strDatetime,  '%Y/%m/%d %H:%M:%S')
+
+		# get timezone in minutes from GT to current location. 
+		# When longitude is negative (west of GT), we need to change the sign
+		tz = time.timezone
+		if longit < 0:
+			tz = -tz
+
+		gamma = 2 * math.pi / 365 * (dt.timetuple().tm_yday - 1 + float(dt.hour - 12) / 24)
+		eqtime = 229.18 * (0.000075 + 0.001868 * math.cos(gamma) - 0.032077 * math.sin(gamma) \
+				- 0.014615 * math.cos(2 * gamma) - 0.040849 * math.sin(2 * gamma))
+		decl = 0.006918 - 0.399912 * math.cos(gamma) + 0.070257 * math.sin(gamma) \
+			- 0.006758 * math.cos(2 * gamma) + 0.000907 * math.sin(2 * gamma) \
+			- 0.002697 * math.cos(3 * gamma) + 0.00148 * math.sin(3 * gamma)
+		time_offset = eqtime + 4 * longit
+		tst = dt.hour * 60 + dt.minute + dt.second / 60 + time_offset
+		self.solarT = datetime.datetime.combine(dt.date(), datetime.time(0)) + datetime.timedelta(minutes=tst)
+		print "calculated solartime=", self.solarT
+
+
+		#time_offset = eqtime + (4 * longit)  - (tz/60)
+		self.TimeToGreenwich = tz  # in seconds
+		print time.timezone/3600
+		self.RelativeTimeToDateline = 86400/2 - abs(tz)
+		self.AbsoluteTimeToDateline = 86400/2 - tz
+
+		print "time zone=", self.TimeToGreenwich/3600
+		print "time-to-dateline=", self.RelativeTimeToDateline/3600 
+		return self.solarT
+"""
+
+

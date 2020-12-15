@@ -1093,31 +1093,33 @@ class makeEarth(planet):
 
 
 	def initRotation(self):
+		# texture alignment correction coefficient
 		TEXTURE_POSITIONING_CORRECTION = pi/12
+
 		# we need to rotate around X axis by pi/2 to properly align the planet's texture
 		self.BodyShape.rotate(angle=(pi/2+self.TiltAngle), axis=self.XdirectionUnit, origine=(self.Position[X_COOR]+self.Foci[X_COOR],self.Position[Y_COOR]+self.Foci[Y_COOR],self.Position[Z_COOR]+self.Foci[Z_COOR]))
 		# then further rotation will apply to Z axis
 		self.RotAxis = self.ZdirectionUnit
 
-		#self.updateAxis()
-		# test
-		#LocalInitialAngle = deg2rad(locationInfo.Time2degree(locationInfo.RelativeTimeToDateline))
+		#self.LocalInitialAngle = deg2rad(locationInfo.Time2degree(locationInfo.RelativeTimeToDateline)) + deg2rad(locationInfo.solarT)
 
-		# the local initial angle between the normal to the sun and our location
-		
-		self.LocalInitialAngle = deg2rad(locationInfo.Time2degree(locationInfo.RelativeTimeToDateline)) + deg2rad(locationInfo.solarT)
-
+		# Calculate the local initial angle between the normal to the sun and our location
 		self.Gamma = - deg2rad(locationInfo.Time2degree(locationInfo.RelativeTimeToDateline)) + deg2rad(locationInfo.solarT)
-		self.LocalInitialAngle = pi/2 + self.Gamma
+
+		# add correction due to initial position of texture on earth sphere, then rotate texture to make it match current time
+		self.LocalInitialAngle = -TEXTURE_POSITIONING_CORRECTION + self.Gamma
 		self.BodyShape.rotate(angle=(self.LocalInitialAngle), axis=self.RotAxis, origine=(self.Position[X_COOR]+self.Foci[X_COOR],self.Position[Y_COOR]+self.Foci[Y_COOR],self.Position[Z_COOR]+self.Foci[Z_COOR]))
 		
+		"""
 		# calculate current RA, to position the obliquity properly:
 		if "RA_1" in objects_data[self.ObjectIndex]:
+			print "BURP!!!!!!!!!!!!!!!!!"
 			T = daysSinceJ2000UTC()/36525. # T is in centuries
 			self.RA = objects_data[self.ObjectIndex]["RA_1"] + objects_data[self.ObjectIndex]["RA_2"] * T
-			self.BodyShape.rotate(angle=deg2rad(self.RA), axis=self.ZdirectionUnit, origine=(self.Position[X_COOR]+self.Foci[X_COOR],self.Position[Y_COOR]+self.Foci[Y_COOR],self.Position[Z_COOR]+self.Foci[Z_COOR]))
+		#	self.BodyShape.rotate(angle=deg2rad(self.RA), axis=self.ZdirectionUnit, origine=(self.Position[X_COOR]+self.Foci[X_COOR],self.Position[Y_COOR]+self.Foci[Y_COOR],self.Position[Z_COOR]+self.Foci[Z_COOR]))
 		#else:
 		#	print "No RA for " +self.Name
+		"""
 
 	def updateStillPosition(self, timeinsec):
 		if self.wasAnimated == false:
@@ -1133,6 +1135,35 @@ class makeEarth(planet):
 		self.BodyShape.rotate(angle=(newLocalInitialAngle-self.Gamma), axis=self.RotAxis, origine=(self.Position[X_COOR]+self.Foci[X_COOR],self.Position[Y_COOR]+self.Foci[Y_COOR],self.Position[Z_COOR]+self.Foci[Z_COOR]))
 		print "rotating by ", newLocalInitialAngle - self.Gamma, " degree"
 		self.Gamma = newLocalInitialAngle
+
+	def setOrbitalFromKeplerianElements(self, elts, timeincrement):
+		# get number of days since J2000 epoch and obtain the fraction of century
+		# (the rate adjustment is given as a rate per century)
+		days = daysSinceJ2000UTC() + timeincrement - ADJUSTMENT_FACTOR_PLANETS # - 1.43
+		#T = (daysSinceJ2000UTC() + timeincrement)/36525. # T is in centuries
+		T = (days-0.3)/36525. # T is in centuries
+
+		self.a = (elts["a"] + (elts["ar"] * T)) * AU
+		self.e = elts["e"] + (elts["er"] * T)
+		self.Inclination = elts["i"] + (elts["ir"] * T)
+
+		# compute mean Longitude with correction factors beyond jupiter M = L - W + bT^2 +ccos(ft) + ssin(ft)
+		L = elts["L"] + (elts["Lr"] * T) + (elts["b"] * T**2  +
+											elts["c"] * cos(elts["f"] * T) +
+											elts["s"] * sin(elts["f"] * T))
+		self.Longitude_of_perihelion = elts["W"] + (elts["Wr"] * T)
+		self.Longitude_of_ascendingnode = elts["N"] + (elts["Nr"] * T)
+
+		# compute Argument of perihelion w
+		self.Argument_of_perihelion = self.Longitude_of_perihelion - self.Longitude_of_ascendingnode
+
+		# compute mean Anomaly M = L - W
+		M = toRange(L - self.Longitude_of_perihelion) #W)
+
+		# Obtain ecc. Anomaly E (in degrees) from M using an approx method of resolution:
+		success, self.E, dE, it = solveKepler(M, self.e, 12000)
+		if success == False:
+			print ("Could not converge for "+self.Name+", E = "+str(self.E)+", last precision = "+str(dE))
 
 
 class satellite(makeBody):
