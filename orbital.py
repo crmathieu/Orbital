@@ -780,6 +780,7 @@ class makeBody:
 		self.setOrbitalFromPredefinedElements(objects_data[key], timeincrement) #-0.7)
 
 	# unused
+	"""
 	def setEarthOrbitalFromKeplerianElements(self, elts, timeincrement):
 		# get number of days since J2000 epoch and obtain the fraction of century
 		# (the rate adjustment is given as a rate per century)
@@ -797,11 +798,11 @@ class makeBody:
 		self.Inclination = 0.0 + (0.0130546 * T) - (0.00000931 * T**2) - (0.000000034 * T**3)
 
 		# compute mean Longitude with correction factors beyond jupiter M = L - W + bT^2 +ccos(ft) + ssin(ft)
-		"""
-		L = elts["L"] + (elts["Lr"] * T) + (elts["b"] * T**2  +
-											elts["c"] * cos(elts["f"] * T) +
-											elts["s"] * sin(elts["f"] * T))
-		"""
+		#
+		#L = elts["L"] + (elts["Lr"] * T) + (elts["b"] * T**2  +
+		#									elts["c"] * cos(elts["f"] * T) +
+		#									elts["s"] * sin(elts["f"] * T))
+		#
 		L = 100.466449 + (35999.3728519 * T) - (0.00000568 * T**2)
 
 		#self.Longitude_of_perihelion = elts["W"] + (elts["Wr"] * T)
@@ -821,7 +822,7 @@ class makeBody:
 		if success == False:
 			print ("Could not converge for "+self.Name+", E = "+str(self.E)+", last precision = "+str(dE))
 
-
+	"""
 
 	# will calculate current value of approximate position of the major planets
 	# including pluto. This won't work for Asteroid, Comets or Dwarf planets
@@ -1141,7 +1142,9 @@ class makeEarth(planet):
 		# (the rate adjustment is given as a rate per century)
 		days = daysSinceJ2000UTC() + timeincrement - ADJUSTMENT_FACTOR_PLANETS # - 1.43
 		#T = (daysSinceJ2000UTC() + timeincrement)/36525. # T is in centuries
-		T = (days-0.3)/36525. # T is in centuries
+
+		T = (days-2)/36525. # T is in centuries
+		#T = (days)/36525. # T is in centuries
 
 		self.a = (elts["a"] + (elts["ar"] * T)) * AU
 		self.e = elts["e"] + (elts["er"] * T)
