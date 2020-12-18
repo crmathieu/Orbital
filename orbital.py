@@ -1143,7 +1143,7 @@ class makeEarth(planet):
 		days = daysSinceJ2000UTC() + timeincrement - ADJUSTMENT_FACTOR_PLANETS # - 1.43
 		#T = (daysSinceJ2000UTC() + timeincrement)/36525. # T is in centuries
 
-		T = (days-2)/36525. # T is in centuries
+		T = (days-1.95)/36525. # T is in centuries
 		#T = (days)/36525. # T is in centuries
 
 		self.a = (elts["a"] + (elts["ar"] * T)) * AU
