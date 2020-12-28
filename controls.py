@@ -1101,6 +1101,7 @@ class controlWindow(wx.Frame):
 		self.Notebook.AddPage(self.povBox, "Animation POV")
 		self.Notebook.AddPage(self.jplBox, "Close Approach Data")
 		#self.getLocationFromIPaddress()
+		self.orbitalBox.SetAnimationCallback(testMouse)
 		self.orbitalBox.Show()
 
 	"""

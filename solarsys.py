@@ -86,7 +86,6 @@ def main():
 
 	ex = wx.App(False)
 	cw = controlWindow(solarsystem)
-	cw.SetAnimationCallback(test1)
 	cw.Show()
 
 
@@ -94,26 +93,6 @@ def main():
 		sleep(2)
 		earth.updateStillPosition(2)
 
-def test1():
-	n = 0
-	delta = 0
-	while True:
-		n = n+1
-		if n > 100:
-			delta = 0
-		else:
-			delta = 1
-		mouse.press(Button.right)
-		mouse.press(Button.left)
-		mouse.move(0, -1)
-		mouse.release(Button.right)
-		mouse.release(Button.left)
-		mouse.move(0, +1)
-		sleep(0.01)
-		mouse.press(Button.right)
-		mouse.move(-3, -delta)
-		mouse.release(Button.right)
-		mouse.move(3, delta)
 
 if __name__ == '__main__' :
 	main()
