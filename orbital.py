@@ -30,8 +30,11 @@ import datetime
 import time
 import sys
 from location import *
+from pynput.mouse import Controller, Button
 
 locationInfo = Timeloc() 
+mouse = Controller()
+print "Mouse position", mouse.position
 
 class solarSystem:
 
@@ -124,7 +127,7 @@ class solarSystem:
 			self.Universe = sphere(pos=vector(0,0,0), radius=self.UniversRadius, color=color.white)
 			self.Universe.material = materials.texture(data=materials.loadTGA(file), mapping="spherical", interpolate=False)
 		else:
-			print ("Could find "+file)
+			print ("Could not find "+file)
 		#self.Scene.scale = self.Scene.scale / 1e10
 
 
@@ -1125,7 +1128,7 @@ class makeEarth(planet):
 	def updateStillPosition(self, timeinsec):
 		if self.wasAnimated == false:
 			self.rotationInterval -= timeinsec
-			print "rotation Interval = ", self.rotationInterval
+			#print "rotation Interval = ", self.rotationInterval
 			if self.rotationInterval <= 0:
 				locationInfo.setSolarTime()
 				self.incrementRotation()
@@ -1134,7 +1137,7 @@ class makeEarth(planet):
 	def incrementRotation(self):
 		newLocalInitialAngle = - deg2rad(locationInfo.Time2degree(locationInfo.RelativeTimeToDateline)) + deg2rad(locationInfo.solarT)
 		self.BodyShape.rotate(angle=(newLocalInitialAngle-self.Gamma), axis=self.RotAxis, origine=(self.Position[X_COOR]+self.Foci[X_COOR],self.Position[Y_COOR]+self.Foci[Y_COOR],self.Position[Z_COOR]+self.Foci[Z_COOR]))
-		print "rotating by ", newLocalInitialAngle - self.Gamma, " degree"
+		#print "rotating by ", newLocalInitialAngle - self.Gamma, " degree"
 		self.Gamma = newLocalInitialAngle
 
 	def setOrbitalFromKeplerianElements(self, elts, timeincrement):

@@ -1056,6 +1056,12 @@ class orbitalCtrlPanel(wx.Panel):
 		self.updateSolarSystem()
 		sleep(1e-4)
 
+	def SetAnimationCallback(self, callbackFunc):
+		self.DisableAnimationCallback = True
+		self.AnimationCallback = callbackFunc
+		self.DisableAnimationCallback = False
+
+	
 	def OnAnimate(self, e):
 		self.StepByStep = False
 		if self.AnimationInProgress == True:
@@ -1068,6 +1074,8 @@ class orbitalCtrlPanel(wx.Panel):
 		self.AnimationInProgress = True
 		while self.AnimationInProgress:
 			self.OneTimeIncrement()
+			if self.DisableAnimationCallback == False:
+				self.AnimationCallback()
 		self.Animate.SetLabel(">")
 
 #
