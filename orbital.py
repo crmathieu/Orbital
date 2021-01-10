@@ -20,21 +20,25 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 
 """
-from planetsdata import *
-from visual import *
+import datetime
+import sys
+import time
+from random import *
+
 #from vpython import *
 import numpy as np
-from random import *
 import scipy.special as sp
-import datetime
-import time
-import sys
-from location import *
-from pynput.mouse import Controller, Button
+from pynput.mouse import Button, Controller
+from visual import *
 
+from location import *
+from planetsdata import *
+
+mouse = mouseTracker()
 locationInfo = Timeloc() 
 mouse = Controller()
 print "Mouse position", mouse.position
+
 
 class solarSystem:
 
@@ -57,7 +61,9 @@ class solarSystem:
 		self.currentPOV = None
 		self.LocalRef = False
 		self.currentPOVselection = "SUN"
-		self.Scene = display(title = 'Solar System', width = 1300, height = 740, range=3, center = (0,0,0))
+		self.Scene = display(title = 'Solar System', width = 1200, height =800, range=3, center = (0,0,0))
+		self.MT = self.Scene.getMouseTracker()
+		self.MT.SetMouseStateReporter(self.Scene)
 
 		self.Scene.lights = []
 		self.Scene.forward = (2,0,-1) #(0,0,-1)
@@ -169,7 +175,7 @@ class solarSystem:
 		relText = ["x","y","z"]
 		pos = vector(position)
 		for i in range (3): # Each direction
-			self.RefAxis[i] = curve( frame = None, color = color.white, pos= [ pos, pos+refDirections[i]], visible=False)
+			self.RefAxis[i] = curve( frame = None, color = color.dirtyYellow, pos= [ pos, pos+refDirections[i]], visible=False)
 			self.RefAxisLabel[i] = label( frame = None, color = color.white,  text = refText[i],
 										pos = pos+refDirections[i], opacity = 0, box = False, visible=False )
 			A = np.matrix([[relDirections[i][0]],[relDirections[i][1]],[relDirections[i][2]]], np.float64)
@@ -189,6 +195,23 @@ class solarSystem:
 
 	def resetView(self):
 		self.Scene.center = (0,0,0)
+
+	def updateCameraPOV(self, body):
+
+		# the following values will do the following
+		# (0,-1,-1): freezes rotation and looks down towards the left
+		# (0,-1, 1): freezes rotation and looks up towards the left
+		# (0, 1, 1): freezes rotation and looks up towards the right
+		# (0, 1,-1): freezes rotation and looks down towards the right
+
+		#self.SolarSystem.Scene.forward = (0, 0, -1)
+		# For a planet, Foci(x, y, z) is (0,0,0). For a moon, Foci represents the position of the planet the moon orbits around
+		self.currentPOV = body
+		self.currentPOVselection = body.Name.upper()
+		self.Scene.center = (self.currentPOV.Position[X_COOR]+self.currentPOV.Foci[X_COOR],
+							 self.currentPOV.Position[Y_COOR]+self.currentPOV.Foci[Y_COOR],
+							 self.currentPOV.Position[Z_COOR]+self.currentPOV.Foci[Z_COOR])
+		print self.Scene.center
 
 	def addTo(self, body):
 		self.bodies.append(body)
@@ -1701,9 +1724,46 @@ def daysSinceEpochJDfromUnixTimeStamp(UnixTimestamp):
 	# 01-01-2000
 	return daysSinceEpochJD(ndays)
 
+class flyingCamera():
+	def __init__(self, system):
+		self.MT = system.MT
+	
+_n = 0
+_delta = 6
+_incr = 35
 
+def flyover_approach():
+	return
+#	while True:
+	global _n 
+	global _delta
+	global _incr
+	_n = _n+1
 
-def testMouse():
+	if _n > 13:
+		_delta -= 1
+		if _delta <= 0:
+			_delta = 0
+		
+	if _n > 50:
+		_incr -= 1
+		if _incr <= 1:
+			_incr = 1
+			#return
+
+	mouse.press(Button.right)
+	mouse.press(Button.left)
+	mouse.move(0, -_incr)
+	mouse.release(Button.right)
+	mouse.release(Button.left)
+	mouse.move(0, +_incr)
+	sleep(0.01)
+	mouse.press(Button.right)
+	mouse.move(-3, -_delta)
+	mouse.release(Button.right)
+	mouse.move(3, _delta)
+
+def testMouseOK():
 	
 	n = 0
 	delta = 0

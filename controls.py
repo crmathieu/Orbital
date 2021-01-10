@@ -168,6 +168,11 @@ class POVpanel(wx.Panel):
 			self.parentFrame.orbitalBox.updateCameraPOV()
 			self.setBodyFocus(self.SolarSystem.currentPOV)
 
+	def setCurrentBodyFocusManually(self, body):
+		self.SolarSystem.currentPOV = body
+		self.parentFrame.orbitalBox.updateCameraPOV()
+		self.setBodyFocus(self.SolarSystem.currentPOV)
+
 	def setBodyFocus(self, Body):
 		# display planet Info
 		if Body.Mass == 0:
@@ -218,9 +223,10 @@ class POVpanel(wx.Panel):
 	def setPlanetFocus(self):
 		#print "Focusing on "+self.SolarSystem.currentPOVselection
 		planetBody = self.SolarSystem.getBodyFromName(self.SolarSystem.currentPOVselection)
-		print planetBody.Name
+		#print planetBody.Name
 		return self.setBodyFocus(planetBody)
 
+		"""
 		# display planet Info
 		mass = setPrecision(str(planetBody.Mass), 3)
 
@@ -264,7 +270,7 @@ class POVpanel(wx.Panel):
 		self.SolarSystem.currentPOV = planetBody
 		self.parentFrame.orbitalBox.updateCameraPOV()
 		#print "END setPlanetFocus..."
-
+		"""
 
 	def setSunFocus(self):
 		mass = setPrecision(str(self.SolarSystem.Mass), 3)
@@ -601,6 +607,7 @@ class orbitalCtrlPanel(wx.Panel):
 		self.listjplid = []
 		self.DetailsOn = False
 		self.currentBody = None
+		self.DisableAnimationCallback = True
 
 		self.InitUI()
 		self.Hide()
@@ -1061,8 +1068,15 @@ class orbitalCtrlPanel(wx.Panel):
 		self.AnimationCallback = callbackFunc
 		self.DisableAnimationCallback = False
 
+	def OnAnimateTest(self, e):
+		sleep(2)
+		while True:
+			sleep(1e-2)
+			if self.DisableAnimationCallback == False:
+				self.AnimationCallback()
 	
 	def OnAnimate(self, e):
+		#sleep(2)
 		self.StepByStep = False
 		if self.AnimationInProgress == True:
 			self.AnimationInProgress = False
@@ -1073,10 +1087,26 @@ class orbitalCtrlPanel(wx.Panel):
 		self.disableBeltsForAnimation()
 		self.AnimationInProgress = True
 		while self.AnimationInProgress:
+			sleep(1e-2)
 			self.OneTimeIncrement()
 			if self.DisableAnimationCallback == False:
 				self.AnimationCallback()
+				print self.SolarSystem.Scene.center
+
+
 		self.Animate.SetLabel(">")
+
+
+class WIDGETSpanel(wx.Panel):
+	def __init__(self, parent, notebook, solarsystem):
+		wx.Panel.__init__(self, parent=notebook)
+		self.parentFrame = parent
+		self.nb = notebook
+		self.SolarSystem = solarsystem
+		self.ca_deltaT = 0
+		#self.InitUI()
+		#self.resetPOV()
+		#self.Hide()
 
 #
 #	This is the GUI entry point
@@ -1095,13 +1125,18 @@ class controlWindow(wx.Frame):
 		self.orbitalBox = orbitalCtrlPanel(self, self.Notebook, solarsystem)
 		self.jplBox = JPLpanel(self, self.Notebook, solarsystem)
 		self.povBox = POVpanel(self, self.Notebook, solarsystem)
+		self.widgetBox = WIDGETSpanel(self, self.Notebook, solarsystem)
 
 		# Bind subpanels to tabs and name them.
 		self.Notebook.AddPage(self.orbitalBox, "Main")
 		self.Notebook.AddPage(self.povBox, "Animation POV")
 		self.Notebook.AddPage(self.jplBox, "Close Approach Data")
+		self.Notebook.AddPage(self.widgetBox, "Animation Widgets")
 		#self.getLocationFromIPaddress()
-		self.orbitalBox.SetAnimationCallback(testMouse)
+
+		# if we want flyOver animation
+		#self.orbitalBox.SetAnimationCallback(flyover_approach)
+
 		self.orbitalBox.Show()
 
 	"""

@@ -26,10 +26,11 @@ from controls import *
 def main():
 	# determine where this program runs 
 	#locationInfo = location()
-
+	
 	solarsystem = solarSystem()
 	# set what is displayed by default
-	solarsystem.setDefaultFeatures(INNERPLANET|ORBITS|SATELLITE|LABELS|OUTERPLANET|LIT_SCENE|CELESTIAL_SPHERE)
+#	solarsystem.setDefaultFeatures(INNERPLANET|OUTERPLANET|ORBITS|SATELLITE|KUIPER_BELT|ASTEROID_BELT|JTROJANS|LABELS|LIT_SCENE|CELESTIAL_SPHERE)
+	solarsystem.setDefaultFeatures(INNERPLANET|OUTERPLANET|ORBITS)
 
 	solarsystem.addTo(makeEcliptic(solarsystem, color.white))
 	solarsystem.addTo(planet(solarsystem, 'mercury', color.green, INNERPLANET, INNERPLANET, PLANET_SZ_CORRECTION))
@@ -78,14 +79,22 @@ def main():
 	#loadBodies(solarsystem, SATELLITE, "satellites.txt", MAX_OBJECTS)
 
 	solarsystem.drawAllBodiesTrajectory()
+	#solarsystem.updateCameraPOV(earth)
+	#print solarsystem.currentPOV.Name
+	
 	glbRefresh(solarsystem, False)
 
 	# Start control window
 	print wx.version()
 	#print julian(1, 1, 2000)
 
+
+	#flyingC = flyingCamera(solarsystem)
+	#flyingC.MT.OnFakeLeftMouseDown()
+
 	ex = wx.App(False)
 	cw = controlWindow(solarsystem)
+	cw.povBox.setCurrentBodyFocusManually(earth)
 	cw.Show()
 
 
