@@ -12,6 +12,7 @@ cyan = (0,1,1)
 magenta = (1,0,1)
 dirtyYellow = (0.5,0.5,0)
 orange = (1,0.6,0)
+nightshade = (0.10, 0.10, 0.10)
 
 def gray(luminance):
   return (luminance,luminance,luminance)

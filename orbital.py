@@ -292,7 +292,7 @@ class solarSystem:
 			self.sunLight.visible = False
 			self.BodyShape.material = materials.texture(data=materials.loadTGA("./img/sun"), mapping="spherical", interpolate=False)
 		else:
-			self.Scene.ambient = color.black
+			self.Scene.ambient = color.nightshade #color.black
 			self.sunLight.visible = True
 			self.BodyShape.material = materials.emissive
 

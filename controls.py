@@ -443,60 +443,7 @@ class JPLpanel(wx.Panel):
 					self.BodiesSPK_ID.append(entry["neo_reference_id"])
 					self.ListIndex += 1
 
-	def fetchJPLSAVE(self, host, url):
-		url = url+"&start_date="+self.fetchDateStr
-		print host+url+"\n"
-		try:
-			opener = urllib2.build_opener()
-			opener.addheaders = [('User-Agent', 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_12_2) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/55.0.2883.95 Safari/537.36')]
-			response = opener.open(host+url)
-
-			#c = httplib.HTTPSConnection(host)
-			#print url
-			#c.request("GET", url)
-			#response = c.getresponse()
-			print response
-			#response = urllib2.urlopen(url, headers={'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_12_2) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/55.0.2883.95 Safari/537.36'})
-		except urllib2.HTTPError as err:
-			print "Exception...\n\nError: " + str(err.code)
-			raise
-
-
-		#response = requests.get(url, headers={'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_12_2) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/55.0.2883.95 Safari/537.36'})
-
-		self.BodiesSPK_ID = []
-		rawResp = response.read()
-		#print rawResp
-		self.jsonResp = json.loads(rawResp)
-
-		# use if "prev" not in "links"  
-		self.nextUrl = self.jsonResp["links"]["next"] if "next" in self.jsonResp["links"] else ""
-		self.prevUrl = self.jsonResp["links"]["prev"] if "prev" in self.jsonResp["links"] else ""
-		self.selfUrl = self.jsonResp["links"]["self"] if "self" in self.jsonResp["links"] else ""
- 
-
-		if self.ListIndex != 0:
-			self.list.DeleteAllItems()
-
-		self.ListIndex = 0
-		if self.jsonResp["element_count"] > 0:
-			for i in range(0, self.jsonResp["element_count"]-1):
-				entry = self.jsonResp["near_earth_objects"][self.fetchDateStr][i]
-				if entry["close_approach_data"][0]["orbiting_body"].upper() == 'EARTH':
-					self.list.InsertStringItem(self.ListIndex, entry["name"])
-					if entry["is_potentially_hazardous_asteroid"] == True:
-							ch = "Y"
-					else:
-							ch = "N"
-					self.list.SetStringItem(self.ListIndex, 1, ch)
-					self.list.SetStringItem(self.ListIndex, 2, entry["neo_reference_id"])
-					self.list.SetStringItem(self.ListIndex, 3, str(round(float(entry["close_approach_data"][0]["miss_distance"]["lunar"]) * 100)/100)  +
-											" LD | " + str(round(float(entry["close_approach_data"][0]["miss_distance"]["astronomical"]) * 100)/100) + " AU ")
-					#self.list.SetStringItem(self.ListIndex, 3, entry["close_approach_data"][0]["miss_distance"]["astronomical"] + " AU ")
-					# record the spk-id corresponding to this row
-					self.BodiesSPK_ID.append(entry["neo_reference_id"])
-					self.ListIndex += 1
-
+	
 	def fetchDetails(self, link):
 		#https://api.nasa.gov/neo/rest/v1/neo/3542519?api_key=DEMO_KEY
 		#url = NASA_API_KEY_DETAILS+
