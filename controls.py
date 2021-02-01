@@ -24,6 +24,7 @@ from orbital import *
 from numberfmt import *
 import urllib2
 import httplib
+from video import VideoRecorder
 import re
 import json
 import wx

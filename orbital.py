@@ -45,7 +45,8 @@ class solarSystem:
 	INNER_RING_COEF = 1.3
 	OUTER_RING_COEF = 1.9
 	RING_INCREMENT = 0.6
-
+	SCENE_WIDTH = 1920
+	SCENE_HEIGHT = 1080
 	bodies = []
 
 	def __init__(self):
@@ -61,7 +62,7 @@ class solarSystem:
 		self.currentPOV = None
 		self.LocalRef = False
 		self.currentPOVselection = "SUN"
-		self.Scene = display(title = 'Solar System', width = 1200, height =800, range=3, center = (0,0,0))
+		self.Scene = display(title = 'Solar System', width = self.SCENE_WIDTH, height =self.SCENE_HEIGHT, range=3, center = (0,0,0))
 		self.MT = self.Scene.getMouseTracker()
 		self.MT.SetMouseStateReporter(self.Scene)
 
