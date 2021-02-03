@@ -218,7 +218,7 @@ class solarSystem:
 		self.bodies.append(body)
 		i = len(self.bodies) - 1
 		self.nameIndex[body.JPL_designation] = i
-		if body.JPL_designation == 'EARTH':
+		if body.JPL_designation == 'earth':
 			self.EarthRef = body
 		return i # this is the index of the added body in the collection
 
@@ -659,7 +659,7 @@ class makeBody:
 
 		# attach a curve to the object to display its orbit
 		if self.BodyShape != None:
-			self.Trail = curve(color=self.Color)
+			self.Trail = curve(color=(self.Color[0]*0.6, self.Color[1]*0.6, self.Color[2]*0.6))
 			self.Trail.append(pos=self.BodyShape.pos)
 		else:
 			return
@@ -725,13 +725,7 @@ class makeBody:
 		self.ZdirectionUnit = ZdirectionVec/mag(ZdirectionVec)
 		self.YdirectionUnit = YdirectionVec/mag(YdirectionVec)
 		self.XdirectionUnit = XdirectionVec/mag(XdirectionVec)
-		"""
-		if self.Name == 'Earth':
-			print "X="+str(self.XdirectionUnit)
-			print "Y="+str(self.YdirectionUnit)
-			print "Z="+str(self.ZdirectionUnit)
-		"""
-
+		
 	def updateAxis(self):
 		pos = vector(self.Position[X_COOR]+self.Foci[X_COOR],self.Position[Y_COOR]+self.Foci[Y_COOR],self.Position[Z_COOR]+self.Foci[Z_COOR])
 		for i in range (3): # Each direction
@@ -979,14 +973,19 @@ class makeBody:
 		self.BodyShape.pos = vector(self.Position[X_COOR]+self.Foci[X_COOR],self.Position[Y_COOR]+self.Foci[Y_COOR],self.Position[Z_COOR]+self.Foci[Z_COOR])
 		if trace:
 			if self.Position[Z_COOR]+self.Foci[Z_COOR] < 0:
+				"""
 				self.Interval += 1
 				if self.Interval % 2 == 0:
-					self.Trail.append(pos=self.BodyShape.pos, color=self.Color) #, interval=50)
+					#self.Trail.append(pos=self.BodyShape.pos, color=self.Color) #, interval=50)
+					self.Trail.append(pos=self.BodyShape.pos, color=(self.Color[0]*0.3, self.Color[1]*0.3, self.Color[2]*0.3))			
 				else:
 					self.Trail.append(pos=self.BodyShape.pos, color=color.black) #, interval=50)
+				"""
+				# new
+				self.Trail.append(pos=self.BodyShape.pos, color=(self.Color[0]*0.3, self.Color[1]*0.3, self.Color[2]*0.3))
 			else:
-				self.Trail.append(pos=self.BodyShape.pos, color=self.Color)
-
+				#self.Trail.append(pos=self.BodyShape.pos, color=self.Color)
+				self.Trail.append(pos=self.BodyShape.pos, color=(self.Color[0]*0.6, self.Color[1]*0.6, self.Color[2]*0.6))
 
 	def setCartesianCoordinates(self):
 		self.Position[X_COOR] = self.R * DIST_FACTOR * ( cos(self.N) * cos(self.Nu+self.w) - sin(self.N) * sin(self.Nu+self.w) * cos(self.i) )
@@ -1102,15 +1101,8 @@ class planet(makeBody):
 		# for the Major planets (default) includig Pluto, we have Keplerian
 		# elements to calculate the body's current approximated position on orbit
 		elt = objects_data[key]["kep_elt_1"] if "kep_elt_1" in objects_data[key] else objects_data[key]["kep_elt"]
-		"""
-		if self.Name == 'Earth':
-			#print "EARTH ORBITAL ELTS"
-			self.setEarthOrbitalFromKeplerianElements(elt, timeincrement) #)-0.75)
-		else:
-		"""
 		self.setOrbitalFromKeplerianElements(elt, timeincrement) #-1.4) #0.7)
-		#self.setOrbitalFromKeplerianElements(objects_data[key]["kep_elt"], timeincrement)
-
+		
 class makeEarth(planet):
 	
 	def __init__(self, system, color, type, sizeCorrectionType, defaultSizeCorrection):
@@ -1126,13 +1118,17 @@ class makeEarth(planet):
 
 		# we need to rotate around X axis by pi/2 to properly align the planet's texture
 		self.BodyShape.rotate(angle=(pi/2+self.TiltAngle), axis=self.XdirectionUnit, origine=(self.Position[X_COOR]+self.Foci[X_COOR],self.Position[Y_COOR]+self.Foci[Y_COOR],self.Position[Z_COOR]+self.Foci[Z_COOR]))
+
 		# then further rotation will apply to Z axis
 		self.RotAxis = self.ZdirectionUnit
 
-		#self.LocalInitialAngle = deg2rad(locationInfo.Time2degree(locationInfo.RelativeTimeToDateline)) + deg2rad(locationInfo.solarT)
+		# calculate initial angle between body and solar referential x axis
+		self.iDelta = atan2(self.Position[Y_COOR], self.Position[X_COOR])
 
 		# Calculate the local initial angle between the normal to the sun and our location
-		self.Gamma = - deg2rad(locationInfo.Time2degree(locationInfo.RelativeTimeToDateline)) + deg2rad(locationInfo.solarT)
+		self.Gamma = deg2rad(locationInfo.solarT) \
+					 - deg2rad(locationInfo.Time2degree(locationInfo.RelativeTimeToDateline)) \
+					 - self.iDelta 
 
 		# add correction due to initial position of texture on earth sphere, then rotate texture to make it match current time
 		self.LocalInitialAngle = -TEXTURE_POSITIONING_CORRECTION + self.Gamma
@@ -1159,9 +1155,15 @@ class makeEarth(planet):
 				self.rotationInterval = self.STILL_ROTATION_INTERVAL
 
 	def incrementRotation(self):
-		newLocalInitialAngle = - deg2rad(locationInfo.Time2degree(locationInfo.RelativeTimeToDateline)) + deg2rad(locationInfo.solarT)
+		# recalculate the angle of the texture on sphere based on updated time 
+		newLocalInitialAngle = deg2rad(locationInfo.solarT) \
+							   - deg2rad(locationInfo.Time2degree(locationInfo.RelativeTimeToDateline)) \
+							   - self.iDelta 
+
+		# rotate for the difference between updated angle and its formal value
 		self.BodyShape.rotate(angle=(newLocalInitialAngle-self.Gamma), axis=self.RotAxis, origine=(self.Position[X_COOR]+self.Foci[X_COOR],self.Position[Y_COOR]+self.Foci[Y_COOR],self.Position[Z_COOR]+self.Foci[Z_COOR]))
 		#print "rotating by ", newLocalInitialAngle - self.Gamma, " degree"
+		# update angle with its updated value
 		self.Gamma = newLocalInitialAngle
 
 	def setOrbitalFromKeplerianElements(self, elts, timeincrement):
@@ -1582,8 +1584,60 @@ def getTrueAnomalyAndRadius(E, e, a):
 	return ta, R
 
 
-# load orbital parameters stored in a file
+# load orbital parameters stored in JSON file
 def loadBodies(SolarSystem, type, filename, maxentries = 0):
+	fo  = open(filename, "r")
+	allObj = json.loads(fo.read())
+
+	maxentries = 1000 if maxentries == 0 else maxentries
+	for obj in allObj:
+		for key in obj:
+			objects_data[obj[key]["jpl_designation"]] = {
+				"material": 0,
+				"name": obj[key]["name"],
+				"iau_name": obj[key]["iau_name"],
+				"jpl_designation": obj[key]["jpl_designation"],
+				"mass": (obj[key]["mu"]/G)*1.e+9, # convert km3 to m3
+				"radius": obj[key]["diameter"]/2, 
+				"perihelion": obj[key]["perihelion"] * AU,
+				"e": obj[key]["e"],
+				"revolution": obj[key]["revolution"],
+				"orbital_inclination": 	obj[key]["orbital_inclination"],
+				"longitude_of_ascendingnode":obj[key]["longitude_of_ascendingnode"],
+				"argument_of_perihelion": obj[key]["argument_of_perihelion"],
+				"longitude_of_perihelion": obj[key]["longitude_of_ascendingnode"] + obj[key]["argument_of_perihelion"],
+				"Time_of_perihelion_passage_JD": obj[key]["Time_of_perihelion_passage_JD"],
+				"mean_motion": obj[key]["mean_motion"],
+				"mean_anomaly": obj[key]["mean_anomaly"],
+				"epochJD": obj[key]["epochJD"],
+				"earth_moid": obj[key]["earth_moid"] * AU,
+				"orbit_class": obj[key]["orbit_class"],
+				"absolute_mag": obj[key]["absolute_mag"],
+				"axial_tilt": obj[key]["axial_tilt"], # in deg
+				"tga_name": obj[key]["tga_name"]
+			}
+			#print obj[key]["jpl_designation"]
+			#return
+			body = {COMET: 			comet,
+					BIG_ASTEROID: 	asteroid,
+					PHA:			pha,
+					TRANS_NEPT:		transNeptunian,
+					SATELLITE:		satellite,
+					SMALL_ASTEROID:	smallAsteroid,
+					}[type](SolarSystem, obj[key]["jpl_designation"], getColor())
+
+			SolarSystem.addTo(body)
+			#if body.Name == "Moon":
+			#	print body.JPL_designation
+			#	print "Satellite was added to solar system"
+			maxentries -= 1
+			if maxentries <= 0:
+				break
+		# test: break after 1 rec
+		#break
+	fo.close()
+
+def loadBodiesOldway(SolarSystem, type, filename, maxentries = 0):
 	fo  = open(filename, "r")
 	token = []
 	maxentries = 1000 if maxentries == 0 else maxentries

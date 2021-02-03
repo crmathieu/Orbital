@@ -206,7 +206,7 @@ class POVpanel(wx.Panel):
 				"Eccentricity ", e,
 				"Axial Tilt(deg) ", Body.AxialTilt))
 
-		if self.SolarSystem.currentPOVselection != 'CUROBJ':
+		if self.SolarSystem.currentPOVselection != 'curobj':
 			if (Body.SolarSystem.ShowFeatures & Body.BodyType) == 0:
 				# if the body is not visible, Make it so
 				#print "Making "+Body.Name+" visible! bodyType = "+str(Body.BodyType)
@@ -294,9 +294,9 @@ class POVpanel(wx.Panel):
 
 	def OnRadioBox(self, e):
 		index = self.rbox.GetSelection()
-		self.SolarSystem.currentPOVselection = {0: "CUROBJ", 1: "SUN", 2:"EARTH", 3:"MERCURY", 4:"VENUS",
-												5: "MARS", 6:"JUPITER", 7:"SATURN", 8:"URANUS", 9:"NEPTUNE",
-												10:"PLUTO", 11:"SEDNA", 12:"DEIMOS", 13:"CHARON",14:"ERIS", 15:"MOON"}[index]
+		self.SolarSystem.currentPOVselection = {0: "curobj", 1: "sun", 2:"earth", 3:"mercury", 4:"venus",
+												5: "mars", 6:"jupiter", 7:"saturn", 8:"uranus", 9:"neptune",
+												10:"pluto", 11:"sedna", 12:"deimos", 13:"charon",14:"eris", 15:"moon"}[index]
 		{0:	self.setCurrentBodyFocus, 1: self.setSunFocus,
 		 2: self.setPlanetFocus, 3: self.setPlanetFocus,
 		 4: self.setPlanetFocus, 5: self.setPlanetFocus,
@@ -480,7 +480,7 @@ class JPLpanel(wx.Panel):
 		# make sure to reset the date to today's date
 		self.parentFrame.orbitalBox.resetDate(self.ca_deltaT)
 		self.parentFrame.orbitalBox.setCurrentBodyFromId(id)
-		if self.SolarSystem.currentPOVselection == "CUROBJ":
+		if self.SolarSystem.currentPOVselection == "curobj":
 			self.SolarSystem.currentPOV = self.parentFrame.orbitalBox.currentBody
 			self.parentFrame.orbitalBox.updateCameraPOV()
 		toggle = False
@@ -537,7 +537,7 @@ class orbitalCtrlPanel(wx.Panel):
 	def __init__(self, parent, notebook, solarsystem):
 		wx.Panel.__init__(self, parent=notebook)
 		self.parentFrame = parent
-		self.Earth = solarsystem.getBodyFromName("EARTH")
+		self.Earth = solarsystem.getBodyFromName("earth")
 		self.nb = notebook
 		self.checkboxList = {}
 		self.ResumeSlideShowLabel = False
@@ -582,7 +582,7 @@ class orbitalCtrlPanel(wx.Panel):
 			index = e.GetSelection()
 			jpl_designation = self.listjplid[index]
 			self.setCurrentBodyFromId(jpl_designation)
-			if self.SolarSystem.currentPOVselection == "CUROBJ":
+			if self.SolarSystem.currentPOVselection == "curobj":
 				self.SolarSystem.currentPOV = self.currentBody
 				self.parentFrame.povBox.setBodyFocus(self.currentBody)
 				self.updateCameraPOV()
@@ -867,7 +867,7 @@ class orbitalCtrlPanel(wx.Panel):
 		else:
 			e.GetEventObject().SetLabel("Resume")
 			self.ResumeSlideShowLabel = True
-			if self.SolarSystem.currentPOVselection == "CUROBJ":
+			if self.SolarSystem.currentPOVselection == "curobj":
 				self.SolarSystem.currentPOV = self.currentBody
 				self.updateCameraPOV()
 
@@ -943,8 +943,8 @@ class orbitalCtrlPanel(wx.Panel):
 		return False	# else return false
 
 	def OnSlideShow(self, e):
-		if self.SolarSystem.currentPOVselection == 'CUROBJ':
-			#print "currPOVselection = CUROBJ - Reset to SUN"
+		if self.SolarSystem.currentPOVselection == 'curobj':
+			#print "currPOVselection = curobj - Reset to SUN"
 			self.parentFrame.povBox.resetPOV()
 
 		if self.stopSlideSHow() == True:

@@ -72,10 +72,10 @@ def main():
 
 	MAX_OBJECTS = 1000
 
-	loadBodies(solarsystem, PHA, "data/200m+PHA_orbital_elements.txt", MAX_OBJECTS)
-	loadBodies(solarsystem, BIG_ASTEROID,"data/200km+asteroids_orbital_elements.txt", MAX_OBJECTS)
-	loadBodies(solarsystem, COMET, "data/200m+comets_orbital_elements.txt", MAX_OBJECTS)
-	loadBodies(solarsystem, TRANS_NEPT, "data/transNeptunian_objects.txt", MAX_OBJECTS)
+	loadBodies(solarsystem, PHA, "data/200m+PHA_orbital_elements.txt.json", MAX_OBJECTS)
+	loadBodies(solarsystem, BIG_ASTEROID,"data/200km+asteroids_orbital_elements.txt.json", MAX_OBJECTS)
+	loadBodies(solarsystem, COMET, "data/200m+comets_orbital_elements.txt.json", MAX_OBJECTS)
+	loadBodies(solarsystem, TRANS_NEPT, "data/transNeptunian_objects.txt.json", MAX_OBJECTS)
 	#loadBodies(solarsystem, SATELLITE, "satellites.txt", MAX_OBJECTS)
 
 	solarsystem.drawAllBodiesTrajectory()
