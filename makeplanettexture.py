@@ -7,8 +7,10 @@ path = "c:/proj/orbital/new images"
 pathOut = "c:/proj/orbital/img"
 #TGAarrayIn = ["sunmapalpha2k","jupiter2k","earth2k","mercurymap2k","moon2k","neptune2k","saturn2k","pluto-grey2k","uranus1k","venus2k", "mars2k","eris2k","makemake2k","haumea2k","sedna2k", "asteroidmap2k"]
 #TGAarrayOut = ["sun","jupiter","earth","mercury","moon","neptune","saturn","pluto","uranus","venus", "mars","eris","makemake","haumea","sedna","asteroid"]
-TGAarrayIn = ["8k_earth_daymap"]
-TGAarrayOut = ["earthnocloud"]
+#TGAarrayIn = ["8k_earth_daymap"]
+#TGAarrayOut = ["earthnocloud"]
+TGAarrayIn = ["FH2stage"]
+TGAarrayOut = ["FH2S"]
 
 width = 4096 #2048 # must be power of 2
 height = 2048 #1024 # must be power of 2
