@@ -566,7 +566,7 @@ class orbitalCtrlPanel(wx.Panel):
 
 	def createBodyList(self, xpos, ypos):
 		for body in self.SolarSystem.bodies:
-			if body.BodyType in [PHA, BIG_ASTEROID, COMET, TRANS_NEPT]:
+			if body.BodyType in [SPACECRAFT, PHA, BIG_ASTEROID, COMET, TRANS_NEPT]:
 				self.list.append(body.Name)
 				self.listjplid.append(body.JPL_designation)
 
@@ -730,7 +730,7 @@ class orbitalCtrlPanel(wx.Panel):
 		self.refreshDate()
 		self.SolarSystem.animate(self.DeltaT)
 		for body in self.SolarSystem.bodies:
-			if body.BodyType in [OUTERPLANET, INNERPLANET, SATELLITE, ASTEROID, COMET, DWARFPLANET, PHA, BIG_ASTEROID, TRANS_NEPT]:
+			if body.BodyType in [SPACECRAFT, OUTERPLANET, INNERPLANET, SATELLITE, ASTEROID, COMET, DWARFPLANET, PHA, BIG_ASTEROID, TRANS_NEPT]:
 				if body.BodyShape.visible == True:
 					velocity, distance = body.animate(self.DeltaT)
 					if self.SolarSystem.currentPOV != None:

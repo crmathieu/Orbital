@@ -268,7 +268,7 @@ class solarSystem:
 			realisticSize = True
 
 		for body in self.bodies:
-			if body.BodyType in [OUTERPLANET, INNERPLANET, ASTEROID, COMET, SATELLITE, DWARFPLANET, PHA, BIG_ASTEROID, TRANS_NEPT]:
+			if body.BodyType in [SPACECRAFT, OUTERPLANET, INNERPLANET, ASTEROID, COMET, SATELLITE, DWARFPLANET, PHA, BIG_ASTEROID, TRANS_NEPT]:
 				body.toggleSize(realisticSize)
 
 				if body.BodyShape.visible == True:
@@ -540,6 +540,7 @@ class makeJtrojan(makeBelt):
 		self.Labels.append(label(pos=(self.RadiusMaxAU * AU * DIST_FACTOR * cos(L4), self.RadiusMaxAU * AU * DIST_FACTOR * sin(L4), 0), text="L4 Trojans", xoffset=20, yoffset=12, space=0, height=10, border=6, box=false, font='sans', visible = False))
 		self.Labels.append(label(pos=(self.RadiusMaxAU * AU * DIST_FACTOR * cos(L5), self.RadiusMaxAU * AU * DIST_FACTOR * sin(L5), 0), text="L5 Trojans", xoffset=20, yoffset=12, space=0, height=10, border=6, box=false, font='sans', visible = False))
 
+
 class makeBody:
 
 	RING_BASE_THICKNESS = 2000
@@ -642,8 +643,8 @@ class makeBody:
 		self.setCartesianCoordinates()
 
 		#sizeCorrection = { INNERPLANET: 1200, SATELLITE:1400, GASGIANT: 1900, DWARFPLANET: 100, ASTEROID:1, COMET:0.02, SMALL_ASTEROID: 0.1, BIG_ASTEROID:0.1, PHA: 0.0013, TRANS_NEPT: 0.001}[sizeCorrectionType]
-		sizeCorrection = { INNERPLANET: 1200, SATELLITE:1400, GASGIANT: 3500, DWARFPLANET: 100, ASTEROID:1, COMET:0.02, SMALL_ASTEROID: 0.1, BIG_ASTEROID:0.1, PHA: 0.0013, TRANS_NEPT: 0.001}[sizeCorrectionType]
-		self.shape = { INNERPLANET: "sphere", OUTERPLANET: "sphere", SATELLITE: "sphere", DWARFPLANET: "sphere", ASTEROID:"cube", COMET:"cone", SMALL_ASTEROID:"cube", BIG_ASTEROID:"sphere", PHA:"cube", TRANS_NEPT: "cube"}[bodyType]
+		sizeCorrection = { SPACECRAFT: 1, INNERPLANET: 1200, SATELLITE:1400, GASGIANT: 3500, DWARFPLANET: 100, ASTEROID:1, COMET:0.02, SMALL_ASTEROID: 0.1, BIG_ASTEROID:0.1, PHA: 0.0013, TRANS_NEPT: 0.001}[sizeCorrectionType]
+		self.shape = { SPACECRAFT: "cylinder", INNERPLANET: "sphere", OUTERPLANET: "sphere", SATELLITE: "sphere", DWARFPLANET: "sphere", ASTEROID:"cube", COMET:"cone", SMALL_ASTEROID:"cube", BIG_ASTEROID:"sphere", PHA:"cube", TRANS_NEPT: "cube"}[bodyType]
 
 		self.SizeCorrection[0] = getSigmoid(self.Perihelion, sizeCorrection)
 		self.SizeCorrection[1] = self.RealisticCorrectionSize #self.getRealisticSizeCorrection()
@@ -961,7 +962,8 @@ class makeBody:
 	# default
 	def setRotation(self):
 		ti = self.SolarSystem.getTimeIncrement()
-		self.RotAngle = abs((2*pi/self.Rotation)*ti)
+		self.RotAngle = abs((2*pi/self.Rotation)*ti) if self.Rotation > 0 else 0
+
 		if ti < 0:
 			self.RotAngle *= -1
 
@@ -1102,7 +1104,8 @@ class planet(makeBody):
 		# elements to calculate the body's current approximated position on orbit
 		elt = objects_data[key]["kep_elt_1"] if "kep_elt_1" in objects_data[key] else objects_data[key]["kep_elt"]
 		self.setOrbitalFromKeplerianElements(elt, timeincrement) #-1.4) #0.7)
-		
+
+
 class makeEarth(planet):
 	
 	def __init__(self, system, color, type, sizeCorrectionType, defaultSizeCorrection):
@@ -1161,8 +1164,8 @@ class makeEarth(planet):
 							   - self.iDelta 
 
 		# rotate for the difference between updated angle and its formal value
-		self.BodyShape.rotate(angle=(newLocalInitialAngle-self.Gamma), axis=self.RotAxis, origine=(self.Position[X_COOR]+self.Foci[X_COOR],self.Position[Y_COOR]+self.Foci[Y_COOR],self.Position[Z_COOR]+self.Foci[Z_COOR]))
-		#print "rotating by ", newLocalInitialAngle - self.Gamma, " degree"
+		self.BodyShape.rotate(angle=(newLocalInitialAngle - self.Gamma), axis=self.RotAxis, origine=(self.Position[X_COOR]+self.Foci[X_COOR],self.Position[Y_COOR]+self.Foci[Y_COOR],self.Position[Z_COOR]+self.Foci[Z_COOR]))
+		print "rotating by ", newLocalInitialAngle - self.Gamma, " degree"
 		# update angle with its updated value
 		self.Gamma = newLocalInitialAngle
 
@@ -1304,6 +1307,37 @@ class hyperbolic(makeBody):
 			#rate(5000)
 
 		self.hasRenderedOrbit = True
+
+
+class spacecraft(makeBody):
+	def __init__(self, system, key, color):
+		makeBody.__init__(self, system, key, color, SPACECRAFT, SPACECRAFT, SMALLBODY_SZ_CORRECTION, system)
+
+	def setAspect(self, key):
+		return 
+
+		#data = materials.loadTGA("./img/"+key) if objects_data[key]["material"] != 0 else materials.loadTGA("./img/asteroid")
+		data = materials.loadTGA("./img/"+self.Tga) if objects_data[key]["material"] != 0 else materials.loadTGA("./img/asteroid")
+		self.BodyShape.material = materials.texture(data=data, mapping="spherical", interpolate=False)
+
+	def makeShape(self):
+		self.length = self.radiusToShow/self.SizeCorrection[self.sizeType]
+		self.radius = 10 
+		self.BodyShape = cylinder(pos=(self.Position[X_COOR]+self.Foci[X_COOR],self.Position[Y_COOR]+self.Foci[Y_COOR],self.Position[Z_COOR]+self.Foci[Z_COOR]), radius=self.radius, length=self.length, make_trail=false)
+
+	def initRotation(self):
+		self.RotAngle = pi/400
+		self.RotAxis = (0.5,1,1)
+		
+	def setRotation(self):
+		self.BodyShape.rotate(angle=self.RotAngle, axis=self.RotAxis, origine=(self.Position[X_COOR] + 10*self.length, self.Position[Y_COOR] + 10*self.length, self.Position[Z_COOR])) #-sin(alpha), cos(alpha)))
+
+	def makeAxis(self, size, position):
+		return
+
+	def setAxisVisibility(self, setTo):
+		return
+
 
 class comet(makeBody):
 	def __init__(self, system, key, color):
@@ -1616,9 +1650,11 @@ def loadBodies(SolarSystem, type, filename, maxentries = 0):
 				"axial_tilt": obj[key]["axial_tilt"], # in deg
 				"tga_name": obj[key]["tga_name"]
 			}
+			
 			#print obj[key]["jpl_designation"]
 			#return
-			body = {COMET: 			comet,
+			body = {SPACECRAFT: 	spacecraft,
+					COMET: 			comet,
 					BIG_ASTEROID: 	asteroid,
 					PHA:			pha,
 					TRANS_NEPT:		transNeptunian,

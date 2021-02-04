@@ -76,6 +76,7 @@ def main():
 	loadBodies(solarsystem, BIG_ASTEROID,"data/200km+asteroids_orbital_elements.txt.json", MAX_OBJECTS)
 	loadBodies(solarsystem, COMET, "data/200m+comets_orbital_elements.txt.json", MAX_OBJECTS)
 	loadBodies(solarsystem, TRANS_NEPT, "data/transNeptunian_objects.txt.json", MAX_OBJECTS)
+	loadBodies(solarsystem, SPACECRAFT, "data/spacecrafts_orbital_elements.txt.json", MAX_OBJECTS)
 	#loadBodies(solarsystem, SATELLITE, "satellites.txt", MAX_OBJECTS)
 
 	solarsystem.drawAllBodiesTrajectory()
