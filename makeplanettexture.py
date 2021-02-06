@@ -12,8 +12,8 @@ pathOut = "c:/proj/orbital/img"
 TGAarrayIn = ["FH2stage"]
 TGAarrayOut = ["FH2S"]
 
-width = 4096 #2048 # must be power of 2
-height = 2048 #1024 # must be power of 2
+width = 1024 # must be power of 2
+height = 512 # must be power of 2
 
 for i in range (0, len(TGAarrayIn), 1):
 	nameIn = path+"/"+TGAarrayIn[i]

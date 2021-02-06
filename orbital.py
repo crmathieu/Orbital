@@ -86,6 +86,7 @@ class solarSystem:
 		self.Position = vector(0,0,0)
 		self.EarthRef = None
 		self.ShowFeatures = 0
+		self.BodyShape = []
 
 		# make all light coming from origin
 		self.sunLight = local_light(pos=(0,0,0), color=color.white)
@@ -110,8 +111,8 @@ class solarSystem:
 			[0,		sinv,  cosv]]
 		)
 
-		self.BodyShape = sphere(pos=vector(0,0,0), radius=self.BodyRadius/self.CorrectionSize, color=color.white)
-		self.BodyShape.material = materials.emissive
+		self.BodyShape.append(sphere(pos=vector(0,0,0), radius=self.BodyRadius/self.CorrectionSize, color=color.white))
+		self.BodyShape[0].material = materials.emissive
 
 		# make referential
 		self.makeAxis(3*AU*DIST_FACTOR, (0,0,0))
@@ -143,11 +144,11 @@ class solarSystem:
 
 	def setRotation(self):
 		self.RotAngle = abs((2*pi/self.Rotation)*self.TimeIncrement)
-		self.BodyShape.rotate(angle=self.RotAngle, axis=self.RotAxis, origine=(0,0,0))
+		self.BodyShape[0].rotate(angle=self.RotAngle, axis=self.RotAxis, origine=(0,0,0))
 
 	def initRotation(self):
 		# this is necessary to align the planet's texture properly
-		self.BodyShape.rotate(angle=pi/2+self.TiltAngle, axis=self.XdirectionUnit, origine=(0,0,0))
+		self.BodyShape[0].rotate(angle=pi/2+self.TiltAngle, axis=self.XdirectionUnit, origine=(0,0,0))
 		self.RotAxis = self.ZdirectionUnit
 
 	def isFeatured(self, type):
@@ -228,7 +229,7 @@ class solarSystem:
 		else:
 			for i in range(len(self.bodies[self.JTrojansIndex].Labels)):
 				self.bodies[self.JTrojansIndex].Labels[i].visible = False
-			self.bodies[self.JTrojansIndex].BodyShape.visible = False
+			self.bodies[self.JTrojansIndex].BodyShape[0].visible = False
 			self.bodies[self.JTrojansIndex].Labels = []
 			self.bodies[self.JTrojansIndex] = body
 
@@ -271,7 +272,7 @@ class solarSystem:
 			if body.BodyType in [SPACECRAFT, OUTERPLANET, INNERPLANET, ASTEROID, COMET, SATELLITE, DWARFPLANET, PHA, BIG_ASTEROID, TRANS_NEPT]:
 				body.toggleSize(realisticSize)
 
-				if body.BodyShape.visible == True:
+				if body.BodyShape[0].visible == True:
 					body.Trail.visible = orbitTrace
 					if body.isMoon == True:
 						if body.sizeType == SCALE_NORMALIZED: # apply label on/off when moon in real size
@@ -283,19 +284,20 @@ class solarSystem:
 					for i in range(len(body.Labels)):
 						body.Labels[i].visible = value
 			else: # belts / rings
-				if body.BodyShape.visible == True and animationInProgress == True:
-					body.BodyShape.visible = False
+				if body.BodyShape[0].visible == True and animationInProgress == True:
+					for i in range(len(body.BodyShape)):
+						body.BodyShape[i].visible = False
 					for i in range(len(body.Labels)):
 						body.Labels[i].visible = False
 
 		if self.ShowFeatures & LIT_SCENE != 0:
 			self.Scene.ambient = color.white
 			self.sunLight.visible = False
-			self.BodyShape.material = materials.texture(data=materials.loadTGA("./img/sun"), mapping="spherical", interpolate=False)
+			self.BodyShape[0].material = materials.texture(data=materials.loadTGA("./img/sun"), mapping="spherical", interpolate=False)
 		else:
 			self.Scene.ambient = color.nightshade #color.black
 			self.sunLight.visible = True
-			self.BodyShape.material = materials.emissive
+			self.BodyShape[0].material = materials.emissive
 
 		setRefTo = True if self.ShowFeatures & REFERENTIAL != 0 else False
 
@@ -343,7 +345,7 @@ class solarSystem:
 
 	def setRingsPosition(self, planet):
 		for i in range(0, planet.nRings):
-			planet.Rings[i].pos = planet.BodyShape.pos #self.Position
+			planet.Rings[i].pos = planet.BodyShape[0].pos #self.Position
 
 	def makeRingsV2(self, planet): #, system, bodyName, numberOfRings, colorArray):  # change default values during instantiation
 		for i in range(0, planet.nRings):
@@ -418,17 +420,18 @@ class makeEcliptic:
 		self.SolarSystem = system
 		self.Color = color
 		self.BodyType = ECLIPTIC_PLANE
+		self.BodyShape = []
 		self.Labels.append(label(pos=(250*AU*DIST_FACTOR, 250*AU*DIST_FACTOR, 0), text=self.Name, xoffset=20, yoffset=12, space=0, height=10, border=6, box=false, font='sans', visible = False))
 
 	def refresh(self):
 		if self.SolarSystem.ShowFeatures & ECLIPTIC_PLANE != 0:
-			self.BodyShape.visible = True
+			self.BodyShape[0].visible = True
 		else:
-			self.BodyShape.visible = False
+			self.BodyShape[0].visible = False
 
 	def draw(self):
-		self.BodyShape = cylinder(pos=vector(0,0,0), radius=250*AU*DIST_FACTOR, color=self.Color, length=10, opacity=0.1, axis=(0,0,1))
-		self.BodyShape.visible = False
+		self.BodyShape.append(cylinder(pos=vector(0,0,0), radius=250*AU*DIST_FACTOR, color=self.Color, length=10, opacity=0.1, axis=(0,0,1)))
+		self.BodyShape[0].visible = False
 
 
 class makeBelt:
@@ -447,9 +450,10 @@ class makeBelt:
 		self.PlanetName = planetname
 		self.Color = color
 		self.BodyType = bodyType
-		self.BodyShape = points(pos=(self.RadiusMinAU, 0, 0), size=size, color=color)
+		self.BodyShape = []
+		self.BodyShape.append(points(pos=(self.RadiusMinAU, 0, 0), size=size, color=color))
 
-		self.BodyShape.visible = False
+		self.BodyShape[0].visible = False
 		if self.Thickness == 0:
 			self.Thickness = (self.RadiusMinAU + self.RadiusMaxAU)/2 * math.tan(math.pi/6)
 		shape = "cube"
@@ -465,14 +469,14 @@ class makeBelt:
 			RandomRadius = randint(round(self.RadiusMinAU * AU * DIST_FACTOR, 3) * 1000, round(self.RadiusMaxAU * AU * DIST_FACTOR, 3) * 1000) / 1000
 			MAX = self.getGaussian(RandomRadius) * self.Thickness * AU * DIST_FACTOR * self.ThicknessFactor
 			heightToEcliptic = {0: 0, 1:1, 2:-1}[randint(0,2)] * randint(0, int(round(MAX, 6)*1.e6))/1.e6
-			self.BodyShape.append(pos=(RandomRadius * cos(i), RandomRadius * sin(i), heightToEcliptic))
+			self.BodyShape[0].append(pos=(RandomRadius * cos(i), RandomRadius * sin(i), heightToEcliptic))
 
 		self.Labels.append(label(pos=(self.RadiusMaxAU * AU * DIST_FACTOR * cos(i), self.RadiusMaxAU * AU * DIST_FACTOR * sin(i), 0), text=self.Name, xoffset=20, yoffset=12, space=0, height=10, border=6, box=false, font='sans', visible = False))
 
 	def refresh(self):
 		if self.SolarSystem.ShowFeatures & self.BodyType != 0:
-			if self.BodyShape.visible == False:
-				self.BodyShape.visible = True
+			if self.BodyShape[0].visible == False:
+				self.BodyShape[0].visible = True
 
 			if self.SolarSystem.ShowFeatures & LABELS != 0:
 				labelVisible = True
@@ -483,8 +487,8 @@ class makeBelt:
 				self.Labels[i].visible = labelVisible
 
 		else:
-			if self.BodyShape.visible == true:
-				self.BodyShape.visible = false
+			if self.BodyShape[0].visible == true:
+				self.BodyShape[0].visible = false
 				for i in range(len(self.Labels)):
 					self.Labels[i].visible = False
 
@@ -529,13 +533,13 @@ class makeJtrojan(makeBelt):
 			heightToEcliptic = {0:1, 1:-1}[randint(0,1)] * uniform(1 * AU * DIST_FACTOR, int(round(MAX*sqrt(19*i), 6)*1.e6))/1e6
 			heightToEclipticTail = {0:1, 1:-1}[randint(0,1)] * uniform(1 * AU * DIST_FACTOR, int(round(MAXTAIL*sqrt(delta-i), 6)*1.e6))/1e6
 			# calculate positions on 1/2 values for small tail
-			self.BodyShape.append(pos=(RandomTail * cos(L4+delta+i), RandomTail * sin(L4+delta+i), heightToEclipticTail))
-			self.BodyShape.append(pos=(RandomTail * cos(L5-delta-i), RandomTail * sin(L5-delta-i), heightToEclipticTail))
+			self.BodyShape[0].append(pos=(RandomTail * cos(L4+delta+i), RandomTail * sin(L4+delta+i), heightToEclipticTail))
+			self.BodyShape[0].append(pos=(RandomTail * cos(L5-delta-i), RandomTail * sin(L5-delta-i), heightToEclipticTail))
 			# calculate positions on 1/2 values and complete by symetry for the rest
-			self.BodyShape.append(pos=(RandomRadius * cos(L4-delta+i), RandomRadius * sin(L4-delta+i), heightToEcliptic))
-			self.BodyShape.append(pos=(RandomRadius * cos(L4+delta-i), RandomRadius * sin(L4+delta-i), heightToEcliptic))
-			self.BodyShape.append(pos=(RandomRadius * cos(L5-delta+i), RandomRadius * sin(L5-delta+i), heightToEcliptic))
-			self.BodyShape.append(pos=(RandomRadius * cos(L5+delta-i), RandomRadius * sin(L5+delta-i), heightToEcliptic))
+			self.BodyShape[0].append(pos=(RandomRadius * cos(L4-delta+i), RandomRadius * sin(L4-delta+i), heightToEcliptic))
+			self.BodyShape[0].append(pos=(RandomRadius * cos(L4+delta-i), RandomRadius * sin(L4+delta-i), heightToEcliptic))
+			self.BodyShape[0].append(pos=(RandomRadius * cos(L5-delta+i), RandomRadius * sin(L5-delta+i), heightToEcliptic))
+			self.BodyShape[0].append(pos=(RandomRadius * cos(L5+delta-i), RandomRadius * sin(L5+delta-i), heightToEcliptic))
 
 		self.Labels.append(label(pos=(self.RadiusMaxAU * AU * DIST_FACTOR * cos(L4), self.RadiusMaxAU * AU * DIST_FACTOR * sin(L4), 0), text="L4 Trojans", xoffset=20, yoffset=12, space=0, height=10, border=6, box=false, font='sans', visible = False))
 		self.Labels.append(label(pos=(self.RadiusMaxAU * AU * DIST_FACTOR * cos(L5), self.RadiusMaxAU * AU * DIST_FACTOR * sin(L5), 0), text="L5 Trojans", xoffset=20, yoffset=12, space=0, height=10, border=6, box=false, font='sans', visible = False))
@@ -548,6 +552,7 @@ class makeBody:
 	def __init__(self, system, key, color, bodyType = INNERPLANET, sizeCorrectionType = INNERPLANET, RealisticCorrectionSize = SMALLBODY_SZ_CORRECTION, satelliteof = None):  # change default values during instantiation
 
 		self.Labels = []
+		self.compounded = False
 		self.SatelliteOf = satelliteof
 		self.isMoon = False
 		self.RealisticCorrectionSize = RealisticCorrectionSize
@@ -591,7 +596,7 @@ class makeBody:
 		self.RingColors = []
 
 		self.sizeCorrectionType = sizeCorrectionType
-		self.BodyShape = None
+		self.BodyShape = [] #None
 
 		self.Rotation = objects_data[key]["rotation"] if "rotation" in objects_data[key] else 0
 		self.RotAngle = 0
@@ -659,9 +664,9 @@ class makeBody:
 		self.makeShape()
 
 		# attach a curve to the object to display its orbit
-		if self.BodyShape != None:
+		if len(self.BodyShape) > 0: # != None:
 			self.Trail = curve(color=(self.Color[0]*0.6, self.Color[1]*0.6, self.Color[2]*0.6))
-			self.Trail.append(pos=self.BodyShape.pos)
+			self.Trail.append(pos=self.BodyShape[0].pos)
 		else:
 			return
 
@@ -692,7 +697,7 @@ class makeBody:
 		self.Labels.append(label(pos=(self.Position[X_COOR]+self.Foci[X_COOR],self.Position[Y_COOR]+self.Foci[Y_COOR],self.Position[Z_COOR]+self.Foci[Z_COOR]), text=self.Name, xoffset=20, yoffset=12, space=0, height=10, color=color, border=6, box=false, font='sans'))
 
 		if (self.SolarSystem.ShowFeatures & bodyType) == 0:
-			self.BodyShape.visible = False
+			self.BodyShape[0].visible = False
 			self.Labels[0].visible = False
 
 		self.makeAxis(self.radiusToShow/self.SizeCorrection[self.sizeType], self.Position) #(self.Position[X_COOR],self.Position[Y_COOR],self.Position[Z_COOR]))
@@ -702,10 +707,10 @@ class makeBody:
 	def setAspect(self, key):
 		#data = materials.loadTGA("./img/"+key) if objects_data[key]["material"] != 0 else materials.loadTGA("./img/asteroid")
 		data = materials.loadTGA("./img/"+self.Tga) if objects_data[key]["material"] != 0 else materials.loadTGA("./img/asteroid")
-		self.BodyShape.material = materials.texture(data=data, mapping="spherical", interpolate=False)
+		self.BodyShape[0].material = materials.texture(data=data, mapping="spherical", interpolate=False)
 
 	def makeShape(self):
-		self.BodyShape = sphere(pos=(self.Position[X_COOR]+self.Foci[X_COOR],self.Position[Y_COOR]+self.Foci[Y_COOR],self.Position[Z_COOR]+self.Foci[Z_COOR]), radius=self.radiusToShow/self.SizeCorrection[self.sizeType], make_trail=false)
+		self.BodyShape.append(sphere(pos=(self.Position[X_COOR]+self.Foci[X_COOR],self.Position[Y_COOR]+self.Foci[Y_COOR],self.Position[Z_COOR]+self.Foci[Z_COOR]), radius=self.radiusToShow/self.SizeCorrection[self.sizeType], make_trail=false))
 
 	def makeAxis(self, size, position):
 		self.directions = [vector(2*size,0,0), vector(0,2*size,0), vector(0,0,2*size)]
@@ -747,10 +752,10 @@ class makeBody:
 			return
 		else:
 			self.sizeType = x
-		self.BodyShape.radius = self.radiusToShow  / self.SizeCorrection[self.sizeType]
+		self.BodyShape[0].radius = self.radiusToShow  / self.SizeCorrection[self.sizeType]
 
 	def setTraceAndLabelVisibility(self, value):
-		if self.BodyShape.visible == True:
+		if self.BodyShape[0].visible == True:
 			self.Trail.visible = value
 			for i in range(len(self.Labels)):
 				self.Labels[i].visible = value
@@ -783,13 +788,13 @@ class makeBody:
 		self.Foci = self.SatelliteOf.Position
 			#self.Trail.pos = self.Foci
 
-		self.BodyShape.pos = vector(self.Position[X_COOR]+self.Foci[X_COOR],self.Position[Y_COOR]+self.Foci[Y_COOR],self.Position[Z_COOR]+self.Foci[Z_COOR])
+		self.BodyShape[0].pos = vector(self.Position[X_COOR]+self.Foci[X_COOR],self.Position[Y_COOR]+self.Foci[Y_COOR],self.Position[Z_COOR]+self.Foci[Z_COOR])
 		self.Labels[0].pos = vector(self.Position[X_COOR]+self.Foci[X_COOR],self.Position[Y_COOR]+self.Foci[Y_COOR],self.Position[Z_COOR]+self.Foci[Z_COOR])
 		self.setRotation()
 		if self.Ring == True:
 			self.SolarSystem.setRingsPosition(self)
 			#for i in range(0, self.nRings):
-			#	self.Rings[i].pos = self.BodyShape.pos #self.Position
+			#	self.Rings[i].pos = self.BodyShape[0].pos #self.Position
 			#self.SolarSystem.makeRings(self) #self.SolarSystem, self.ObjectIndex)
 
 		return self.getCurrentVelocity(), self.getCurrentDistanceFromEarth()
@@ -926,7 +931,7 @@ class makeBody:
 			self.updatePosition(trace=True) #E*180/pi)
 			rate(5000)
 
-		if self.BodyShape.visible:
+		if self.BodyShape[0].visible:
 			self.Trail.visible = True
 
 		self.hasRenderedOrbit = True
@@ -946,7 +951,7 @@ class makeBody:
 	def initRotation(self):
 		TEXTURE_POSITIONING_CORRECTION = pi/12
 		# we need to rotate around X axis by pi/2 to properly align the planet's texture
-		self.BodyShape.rotate(angle=(pi/2+self.TiltAngle), axis=self.XdirectionUnit, origine=(self.Position[X_COOR]+self.Foci[X_COOR],self.Position[Y_COOR]+self.Foci[Y_COOR],self.Position[Z_COOR]+self.Foci[Z_COOR]))
+		self.BodyShape[0].rotate(angle=(pi/2+self.TiltAngle), axis=self.XdirectionUnit, origine=(self.Position[X_COOR]+self.Foci[X_COOR],self.Position[Y_COOR]+self.Foci[Y_COOR],self.Position[Z_COOR]+self.Foci[Z_COOR]))
 		# then further rotation will apply to Z axis
 		self.RotAxis = self.ZdirectionUnit
 		
@@ -954,7 +959,7 @@ class makeBody:
 		if "RA_1" in objects_data[self.ObjectIndex]:
 			T = daysSinceJ2000UTC()/36525. # T is in centuries
 			self.RA = objects_data[self.ObjectIndex]["RA_1"] + objects_data[self.ObjectIndex]["RA_2"] * T
-			self.BodyShape.rotate(angle=deg2rad(self.RA), axis=self.ZdirectionUnit, origine=(self.Position[X_COOR]+self.Foci[X_COOR],self.Position[Y_COOR]+self.Foci[Y_COOR],self.Position[Z_COOR]+self.Foci[Z_COOR]))
+			self.BodyShape[0].rotate(angle=deg2rad(self.RA), axis=self.ZdirectionUnit, origine=(self.Position[X_COOR]+self.Foci[X_COOR],self.Position[Y_COOR]+self.Foci[Y_COOR],self.Position[Z_COOR]+self.Foci[Z_COOR]))
 		#else:
 		#	print "No RA for " +self.Name
 
@@ -968,26 +973,26 @@ class makeBody:
 			self.RotAngle *= -1
 
 		self.updateAxis()
-		self.BodyShape.rotate(angle=self.RotAngle, axis=self.RotAxis, origine=(self.Position[X_COOR]+self.Foci[X_COOR],self.Position[Y_COOR]+self.Foci[Y_COOR],self.Position[Z_COOR]+self.Foci[Z_COOR]))
+		self.BodyShape[0].rotate(angle=self.RotAngle, axis=self.RotAxis, origine=(self.Position[X_COOR]+self.Foci[X_COOR],self.Position[Y_COOR]+self.Foci[Y_COOR],self.Position[Z_COOR]+self.Foci[Z_COOR]))
 
 	def updatePosition(self, trace = True):
 		self.setCartesianCoordinates()
-		self.BodyShape.pos = vector(self.Position[X_COOR]+self.Foci[X_COOR],self.Position[Y_COOR]+self.Foci[Y_COOR],self.Position[Z_COOR]+self.Foci[Z_COOR])
+		self.BodyShape[0].pos = vector(self.Position[X_COOR]+self.Foci[X_COOR],self.Position[Y_COOR]+self.Foci[Y_COOR],self.Position[Z_COOR]+self.Foci[Z_COOR])
 		if trace:
 			if self.Position[Z_COOR]+self.Foci[Z_COOR] < 0:
 				"""
 				self.Interval += 1
 				if self.Interval % 2 == 0:
-					#self.Trail.append(pos=self.BodyShape.pos, color=self.Color) #, interval=50)
-					self.Trail.append(pos=self.BodyShape.pos, color=(self.Color[0]*0.3, self.Color[1]*0.3, self.Color[2]*0.3))			
+					#self.Trail.append(pos=self.BodyShape[0].pos, color=self.Color) #, interval=50)
+					self.Trail.append(pos=self.BodyShape[0].pos, color=(self.Color[0]*0.3, self.Color[1]*0.3, self.Color[2]*0.3))			
 				else:
-					self.Trail.append(pos=self.BodyShape.pos, color=color.black) #, interval=50)
+					self.Trail.append(pos=self.BodyShape[0].pos, color=color.black) #, interval=50)
 				"""
 				# new
-				self.Trail.append(pos=self.BodyShape.pos, color=(self.Color[0]*0.3, self.Color[1]*0.3, self.Color[2]*0.3))
+				self.Trail.append(pos=self.BodyShape[0].pos, color=(self.Color[0]*0.3, self.Color[1]*0.3, self.Color[2]*0.3))
 			else:
-				#self.Trail.append(pos=self.BodyShape.pos, color=self.Color)
-				self.Trail.append(pos=self.BodyShape.pos, color=(self.Color[0]*0.6, self.Color[1]*0.6, self.Color[2]*0.6))
+				#self.Trail.append(pos=self.BodyShape[0].pos, color=self.Color)
+				self.Trail.append(pos=self.BodyShape[0].pos, color=(self.Color[0]*0.6, self.Color[1]*0.6, self.Color[2]*0.6))
 
 	def setCartesianCoordinates(self):
 		self.Position[X_COOR] = self.R * DIST_FACTOR * ( cos(self.N) * cos(self.Nu+self.w) - sin(self.N) * sin(self.Nu+self.w) * cos(self.i) )
@@ -1000,7 +1005,8 @@ class makeBody:
 		if self.hasRenderedOrbit == False:
 			self.draw()
 
-		self.BodyShape.visible = True
+		for i in range(len(self.BodyShape)):
+			self.BodyShape[i].visible = True
 		for i in range(len(self.Labels)):
 			self.Labels[i].visible = True
 
@@ -1023,7 +1029,8 @@ class makeBody:
 
 	def hide(self):
 		self.Details = False
-		self.BodyShape.visible = False
+		for i in range(len(self.BodyShape)):
+			self.BodyShape[i].visible = False
 		for i in range(len(self.Labels)):
 			self.Labels[i].visible = False
 		self.Trail.visible = False
@@ -1042,7 +1049,7 @@ class makeBody:
 			return
 
 		if self.BodyType & self.SolarSystem.ShowFeatures != 0 or self.Name == 'Earth' or self.Details == True:
-			if self.BodyShape.visible == False:
+			if self.BodyShape[0].visible == False:
 				self.show()
 			# if this is the currentPOV, check for local referential attribute
 			if 	self.SolarSystem.currentPOVselection == self.JPL_designation and \
@@ -1091,7 +1098,7 @@ class planet(makeBody):
 		else:
 			self.sizeType = x
 
-		self.BodyShape.radius = self.radiusToShow  / self.SizeCorrection[self.sizeType]
+		self.BodyShape[0].radius = self.radiusToShow  / self.SizeCorrection[self.sizeType]
 		self.RingThickness = self.RING_BASE_THICKNESS / self.SizeCorrection[self.sizeType]
 		if self.Ring == True:
 			for i in range(0, self.nRings):
@@ -1120,7 +1127,7 @@ class makeEarth(planet):
 		TEXTURE_POSITIONING_CORRECTION = pi/12
 
 		# we need to rotate around X axis by pi/2 to properly align the planet's texture
-		self.BodyShape.rotate(angle=(pi/2+self.TiltAngle), axis=self.XdirectionUnit, origine=(self.Position[X_COOR]+self.Foci[X_COOR],self.Position[Y_COOR]+self.Foci[Y_COOR],self.Position[Z_COOR]+self.Foci[Z_COOR]))
+		self.BodyShape[0].rotate(angle=(pi/2+self.TiltAngle), axis=self.XdirectionUnit, origine=(self.Position[X_COOR]+self.Foci[X_COOR],self.Position[Y_COOR]+self.Foci[Y_COOR],self.Position[Z_COOR]+self.Foci[Z_COOR]))
 
 		# then further rotation will apply to Z axis
 		self.RotAxis = self.ZdirectionUnit
@@ -1135,7 +1142,7 @@ class makeEarth(planet):
 
 		# add correction due to initial position of texture on earth sphere, then rotate texture to make it match current time
 		self.LocalInitialAngle = -TEXTURE_POSITIONING_CORRECTION + self.Gamma
-		self.BodyShape.rotate(angle=(self.LocalInitialAngle), axis=self.RotAxis, origine=(self.Position[X_COOR]+self.Foci[X_COOR],self.Position[Y_COOR]+self.Foci[Y_COOR],self.Position[Z_COOR]+self.Foci[Z_COOR]))
+		self.BodyShape[0].rotate(angle=(self.LocalInitialAngle), axis=self.RotAxis, origine=(self.Position[X_COOR]+self.Foci[X_COOR],self.Position[Y_COOR]+self.Foci[Y_COOR],self.Position[Z_COOR]+self.Foci[Z_COOR]))
 		
 		"""
 		# calculate current RA, to position the obliquity properly:
@@ -1143,7 +1150,7 @@ class makeEarth(planet):
 			print "BURP!!!!!!!!!!!!!!!!!"
 			T = daysSinceJ2000UTC()/36525. # T is in centuries
 			self.RA = objects_data[self.ObjectIndex]["RA_1"] + objects_data[self.ObjectIndex]["RA_2"] * T
-		#	self.BodyShape.rotate(angle=deg2rad(self.RA), axis=self.ZdirectionUnit, origine=(self.Position[X_COOR]+self.Foci[X_COOR],self.Position[Y_COOR]+self.Foci[Y_COOR],self.Position[Z_COOR]+self.Foci[Z_COOR]))
+		#	self.BodyShape[0].rotate(angle=deg2rad(self.RA), axis=self.ZdirectionUnit, origine=(self.Position[X_COOR]+self.Foci[X_COOR],self.Position[Y_COOR]+self.Foci[Y_COOR],self.Position[Z_COOR]+self.Foci[Z_COOR]))
 		#else:
 		#	print "No RA for " +self.Name
 		"""
@@ -1164,7 +1171,7 @@ class makeEarth(planet):
 							   - self.iDelta 
 
 		# rotate for the difference between updated angle and its formal value
-		self.BodyShape.rotate(angle=(newLocalInitialAngle - self.Gamma), axis=self.RotAxis, origine=(self.Position[X_COOR]+self.Foci[X_COOR],self.Position[Y_COOR]+self.Foci[Y_COOR],self.Position[Z_COOR]+self.Foci[Z_COOR]))
+		self.BodyShape[0].rotate(angle=(newLocalInitialAngle - self.Gamma), axis=self.RotAxis, origine=(self.Position[X_COOR]+self.Foci[X_COOR],self.Position[Y_COOR]+self.Foci[Y_COOR],self.Position[Z_COOR]+self.Foci[Z_COOR]))
 		print "rotating by ", newLocalInitialAngle - self.Gamma, " degree"
 		# update angle with its updated value
 		self.Gamma = newLocalInitialAngle
@@ -1237,7 +1244,7 @@ class satellite(makeBody):
 			else:
 				self.Labels[0].visible = True
 
-		self.BodyShape.radius = self.radiusToShow  / self.SizeCorrection[self.sizeType]
+		self.BodyShape[0].radius = self.radiusToShow  / self.SizeCorrection[self.sizeType]
 
 	def setCartesianCoordinatesXX(self):
 		self.Position[X_COOR] = self.R * DIST_FACTOR * ( cos(self.N) * cos(self.Nu+self.w) - sin(self.N) * sin(self.Nu+self.w) * cos(self.i) )
@@ -1282,7 +1289,7 @@ class hyperbolic(makeBody):
 			else:
 				self.Labels[0].visible = True
 
-		self.BodyShape.radius = self.radiusToShow  / self.SizeCorrection[self.sizeType]
+		self.BodyShape[0].radius = self.radiusToShow  / self.SizeCorrection[self.sizeType]
 
 	def setPolarCoordinates(self, E_rad):
 		# calculate coordinates for an hyperbolic curve
@@ -1308,29 +1315,90 @@ class hyperbolic(makeBody):
 
 		self.hasRenderedOrbit = True
 
-
+	
 class spacecraft(makeBody):
 	def __init__(self, system, key, color):
 		makeBody.__init__(self, system, key, color, SPACECRAFT, SPACECRAFT, SMALLBODY_SZ_CORRECTION, system)
 
-	def setAspect(self, key):
-		return 
+	def animate(self, timeIncrement):
+		#makeBody.animate(self, timeIncrement)
+		if self.hasRenderedOrbit == False:
+			self.draw()
 
-		#data = materials.loadTGA("./img/"+key) if objects_data[key]["material"] != 0 else materials.loadTGA("./img/asteroid")
-		data = materials.loadTGA("./img/"+self.Tga) if objects_data[key]["material"] != 0 else materials.loadTGA("./img/asteroid")
-		self.BodyShape.material = materials.texture(data=data, mapping="spherical", interpolate=False)
+		self.wasAnimated = true
+
+		# update position
+		self.setOrbitalElements(self.ObjectIndex, timeIncrement)
+		self.setPolarCoordinates(deg2rad(self.E))
+
+		# initial acceleration
+		self.Acceleration = vector(0,0,0)
+
+		# calculate current body position on its orbit knowing
+		# its current distance from Sun (R) and True anomaly (Nu)
+		# that were set in setPolarCoordinates
+
+		self.N = deg2rad(self.Longitude_of_ascendingnode)
+		self.w = deg2rad(self.Argument_of_perihelion)
+		self.i = deg2rad(self.Inclination)
+
+		# convert polar to Cartesian in Sun referential
+		self.setCartesianCoordinates()
+		# update foci position
+		#if self.SatelliteOf != None:
+		self.Foci = self.SatelliteOf.Position
+			#self.Trail.pos = self.Foci
+
+		self.BodyShape[0].pos = vector(self.Position[X_COOR]+self.Foci[X_COOR],self.Position[Y_COOR]+self.Foci[Y_COOR],self.Position[Z_COOR]+self.Foci[Z_COOR])
+		#self.BodyShape[1].pos = vector(self.Position[X_COOR] - 15 + self.Foci[X_COOR],self.Position[Y_COOR]+self.Foci[Y_COOR],self.Position[Z_COOR]+self.Foci[Z_COOR])
+
+		self.Labels[0].pos = vector(self.Position[X_COOR]+self.Foci[X_COOR],self.Position[Y_COOR]+self.Foci[Y_COOR],self.Position[Z_COOR]+self.Foci[Z_COOR])
+		self.setRotation()
+		if self.Ring == True:
+			self.SolarSystem.setRingsPosition(self)
+			#for i in range(0, self.nRings):
+			#	self.Rings[i].pos = self.BodyShape.pos #self.Position
+			#self.SolarSystem.makeRings(self) #self.SolarSystem, self.ObjectIndex)
+
+		return self.getCurrentVelocity(), self.getCurrentDistanceFromEarth()
+
+
+	def setAspect(self, key):
+		if objects_data[key]["material"] != 0:
+			data = materials.loadTGA("./img/"+ self.Tga)
+			self.BodyShape[0].objects[0].material = materials.texture(data=data, mapping="cylinder", interpolate=False)
 
 	def makeShape(self):
-		self.length = self.radiusToShow/self.SizeCorrection[self.sizeType]
-		self.radius = 10 
-		self.BodyShape = cylinder(pos=(self.Position[X_COOR]+self.Foci[X_COOR],self.Position[Y_COOR]+self.Foci[Y_COOR],self.Position[Z_COOR]+self.Foci[Z_COOR]), radius=self.radius, length=self.length, make_trail=false)
+		self.length = 2 * self.radiusToShow/self.SizeCorrection[self.sizeType]
+		self.radius = 20 
+		self.compounded = True
+#		self.BodyShape.append(cylinder(pos=(self.Position[X_COOR]+self.Foci[X_COOR],self.Position[Y_COOR]+self.Foci[Y_COOR],self.Position[Z_COOR]+self.Foci[Z_COOR]), radius=self.radius, length=self.length, make_trail=false))
+#		self.BodyShape.append(cone(pos=(self.Position[X_COOR] - 15 + self.Foci[X_COOR],self.Position[Y_COOR]+self.Foci[Y_COOR] ,self.Position[Z_COOR]+self.Foci[Z_COOR]), material=materials.blazed, radius=self.radius/2, length=self.length/2, make_trail=false))
+
+		self.BodyShape.append(frame())
+		cylinder(frame=self.BodyShape[0], pos=(0,0,0), radius=self.radius, length=self.length)
+		cone(frame=self.BodyShape[0], pos=(-self.length/3, 0, 0), material=materials.chrome, radius=self.radius/2, length=self.length/2)
+		sphere(frame=self.BodyShape[0], pos=(-self.length/14, self.length/8, 0), radius=self.length/15, color=color.yellowish)		
+		self.BodyShape[0].pos = self.Position[X_COOR]+self.Foci[X_COOR],self.Position[Y_COOR]+self.Foci[Y_COOR],self.Position[Z_COOR]+self.Foci[Z_COOR]
+
+		"""
+		nozzle = self.makeExtrusion()
+		nozzle.pos=(self.Position[X_COOR] - 15 + self.Foci[X_COOR],self.Position[Y_COOR]+self.Foci[Y_COOR] ,self.Position[Z_COOR]+self.Foci[Z_COOR])
+		nozzle.material=materials.blazed
+		nozzle.radius=self.radius/2
+		nozzle.length=self.length/2
+		nozzle.make_trail=False
+		self.BodyShape.append(nozzle)
+		"""
 
 	def initRotation(self):
-		self.RotAngle = pi/400
-		self.RotAxis = (0.5,1,1)
+		self.RotAngle = pi/200
+		self.RotAxis = (10, 0.5, 0.2)
 		
 	def setRotation(self):
-		self.BodyShape.rotate(angle=self.RotAngle, axis=self.RotAxis, origine=(self.Position[X_COOR] + 10*self.length, self.Position[Y_COOR] + 10*self.length, self.Position[Z_COOR])) #-sin(alpha), cos(alpha)))
+		for i in range(len(self.BodyShape)):
+			self.BodyShape[i].rotate(angle=self.RotAngle, axis=self.RotAxis, origine=(self.Position[X_COOR] + 10*self.length, self.Position[Y_COOR] + 10*self.length, self.Position[Z_COOR])) #-sin(alpha), cos(alpha)))
+		#self.Engine.rotate(angle=self.RotAngle, axis=self.RotAxis, origine=(self.Position[X_COOR] + 10*self.length, self.Position[Y_COOR] + 10*self.length, self.Position[Z_COOR])) #-sin(alpha), cos(alpha)))
 
 	def makeAxis(self, size, position):
 		return
@@ -1339,20 +1407,64 @@ class spacecraft(makeBody):
 		return
 
 
+	def makeExtrusion(self):
+		# create a section of cone of 60, length d
+		alpha = pi/3
+		d = 10
+		section = Polygon([(0, 0), (0.1, 0), (0.1+d*np.cos(alpha), d*np.sin(alpha)), (d*np.cos(alpha), d*np.sin(alpha))])
+		circle = paths.arc(radius=3, angle2=2*pi)
+		return extrusion(pos=circle,
+				shape=section,
+				color=color.yellow)
+	"""
+
+
+	tri = Polygon( [(-2,0), (0,4), (2,0)] )
+
+	circ = shapes.circle(pos=(0,1.5), radius=0.8)
+
+	2) Create a path along which to extrude your shape (just like the pos attribute of a curve object), either by giving a list of points or by choosing a path from a supplied library of common shapes. Here are two example. The first is a 2-point line, headed into the screen (-z direction). The second chooses a semicircular arc from the paths library to be discussed later (pi radians is 180 degrees).
+
+	straight = [(0,0,0),(0,0,-4)]
+
+	semicircle = paths.arc(radius=3, angle2=pi)
+	3) Create an extrusion object to extrude your shape along your path. Here we've assigned the "straight" path to the pos attribute, and the "tri" shape to the shape attribute.
+
+	extrusion(pos=straight, shape=tri,
+			color=color.yellow)
+
+ 
+
+The result is that the triangular shape is extruded in the -z direction.
+
+extruded triangle
+An important feature is that you can combine simple shapes to make complex ones. For example, if we subtract the circular shape ("circ") from the triangle shape ("tri"), and assign this to the extrusion shape attribute, we get the following:
+
+extrusion(pos=straight, shape=tri-circ,
+          color=color.yellow)
+
+triangle with hole
+If we assign the semicircle path to the extrusion pos attribute, we get the following:
+
+extrusion(pos=semicircle,
+          shape=tri-circ,
+          color=color.yellow)
+"""
+
 class comet(makeBody):
 	def __init__(self, system, key, color):
 		makeBody.__init__(self, system, key, color, COMET, COMET, SMALLBODY_SZ_CORRECTION, system)
 
 	def makeShape(self):
-		self.BodyShape = ellipsoid(	pos=(self.Position[X_COOR],self.Position[Y_COOR],self.Position[Z_COOR]),
+		self.BodyShape.append(ellipsoid(	pos=(self.Position[X_COOR],self.Position[Y_COOR],self.Position[Z_COOR]),
 									length=(self.radiusToShow * randint(10, 20)/10)/self.SizeCorrection[self.sizeType],
 									height=(self.radiusToShow * randint(10, 20)/10)/self.SizeCorrection[self.sizeType],
-									width=(self.radiusToShow * randint(10, 20)/10)/self.SizeCorrection[self.sizeType], make_trail=false)
+									width=(self.radiusToShow * randint(10, 20)/10)/self.SizeCorrection[self.sizeType], make_trail=false))
 	def setAspect(self, key):
 		# we don't need key for comets
 		#self.BodyShape.material = materials.marble
 		data = materials.loadTGA("./img/comet")
-		self.BodyShape.material = materials.texture(data=data, mapping="spherical", interpolate=False)
+		self.BodyShape[0].material = materials.texture(data=data, mapping="spherical", interpolate=False)
 
 
 	def initRotation(self):
@@ -1361,7 +1473,7 @@ class comet(makeBody):
 
 	def setRotation(self):
 		#self.updateAxis()
-		self.BodyShape.rotate(angle=self.RotAngle, axis=self.RotAxis, origine=(self.Position[X_COOR],self.Position[Y_COOR],self.Position[Z_COOR])) #-sin(alpha), cos(alpha)))
+		self.BodyShape[0].rotate(angle=self.RotAngle, axis=self.RotAxis, origine=(self.Position[X_COOR],self.Position[Y_COOR],self.Position[Z_COOR])) #-sin(alpha), cos(alpha)))
 
 	def makeAxis(self, size, position):
 		return
@@ -1377,9 +1489,9 @@ class comet(makeBody):
 			self.sizeType = x
 
 		asteroidRandom = [(randint(10, 20)/10, randint(10, 20)/10, randint(10, 20)/10), (1,1,1)]
-		self.BodyShape.length = self.radiusToShow * asteroidRandom[self.sizeType][0] / self.SizeCorrection[self.sizeType]
-		self.BodyShape.height = self.radiusToShow * asteroidRandom[self.sizeType][1] / self.SizeCorrection[self.sizeType]
-		self.BodyShape.width  = self.radiusToShow * asteroidRandom[self.sizeType][2] / self.SizeCorrection[self.sizeType]
+		self.BodyShape[0].length = self.radiusToShow * asteroidRandom[self.sizeType][0] / self.SizeCorrection[self.sizeType]
+		self.BodyShape[0].height = self.radiusToShow * asteroidRandom[self.sizeType][1] / self.SizeCorrection[self.sizeType]
+		self.BodyShape[0].width  = self.radiusToShow * asteroidRandom[self.sizeType][2] / self.SizeCorrection[self.sizeType]
 
 	def getIncrement(self):
 		# for comets, due to their sometimes high eccentricity, an increment of 1 deg may not be small enough
@@ -1395,7 +1507,7 @@ class asteroid(makeBody):
 		self.RotAxis = (1,1,1)
 
 	def setRotation(self):
-		self.BodyShape.rotate(angle=self.RotAngle, axis=self.RotAxis, origine=(self.Position[X_COOR],self.Position[Y_COOR],self.Position[Z_COOR])) #-sin(alpha), cos(alpha)))
+		self.BodyShape[0].rotate(angle=self.RotAngle, axis=self.RotAxis, origine=(self.Position[X_COOR],self.Position[Y_COOR],self.Position[Z_COOR])) #-sin(alpha), cos(alpha)))
 
 	def makeAxis(self, size, position):
 		return
@@ -1414,16 +1526,16 @@ class pha(makeBody):
 
 	def makeShape(self):
 		"""
-		self.BodyShape = ellipsoid(	pos=(self.Position[X_COOR],self.Position[Y_COOR],self.Position[Z_COOR]),
+		self.BodyShape[0] = ellipsoid(	pos=(self.Position[X_COOR],self.Position[Y_COOR],self.Position[Z_COOR]),
 									length=(self.radiusToShow * randint(10, 20)/10)/self.SizeCorrection[self.sizeType],
 									height=(self.radiusToShow * randint(10, 20)/10)/self.SizeCorrection[self.sizeType],
 									width=(self.radiusToShow * randint(10, 20)/10)/self.SizeCorrection[self.sizeType], make_trail=false)
 		"""
 		asteroidRandom = [(1.5, 2, 1), (1.5, 2, 1)]
-		self.BodyShape = ellipsoid(	pos=(self.Position[X_COOR],self.Position[Y_COOR],self.Position[Z_COOR]),
+		self.BodyShape.append(ellipsoid(	pos=(self.Position[X_COOR],self.Position[Y_COOR],self.Position[Z_COOR]),
 									length=(self.radiusToShow * asteroidRandom[self.sizeType][0])/self.SizeCorrection[self.sizeType],
 									height=(self.radiusToShow * asteroidRandom[self.sizeType][1])/self.SizeCorrection[self.sizeType],
-									width=(self.radiusToShow * asteroidRandom[self.sizeType][2])/self.SizeCorrection[self.sizeType], make_trail=false)
+									width=(self.radiusToShow * asteroidRandom[self.sizeType][2])/self.SizeCorrection[self.sizeType], make_trail=false))
 
 	def toggleSize(self, realisticSize):
 		x = SCALE_NORMALIZED if realisticSize == True else SCALE_OVERSIZED
@@ -1434,9 +1546,9 @@ class pha(makeBody):
 
 		#asteroidRandom = [(randint(10, 20)/10, randint(10, 20)/10, randint(10, 20)/10), (1,1,1)]
 		asteroidRandom = [(1.5, 2, 1), (1.5, 2, 1)]
-		self.BodyShape.length = self.radiusToShow * asteroidRandom[self.sizeType][0] / self.SizeCorrection[self.sizeType]
-		self.BodyShape.height = self.radiusToShow * asteroidRandom[self.sizeType][1] / self.SizeCorrection[self.sizeType]
-		self.BodyShape.width  = self.radiusToShow * asteroidRandom[self.sizeType][2] / self.SizeCorrection[self.sizeType]
+		self.BodyShape[0].length = self.radiusToShow * asteroidRandom[self.sizeType][0] / self.SizeCorrection[self.sizeType]
+		self.BodyShape[0].height = self.radiusToShow * asteroidRandom[self.sizeType][1] / self.SizeCorrection[self.sizeType]
+		self.BodyShape[0].width  = self.radiusToShow * asteroidRandom[self.sizeType][2] / self.SizeCorrection[self.sizeType]
 
 	def initRotation(self):
 		self.RotAngle = pi/6
@@ -1457,10 +1569,10 @@ class smallAsteroid(makeBody):
 		makeBody.__init__(self, system, key, color, SMALL_ASTEROID, SMALL_ASTEROID, SMALLBODY_SZ_CORRECTION, system)
 
 	def makeShape(self):
-		self.BodyShape = ellipsoid(	pos=(self.Position[X_COOR],self.Position[Y_COOR],self.Position[Z_COOR]),
+		self.BodyShape.append(ellipsoid(	pos=(self.Position[X_COOR],self.Position[Y_COOR],self.Position[Z_COOR]),
 									length=(self.radiusToShow * randint(10, 20)/10)/self.SizeCorrection[self.sizeType],
 									height=(self.radiusToShow * randint(10, 20)/10)/self.SizeCorrection[self.sizeType],
-									width=(self.radiusToShow * randint(10, 20)/10)/self.SizeCorrection[self.sizeType], make_trail=false)
+									width=(self.radiusToShow * randint(10, 20)/10)/self.SizeCorrection[self.sizeType], make_trail=false))
 
 	def toggleSize(self, realisticSize):
 		x = SCALE_NORMALIZED if realisticSize == True else SCALE_OVERSIZED
@@ -1470,16 +1582,16 @@ class smallAsteroid(makeBody):
 			self.sizeType = x
 
 		asteroidRandom = [(randint(10, 20)/10, randint(10, 20)/10, randint(10, 20)/10), (1,1,1)]
-		self.BodyShape.length = self.radiusToShow * asteroidRandom[self.sizeType][0] / self.SizeCorrection[self.sizeType]
-		self.BodyShape.height = self.radiusToShow * asteroidRandom[self.sizeType][1] / self.SizeCorrection[self.sizeType]
-		self.BodyShape.width  = self.radiusToShow * asteroidRandom[self.sizeType][2] / self.SizeCorrection[self.sizeType]
+		self.BodyShape[0].length = self.radiusToShow * asteroidRandom[self.sizeType][0] / self.SizeCorrection[self.sizeType]
+		self.BodyShape[0].height = self.radiusToShow * asteroidRandom[self.sizeType][1] / self.SizeCorrection[self.sizeType]
+		self.BodyShape[0].width  = self.radiusToShow * asteroidRandom[self.sizeType][2] / self.SizeCorrection[self.sizeType]
 
 	def initRotation(self):
 		self.RotAngle = pi/6
 		self.RotAxis = (1,1,1)
 
 	def setRotation(self):
-		self.BodyShape.rotate(angle=self.RotAngle, axis=self.RotAxis, origine=(self.Position[X_COOR],self.Position[Y_COOR],self.Position[Z_COOR])) #-sin(alpha), cos(alpha)))
+		self.BodyShape[0].rotate(angle=self.RotAngle, axis=self.RotAxis, origine=(self.Position[X_COOR],self.Position[Y_COOR],self.Position[Z_COOR])) #-sin(alpha), cos(alpha)))
 
 	def makeAxis(self, size, position):
 		return
@@ -1501,10 +1613,10 @@ class transNeptunian(makeBody):
 		makeBody.__init__(self, system, key, color, TRANS_NEPT, TRANS_NEPT, SMALLBODY_SZ_CORRECTION, system)
 
 	def makeShape(self):
-		self.BodyShape = ellipsoid(	pos=(self.Position[X_COOR],self.Position[Y_COOR],self.Position[Z_COOR]),
+		self.BodyShape.append(ellipsoid(	pos=(self.Position[X_COOR],self.Position[Y_COOR],self.Position[Z_COOR]),
 									length=(self.radiusToShow * randint(10, 20)/10)/self.SizeCorrection[self.sizeType],
 									height=(self.radiusToShow * randint(10, 20)/10)/self.SizeCorrection[self.sizeType],
-									width=(self.radiusToShow * randint(10, 20)/10)/self.SizeCorrection[self.sizeType], make_trail=false)
+									width=(self.radiusToShow * randint(10, 20)/10)/self.SizeCorrection[self.sizeType], make_trail=false))
 
 	def toggleSize(self, realisticSize):
 		x = SCALE_NORMALIZED if realisticSize == True else SCALE_OVERSIZED
@@ -1514,16 +1626,16 @@ class transNeptunian(makeBody):
 			self.sizeType = x
 
 		asteroidRandom = [(randint(10, 20)/10, randint(10, 20)/10, randint(10, 20)/10), (1,1,1)]
-		self.BodyShape.length = self.radiusToShow * asteroidRandom[self.sizeType][0] / self.SizeCorrection[self.sizeType]
-		self.BodyShape.height = self.radiusToShow * asteroidRandom[self.sizeType][1] / self.SizeCorrection[self.sizeType]
-		self.BodyShape.width  = self.radiusToShow * asteroidRandom[self.sizeType][2] / self.SizeCorrection[self.sizeType]
+		self.BodyShape[0].length = self.radiusToShow * asteroidRandom[self.sizeType][0] / self.SizeCorrection[self.sizeType]
+		self.BodyShape[0].height = self.radiusToShow * asteroidRandom[self.sizeType][1] / self.SizeCorrection[self.sizeType]
+		self.BodyShape[0].width  = self.radiusToShow * asteroidRandom[self.sizeType][2] / self.SizeCorrection[self.sizeType]
 
 	def initRotation(self):
 		self.RotAngle = pi/6
 		self.RotAxis = (1,1,1)
 
 	def setRotation(self):
-		self.BodyShape.rotate(angle=self.RotAngle, axis=self.RotAxis, origine=(self.Position[X_COOR],self.Position[Y_COOR],self.Position[Z_COOR])) #-sin(alpha), cos(alpha)))
+		self.BodyShape[0].rotate(angle=self.RotAngle, axis=self.RotAxis, origine=(self.Position[X_COOR],self.Position[Y_COOR],self.Position[Z_COOR])) #-sin(alpha), cos(alpha)))
 
 	def makeAxis(self, size, position):
 		return
@@ -1567,11 +1679,11 @@ def glbRefresh(solarSystem, animationInProgress):
 	#print "End glbRefresh() ..."
 
 def hideBelt(beltname):
-	beltname.BodyShape.visible = false
+	beltname.BodyShape[0].visible = false
 	beltname.Labels[0].visible = false
 
 def showBelt(beltname):
-	beltname.BodyShape.visible = true
+	beltname.BodyShape[0].visible = true
 	beltname.Labels[0].visible = true
 
 def getColor():
@@ -1627,10 +1739,10 @@ def loadBodies(SolarSystem, type, filename, maxentries = 0):
 	for obj in allObj:
 		for key in obj:
 			objects_data[obj[key]["jpl_designation"]] = {
-				"material": 0,
-				"name": obj[key]["name"],
-				"iau_name": obj[key]["iau_name"],
-				"jpl_designation": obj[key]["jpl_designation"],
+				"material": 1 if obj[key]["tga_name"] != "" else 0,
+				"name": str(obj[key]["name"]),
+				"iau_name": str(obj[key]["iau_name"]),
+				"jpl_designation": str(obj[key]["jpl_designation"]),
 				"mass": (obj[key]["mu"]/G)*1.e+9, # convert km3 to m3
 				"radius": obj[key]["diameter"]/2, 
 				"perihelion": obj[key]["perihelion"] * AU,
@@ -1645,10 +1757,10 @@ def loadBodies(SolarSystem, type, filename, maxentries = 0):
 				"mean_anomaly": obj[key]["mean_anomaly"],
 				"epochJD": obj[key]["epochJD"],
 				"earth_moid": obj[key]["earth_moid"] * AU,
-				"orbit_class": obj[key]["orbit_class"],
+				"orbit_class": str(obj[key]["orbit_class"]),
 				"absolute_mag": obj[key]["absolute_mag"],
 				"axial_tilt": obj[key]["axial_tilt"], # in deg
-				"tga_name": obj[key]["tga_name"]
+				"tga_name": str(obj[key]["tga_name"])
 			}
 			
 			#print obj[key]["jpl_designation"]
