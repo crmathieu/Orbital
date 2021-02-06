@@ -20,7 +20,11 @@
             "earth_moid": 0.0, 
             "Time_of_perihelion_passage_JD": 2440262.958648642525, 
             "argument_of_perihelion": 10.58656476502922, 
-            "axial_tilt": 0.0
+            "axial_tilt": 0.0,
+            "profile": {
+                "engine": 1,
+                "COPV": 2
+            }
         }
     },
     {
@@ -44,7 +48,11 @@
             "earth_moid": 0.0,
             "Time_of_perihelion_passage_JD": 2459267.625617543701,
             "argument_of_perihelion": 177.6752997719221,
-            "axial_tilt": 0.0
+            "axial_tilt": 0.0,
+            "profile":  {
+                            "engine": 1,
+                            "COPV": 1
+                        }
         }
     }
 ]
