@@ -1375,22 +1375,38 @@ class spacecraft(makeBody):
 #		self.BodyShape.append(cylinder(pos=(self.Position[X_COOR]+self.Foci[X_COOR],self.Position[Y_COOR]+self.Foci[Y_COOR],self.Position[Z_COOR]+self.Foci[Z_COOR]), radius=self.radius, length=self.length, make_trail=false))
 #		self.BodyShape.append(cone(pos=(self.Position[X_COOR] - 15 + self.Foci[X_COOR],self.Position[Y_COOR]+self.Foci[Y_COOR] ,self.Position[Z_COOR]+self.Foci[Z_COOR]), material=materials.blazed, radius=self.radius/2, length=self.length/2, make_trail=false))
 
+		# create compound object
 		self.BodyShape.append(frame())
+
+		# create fuselage
 		cylinder(frame=self.BodyShape[0], pos=(0,0,0), radius=self.radius, length=self.length)
-		cone(frame=self.BodyShape[0], pos=(-self.length/3, 0, 0), material=materials.chrome, radius=self.radius/2, length=self.length/2)
-		sphere(frame=self.BodyShape[0], pos=(-self.length/14, self.length/8, 0), radius=self.length/15, color=color.yellowish)		
-		self.BodyShape[0].pos = self.Position[X_COOR]+self.Foci[X_COOR],self.Position[Y_COOR]+self.Foci[Y_COOR],self.Position[Z_COOR]+self.Foci[Z_COOR]
+#		sphere(frame=self.BodyShape[0], pos=(-self.length/14, self.length/8, 0), radius=self.length/15, color=color.yellowish)		
 
-		"""
-		nozzle = self.makeExtrusion()
-		nozzle.pos=(self.Position[X_COOR] - 15 + self.Foci[X_COOR],self.Position[Y_COOR]+self.Foci[Y_COOR] ,self.Position[Z_COOR]+self.Foci[Z_COOR])
-		nozzle.material=materials.blazed
-		nozzle.radius=self.radius/2
-		nozzle.length=self.length/2
+		# create aft tank
+		AFT_TANK_RADIUS = self.radius
+		AFT_TANK_CENTER_XCOOR = self.length/9
+		sphere(frame=self.BodyShape[0], pos=(AFT_TANK_CENTER_XCOOR, 0, 0), radius=AFT_TANK_RADIUS, color=color.redish)		
+		
+		# create engine
+		ENGINE_HEIGHT = self.length/13
+		ENGINE_TOP_XCOOR = AFT_TANK_CENTER_XCOOR - AFT_TANK_RADIUS - ENGINE_HEIGHT/2
+		box(frame=self.BodyShape[0], pos=(ENGINE_TOP_XCOOR, 0, 0), length=self.length/15, height=ENGINE_HEIGHT, width=self.length/15, color=color.greenish)
+
+		# create COPV
+		sphere(frame=self.BodyShape[0], pos=(0, self.length/8, 0), radius=self.length/15, color=color.yellowish)		
+	
+		#cone(frame=self.BodyShape[0], pos=(-self.length/3, 0, 0), material=materials.chrome, radius=self.radius/2, length=self.length/2)
+		nozzle = self.makeNozzle()
+		#nozzle.pos=(-self.length/3, 0, 0)
+		#nozzle.color=color.yellow
+		#nozzle.radius=self.radius/2
+		#nozzle.length=self.length/2
 		nozzle.make_trail=False
-		self.BodyShape.append(nozzle)
-		"""
-
+		nozzle.frame = self.BodyShape[0]
+		#nozzle.up = (0, 0, 0)
+		#self.BodyShape.append(nozzle)
+		self.BodyShape[0].pos = self.Position[X_COOR]+self.Foci[X_COOR],self.Position[Y_COOR]+self.Foci[Y_COOR],self.Position[Z_COOR]+self.Foci[Z_COOR]
+		
 	def initRotation(self):
 		self.RotAngle = pi/200
 		self.RotAxis = (10, 0.5, 0.2)
@@ -1400,19 +1416,26 @@ class spacecraft(makeBody):
 			self.BodyShape[i].rotate(angle=self.RotAngle, axis=self.RotAxis, origine=(self.Position[X_COOR] + 10*self.length, self.Position[Y_COOR] + 10*self.length, self.Position[Z_COOR])) #-sin(alpha), cos(alpha)))
 		#self.Engine.rotate(angle=self.RotAngle, axis=self.RotAxis, origine=(self.Position[X_COOR] + 10*self.length, self.Position[Y_COOR] + 10*self.length, self.Position[Z_COOR])) #-sin(alpha), cos(alpha)))
 
-	def makeAxis(self, size, position):
+	def makeAxis2(self, size, position):
 		return
 
-	def setAxisVisibility(self, setTo):
+	def setAxisVisibility2(self, setTo):
 		return
 
 
-	def makeExtrusion(self):
+	def makeNozzle(self):
+		# to create a nozzle, we need to start from a polygon representing the cross section of
+		# the nozzle, and then create a cone by rotating this xsection around a circle
+
 		# create a section of cone of 60, length d
-		alpha = pi/3
-		d = 10
-		section = Polygon([(0, 0), (0.1, 0), (0.1+d*np.cos(alpha), d*np.sin(alpha)), (d*np.cos(alpha), d*np.sin(alpha))])
-		circle = paths.arc(radius=3, angle2=2*pi)
+		alpha = pi/2.5
+		d = self.length/4 #self.radius/2
+		THROAT_SECTION = self.radius/7
+		section = Polygon([(0, 0), (self.length/100, 0), ((self.length/100)+d*np.cos(alpha), d*np.sin(alpha)), (d*np.cos(alpha), d*np.sin(alpha))])
+		
+		# set up to x=-1 so that the axis will be going towards the -x axis of the frame. also position the origin
+		# negatively to push the nozzle cone further out
+		circle = paths.arc(radius=THROAT_SECTION, angle2=2*pi, up=(-1,0,0), pos=(-self.length/6, 0, 0))
 		return extrusion(pos=circle,
 				shape=section,
 				color=color.yellow)
