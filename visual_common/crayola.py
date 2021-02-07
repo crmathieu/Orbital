@@ -2,6 +2,8 @@ import colorsys
 
 black = (0,0,0)
 white = (1,1,1)
+grey = (0.5,0.5,0.5)
+darkgrey = (0.32, 0.32, 0.32)
 
 red = (1,0,0)
 redish = (0.5, 0, 0)

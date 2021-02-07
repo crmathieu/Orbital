@@ -1319,6 +1319,14 @@ class hyperbolic(makeBody):
 class spacecraft(makeBody):
 	def __init__(self, system, key, color):
 		makeBody.__init__(self, system, key, color, SPACECRAFT, SPACECRAFT, SMALLBODY_SZ_CORRECTION, system)
+		self.BARYCENTER = 0.0
+		self.AFT_TANK_RADIUS = 0.0
+		self.AFT_TANK_CENTER_XCOOR = 0.0
+		self.FWD_TANK_RADIUS = 0.0
+		self.FWD_TANK_CENTER_XCOOR = 0.0
+		self.ENGINE_HEIGHT = 0.0
+		self.ENGINE_TOP_XCOOR = 0.0
+		self.COPV_RADIUS = 0.0
 
 	def animate(self, timeIncrement):
 		#makeBody.animate(self, timeIncrement)
@@ -1372,58 +1380,58 @@ class spacecraft(makeBody):
 		self.length = 2 * self.radiusToShow/self.SizeCorrection[self.sizeType]
 		self.radius = 20 
 		self.compounded = True
-#		self.BodyShape.append(cylinder(pos=(self.Position[X_COOR]+self.Foci[X_COOR],self.Position[Y_COOR]+self.Foci[Y_COOR],self.Position[Z_COOR]+self.Foci[Z_COOR]), radius=self.radius, length=self.length, make_trail=false))
-#		self.BodyShape.append(cone(pos=(self.Position[X_COOR] - 15 + self.Foci[X_COOR],self.Position[Y_COOR]+self.Foci[Y_COOR] ,self.Position[Z_COOR]+self.Foci[Z_COOR]), material=materials.blazed, radius=self.radius/2, length=self.length/2, make_trail=false))
 
 		# create compound object
 		self.BodyShape.append(frame())
 
 		# create fuselage
-		cylinder(frame=self.BodyShape[0], pos=(0,0,0), radius=self.radius, length=self.length)
+		self.BARYCENTER_XCOOR = -self.length/2
+		cylinder(frame=self.BodyShape[0], pos=(self.BARYCENTER_XCOOR,0,0), radius=self.radius, length=self.length)
 #		sphere(frame=self.BodyShape[0], pos=(-self.length/14, self.length/8, 0), radius=self.length/15, color=color.yellowish)		
 
 		# create aft tank
-		AFT_TANK_RADIUS = self.radius
-		AFT_TANK_CENTER_XCOOR = self.length/9
-		sphere(frame=self.BodyShape[0], pos=(AFT_TANK_CENTER_XCOOR, 0, 0), radius=AFT_TANK_RADIUS, color=color.redish)		
-		
+		self.AFT_TANK_RADIUS = self.radius
+		self.AFT_TANK_CENTER_XCOOR = self.BARYCENTER_XCOOR + self.length/9
+		sphere(frame=self.BodyShape[0], pos=(self.AFT_TANK_CENTER_XCOOR, 0, 0), radius=self.AFT_TANK_RADIUS, color=color.white)		
+
+		# create forward Platform
+		self.FWD_TANK_RADIUS = self.radius
+		self.FWD_TANK_CENTER_XCOOR = self.BARYCENTER_XCOOR + self.length - self.radius/1.5
+		sphere(frame=self.BodyShape[0], pos=(self.FWD_TANK_CENTER_XCOOR, 0, 0), radius=self.FWD_TANK_RADIUS, color=color.white)		
+
+		# create tesla
+		self.makeTesla()
+
 		# create engine
-		ENGINE_HEIGHT = self.length/13
-		ENGINE_TOP_XCOOR = AFT_TANK_CENTER_XCOOR - AFT_TANK_RADIUS - ENGINE_HEIGHT/2
-		box(frame=self.BodyShape[0], pos=(ENGINE_TOP_XCOOR, 0, 0), length=self.length/15, height=ENGINE_HEIGHT, width=self.length/15, color=color.greenish)
+		self.ENGINE_HEIGHT = self.length/13
+		self.ENGINE_TOP_XCOOR = self.AFT_TANK_CENTER_XCOOR - self.AFT_TANK_RADIUS - self.ENGINE_HEIGHT/2 - self.length/30
+		cylinder(frame=self.BodyShape[0], pos=(self.ENGINE_TOP_XCOOR,0,0), radius=self.AFT_TANK_RADIUS/5, length=self.length/13, color=color.darkgrey)
 
 		# create COPV
-		sphere(frame=self.BodyShape[0], pos=(0, self.length/8, 0), radius=self.length/15, color=color.yellowish)		
+		self.COPV_RADIUS = self.length/17
+		sphere(frame=self.BodyShape[0], pos=(self.ENGINE_TOP_XCOOR + self.length/31, self.length/9, 0), radius=self.COPV_RADIUS, color=color.grey)		
 	
-		#cone(frame=self.BodyShape[0], pos=(-self.length/3, 0, 0), material=materials.chrome, radius=self.radius/2, length=self.length/2)
 		nozzle = self.makeNozzle()
-		#nozzle.pos=(-self.length/3, 0, 0)
-		#nozzle.color=color.yellow
-		#nozzle.radius=self.radius/2
-		#nozzle.length=self.length/2
-		nozzle.make_trail=False
 		nozzle.frame = self.BodyShape[0]
-		#nozzle.up = (0, 0, 0)
-		#self.BodyShape.append(nozzle)
 		self.BodyShape[0].pos = self.Position[X_COOR]+self.Foci[X_COOR],self.Position[Y_COOR]+self.Foci[Y_COOR],self.Position[Z_COOR]+self.Foci[Z_COOR]
 		
 	def initRotation(self):
 		self.RotAngle = pi/200
-		self.RotAxis = (10, 0.5, 0.2)
+		self.RotAxis = (5, 5, -5)
 		
 	def setRotation(self):
 		for i in range(len(self.BodyShape)):
 			self.BodyShape[i].rotate(angle=self.RotAngle, axis=self.RotAxis, origine=(self.Position[X_COOR] + 10*self.length, self.Position[Y_COOR] + 10*self.length, self.Position[Z_COOR])) #-sin(alpha), cos(alpha)))
 		#self.Engine.rotate(angle=self.RotAngle, axis=self.RotAxis, origine=(self.Position[X_COOR] + 10*self.length, self.Position[Y_COOR] + 10*self.length, self.Position[Z_COOR])) #-sin(alpha), cos(alpha)))
 
-	def makeAxis2(self, size, position):
+	def makeAxis(self, size, position):
 		return
 
-	def setAxisVisibility2(self, setTo):
+	def setAxisVisibility(self, setTo):
 		return
 
 
-	def makeNozzle(self):
+	def makeSimpleNozzle(self):
 		# to create a nozzle, we need to start from a polygon representing the cross section of
 		# the nozzle, and then create a cone by rotating this xsection around a circle
 
@@ -1439,6 +1447,39 @@ class spacecraft(makeBody):
 		return extrusion(pos=circle,
 				shape=section,
 				color=color.yellow)
+
+	def makeNozzle(self):
+		# to create a nozzle, we need to start from a polygon representing the cross section of
+		# the nozzle, and then create a cone by rotating this xsection around a circle
+
+		# create a section of cone of 60, length d
+		alpha = pi/2.5
+		d = self.length/4 #self.radius/2
+		THROAT_SECTION = self.radius/7
+		section = Polygon([(0, 0), (self.length/100, 0), ((self.length/100)+d*np.cos(alpha), d*np.sin(alpha)), (d*np.cos(alpha), d*np.sin(alpha))])
+		
+		# set up to x=-1 so that the axis will be going towards the -x axis of the frame. also position the origin
+		# negatively to push the nozzle cone further out
+		circle = paths.arc(radius=THROAT_SECTION, angle2=2*pi, up=(-1,0,0), pos=(self.BARYCENTER_XCOOR -self.length/6, 0, 0))
+		return extrusion(pos=circle,
+				shape=section,
+				color=color.grey)
+				#material=materials.silver)
+
+	def makeTesla(self):
+		roadster = box(frame=self.BodyShape[0], pos=(self.FWD_TANK_CENTER_XCOOR+self.FWD_TANK_RADIUS,0,0), 
+		axis=(0,1,0),
+		length=self.radius*1.5, 
+		height=self.radius*1.5/5, 
+		width=self.radius*2.8/3, color=color.redish)
+
+		self.makeWheel(roadster)
+
+	def makeWheel(self, roadster):
+		cylinder(frame=self.BodyShape[0], axis=(0,0,1), pos=(self.FWD_TANK_CENTER_XCOOR + self.FWD_TANK_RADIUS - roadster.height/3, roadster.length/3, roadster.width/3), radius=self.AFT_TANK_RADIUS/5.1, length=self.length/20, color=color.darkgrey)
+
+
+
 	"""
 
 
