@@ -28,12 +28,40 @@
         }
     },
     {
+        "Surveyor-2 Centaur": {
+            "longitude_of_ascendingnode": 115.4068359997705, 
+            "diameter": 90.0, 
+            "revolution":337.7016672306951, 
+            "e": 0.07007678609798165, 
+            "name": "Surveyor-2 Centaur upper stage", 
+            "orbit_class": "", 
+            "iau_name": "Surveyor-2 Centaur upper stage", 
+            "mean_motion": 1.066029679249620, 
+            "orbital_inclination": 0.2750932754742459, 
+            "epochJD": 2440430.50, 
+            "absolute_mag": 0.0, 
+            "mu": 0.0, 
+            "mean_anomaly": 178.6040530489028, 
+            "tga_name": "", 
+            "perihelion": 0.8825451673336767, 
+            "jpl_designation": "Surveyor-2 Centaur upper stage", 
+            "earth_moid": 0.0, 
+            "Time_of_perihelion_passage_JD": 2440262.958648642525, 
+            "argument_of_perihelion": 10.58656476502922, 
+            "axial_tilt": 0.0,
+            "profile": {
+                "engine": 2,
+                "COPV": 2
+            }
+        }
+    },    
+    {
         "Starman": {
             "longitude_of_ascendingnode": 316.9309581915560,
             "diameter": 90.0,
             "revolution": 557.0587024183574,
             "e":0.2560072533812981,
-            "name": "Spacex Starman",
+            "name": "SpaceX Starman",
             "orbit_class": "",
             "iau_name": "Starman",
             "mean_motion":  0.6462514604603303,
@@ -50,9 +78,9 @@
             "argument_of_perihelion": 177.6752997719221,
             "axial_tilt": 0.0,
             "profile":  {
-                            "engine": 1,
-                            "COPV": 1
-                        }
+                "engine": 1,
+                "COPV": 1
+            }
         }
     }
 ]
