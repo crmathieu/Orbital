@@ -571,8 +571,8 @@ class makeBody:
 		self.Color 					= color
 		self.BodyType 				= bodyType
 		self.Revolution 			= objects_data[key]["revolution"]
-		self.Perihelion 			= objects_data[key]["perihelion"]	# body perhelion
-		self.Distance 				= objects_data[key]["perihelion"]	# body distance at perige from focus
+		self.Perihelion 			= objects_data[key]["QR_perihelion"]	# body perhelion
+		self.Distance 				= objects_data[key]["QR_perihelion"]	# body distance at perige from focus
 		self.Details				= False
 		self.hasRenderedOrbit		= False
 		self.Absolute_mag			= objects_data[key]["absolute_mag"]
@@ -818,7 +818,7 @@ class makeBody:
 		#self.a = (elts["a"] + (elts["ar"] * T)) * AU
 		self.a = 1.000001018 * AU
 
-		#self.e = elts["e"] + (elts["er"] * T)
+		#self.e = elts["EC_e"] + (elts["er"] * T)
 		self.e = 0.01670862 - (0.000042037 * T) - (0.0000001236 * T**2) + (0.00000000044 * T**3)
 
 		#self.Inclination = elts["i"] + (elts["ir"] * T)
@@ -861,7 +861,7 @@ class makeBody:
 		T = days/36525. # T is in centuries
 
 		self.a = (elts["a"] + (elts["ar"] * T)) * AU
-		self.e = elts["e"] + (elts["er"] * T)
+		self.e = elts["EC_e"] + (elts["er"] * T)
 		self.Inclination = elts["i"] + (elts["ir"] * T)
 
 		# compute mean Longitude with correction factors beyond jupiter M = L - W + bT^2 +ccos(ft) + ssin(ft)
@@ -885,20 +885,20 @@ class makeBody:
 
 	def setOrbitalFromPredefinedElements(self, elts, timeincrement):
 		# data comes from data file or predefined values
-		self.e 							= elts["e"]
+		self.e 							= elts["EC_e"]
 		self.Longitude_of_perihelion 	= elts["longitude_of_perihelion"]
-		self.Longitude_of_ascendingnode = elts["longitude_of_ascendingnode"]
+		self.Longitude_of_ascendingnode = elts["OM_longitude_of_ascendingnode"]
 		self.Argument_of_perihelion 	= self.Longitude_of_perihelion - self.Longitude_of_ascendingnode
 		self.a 							= getSemiMajor(self.Perihelion, self.e)
-		self.Inclination 				= elts["orbital_inclination"]
+		self.Inclination 				= elts["IN_orbital_inclination"]
 
 		#if self.SatelliteOf != None:
 		#	self.Inclination -= self.SatelliteOf.AxialTilt
 			
-		self.Time_of_perihelion_passage = elts["Time_of_perihelion_passage_JD"]
-		self.Mean_motion				= elts["mean_motion"]
+		self.Time_of_perihelion_passage = elts["Tp_Time_of_perihelion_passage_JD"]
+		self.Mean_motion				= elts["N_mean_motion"]
 		self.Epoch						= elts["epochJD"]
-		self.Mean_anomaly				= elts["mean_anomaly"]
+		self.Mean_anomaly				= elts["MA_mean_anomaly"]
 		self.revolution					= elts["revolution"]
 		self.OrbitClass					= elts["orbit_class"]
 
@@ -1186,7 +1186,7 @@ class makeEarth(planet):
 		#T = (days)/36525. # T is in centuries
 
 		self.a = (elts["a"] + (elts["ar"] * T)) * AU
-		self.e = elts["e"] + (elts["er"] * T)
+		self.e = elts["EC_e"] + (elts["er"] * T)
 		self.Inclination = elts["i"] + (elts["ir"] * T)
 
 		# compute mean Longitude with correction factors beyond jupiter M = L - W + bT^2 +ccos(ft) + ssin(ft)
@@ -1809,16 +1809,16 @@ def loadBodies(SolarSystem, type, filename, maxentries = 0):
 				"jpl_designation": str(obj[key]["jpl_designation"]),
 				"mass": (obj[key]["mu"]/G)*1.e+9, # convert km3 to m3
 				"radius": obj[key]["diameter"]/2, 
-				"perihelion": obj[key]["perihelion"] * AU,
-				"e": obj[key]["e"],
+				"QR_perihelion": obj[key]["QR_perihelion"] * AU,
+				"EC_e": obj[key]["EC_e"],
 				"revolution": obj[key]["revolution"],
-				"orbital_inclination": 	obj[key]["orbital_inclination"],
-				"longitude_of_ascendingnode":obj[key]["longitude_of_ascendingnode"],
-				"argument_of_perihelion": obj[key]["argument_of_perihelion"],
-				"longitude_of_perihelion": obj[key]["longitude_of_ascendingnode"] + obj[key]["argument_of_perihelion"],
-				"Time_of_perihelion_passage_JD": obj[key]["Time_of_perihelion_passage_JD"],
-				"mean_motion": obj[key]["mean_motion"],
-				"mean_anomaly": obj[key]["mean_anomaly"],
+				"IN_orbital_inclination": 	obj[key]["IN_orbital_inclination"],
+				"OM_longitude_of_ascendingnode":obj[key]["OM_longitude_of_ascendingnode"],
+				"W_argument_of_perihelion": obj[key]["W_argument_of_perihelion"],
+				"longitude_of_perihelion": obj[key]["OM_longitude_of_ascendingnode"] + obj[key]["W_argument_of_perihelion"],
+				"Tp_Time_of_perihelion_passage_JD": obj[key]["Tp_Time_of_perihelion_passage_JD"],
+				"N_mean_motion": obj[key]["N_mean_motion"],
+				"MA_mean_anomaly": obj[key]["MA_mean_anomaly"],
 				"epochJD": obj[key]["epochJD"],
 				"earth_moid": obj[key]["earth_moid"] * AU,
 				"orbit_class": str(obj[key]["orbit_class"]),
@@ -1866,16 +1866,16 @@ def loadBodiesOldway(SolarSystem, type, filename, maxentries = 0):
 					"jpl_designation": token[JPL_DESIGNATION],
 					"mass": (float(token[JPL_GM])/G)*1.e+9 if token[JPL_GM] else 0, # convert km3 to m3
 					"radius": float(token[JPL_DIAMETER])/2 if token[JPL_DIAMETER] else 0, #DEFAULT_RADIUS,
-					"perihelion": float(token[JPL_OE_q]) * AU,
-					"e": float(token[JPL_OE_e]),
+					"QR_perihelion": float(token[JPL_OE_q]) * AU,
+					"EC_e": float(token[JPL_OE_e]),
 					"revolution": float(token[JPL_OE_Pd]),
-					"orbital_inclination": 	float(token[JPL_OE_i]),
-					"longitude_of_ascendingnode":float(token[JPL_OE_N]),
-					"argument_of_perihelion": float(token[JPL_OE_w]),
+					"IN_orbital_inclination": 	float(token[JPL_OE_i]),
+					"OM_longitude_of_ascendingnode":float(token[JPL_OE_N]),
+					"W_argument_of_perihelion": float(token[JPL_OE_w]),
 					"longitude_of_perihelion":float(token[JPL_OE_N])+float(token[JPL_OE_w]),
-					"Time_of_perihelion_passage_JD":float(token[JPL_OE_tp_JD]),
-					"mean_motion": float(token[JPL_OE_n]) if token[JPL_OE_n] else 0,
-					"mean_anomaly": float(token[JPL_OE_M]) if token[JPL_OE_M] else 0,
+					"Tp_Time_of_perihelion_passage_JD":float(token[JPL_OE_tp_JD]),
+					"N_mean_motion": float(token[JPL_OE_n]) if token[JPL_OE_n] else 0,
+					"MA_mean_anomaly": float(token[JPL_OE_M]) if token[JPL_OE_M] else 0,
 					"epochJD": float(token[JPL_EPOCH_JD]),
 					"earth_moid": (float(token[JPL_EARTH_MOID_AU])*AU) if token[JPL_EARTH_MOID_AU] else 0,
 					"orbit_class":token[JPL_ORBIT_CLASS],
