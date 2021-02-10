@@ -3,7 +3,7 @@
         "Apollo11S-IVB": {
             "OM_longitude_of_ascendingnode": 115.4068359997705, 
             "diameter": 90.0, 
-            "revolution":337.7016672306951, 
+            "PR_revolution":337.7016672306951, 
             "EC_e": 0.07007678609798165, 
             "name": "Apollo 11 S-IVB", 
             "orbit_class": "", 
@@ -59,7 +59,7 @@
         "Starman": {
             "OM_longitude_of_ascendingnode": 316.9309581915560,
             "diameter": 90.0,
-            "revolution": 557.0587024183574,
+            "PR_revolution": 557.0587024183574,
             "EC_e":0.2560072533812981,
             "name": "SpaceX Starman",
             "orbit_class": "",

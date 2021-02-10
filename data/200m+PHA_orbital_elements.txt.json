@@ -3,7 +3,7 @@
         "53319": {
             "OM_longitude_of_ascendingnode": 133.6457779328926, 
             "diameter": 7.0, 
-            "revolution": 1644.075321482539, 
+            "PR_revolution": 1644.075321482539, 
             "EC_e": 0.6411275907156861, 
             "name": "53319 (1999 JM8)", 
             "orbit_class": "APO", 
@@ -27,7 +27,7 @@
         "4179": {
             "OM_longitude_of_ascendingnode": 124.4046935815254, 
             "diameter": 5.4, 
-            "revolution": 1475.280748921512, 
+            "PR_revolution": 1475.280748921512, 
             "EC_e": 0.6293850842352817, 
             "name": "4179 Toutatis (1989 AC)", 
             "orbit_class": "APO", 
@@ -51,7 +51,7 @@
         "3200": {
             "OM_longitude_of_ascendingnode": 265.2306710596868, 
             "diameter": 5.1, 
-            "revolution": 523.5022575459118, 
+            "PR_revolution": 523.5022575459118, 
             "EC_e": 0.8899364594791804, 
             "name": "3200 Phaethon (1983 TB)", 
             "orbit_class": "APO", 
@@ -75,7 +75,7 @@
         "89830": {
             "OM_longitude_of_ascendingnode": 19.93382343155152, 
             "diameter": 5.067, 
-            "revolution": 1093.632246001705, 
+            "PR_revolution": 1093.632246001705, 
             "EC_e": 0.5073762665253236, 
             "name": "89830 (2002 CE)", 
             "orbit_class": "AMO", 
@@ -99,7 +99,7 @@
         "3122": {
             "OM_longitude_of_ascendingnode": 336.0951221117463, 
             "diameter": 4.9, 
-            "revolution": 859.4862819706399, 
+            "PR_revolution": 859.4862819706399, 
             "EC_e": 0.4233004331495727, 
             "name": "3122 Florence (1981 ET3)", 
             "orbit_class": "AMO", 
@@ -123,7 +123,7 @@
         "4015": {
             "OM_longitude_of_ascendingnode": 266.8304618076801, 
             "diameter": 4.0, 
-            "revolution": 1556.10790779435, 
+            "PR_revolution": 1556.10790779435, 
             "EC_e": 0.6308146570739113, 
             "name": "4015 Wilson-Harrington (1979 VA)", 
             "orbit_class": "APO", 
@@ -147,7 +147,7 @@
         "85713": {
             "OM_longitude_of_ascendingnode": 41.493200768447, 
             "diameter": 3.484, 
-            "revolution": 974.5846068841004, 
+            "PR_revolution": 974.5846068841004, 
             "EC_e": 0.639264952647774, 
             "name": "85713 (1998 SS49)", 
             "orbit_class": "APO", 
@@ -171,7 +171,7 @@
         "1981": {
             "OM_longitude_of_ascendingnode": 356.89825606624, 
             "diameter": 3.4, 
-            "revolution": 864.4467795642271, 
+            "PR_revolution": 864.4467795642271, 
             "EC_e": 0.6502365011469357, 
             "name": "1981 Midas (1973 EA)", 
             "orbit_class": "APO", 
@@ -195,7 +195,7 @@
         "159857": {
             "OM_longitude_of_ascendingnode": 235.583420223171, 
             "diameter": 3.07, 
-            "revolution": 1244.04448125215, 
+            "PR_revolution": 1244.04448125215, 
             "EC_e": 0.5934628023973422, 
             "name": "159857 (2004 LJ1)", 
             "orbit_class": "APO", 
@@ -219,7 +219,7 @@
         "111253": {
             "OM_longitude_of_ascendingnode": 310.16532466, 
             "diameter": 3.006, 
-            "revolution": 848.2653596027242, 
+            "PR_revolution": 848.2653596027242, 
             "EC_e": 0.4393811764832273, 
             "name": "111253 (2001 XU10)", 
             "orbit_class": "APO", 
@@ -243,7 +243,7 @@
         "4183": {
             "OM_longitude_of_ascendingnode": 294.8955618648941, 
             "diameter": 2.945, 
-            "revolution": 1019.351900850835, 
+            "PR_revolution": 1019.351900850835, 
             "EC_e": 0.6343498179170188, 
             "name": "4183 Cuno (1959 LM)", 
             "orbit_class": "APO", 
@@ -267,7 +267,7 @@
         "242450": {
             "OM_longitude_of_ascendingnode": 295.3100941214755, 
             "diameter": 2.914, 
-            "revolution": 412.2196068292193, 
+            "PR_revolution": 412.2196068292193, 
             "EC_e": 0.4772747222723908, 
             "name": "242450 (2004 QY2)", 
             "orbit_class": "APO", 
@@ -291,7 +291,7 @@
         "1620": {
             "OM_longitude_of_ascendingnode": 337.2037428098071, 
             "diameter": 2.56, 
-            "revolution": 507.5614218276436, 
+            "PR_revolution": 507.5614218276436, 
             "EC_e": 0.3354011714105012, 
             "name": "1620 Geographos (1951 RA)", 
             "orbit_class": "APO", 
@@ -315,7 +315,7 @@
         "90075": {
             "OM_longitude_of_ascendingnode": 226.7782529236308, 
             "diameter": 2.233, 
-            "revolution": 1138.487376983115, 
+            "PR_revolution": 1138.487376983115, 
             "EC_e": 0.5761281581818841, 
             "name": "90075 (2002 VU94)", 
             "orbit_class": "APO", 
@@ -339,7 +339,7 @@
         "86039": {
             "OM_longitude_of_ascendingnode": 311.7608598917427, 
             "diameter": 2.22, 
-            "revolution": 852.3263314288382, 
+            "PR_revolution": 852.3263314288382, 
             "EC_e": 0.5793533020087553, 
             "name": "86039 (1999 NC43)", 
             "orbit_class": "APO", 
@@ -363,7 +363,7 @@
         "451124": {
             "OM_longitude_of_ascendingnode": 340.0913306970507, 
             "diameter": 2.188, 
-            "revolution": 2097.950484849247, 
+            "PR_revolution": 2097.950484849247, 
             "EC_e": 0.6986751467985224, 
             "name": "451124 (2009 KC3)", 
             "orbit_class": "APO", 
@@ -387,7 +387,7 @@
         "143624": {
             "OM_longitude_of_ascendingnode": 195.9764673644614, 
             "diameter": 2.137, 
-            "revolution": 1007.56489043193, 
+            "PR_revolution": 1007.56489043193, 
             "EC_e": 0.576327449827027, 
             "name": "143624 (2003 HM16)", 
             "orbit_class": "APO", 
@@ -411,7 +411,7 @@
         "12923": {
             "OM_longitude_of_ascendingnode": 168.2123176890907, 
             "diameter": 2.06, 
-            "revolution": 1003.445130462542, 
+            "PR_revolution": 1003.445130462542, 
             "EC_e": 0.4920198567819153, 
             "name": "12923 Zephyr (1999 GK4)", 
             "orbit_class": "APO", 
@@ -435,7 +435,7 @@
         "29075": {
             "OM_longitude_of_ascendingnode": 356.7748639362383, 
             "diameter": 2.0, 
-            "revolution": 809.0984970372224, 
+            "PR_revolution": 809.0984970372224, 
             "EC_e": 0.5075993418815973, 
             "name": "29075 (1950 DA)", 
             "orbit_class": "APO", 
@@ -459,7 +459,7 @@
         "242643": {
             "OM_longitude_of_ascendingnode": 39.43762398434593, 
             "diameter": 1.989, 
-            "revolution": 907.3635989893534, 
+            "PR_revolution": 907.3635989893534, 
             "EC_e": 0.8643327592088514, 
             "name": "242643 (2005 NZ6)", 
             "orbit_class": "APO", 
@@ -483,7 +483,7 @@
         "161989": {
             "OM_longitude_of_ascendingnode": 161.2418379523293, 
             "diameter": 1.9, 
-            "revolution": 434.7512181187309, 
+            "PR_revolution": 434.7512181187309, 
             "EC_e": 0.2139746388471929, 
             "name": "161989 Cacus (1978 CA)", 
             "orbit_class": "APO", 
@@ -507,7 +507,7 @@
         "363505": {
             "OM_longitude_of_ascendingnode": 188.8616900718955, 
             "diameter": 1.9, 
-            "revolution": 252.2466272629769, 
+            "PR_revolution": 252.2466272629769, 
             "EC_e": 0.3367760294257492, 
             "name": "363505 (2003 UC20)", 
             "orbit_class": "ATE", 
@@ -531,7 +531,7 @@
         "2001 HA4": {
             "OM_longitude_of_ascendingnode": 354.6396445290528, 
             "diameter": 1.851, 
-            "revolution": 1603.880826610253, 
+            "PR_revolution": 1603.880826610253, 
             "EC_e": 0.795365782300636, 
             "name": "(2001 HA4)", 
             "orbit_class": "APO", 
@@ -555,7 +555,7 @@
         "4486": {
             "OM_longitude_of_ascendingnode": 82.24044490860345, 
             "diameter": 1.849, 
-            "revolution": 1191.864268081119, 
+            "PR_revolution": 1191.864268081119, 
             "EC_e": 0.6628520207975113, 
             "name": "4486 Mithra (1987 SB)", 
             "orbit_class": "APO", 
@@ -579,7 +579,7 @@
         "2201": {
             "OM_longitude_of_ascendingnode": 74.99073752177512, 
             "diameter": 1.8, 
-            "revolution": 1171.635852371319, 
+            "PR_revolution": 1171.635852371319, 
             "EC_e": 0.7129709315146266, 
             "name": "2201 Oljato (1947 XC)", 
             "orbit_class": "APO", 
@@ -603,7 +603,7 @@
         "7335": {
             "OM_longitude_of_ascendingnode": 61.32482044675898, 
             "diameter": 1.8, 
-            "revolution": 860.5894545850691, 
+            "PR_revolution": 860.5894545850691, 
             "EC_e": 0.48402786427509, 
             "name": "7335 (1989 JA)", 
             "orbit_class": "APO", 
@@ -627,7 +627,7 @@
         "2010 JL33": {
             "OM_longitude_of_ascendingnode": 52.52777793312889, 
             "diameter": 1.778, 
-            "revolution": 1600.221712142381, 
+            "PR_revolution": 1600.221712142381, 
             "EC_e": 0.7367560445559883, 
             "name": "(2010 JL33)", 
             "orbit_class": "APO", 
@@ -651,7 +651,7 @@
         "164121": {
             "OM_longitude_of_ascendingnode": 38.33525227875005, 
             "diameter": 1.717, 
-            "revolution": 426.8942352213826, 
+            "PR_revolution": 426.8942352213826, 
             "EC_e": 0.291917279012936, 
             "name": "164121 (2003 YT1)", 
             "orbit_class": "APO", 
@@ -675,7 +675,7 @@
         "163243": {
             "OM_longitude_of_ascendingnode": 203.6050557005847, 
             "diameter": 1.682, 
-            "revolution": 242.7464567417772, 
+            "PR_revolution": 242.7464567417772, 
             "EC_e": 0.6017465083085981, 
             "name": "163243 (2002 FB3)", 
             "orbit_class": "ATE", 
@@ -699,7 +699,7 @@
         "12538": {
             "OM_longitude_of_ascendingnode": 220.7486884886316, 
             "diameter": 1.663, 
-            "revolution": 699.0135711594002, 
+            "PR_revolution": 699.0135711594002, 
             "EC_e": 0.4060871406244218, 
             "name": "12538 (1998 OH)", 
             "orbit_class": "APO", 
@@ -723,7 +723,7 @@
         "2102": {
             "OM_longitude_of_ascendingnode": 94.36526985686704, 
             "diameter": 1.649, 
-            "revolution": 535.2406558463002, 
+            "PR_revolution": 535.2406558463002, 
             "EC_e": 0.2991527831982981, 
             "name": "2102 Tantalus (1975 YA)", 
             "orbit_class": "APO", 
@@ -747,7 +747,7 @@
         "2013 PX6": {
             "OM_longitude_of_ascendingnode": 187.5650232484347, 
             "diameter": 1.647, 
-            "revolution": 1524.308238199745, 
+            "PR_revolution": 1524.308238199745, 
             "EC_e": 0.6530968911374326, 
             "name": "(2013 PX6)", 
             "orbit_class": "APO", 
@@ -771,7 +771,7 @@
         "7822": {
             "OM_longitude_of_ascendingnode": 156.8650754899662, 
             "diameter": 1.602, 
-            "revolution": 434.6335768934617, 
+            "PR_revolution": 434.6335768934617, 
             "EC_e": 0.1646939402491508, 
             "name": "7822 (1991 CS)", 
             "orbit_class": "APO", 
@@ -795,7 +795,7 @@
         "8566": {
             "OM_longitude_of_ascendingnode": 164.1415963912443, 
             "diameter": 1.568, 
-            "revolution": 675.2936859403056, 
+            "PR_revolution": 675.2936859403056, 
             "EC_e": 0.4303352592216516, 
             "name": "8566 (1996 EN)", 
             "orbit_class": "APO", 
@@ -819,7 +819,7 @@
         "39572": {
             "OM_longitude_of_ascendingnode": 313.5667046812624, 
             "diameter": 1.554, 
-            "revolution": 1061.997298611135, 
+            "PR_revolution": 1061.997298611135, 
             "EC_e": 0.4919790630407965, 
             "name": "39572 (1993 DQ1)", 
             "orbit_class": "AMO", 
@@ -843,7 +843,7 @@
         "369264": {
             "OM_longitude_of_ascendingnode": 252.0848062155588, 
             "diameter": 1.515, 
-            "revolution": 1036.907252156803, 
+            "PR_revolution": 1036.907252156803, 
             "EC_e": 0.569430872030778, 
             "name": "369264 (2009 MS)", 
             "orbit_class": "APO", 
@@ -867,7 +867,7 @@
         "1862": {
             "OM_longitude_of_ascendingnode": 35.73168803474559, 
             "diameter": 1.5, 
-            "revolution": 651.0979905314456, 
+            "PR_revolution": 651.0979905314456, 
             "EC_e": 0.5597614018825802, 
             "name": "1862 Apollo (1932 HA)", 
             "orbit_class": "APO", 
@@ -891,7 +891,7 @@
         "3671": {
             "OM_longitude_of_ascendingnode": 82.08573541967516, 
             "diameter": 1.5, 
-            "revolution": 1191.198257974999, 
+            "PR_revolution": 1191.198257974999, 
             "EC_e": 0.5411560876537679, 
             "name": "3671 Dionysus (1984 KD)", 
             "orbit_class": "APO", 
@@ -915,7 +915,7 @@
         "85989": {
             "OM_longitude_of_ascendingnode": 130.2027845779737, 
             "diameter": 1.462, 
-            "revolution": 303.0997645114537, 
+            "PR_revolution": 303.0997645114537, 
             "EC_e": 0.6328373731114443, 
             "name": "85989 (1999 JD6)", 
             "orbit_class": "ATE", 
@@ -939,7 +939,7 @@
         "410778": {
             "OM_longitude_of_ascendingnode": 187.5814997105467, 
             "diameter": 1.457, 
-            "revolution": 1812.109686613648, 
+            "PR_revolution": 1812.109686613648, 
             "EC_e": 0.7198642419355163, 
             "name": "410778 (2009 FG19)", 
             "orbit_class": "APO", 
@@ -963,7 +963,7 @@
         "89959": {
             "OM_longitude_of_ascendingnode": 132.0640662136057, 
             "diameter": 1.407, 
-            "revolution": 834.9457753211503, 
+            "PR_revolution": 834.9457753211503, 
             "EC_e": 0.5287313154060408, 
             "name": "89959 (2002 NT7)", 
             "orbit_class": "APO", 
@@ -987,7 +987,7 @@
         "4769": {
             "OM_longitude_of_ascendingnode": 325.5773202860467, 
             "diameter": 1.4, 
-            "revolution": 400.4802264087043, 
+            "PR_revolution": 400.4802264087043, 
             "EC_e": 0.4831693230163794, 
             "name": "4769 Castalia (1989 PB)", 
             "orbit_class": "APO", 
@@ -1011,7 +1011,7 @@
         "217628": {
             "OM_longitude_of_ascendingnode": 183.1232534860738, 
             "diameter": 1.4, 
-            "revolution": 1488.299506326516, 
+            "PR_revolution": 1488.299506326516, 
             "EC_e": 0.7030798657628144, 
             "name": "217628 Lugh (1990 HA)", 
             "orbit_class": "APO", 
@@ -1035,7 +1035,7 @@
         "66391": {
             "OM_longitude_of_ascendingnode": 244.9135253369246, 
             "diameter": 1.317, 
-            "revolution": 187.9889627272662, 
+            "PR_revolution": 187.9889627272662, 
             "EC_e": 0.688581248545017, 
             "name": "66391 (1999 KW4)", 
             "orbit_class": "ATE", 
@@ -1059,7 +1059,7 @@
         "2004 TG10": {
             "OM_longitude_of_ascendingnode": 205.1041621163842, 
             "diameter": 1.316, 
-            "revolution": 1219.732294557695, 
+            "PR_revolution": 1219.732294557695, 
             "EC_e": 0.861871255570946, 
             "name": "(2004 TG10)", 
             "orbit_class": "APO", 
@@ -1083,7 +1083,7 @@
         "103067": {
             "OM_longitude_of_ascendingnode": 116.6498214714584, 
             "diameter": 1.282, 
-            "revolution": 914.2034226688371, 
+            "PR_revolution": 914.2034226688371, 
             "EC_e": 0.5818436603729965, 
             "name": "103067 (1999 XA143)", 
             "orbit_class": "APO", 
@@ -1107,7 +1107,7 @@
         "2004 MX2": {
             "OM_longitude_of_ascendingnode": 116.2539482843651, 
             "diameter": 1.258, 
-            "revolution": 1680.107048166846, 
+            "PR_revolution": 1680.107048166846, 
             "EC_e": 0.7179984429345858, 
             "name": "(2004 MX2)", 
             "orbit_class": "APO", 
@@ -1131,7 +1131,7 @@
         "194268": {
             "OM_longitude_of_ascendingnode": 160.8008968085891, 
             "diameter": 1.244, 
-            "revolution": 639.709855945518, 
+            "PR_revolution": 639.709855945518, 
             "EC_e": 0.787385250618907, 
             "name": "194268 (2001 UY4)", 
             "orbit_class": "APO", 
@@ -1155,7 +1155,7 @@
         "175706": {
             "OM_longitude_of_ascendingnode": 299.7065641824987, 
             "diameter": 1.196, 
-            "revolution": 395.2547272990419, 
+            "PR_revolution": 395.2547272990419, 
             "EC_e": 0.3498175834077441, 
             "name": "175706 (1996 FG3)", 
             "orbit_class": "APO", 
@@ -1179,7 +1179,7 @@
         "68548": {
             "OM_longitude_of_ascendingnode": 302.0616207733435, 
             "diameter": 1.182, 
-            "revolution": 814.3191450461431, 
+            "PR_revolution": 814.3191450461431, 
             "EC_e": 0.4365246214267008, 
             "name": "68548 (2001 XR31)", 
             "orbit_class": "APO", 
@@ -1203,7 +1203,7 @@
         "235756": {
             "OM_longitude_of_ascendingnode": 194.1759772629877, 
             "diameter": 1.136, 
-            "revolution": 440.7016700008738, 
+            "PR_revolution": 440.7016700008738, 
             "EC_e": 0.2588036172879105, 
             "name": "235756 (2004 VC)", 
             "orbit_class": "APO", 
@@ -1227,7 +1227,7 @@
         "99248": {
             "OM_longitude_of_ascendingnode": 284.1895147982261, 
             "diameter": 1.115, 
-            "revolution": 931.1488265624249, 
+            "PR_revolution": 931.1488265624249, 
             "EC_e": 0.5075721300697746, 
             "name": "99248 (2001 KY66)", 
             "orbit_class": "APO", 
@@ -1251,7 +1251,7 @@
         "85182": {
             "OM_longitude_of_ascendingnode": 339.6836641182695, 
             "diameter": 1.1, 
-            "revolution": 1209.321000251993, 
+            "PR_revolution": 1209.321000251993, 
             "EC_e": 0.7767678220556956, 
             "name": "85182 (1991 AQ)", 
             "orbit_class": "APO", 
@@ -1275,7 +1275,7 @@
         "154276": {
             "OM_longitude_of_ascendingnode": 34.29713032510744, 
             "diameter": 1.06, 
-            "revolution": 812.7542650677178, 
+            "PR_revolution": 812.7542650677178, 
             "EC_e": 0.6892943607675215, 
             "name": "154276 (2002 SY50)", 
             "orbit_class": "APO", 
@@ -1299,7 +1299,7 @@
         "387505": {
             "OM_longitude_of_ascendingnode": 313.6262628676974, 
             "diameter": 1.06, 
-            "revolution": 698.9773555581966, 
+            "PR_revolution": 698.9773555581966, 
             "EC_e": 0.8737193466444035, 
             "name": "387505 (1998 KN3)", 
             "orbit_class": "APO", 
@@ -1323,7 +1323,7 @@
         "7482": {
             "OM_longitude_of_ascendingnode": 117.8921836381626, 
             "diameter": 1.052, 
-            "revolution": 570.5140416582359, 
+            "PR_revolution": 570.5140416582359, 
             "EC_e": 0.3283393095931395, 
             "name": "7482 (1994 PC1)", 
             "orbit_class": "APO", 
@@ -1347,7 +1347,7 @@
         "488789": {
             "OM_longitude_of_ascendingnode": 94.15456180808361, 
             "diameter": 1.039, 
-            "revolution": 638.4194781150585, 
+            "PR_revolution": 638.4194781150585, 
             "EC_e": 0.68890349764185, 
             "name": "488789 (2004 XK50)", 
             "orbit_class": "APO", 
@@ -1371,7 +1371,7 @@
         "1566": {
             "OM_longitude_of_ascendingnode": 88.08223830715552, 
             "diameter": 1.0, 
-            "revolution": 408.7839793256358, 
+            "PR_revolution": 408.7839793256358, 
             "EC_e": 0.8268092968061863, 
             "name": "1566 Icarus (1949 MA)", 
             "orbit_class": "APO", 
@@ -1395,7 +1395,7 @@
         "9856": {
             "OM_longitude_of_ascendingnode": 168.162897580468, 
             "diameter": 1.0, 
-            "revolution": 1226.448409042803, 
+            "PR_revolution": 1226.448409042803, 
             "EC_e": 0.6259301955301843, 
             "name": "9856 (1991 EE)", 
             "orbit_class": "APO", 
@@ -1419,7 +1419,7 @@
         "52760": {
             "OM_longitude_of_ascendingnode": 338.7237233093471, 
             "diameter": 1.0, 
-            "revolution": 1365.502089021269, 
+            "PR_revolution": 1365.502089021269, 
             "EC_e": 0.6234087193950586, 
             "name": "52760 (1998 ML14)", 
             "orbit_class": "APO", 
@@ -1443,7 +1443,7 @@
         "377732": {
             "OM_longitude_of_ascendingnode": 115.9716142615093, 
             "diameter": 0.986, 
-            "revolution": 979.8017402014628, 
+            "PR_revolution": 979.8017402014628, 
             "EC_e": 0.6213325993381843, 
             "name": "377732 (2005 XJ8)", 
             "orbit_class": "APO", 
@@ -1467,7 +1467,7 @@
         "419880": {
             "OM_longitude_of_ascendingnode": 102.0835440798896, 
             "diameter": 0.982, 
-            "revolution": 1482.515460042096, 
+            "PR_revolution": 1482.515460042096, 
             "EC_e": 0.6719921236364642, 
             "name": "419880 (2011 AH37)", 
             "orbit_class": "APO", 
@@ -1491,7 +1491,7 @@
         "2014 SR339": {
             "OM_longitude_of_ascendingnode": 138.7846004612758, 
             "diameter": 0.971, 
-            "revolution": 540.869356899136, 
+            "PR_revolution": 540.869356899136, 
             "EC_e": 0.3038478607484182, 
             "name": "(2014 SR339)", 
             "orbit_class": "APO", 
@@ -1515,7 +1515,7 @@
         "85774": {
             "OM_longitude_of_ascendingnode": 64.69324536867637, 
             "diameter": 0.939, 
-            "revolution": 607.4380812320602, 
+            "PR_revolution": 607.4380812320602, 
             "EC_e": 0.3291068038481656, 
             "name": "85774 (1998 UT18)", 
             "orbit_class": "APO", 
@@ -1539,7 +1539,7 @@
         "10115": {
             "OM_longitude_of_ascendingnode": 8.923217674524565, 
             "diameter": 0.938, 
-            "revolution": 509.4962390485771, 
+            "PR_revolution": 509.4962390485771, 
             "EC_e": 0.32479068886363, 
             "name": "10115 (1992 SK)", 
             "orbit_class": "APO", 
@@ -1563,7 +1563,7 @@
         "153814": {
             "OM_longitude_of_ascendingnode": 277.5064260467379, 
             "diameter": 0.932, 
-            "revolution": 818.1508412040108, 
+            "PR_revolution": 818.1508412040108, 
             "EC_e": 0.4669616729898516, 
             "name": "153814 (2001 WN5)", 
             "orbit_class": "APO", 
@@ -1587,7 +1587,7 @@
         "65679": {
             "OM_longitude_of_ascendingnode": 178.2271697554724, 
             "diameter": 0.918, 
-            "revolution": 319.7352387699281, 
+            "PR_revolution": 319.7352387699281, 
             "EC_e": 0.2647924170575066, 
             "name": "65679 (1989 UQ)", 
             "orbit_class": "ATE", 
@@ -1611,7 +1611,7 @@
         "35107": {
             "OM_longitude_of_ascendingnode": 139.3648563762292, 
             "diameter": 0.908, 
-            "revolution": 443.055591076174, 
+            "PR_revolution": 443.055591076174, 
             "EC_e": 0.1443055351799036, 
             "name": "35107 (1991 VH)", 
             "orbit_class": "APO", 
@@ -1635,7 +1635,7 @@
         "416801": {
             "OM_longitude_of_ascendingnode": 67.97340550446636, 
             "diameter": 0.906, 
-            "revolution": 476.4111917897321, 
+            "PR_revolution": 476.4111917897321, 
             "EC_e": 0.4975688778293094, 
             "name": "416801 (2005 GC120)", 
             "orbit_class": "APO", 
@@ -1659,7 +1659,7 @@
         "14827": {
             "OM_longitude_of_ascendingnode": 57.97576104305809, 
             "diameter": 0.9, 
-            "revolution": 1748.570908047, 
+            "PR_revolution": 1748.570908047, 
             "EC_e": 0.6658544196738958, 
             "name": "14827 Hypnos (1986 JK)", 
             "orbit_class": "APO", 
@@ -1683,7 +1683,7 @@
         "168318": {
             "OM_longitude_of_ascendingnode": 349.1900986776905, 
             "diameter": 0.9, 
-            "revolution": 1161.511331715164, 
+            "PR_revolution": 1161.511331715164, 
             "EC_e": 0.5425563926732789, 
             "name": "168318 (1989 DA)", 
             "orbit_class": "APO", 
@@ -1707,7 +1707,7 @@
         "418094": {
             "OM_longitude_of_ascendingnode": 249.90465299, 
             "diameter": 0.89, 
-            "revolution": 661.8611382388601, 
+            "PR_revolution": 661.8611382388601, 
             "EC_e": 0.4411406951438879, 
             "name": "418094 (2007 WV4)", 
             "orbit_class": "APO", 
@@ -1731,7 +1731,7 @@
         "269690": {
             "OM_longitude_of_ascendingnode": 158.2248137646265, 
             "diameter": 0.888, 
-            "revolution": 1032.987969274637, 
+            "PR_revolution": 1032.987969274637, 
             "EC_e": 0.6047276897149917, 
             "name": "269690 (1996 RG3)", 
             "orbit_class": "APO", 
@@ -1755,7 +1755,7 @@
         "395207": {
             "OM_longitude_of_ascendingnode": 218.5027505627883, 
             "diameter": 0.886, 
-            "revolution": 717.1843142449407, 
+            "PR_revolution": 717.1843142449407, 
             "EC_e": 0.4894045106706515, 
             "name": "395207 (2010 HQ80)", 
             "orbit_class": "APO", 
@@ -1779,7 +1779,7 @@
         "243566": {
             "OM_longitude_of_ascendingnode": 170.3683881241882, 
             "diameter": 0.881, 
-            "revolution": 1407.408902322496, 
+            "PR_revolution": 1407.408902322496, 
             "EC_e": 0.6415115829850999, 
             "name": "243566 (1995 SA)", 
             "orbit_class": "APO", 
@@ -1803,7 +1803,7 @@
         "2010 LZ63": {
             "OM_longitude_of_ascendingnode": 307.7241705483157, 
             "diameter": 0.877, 
-            "revolution": 974.3897756000516, 
+            "PR_revolution": 974.3897756000516, 
             "EC_e": 0.7654549896641221, 
             "name": "(2010 LZ63)", 
             "orbit_class": "APO", 
@@ -1827,7 +1827,7 @@
         "162998": {
             "OM_longitude_of_ascendingnode": 285.4238330575859, 
             "diameter": 0.875, 
-            "revolution": 976.1757686931403, 
+            "PR_revolution": 976.1757686931403, 
             "EC_e": 0.4738005141386062, 
             "name": "162998 (2001 SK162)", 
             "orbit_class": "APO", 
@@ -1851,7 +1851,7 @@
         "366774": {
             "OM_longitude_of_ascendingnode": 121.0210877148001, 
             "diameter": 0.859, 
-            "revolution": 893.0869827932169, 
+            "PR_revolution": 893.0869827932169, 
             "EC_e": 0.4503901318018464, 
             "name": "366774 (2004 TB18)", 
             "orbit_class": "APO", 
@@ -1875,7 +1875,7 @@
         "2009 ST103": {
             "OM_longitude_of_ascendingnode": 227.2346616459205, 
             "diameter": 0.851, 
-            "revolution": 1609.01862909287, 
+            "PR_revolution": 1609.01862909287, 
             "EC_e": 0.7219949150177142, 
             "name": "(2009 ST103)", 
             "orbit_class": "APO", 
@@ -1899,7 +1899,7 @@
         "53789": {
             "OM_longitude_of_ascendingnode": 190.0433864772606, 
             "diameter": 0.843, 
-            "revolution": 586.051004962892, 
+            "PR_revolution": 586.051004962892, 
             "EC_e": 0.2691053016878593, 
             "name": "53789 (2000 ED104)", 
             "orbit_class": "APO", 
@@ -1923,7 +1923,7 @@
         "2002 BM26": {
             "OM_longitude_of_ascendingnode": 319.6419493558564, 
             "diameter": 0.84, 
-            "revolution": 905.9272173932762, 
+            "PR_revolution": 905.9272173932762, 
             "EC_e": 0.4443213633934086, 
             "name": "(2002 BM26)", 
             "orbit_class": "AMO", 
@@ -1947,7 +1947,7 @@
         "1999 XK136": {
             "OM_longitude_of_ascendingnode": 62.90076869120948, 
             "diameter": 0.811, 
-            "revolution": 1339.356888503714, 
+            "PR_revolution": 1339.356888503714, 
             "EC_e": 0.70202076749352, 
             "name": "(1999 XK136)", 
             "orbit_class": "APO", 
@@ -1971,7 +1971,7 @@
         "86819": {
             "OM_longitude_of_ascendingnode": 164.9214541721932, 
             "diameter": 0.802, 
-            "revolution": 1030.086725706961, 
+            "PR_revolution": 1030.086725706961, 
             "EC_e": 0.5055323315896134, 
             "name": "86819 (2000 GK137)", 
             "orbit_class": "APO", 
@@ -1995,7 +1995,7 @@
         "263976": {
             "OM_longitude_of_ascendingnode": 104.5153417991198, 
             "diameter": 0.785, 
-            "revolution": 390.809602547012, 
+            "PR_revolution": 390.809602547012, 
             "EC_e": 0.2614680540718642, 
             "name": "263976 (2009 KD5)", 
             "orbit_class": "APO", 
@@ -2019,7 +2019,7 @@
         "65803": {
             "OM_longitude_of_ascendingnode": 73.20881002200287, 
             "diameter": 0.78, 
-            "revolution": 770.362621076209, 
+            "PR_revolution": 770.362621076209, 
             "EC_e": 0.383891421664322, 
             "name": "65803 Didymos (1996 GT)", 
             "orbit_class": "APO", 
@@ -2043,7 +2043,7 @@
         "304330": {
             "OM_longitude_of_ascendingnode": 32.63797777585906, 
             "diameter": 0.78, 
-            "revolution": 612.3611542520331, 
+            "PR_revolution": 612.3611542520331, 
             "EC_e": 0.3100471239150217, 
             "name": "304330 (2006 SX217)", 
             "orbit_class": "APO", 
@@ -2067,7 +2067,7 @@
         "445305": {
             "OM_longitude_of_ascendingnode": 349.6566764841907, 
             "diameter": 0.762, 
-            "revolution": 544.9646762103105, 
+            "PR_revolution": 544.9646762103105, 
             "EC_e": 0.2924768600469775, 
             "name": "445305 (2010 DM56)", 
             "orbit_class": "APO", 
@@ -2091,7 +2091,7 @@
         "138127": {
             "OM_longitude_of_ascendingnode": 155.7698258300033, 
             "diameter": 0.754, 
-            "revolution": 196.6651562548629, 
+            "PR_revolution": 196.6651562548629, 
             "EC_e": 0.5330364529912677, 
             "name": "138127 (2000 EE14)", 
             "orbit_class": "ATE", 
@@ -2115,7 +2115,7 @@
         "11500": {
             "OM_longitude_of_ascendingnode": 234.4469933996388, 
             "diameter": 0.738, 
-            "revolution": 409.7541977601193, 
+            "PR_revolution": 409.7541977601193, 
             "EC_e": 0.3557794005126195, 
             "name": "11500 Tomaiyowit (1989 UR)", 
             "orbit_class": "APO", 
@@ -2139,7 +2139,7 @@
         "2010 UY6": {
             "OM_longitude_of_ascendingnode": 9.267944403802177, 
             "diameter": 0.712, 
-            "revolution": 1582.618251823713, 
+            "PR_revolution": 1582.618251823713, 
             "EC_e": 0.6146354228149408, 
             "name": "(2010 UY6)", 
             "orbit_class": "AMO", 
@@ -2163,7 +2163,7 @@
         "2014 NE52": {
             "OM_longitude_of_ascendingnode": 54.53730546850186, 
             "diameter": 0.701, 
-            "revolution": 1345.314479006975, 
+            "PR_revolution": 1345.314479006975, 
             "EC_e": 0.6583871870571862, 
             "name": "(2014 NE52)", 
             "orbit_class": "APO", 
@@ -2187,7 +2187,7 @@
         "3362": {
             "OM_longitude_of_ascendingnode": 152.4478065215989, 
             "diameter": 0.7, 
-            "revolution": 359.5337847595645, 
+            "PR_revolution": 359.5337847595645, 
             "EC_e": 0.4685677328906181, 
             "name": "3362 Khufu (1984 QA)", 
             "orbit_class": "ATE", 
@@ -2211,7 +2211,7 @@
         "8014": {
             "OM_longitude_of_ascendingnode": 210.2448179290151, 
             "diameter": 0.7, 
-            "revolution": 843.1974184734354, 
+            "PR_revolution": 843.1974184734354, 
             "EC_e": 0.4559081164717851, 
             "name": "8014 (1990 MF)", 
             "orbit_class": "APO", 
@@ -2235,7 +2235,7 @@
         "365071": {
             "OM_longitude_of_ascendingnode": 150.7477115155145, 
             "diameter": 0.674, 
-            "revolution": 381.7010290568976, 
+            "PR_revolution": 381.7010290568976, 
             "EC_e": 0.07397212906650603, 
             "name": "365071 (2009 AV)", 
             "orbit_class": "APO", 
@@ -2259,7 +2259,7 @@
         "386847": {
             "OM_longitude_of_ascendingnode": 352.1195029100066, 
             "diameter": 0.663, 
-            "revolution": 803.8563204047565, 
+            "PR_revolution": 803.8563204047565, 
             "EC_e": 0.4623683383170584, 
             "name": "386847 (2010 LR33)", 
             "orbit_class": "APO", 
@@ -2283,7 +2283,7 @@
         "250620": {
             "OM_longitude_of_ascendingnode": 194.9016355276011, 
             "diameter": 0.654, 
-            "revolution": 1119.969249494843, 
+            "PR_revolution": 1119.969249494843, 
             "EC_e": 0.6008482004015474, 
             "name": "250620 (2005 GE59)", 
             "orbit_class": "APO", 
@@ -2307,7 +2307,7 @@
         "2013 WT44": {
             "OM_longitude_of_ascendingnode": 182.7418198619938, 
             "diameter": 0.653, 
-            "revolution": 1240.787113341643, 
+            "PR_revolution": 1240.787113341643, 
             "EC_e": 0.5682226495455185, 
             "name": "(2013 WT44)", 
             "orbit_class": "APO", 
@@ -2331,7 +2331,7 @@
         "436329": {
             "OM_longitude_of_ascendingnode": 207.8976355524016, 
             "diameter": 0.622, 
-            "revolution": 1854.701284377607, 
+            "PR_revolution": 1854.701284377607, 
             "EC_e": 0.7043106375516814, 
             "name": "436329 (2010 GX62)", 
             "orbit_class": "APO", 
@@ -2355,7 +2355,7 @@
         "2010 TU149": {
             "OM_longitude_of_ascendingnode": 59.71495339391303, 
             "diameter": 0.603, 
-            "revolution": 1192.787755896065, 
+            "PR_revolution": 1192.787755896065, 
             "EC_e": 0.8283368611463452, 
             "name": "(2010 TU149)", 
             "orbit_class": "APO", 
@@ -2379,7 +2379,7 @@
         "2101": {
             "OM_longitude_of_ascendingnode": 349.6273705948483, 
             "diameter": 0.6, 
-            "revolution": 936.794058234393, 
+            "PR_revolution": 936.794058234393, 
             "EC_e": 0.7647906026288864, 
             "name": "2101 Adonis (1936 CA)", 
             "orbit_class": "APO", 
@@ -2403,7 +2403,7 @@
         "2010 MU112": {
             "OM_longitude_of_ascendingnode": 261.1392770674069, 
             "diameter": 0.599, 
-            "revolution": 850.0468167130052, 
+            "PR_revolution": 850.0468167130052, 
             "EC_e": 0.5404093616415623, 
             "name": "(2010 MU112)", 
             "orbit_class": "APO", 
@@ -2427,7 +2427,7 @@
         "2014 OY1": {
             "OM_longitude_of_ascendingnode": 76.31415304669454, 
             "diameter": 0.598, 
-            "revolution": 1511.510092270145, 
+            "PR_revolution": 1511.510092270145, 
             "EC_e": 0.6248625058706193, 
             "name": "(2014 OY1)", 
             "orbit_class": "APO", 
@@ -2451,7 +2451,7 @@
         "312070": {
             "OM_longitude_of_ascendingnode": 181.2098276845593, 
             "diameter": 0.595, 
-            "revolution": 340.3911279755409, 
+            "PR_revolution": 340.3911279755409, 
             "EC_e": 0.5095160131674885, 
             "name": "312070 (2007 TA19)", 
             "orbit_class": "ATE", 
@@ -2475,7 +2475,7 @@
         "2014 CY4": {
             "OM_longitude_of_ascendingnode": 126.7788723200887, 
             "diameter": 0.574, 
-            "revolution": 1577.204946588377, 
+            "PR_revolution": 1577.204946588377, 
             "EC_e": 0.8192518793733025, 
             "name": "(2014 CY4)", 
             "orbit_class": "APO", 
@@ -2499,7 +2499,7 @@
         "140158": {
             "OM_longitude_of_ascendingnode": 126.90904933066, 
             "diameter": 0.566, 
-            "revolution": 570.8887233420488, 
+            "PR_revolution": 570.8887233420488, 
             "EC_e": 0.4606887553186938, 
             "name": "140158 (2001 SX169)", 
             "orbit_class": "APO", 
@@ -2523,7 +2523,7 @@
         "13651": {
             "OM_longitude_of_ascendingnode": 116.6731904143684, 
             "diameter": 0.562, 
-            "revolution": 563.7045498711744, 
+            "PR_revolution": 563.7045498711744, 
             "EC_e": 0.305650152035622, 
             "name": "13651 (1997 BR)", 
             "orbit_class": "APO", 
@@ -2547,7 +2547,7 @@
         "267221": {
             "OM_longitude_of_ascendingnode": 211.1661436665007, 
             "diameter": 0.562, 
-            "revolution": 386.8704956714063, 
+            "PR_revolution": 386.8704956714063, 
             "EC_e": 0.6596701710580902, 
             "name": "267221 (2001 AD2)", 
             "orbit_class": "APO", 
@@ -2571,7 +2571,7 @@
         "363024": {
             "OM_longitude_of_ascendingnode": 109.7008252281189, 
             "diameter": 0.558, 
-            "revolution": 576.5694605741382, 
+            "PR_revolution": 576.5694605741382, 
             "EC_e": 0.4293493397330105, 
             "name": "363024 (1998 OK1)", 
             "orbit_class": "APO", 
@@ -2595,7 +2595,7 @@
         "409836": {
             "OM_longitude_of_ascendingnode": 222.6984468532267, 
             "diameter": 0.554, 
-            "revolution": 975.4021403067627, 
+            "PR_revolution": 975.4021403067627, 
             "EC_e": 0.5730681292385106, 
             "name": "409836 (2006 QY110)", 
             "orbit_class": "APO", 
@@ -2619,7 +2619,7 @@
         "5604": {
             "OM_longitude_of_ascendingnode": 311.9598155095754, 
             "diameter": 0.55, 
-            "revolution": 326.948552003355, 
+            "PR_revolution": 326.948552003355, 
             "EC_e": 0.4061499819246546, 
             "name": "5604 (1992 FE)", 
             "orbit_class": "ATE", 
@@ -2643,7 +2643,7 @@
         "162116": {
             "OM_longitude_of_ascendingnode": 114.2842821518657, 
             "diameter": 0.538, 
-            "revolution": 968.8596898876668, 
+            "PR_revolution": 968.8596898876668, 
             "EC_e": 0.5575521329336308, 
             "name": "162116 (1998 SA15)", 
             "orbit_class": "APO", 
@@ -2667,7 +2667,7 @@
         "480936": {
             "OM_longitude_of_ascendingnode": 299.2592862100979, 
             "diameter": 0.537, 
-            "revolution": 516.7053145833224, 
+            "PR_revolution": 516.7053145833224, 
             "EC_e": 0.2204175128613318, 
             "name": "480936 (2003 QH5)", 
             "orbit_class": "APO", 
@@ -2691,7 +2691,7 @@
         "250706": {
             "OM_longitude_of_ascendingnode": 28.1079926723153, 
             "diameter": 0.535, 
-            "revolution": 1872.082865243492, 
+            "PR_revolution": 1872.082865243492, 
             "EC_e": 0.6961685780009735, 
             "name": "250706 (2005 RR6)", 
             "orbit_class": "APO", 
@@ -2715,7 +2715,7 @@
         "152978": {
             "OM_longitude_of_ascendingnode": 57.87465674677426, 
             "diameter": 0.531, 
-            "revolution": 457.5494078476248, 
+            "PR_revolution": 457.5494078476248, 
             "EC_e": 0.2365803036841376, 
             "name": "152978 (2000 GJ147)", 
             "orbit_class": "APO", 
@@ -2739,7 +2739,7 @@
         "6489": {
             "OM_longitude_of_ascendingnode": 211.0620214977193, 
             "diameter": 0.53, 
-            "revolution": 1445.94833749117, 
+            "PR_revolution": 1445.94833749117, 
             "EC_e": 0.6052965473609275, 
             "name": "6489 Golevka (1991 JX)", 
             "orbit_class": "APO", 
@@ -2763,7 +2763,7 @@
         "153201": {
             "OM_longitude_of_ascendingnode": 69.25903128620656, 
             "diameter": 0.51, 
-            "revolution": 317.8246223612287, 
+            "PR_revolution": 317.8246223612287, 
             "EC_e": 0.780612966040514, 
             "name": "153201 (2000 WO107)", 
             "orbit_class": "ATE", 
@@ -2787,7 +2787,7 @@
         "2010 GU21": {
             "OM_longitude_of_ascendingnode": 57.21306985904683, 
             "diameter": 0.51, 
-            "revolution": 1175.969948815184, 
+            "PR_revolution": 1175.969948815184, 
             "EC_e": 0.5631917932432755, 
             "name": "(2010 GU21)", 
             "orbit_class": "APO", 
@@ -2811,7 +2811,7 @@
         "3757": {
             "OM_longitude_of_ascendingnode": 74.96878794055439, 
             "diameter": 0.5, 
-            "revolution": 907.8336641320851, 
+            "PR_revolution": 907.8336641320851, 
             "EC_e": 0.4454625145000524, 
             "name": "3757 Anagolay (1982 XB)", 
             "orbit_class": "AMO", 
@@ -2835,7 +2835,7 @@
         "244977": {
             "OM_longitude_of_ascendingnode": 210.92837386, 
             "diameter": 0.495, 
-            "revolution": 852.8999077335814, 
+            "PR_revolution": 852.8999077335814, 
             "EC_e": 0.4448802466151252, 
             "name": "244977 (2004 BE68)", 
             "orbit_class": "APO", 
@@ -2859,7 +2859,7 @@
         "101955": {
             "OM_longitude_of_ascendingnode": 2.060867872198411, 
             "diameter": 0.492, 
-            "revolution": 436.6487281868534, 
+            "PR_revolution": 436.6487281868534, 
             "EC_e": 0.2037451092832295, 
             "name": "101955 Bennu (1999 RQ36)", 
             "orbit_class": "APO", 
@@ -2883,7 +2883,7 @@
         "215588": {
             "OM_longitude_of_ascendingnode": 189.9762295959387, 
             "diameter": 0.488, 
-            "revolution": 429.3615050267971, 
+            "PR_revolution": 429.3615050267971, 
             "EC_e": 0.6755187385301357, 
             "name": "215588 (2003 HF2)", 
             "orbit_class": "APO", 
@@ -2907,7 +2907,7 @@
         "442037": {
             "OM_longitude_of_ascendingnode": 292.7795913924446, 
             "diameter": 0.488, 
-            "revolution": 1831.013425891744, 
+            "PR_revolution": 1831.013425891744, 
             "EC_e": 0.6866789126494657, 
             "name": "442037 (2010 PR66)", 
             "orbit_class": "APO", 
@@ -2931,7 +2931,7 @@
         "410777": {
             "OM_longitude_of_ascendingnode": 9.552332932608866, 
             "diameter": 0.472, 
-            "revolution": 458.0289073950145, 
+            "PR_revolution": 458.0289073950145, 
             "EC_e": 0.4929375450586259, 
             "name": "410777 (2009 FD)", 
             "orbit_class": "APO", 
@@ -2955,7 +2955,7 @@
         "398188": {
             "OM_longitude_of_ascendingnode": 134.2602538845283, 
             "diameter": 0.462, 
-            "revolution": 293.4025609863035, 
+            "PR_revolution": 293.4025609863035, 
             "EC_e": 0.2736569612088209, 
             "name": "398188 Agni (2010 LE15)", 
             "orbit_class": "ATE", 
@@ -2979,7 +2979,7 @@
         "2010 TH19": {
             "OM_longitude_of_ascendingnode": 254.2452709807046, 
             "diameter": 0.461, 
-            "revolution": 647.2768649224021, 
+            "PR_revolution": 647.2768649224021, 
             "EC_e": 0.3100833684166225, 
             "name": "(2010 TH19)", 
             "orbit_class": "APO", 
@@ -3003,7 +3003,7 @@
         "2014 ER49": {
             "OM_longitude_of_ascendingnode": 100.2703475527413, 
             "diameter": 0.461, 
-            "revolution": 1731.652434572524, 
+            "PR_revolution": 1731.652434572524, 
             "EC_e": 0.6428460705944741, 
             "name": "(2014 ER49)", 
             "orbit_class": "APO", 
@@ -3027,7 +3027,7 @@
         "163132": {
             "OM_longitude_of_ascendingnode": 157.7631960067156, 
             "diameter": 0.46, 
-            "revolution": 491.9620973354465, 
+            "PR_revolution": 491.9620973354465, 
             "EC_e": 0.295176597256662, 
             "name": "163132 (2002 CU11)", 
             "orbit_class": "APO", 
@@ -3051,7 +3051,7 @@
         "419472": {
             "OM_longitude_of_ascendingnode": 157.1413549431791, 
             "diameter": 0.459, 
-            "revolution": 495.2579050376616, 
+            "PR_revolution": 495.2579050376616, 
             "EC_e": 0.2001586958707247, 
             "name": "419472 (2010 DW1)", 
             "orbit_class": "APO", 
@@ -3075,7 +3075,7 @@
         "2008 QS11": {
             "OM_longitude_of_ascendingnode": 11.56824581821449, 
             "diameter": 0.453, 
-            "revolution": 927.679219371799, 
+            "PR_revolution": 927.679219371799, 
             "EC_e": 0.4824694333357549, 
             "name": "(2008 QS11)", 
             "orbit_class": "APO", 
@@ -3099,7 +3099,7 @@
         "85990": {
             "OM_longitude_of_ascendingnode": 124.5513617783884, 
             "diameter": 0.451, 
-            "revolution": 369.7020551984641, 
+            "PR_revolution": 369.7020551984641, 
             "EC_e": 0.3113896916773102, 
             "name": "85990 (1999 JV6)", 
             "orbit_class": "APO", 
@@ -3123,7 +3123,7 @@
         "389694": {
             "OM_longitude_of_ascendingnode": 358.8908015854648, 
             "diameter": 0.451, 
-            "revolution": 701.6650939232698, 
+            "PR_revolution": 701.6650939232698, 
             "EC_e": 0.4920470818201212, 
             "name": "389694 (2011 QD48)", 
             "orbit_class": "APO", 
@@ -3147,7 +3147,7 @@
         "267337": {
             "OM_longitude_of_ascendingnode": 54.24691663529077, 
             "diameter": 0.439, 
-            "revolution": 522.2073414330106, 
+            "PR_revolution": 522.2073414330106, 
             "EC_e": 0.514005129752028, 
             "name": "267337 (2001 VK5)", 
             "orbit_class": "APO", 
@@ -3171,7 +3171,7 @@
         "277570": {
             "OM_longitude_of_ascendingnode": 289.0392655180895, 
             "diameter": 0.439, 
-            "revolution": 587.1534994812043, 
+            "PR_revolution": 587.1534994812043, 
             "EC_e": 0.6172733941724955, 
             "name": "277570 (2005 YP180)", 
             "orbit_class": "APO", 
@@ -3195,7 +3195,7 @@
         "221980": {
             "OM_longitude_of_ascendingnode": 356.5206024962067, 
             "diameter": 0.432, 
-            "revolution": 567.4732566875158, 
+            "PR_revolution": 567.4732566875158, 
             "EC_e": 0.4007049618331717, 
             "name": "221980 (1996 EO)", 
             "orbit_class": "APO", 
@@ -3219,7 +3219,7 @@
         "207945": {
             "OM_longitude_of_ascendingnode": 53.874261672033, 
             "diameter": 0.423, 
-            "revolution": 386.8537070157454, 
+            "PR_revolution": 386.8537070157454, 
             "EC_e": 0.1186350868360502, 
             "name": "207945 (1991 JW)", 
             "orbit_class": "APO", 
@@ -3243,7 +3243,7 @@
         "4034": {
             "OM_longitude_of_ascendingnode": 158.0140756738879, 
             "diameter": 0.42, 
-            "revolution": 398.3418910704407, 
+            "PR_revolution": 398.3418910704407, 
             "EC_e": 0.4439425769671891, 
             "name": "4034 Vishnu (1986 PA)", 
             "orbit_class": "APO", 
@@ -3267,7 +3267,7 @@
         "417634": {
             "OM_longitude_of_ascendingnode": 38.47793963954599, 
             "diameter": 0.418, 
-            "revolution": 1407.616065487249, 
+            "PR_revolution": 1407.616065487249, 
             "EC_e": 0.595505586111913, 
             "name": "417634 (2006 XG1)", 
             "orbit_class": "APO", 
@@ -3291,7 +3291,7 @@
         "152754": {
             "OM_longitude_of_ascendingnode": 314.5063412859134, 
             "diameter": 0.414, 
-            "revolution": 474.7037032199969, 
+            "PR_revolution": 474.7037032199969, 
             "EC_e": 0.4973457568249125, 
             "name": "152754 (1999 GS6)", 
             "orbit_class": "APO", 
@@ -3315,7 +3315,7 @@
         "391211": {
             "OM_longitude_of_ascendingnode": 84.29125720053274, 
             "diameter": 0.412, 
-            "revolution": 954.6681407458907, 
+            "PR_revolution": 954.6681407458907, 
             "EC_e": 0.4498983075305928, 
             "name": "391211 (2006 HZ51)", 
             "orbit_class": "AMO", 
@@ -3339,7 +3339,7 @@
         "297418": {
             "OM_longitude_of_ascendingnode": 350.5850178797646, 
             "diameter": 0.407, 
-            "revolution": 266.9449087161678, 
+            "PR_revolution": 266.9449087161678, 
             "EC_e": 0.4669622105465801, 
             "name": "297418 (2000 SP43)", 
             "orbit_class": "ATE", 
@@ -3363,7 +3363,7 @@
         "2010 FC81": {
             "OM_longitude_of_ascendingnode": 144.3255970109729, 
             "diameter": 0.402, 
-            "revolution": 1601.33484344411, 
+            "PR_revolution": 1601.33484344411, 
             "EC_e": 0.6234895603918827, 
             "name": "(2010 FC81)", 
             "orbit_class": "APO", 
@@ -3387,7 +3387,7 @@
         "2013 YP139": {
             "OM_longitude_of_ascendingnode": 292.1276114561584, 
             "diameter": 0.402, 
-            "revolution": 1357.322360059198, 
+            "PR_revolution": 1357.322360059198, 
             "EC_e": 0.6831035114896766, 
             "name": "(2013 YP139)", 
             "orbit_class": "APO", 
@@ -3411,7 +3411,7 @@
         "162000": {
             "OM_longitude_of_ascendingnode": 346.61777143, 
             "diameter": 0.4, 
-            "revolution": 794.2695967306579, 
+            "PR_revolution": 794.2695967306579, 
             "EC_e": 0.4628783423410079, 
             "name": "162000 (1990 OS)", 
             "orbit_class": "APO", 
@@ -3435,7 +3435,7 @@
         "301844": {
             "OM_longitude_of_ascendingnode": 104.2666836278587, 
             "diameter": 0.4, 
-            "revolution": 768.667372455815, 
+            "PR_revolution": 768.667372455815, 
             "EC_e": 0.5260041127675394, 
             "name": "301844 (1990 UA)", 
             "orbit_class": "APO", 
@@ -3459,7 +3459,7 @@
         "308635": {
             "OM_longitude_of_ascendingnode": 35.9400689023995, 
             "diameter": 0.4, 
-            "revolution": 454.6262410884338, 
+            "PR_revolution": 454.6262410884338, 
             "EC_e": 0.4304489333783271, 
             "name": "308635 (2005 YU55)", 
             "orbit_class": "APO", 
@@ -3483,7 +3483,7 @@
         "341843": {
             "OM_longitude_of_ascendingnode": 93.38970510557428, 
             "diameter": 0.4, 
-            "revolution": 342.6488269969847, 
+            "PR_revolution": 342.6488269969847, 
             "EC_e": 0.08348437993668943, 
             "name": "341843 (2008 EV5)", 
             "orbit_class": "ATE", 
@@ -3507,7 +3507,7 @@
         "360191": {
             "OM_longitude_of_ascendingnode": 194.7184701483327, 
             "diameter": 0.4, 
-            "revolution": 697.9600515562736, 
+            "PR_revolution": 697.9600515562736, 
             "EC_e": 0.478346403463868, 
             "name": "360191 (1988 TA)", 
             "orbit_class": "APO", 
@@ -3531,7 +3531,7 @@
         "1989 VB": {
             "OM_longitude_of_ascendingnode": 38.79309294279546, 
             "diameter": 0.4, 
-            "revolution": 929.2211717910216, 
+            "PR_revolution": 929.2211717910216, 
             "EC_e": 0.4611258289527248, 
             "name": "(1989 VB)", 
             "orbit_class": "APO", 
@@ -3555,7 +3555,7 @@
         "250680": {
             "OM_longitude_of_ascendingnode": 48.10255053174333, 
             "diameter": 0.398, 
-            "revolution": 308.2859702600807, 
+            "PR_revolution": 308.2859702600807, 
             "EC_e": 0.3645097616477859, 
             "name": "250680 (2005 QC5)", 
             "orbit_class": "ATE", 
@@ -3579,7 +3579,7 @@
         "163818": {
             "OM_longitude_of_ascendingnode": 241.0761612960961, 
             "diameter": 0.386, 
-            "revolution": 497.7760789915132, 
+            "PR_revolution": 497.7760789915132, 
             "EC_e": 0.3543832865094087, 
             "name": "163818 (2003 RX7)", 
             "orbit_class": "APO", 
@@ -3603,7 +3603,7 @@
         "367248": {
             "OM_longitude_of_ascendingnode": 95.09652174011394, 
             "diameter": 0.386, 
-            "revolution": 378.8477570114375, 
+            "PR_revolution": 378.8477570114375, 
             "EC_e": 0.1397970173963595, 
             "name": "367248 (2007 MK13)", 
             "orbit_class": "APO", 
@@ -3627,7 +3627,7 @@
         "2010 CO1": {
             "OM_longitude_of_ascendingnode": 351.6002296966106, 
             "diameter": 0.38, 
-            "revolution": 371.879667993019, 
+            "PR_revolution": 371.879667993019, 
             "EC_e": 0.2180210389350263, 
             "name": "(2010 CO1)", 
             "orbit_class": "APO", 
@@ -3651,7 +3651,7 @@
         "2010 VZ": {
             "OM_longitude_of_ascendingnode": 181.9545983638489, 
             "diameter": 0.38, 
-            "revolution": 1396.866172741665, 
+            "PR_revolution": 1396.866172741665, 
             "EC_e": 0.5920648997986957, 
             "name": "(2010 VZ)", 
             "orbit_class": "APO", 
@@ -3675,7 +3675,7 @@
         "2014 EQ49": {
             "OM_longitude_of_ascendingnode": 11.54639792281144, 
             "diameter": 0.379, 
-            "revolution": 449.0467456157741, 
+            "PR_revolution": 449.0467456157741, 
             "EC_e": 0.2066801262877156, 
             "name": "(2014 EQ49)", 
             "orbit_class": "APO", 
@@ -3699,7 +3699,7 @@
         "414286": {
             "OM_longitude_of_ascendingnode": 177.6126763455327, 
             "diameter": 0.369, 
-            "revolution": 323.9053333962744, 
+            "PR_revolution": 323.9053333962744, 
             "EC_e": 0.19920430586072, 
             "name": "414286 (2008 OC6)", 
             "orbit_class": "ATE", 
@@ -3723,7 +3723,7 @@
         "386454": {
             "OM_longitude_of_ascendingnode": 240.6348262392476, 
             "diameter": 0.367, 
-            "revolution": 493.5395323230591, 
+            "PR_revolution": 493.5395323230591, 
             "EC_e": 0.9091178015420474, 
             "name": "386454 (2008 XM)", 
             "orbit_class": "APO", 
@@ -3747,7 +3747,7 @@
         "387746": {
             "OM_longitude_of_ascendingnode": 259.8370083521742, 
             "diameter": 0.366, 
-            "revolution": 1005.022331303131, 
+            "PR_revolution": 1005.022331303131, 
             "EC_e": 0.513888794770636, 
             "name": "387746 (2003 MH4)", 
             "orbit_class": "APO", 
@@ -3771,7 +3771,7 @@
         "2010 MF1": {
             "OM_longitude_of_ascendingnode": 287.0099736163561, 
             "diameter": 0.363, 
-            "revolution": 1443.535985294204, 
+            "PR_revolution": 1443.535985294204, 
             "EC_e": 0.5883209798382277, 
             "name": "(2010 MF1)", 
             "orbit_class": "AMO", 
@@ -3795,7 +3795,7 @@
         "265196": {
             "OM_longitude_of_ascendingnode": 132.6817465723776, 
             "diameter": 0.361, 
-            "revolution": 641.044465625455, 
+            "PR_revolution": 641.044465625455, 
             "EC_e": 0.3787606704720644, 
             "name": "265196 (2004 BW58)", 
             "orbit_class": "APO", 
@@ -3819,7 +3819,7 @@
         "419624": {
             "OM_longitude_of_ascendingnode": 40.39650155274683, 
             "diameter": 0.357, 
-            "revolution": 366.8194646371758, 
+            "PR_revolution": 366.8194646371758, 
             "EC_e": 0.07543526900428794, 
             "name": "419624 (2010 SO16)", 
             "orbit_class": "APO", 
@@ -3843,7 +3843,7 @@
         "2010 CN44": {
             "OM_longitude_of_ascendingnode": 189.6993197804151, 
             "diameter": 0.34, 
-            "revolution": 1756.362815054158, 
+            "PR_revolution": 1756.362815054158, 
             "EC_e": 0.676393838079443, 
             "name": "(2010 CN44)", 
             "orbit_class": "APO", 
@@ -3867,7 +3867,7 @@
         "162567": {
             "OM_longitude_of_ascendingnode": 333.3319041693359, 
             "diameter": 0.335, 
-            "revolution": 508.9766637485827, 
+            "PR_revolution": 508.9766637485827, 
             "EC_e": 0.2501024399171, 
             "name": "162567 (2000 RW37)", 
             "orbit_class": "APO", 
@@ -3891,7 +3891,7 @@
         "4660": {
             "OM_longitude_of_ascendingnode": 314.443416122916, 
             "diameter": 0.33, 
-            "revolution": 663.4409816434819, 
+            "PR_revolution": 663.4409816434819, 
             "EC_e": 0.3600073024366465, 
             "name": "4660 Nereus (1982 DB)", 
             "orbit_class": "APO", 
@@ -3915,7 +3915,7 @@
         "25143": {
             "OM_longitude_of_ascendingnode": 69.08002450397387, 
             "diameter": 0.33, 
-            "revolution": 556.5269742104316, 
+            "PR_revolution": 556.5269742104316, 
             "EC_e": 0.2801684689189635, 
             "name": "25143 Itokawa (1998 SF36)", 
             "orbit_class": "APO", 
@@ -3939,7 +3939,7 @@
         "99942": {
             "OM_longitude_of_ascendingnode": 204.4571896287176, 
             "diameter": 0.325, 
-            "revolution": 323.513068841623, 
+            "PR_revolution": 323.513068841623, 
             "EC_e": 0.1910795219761208, 
             "name": "99942 Apophis (2004 MN4)", 
             "orbit_class": "ATE", 
@@ -3963,7 +3963,7 @@
         "2014 HQ124": {
             "OM_longitude_of_ascendingnode": 257.5633904124897, 
             "diameter": 0.325, 
-            "revolution": 286.6550569851685, 
+            "PR_revolution": 286.6550569851685, 
             "EC_e": 0.2591852585889569, 
             "name": "(2014 HQ124)", 
             "orbit_class": "ATE", 
@@ -3987,7 +3987,7 @@
         "477519": {
             "OM_longitude_of_ascendingnode": 149.942229666886, 
             "diameter": 0.321, 
-            "revolution": 510.3805352619897, 
+            "PR_revolution": 510.3805352619897, 
             "EC_e": 0.2453827114702143, 
             "name": "477519 (2010 DJ56)", 
             "orbit_class": "APO", 
@@ -4011,7 +4011,7 @@
         "297300": {
             "OM_longitude_of_ascendingnode": 198.7455009647564, 
             "diameter": 0.32, 
-            "revolution": 524.5209363441276, 
+            "PR_revolution": 524.5209363441276, 
             "EC_e": 0.4143891613512432, 
             "name": "297300 (1998 SC15)", 
             "orbit_class": "APO", 
@@ -4035,7 +4035,7 @@
         "2000 AA6": {
             "OM_longitude_of_ascendingnode": 279.8360421373115, 
             "diameter": 0.316, 
-            "revolution": 533.0107782097747, 
+            "PR_revolution": 533.0107782097747, 
             "EC_e": 0.5194540869703551, 
             "name": "(2000 AA6)", 
             "orbit_class": "APO", 
@@ -4059,7 +4059,7 @@
         "2010 DG77": {
             "OM_longitude_of_ascendingnode": 291.4292177773195, 
             "diameter": 0.315, 
-            "revolution": 880.6979270655485, 
+            "PR_revolution": 880.6979270655485, 
             "EC_e": 0.4635949111259499, 
             "name": "(2010 DG77)", 
             "orbit_class": "APO", 
@@ -4083,7 +4083,7 @@
         "468727": {
             "OM_longitude_of_ascendingnode": 120.5198624026117, 
             "diameter": 0.308, 
-            "revolution": 314.1557776629186, 
+            "PR_revolution": 314.1557776629186, 
             "EC_e": 0.4369551957466873, 
             "name": "468727 (2010 JE87)", 
             "orbit_class": "ATE", 
@@ -4107,7 +4107,7 @@
         "2340": {
             "OM_longitude_of_ascendingnode": 211.5421370750162, 
             "diameter": 0.3, 
-            "revolution": 283.1263476642372, 
+            "PR_revolution": 283.1263476642372, 
             "EC_e": 0.4498841655895494, 
             "name": "2340 Hathor (1976 UA)", 
             "orbit_class": "ATE", 
@@ -4131,7 +4131,7 @@
         "3361": {
             "OM_longitude_of_ascendingnode": 189.5838349467661, 
             "diameter": 0.3, 
-            "revolution": 485.8815977806298, 
+            "PR_revolution": 485.8815977806298, 
             "EC_e": 0.3228106082004903, 
             "name": "3361 Orpheus (1982 HR)", 
             "orbit_class": "APO", 
@@ -4155,7 +4155,7 @@
         "1989 UP": {
             "OM_longitude_of_ascendingnode": 53.25085296924924, 
             "diameter": 0.3, 
-            "revolution": 929.6678839837068, 
+            "PR_revolution": 929.6678839837068, 
             "EC_e": 0.4728048443551796, 
             "name": "(1989 UP)", 
             "orbit_class": "APO", 
@@ -4179,7 +4179,7 @@
         "152671": {
             "OM_longitude_of_ascendingnode": 163.6848804607214, 
             "diameter": 0.298, 
-            "revolution": 438.0613544534804, 
+            "PR_revolution": 438.0613544534804, 
             "EC_e": 0.3660078747798312, 
             "name": "152671 (1998 HL3)", 
             "orbit_class": "APO", 
@@ -4203,7 +4203,7 @@
         "390725": {
             "OM_longitude_of_ascendingnode": 70.39111293798089, 
             "diameter": 0.293, 
-            "revolution": 286.1075564912442, 
+            "PR_revolution": 286.1075564912442, 
             "EC_e": 0.3805761069972231, 
             "name": "390725 (2003 HB)", 
             "orbit_class": "ATE", 
@@ -4227,7 +4227,7 @@
         "252399": {
             "OM_longitude_of_ascendingnode": 57.80287359822461, 
             "diameter": 0.291, 
-            "revolution": 298.8050165075455, 
+            "PR_revolution": 298.8050165075455, 
             "EC_e": 0.5460081782024339, 
             "name": "252399 (2001 TX44)", 
             "orbit_class": "ATE", 
@@ -4251,7 +4251,7 @@
         "2010 FQ": {
             "OM_longitude_of_ascendingnode": 140.4667231863245, 
             "diameter": 0.285, 
-            "revolution": 689.258597409379, 
+            "PR_revolution": 689.258597409379, 
             "EC_e": 0.3562379222311565, 
             "name": "(2010 FQ)", 
             "orbit_class": "APO", 
@@ -4275,7 +4275,7 @@
         "2010 DJ77": {
             "OM_longitude_of_ascendingnode": 286.7966933159186, 
             "diameter": 0.277, 
-            "revolution": 341.060666760401, 
+            "PR_revolution": 341.060666760401, 
             "EC_e": 0.212834614172195, 
             "name": "(2010 DJ77)", 
             "orbit_class": "ATE", 
@@ -4299,7 +4299,7 @@
         "2010 XP69": {
             "OM_longitude_of_ascendingnode": 199.8717530908799, 
             "diameter": 0.273, 
-            "revolution": 686.9976935248168, 
+            "PR_revolution": 686.9976935248168, 
             "EC_e": 0.3431041233510382, 
             "name": "(2010 XP69)", 
             "orbit_class": "APO", 
@@ -4323,7 +4323,7 @@
         "2003 UV11": {
             "OM_longitude_of_ascendingnode": 31.92904234274753, 
             "diameter": 0.26, 
-            "revolution": 639.6411728567639, 
+            "PR_revolution": 639.6411728567639, 
             "EC_e": 0.7628373772843374, 
             "name": "(2003 UV11)", 
             "orbit_class": "APO", 
@@ -4347,7 +4347,7 @@
         "2007 EF": {
             "OM_longitude_of_ascendingnode": 158.3762559267166, 
             "diameter": 0.26, 
-            "revolution": 271.3783079653338, 
+            "PR_revolution": 271.3783079653338, 
             "EC_e": 0.4101333687361926, 
             "name": "(2007 EF)", 
             "orbit_class": "ATE", 
@@ -4371,7 +4371,7 @@
         "141432": {
             "OM_longitude_of_ascendingnode": 81.35597636609009, 
             "diameter": 0.239, 
-            "revolution": 353.5175145093002, 
+            "PR_revolution": 353.5175145093002, 
             "EC_e": 0.4283132812519154, 
             "name": "141432 (2002 CQ11)", 
             "orbit_class": "ATE", 
@@ -4395,7 +4395,7 @@
         "2010 ON101": {
             "OM_longitude_of_ascendingnode": 251.6013502381015, 
             "diameter": 0.238, 
-            "revolution": 759.5339498243761, 
+            "PR_revolution": 759.5339498243761, 
             "EC_e": 0.408959907780827, 
             "name": "(2010 ON101)", 
             "orbit_class": "APO", 
@@ -4419,7 +4419,7 @@
         "490581": {
             "OM_longitude_of_ascendingnode": 263.2779736491007, 
             "diameter": 0.237, 
-            "revolution": 288.9488554643783, 
+            "PR_revolution": 288.9488554643783, 
             "EC_e": 0.1926426222105336, 
             "name": "490581 (2009 WZ104)", 
             "orbit_class": "ATE", 
@@ -4443,7 +4443,7 @@
         "371660": {
             "OM_longitude_of_ascendingnode": 159.3075773397189, 
             "diameter": 0.23, 
-            "revolution": 536.8263664001465, 
+            "PR_revolution": 536.8263664001465, 
             "EC_e": 0.2691804387389481, 
             "name": "371660 (2007 CN26)", 
             "orbit_class": "APO", 
@@ -4467,7 +4467,7 @@
         "441987": {
             "OM_longitude_of_ascendingnode": 268.122934918214, 
             "diameter": 0.228, 
-            "revolution": 364.1147868858626, 
+            "PR_revolution": 364.1147868858626, 
             "EC_e": 0.3695122801996646, 
             "name": "441987 (2010 NY65)", 
             "orbit_class": "ATE", 
@@ -4491,7 +4491,7 @@
         "462238": {
             "OM_longitude_of_ascendingnode": 331.5301930493732, 
             "diameter": 0.227, 
-            "revolution": 247.190864495816, 
+            "PR_revolution": 247.190864495816, 
             "EC_e": 0.347714349340407, 
             "name": "462238 (2008 CN1)", 
             "orbit_class": "ATE", 
@@ -4515,7 +4515,7 @@
         "2010 JV34": {
             "OM_longitude_of_ascendingnode": 225.373343358336, 
             "diameter": 0.226, 
-            "revolution": 825.9788514161331, 
+            "PR_revolution": 825.9788514161331, 
             "EC_e": 0.5438881357686699, 
             "name": "(2010 JV34)", 
             "orbit_class": "APO", 
@@ -4539,7 +4539,7 @@
         "2010 GT7": {
             "OM_longitude_of_ascendingnode": 75.57616195554579, 
             "diameter": 0.216, 
-            "revolution": 1633.616487406355, 
+            "PR_revolution": 1633.616487406355, 
             "EC_e": 0.6831066032034557, 
             "name": "(2010 GT7)", 
             "orbit_class": "APO", 
@@ -4563,7 +4563,7 @@
         "2010 JN71": {
             "OM_longitude_of_ascendingnode": 62.45369493087398, 
             "diameter": 0.214, 
-            "revolution": 1343.970099315442, 
+            "PR_revolution": 1343.970099315442, 
             "EC_e": 0.5890104509181365, 
             "name": "(2010 JN71)", 
             "orbit_class": "APO", 
@@ -4587,7 +4587,7 @@
         "2010 PW58": {
             "OM_longitude_of_ascendingnode": 324.4683825158796, 
             "diameter": 0.213, 
-            "revolution": 306.032010397551, 
+            "PR_revolution": 306.032010397551, 
             "EC_e": 0.2117752909539491, 
             "name": "(2010 PW58)", 
             "orbit_class": "ATE", 
@@ -4611,7 +4611,7 @@
         "365424": {
             "OM_longitude_of_ascendingnode": 46.5079357889823, 
             "diameter": 0.212, 
-            "revolution": 359.7129337539907, 
+            "PR_revolution": 359.7129337539907, 
             "EC_e": 0.1710431029397441, 
             "name": "365424 (2010 KX7)", 
             "orbit_class": "ATE", 
@@ -4635,7 +4635,7 @@
         "2010 JK33": {
             "OM_longitude_of_ascendingnode": 28.67634759079743, 
             "diameter": 0.208, 
-            "revolution": 1217.863246094556, 
+            "PR_revolution": 1217.863246094556, 
             "EC_e": 0.6096319480390419, 
             "name": "(2010 JK33)", 
             "orbit_class": "APO", 
@@ -4659,7 +4659,7 @@
         "41429": {
             "OM_longitude_of_ascendingnode": 351.9605677733203, 
             "diameter": 0.204, 
-            "revolution": 734.0538780616956, 
+            "PR_revolution": 734.0538780616956, 
             "EC_e": 0.5552919817551426, 
             "name": "41429 (2000 GE2)", 
             "orbit_class": "APO", 
@@ -4683,7 +4683,7 @@
         "333578": {
             "OM_longitude_of_ascendingnode": 169.5007233624131, 
             "diameter": 0.204, 
-            "revolution": 721.1203945244606, 
+            "PR_revolution": 721.1203945244606, 
             "EC_e": 0.3768073209959183, 
             "name": "333578 (2006 KM103)", 
             "orbit_class": "APO", 
@@ -4707,7 +4707,7 @@
         "2010 GS7": {
             "OM_longitude_of_ascendingnode": 190.920166793864, 
             "diameter": 0.203, 
-            "revolution": 1611.886940243894, 
+            "PR_revolution": 1611.886940243894, 
             "EC_e": 0.6602396305315228, 
             "name": "(2010 GS7)", 
             "orbit_class": "APO", 
@@ -4731,7 +4731,7 @@
         "423321": {
             "OM_longitude_of_ascendingnode": 82.06785020752748, 
             "diameter": 0.202, 
-            "revolution": 919.0024448092834, 
+            "PR_revolution": 919.0024448092834, 
             "EC_e": 0.4495699910846291, 
             "name": "423321 (2005 ED318)", 
             "orbit_class": "AMO", 
@@ -4755,7 +4755,7 @@
         "483508": {
             "OM_longitude_of_ascendingnode": 311.0143959773931, 
             "diameter": 0.202, 
-            "revolution": 639.812644827478, 
+            "PR_revolution": 639.812644827478, 
             "EC_e": 0.4630344218303549, 
             "name": "483508 (2003 CR1)", 
             "orbit_class": "APO", 
@@ -4779,7 +4779,7 @@
         "2010 FH81": {
             "OM_longitude_of_ascendingnode": 84.62930679460825, 
             "diameter": 0.2, 
-            "revolution": 495.597820944911, 
+            "PR_revolution": 495.597820944911, 
             "EC_e": 0.2104479432284866, 
             "name": "(2010 FH81)", 
             "orbit_class": "APO", 

@@ -3,7 +3,7 @@
         "Starman": {
             "OM_longitude_of_ascendingnode": 358.2144541378262, 
             "diameter": 90.0, 
-            "revolution": 0.0, 
+            "PR_revolution": 0.0, 
             "EC_e": 0.2647486804652587, 
             "name": "Spacex Starman", 
             "orbit_class": "", 
@@ -27,7 +27,7 @@
         "1": {
             "OM_longitude_of_ascendingnode": 80.3088826123586, 
             "diameter": 939.4, 
-            "revolution": 1681.545131049408, 
+            "PR_revolution": 1681.545131049408, 
             "EC_e": 0.07560729117115973, 
             "name": "1 Ceres", 
             "orbit_class": "MBA", 
@@ -51,7 +51,7 @@
         "2": {
             "OM_longitude_of_ascendingnode": 173.0871774252975, 
             "diameter": 545.0, 
-            "revolution": 1686.720935053304, 
+            "PR_revolution": 1686.720935053304, 
             "EC_e": 0.2305974109006172, 
             "name": "2 Pallas", 
             "orbit_class": "MBA", 
@@ -75,7 +75,7 @@
         "4": {
             "OM_longitude_of_ascendingnode": 103.8358792056089, 
             "diameter": 525.4, 
-            "revolution": 1325.735588200211, 
+            "PR_revolution": 1325.735588200211, 
             "EC_e": 0.08915261042902074, 
             "name": "4 Vesta", 
             "orbit_class": "MBA", 
@@ -99,7 +99,7 @@
         "10": {
             "OM_longitude_of_ascendingnode": 283.2182652049031, 
             "diameter": 407.12, 
-            "revolution": 2032.20558582307, 
+            "PR_revolution": 2032.20558582307, 
             "EC_e": 0.1126909549141323, 
             "name": "10 Hygiea", 
             "orbit_class": "MBA", 
@@ -123,7 +123,7 @@
         "704": {
             "OM_longitude_of_ascendingnode": 280.2920015867447, 
             "diameter": 306.313, 
-            "revolution": 1953.765132808635, 
+            "PR_revolution": 1953.765132808635, 
             "EC_e": 0.154487207315495, 
             "name": "704 Interamnia (1910 KU)", 
             "orbit_class": "MBA", 
@@ -147,7 +147,7 @@
         "52": {
             "OM_longitude_of_ascendingnode": 128.6198195220414, 
             "diameter": 303.918, 
-            "revolution": 1988.303577211919, 
+            "PR_revolution": 1988.303577211919, 
             "EC_e": 0.1098865727687213, 
             "name": "52 Europa", 
             "orbit_class": "MBA", 
@@ -171,7 +171,7 @@
         "10199": {
             "OM_longitude_of_ascendingnode": 300.416187483083, 
             "diameter": 302.0, 
-            "revolution": 22986.86827921858, 
+            "PR_revolution": 22986.86827921858, 
             "EC_e": 0.1720906277732013, 
             "name": "10199 Chariklo (1997 CU26)", 
             "orbit_class": "CEN", 
@@ -195,7 +195,7 @@
         "511": {
             "OM_longitude_of_ascendingnode": 107.6070611236462, 
             "diameter": 270.327, 
-            "revolution": 2054.862190014612, 
+            "PR_revolution": 2054.862190014612, 
             "EC_e": 0.1881385508469541, 
             "name": "511 Davida (1903 LU)", 
             "orbit_class": "MBA", 
@@ -219,7 +219,7 @@
         "31": {
             "OM_longitude_of_ascendingnode": 31.11867728583171, 
             "diameter": 267.08, 
-            "revolution": 2047.957226235613, 
+            "PR_revolution": 2047.957226235613, 
             "EC_e": 0.2213017871751636, 
             "name": "31 Euphrosyne", 
             "orbit_class": "MBA", 
@@ -243,7 +243,7 @@
         "451": {
             "OM_longitude_of_ascendingnode": 89.24050567493691, 
             "diameter": 253.9, 
-            "revolution": 1956.709171691882, 
+            "PR_revolution": 1956.709171691882, 
             "EC_e": 0.07539228761552995, 
             "name": "451 Patientia (1899 EY)", 
             "orbit_class": "MBA", 
@@ -267,7 +267,7 @@
         "16": {
             "OM_longitude_of_ascendingnode": 150.2630047356972, 
             "diameter": 253.16, 
-            "revolution": 1827.866571375348, 
+            "PR_revolution": 1827.866571375348, 
             "EC_e": 0.13485846347857, 
             "name": "16 Psyche", 
             "orbit_class": "MBA", 
@@ -291,7 +291,7 @@
         "87": {
             "OM_longitude_of_ascendingnode": 73.05054610157953, 
             "diameter": 253.051, 
-            "revolution": 2372.456169105967, 
+            "PR_revolution": 2372.456169105967, 
             "EC_e": 0.09256575203954613, 
             "name": "87 Sylvia", 
             "orbit_class": "OMB", 
@@ -315,7 +315,7 @@
         "3": {
             "OM_longitude_of_ascendingnode": 169.8582922221972, 
             "diameter": 246.596, 
-            "revolution": 1592.233864345491, 
+            "PR_revolution": 1592.233864345491, 
             "EC_e": 0.256853452328373, 
             "name": "3 Juno", 
             "orbit_class": "MBA", 
@@ -339,7 +339,7 @@
         "65": {
             "OM_longitude_of_ascendingnode": 155.6292653194391, 
             "diameter": 237.26, 
-            "revolution": 2318.535793859076, 
+            "PR_revolution": 2318.535793859076, 
             "EC_e": 0.1114056670207255, 
             "name": "65 Cybele", 
             "orbit_class": "OMB", 
@@ -363,7 +363,7 @@
         "88": {
             "OM_longitude_of_ascendingnode": 276.4950199039667, 
             "diameter": 232.0, 
-            "revolution": 1684.715544411341, 
+            "PR_revolution": 1684.715544411341, 
             "EC_e": 0.1621196159280189, 
             "name": "88 Thisbe", 
             "orbit_class": "MBA", 
@@ -387,7 +387,7 @@
         "15": {
             "OM_longitude_of_ascendingnode": 293.1409443529098, 
             "diameter": 231.689, 
-            "revolution": 1571.173716526873, 
+            "PR_revolution": 1571.173716526873, 
             "EC_e": 0.1866984345652203, 
             "name": "15 Eunomia", 
             "orbit_class": "MBA", 
@@ -411,7 +411,7 @@
         "95626": {
             "OM_longitude_of_ascendingnode": 107.2828089279265, 
             "diameter": 230.5, 
-            "revolution": 40864.0369967228, 
+            "PR_revolution": 40864.0369967228, 
             "EC_e": 0.2241610812290184, 
             "name": "95626 (2002 GZ32)", 
             "orbit_class": "CEN", 
@@ -435,7 +435,7 @@
         "624": {
             "OM_longitude_of_ascendingnode": 342.7874180729323, 
             "diameter": 225.0, 
-            "revolution": 4401.404737891409, 
+            "PR_revolution": 4401.404737891409, 
             "EC_e": 0.02403734581704913, 
             "name": "624 Hektor (1907 XM)", 
             "orbit_class": "TJN", 
@@ -459,7 +459,7 @@
         "13": {
             "OM_longitude_of_ascendingnode": 43.23687942514976, 
             "diameter": 222.792, 
-            "revolution": 1510.902915376392, 
+            "PR_revolution": 1510.902915376392, 
             "EC_e": 0.08377548386806408, 
             "name": "13 Egeria", 
             "orbit_class": "MBA", 
@@ -483,7 +483,7 @@
         "324": {
             "OM_longitude_of_ascendingnode": 327.8600987627221, 
             "diameter": 220.691, 
-            "revolution": 1603.766595924887, 
+            "PR_revolution": 1603.766595924887, 
             "EC_e": 0.3404644984533435, 
             "name": "324 Bamberga", 
             "orbit_class": "MBA", 
@@ -507,7 +507,7 @@
         "48": {
             "OM_longitude_of_ascendingnode": 183.5646742260041, 
             "diameter": 216.473, 
-            "revolution": 2004.891650508239, 
+            "PR_revolution": 2004.891650508239, 
             "EC_e": 0.07283651812876665, 
             "name": "48 Doris", 
             "orbit_class": "MBA", 
@@ -531,7 +531,7 @@
         "375": {
             "OM_longitude_of_ascendingnode": 336.5710332514313, 
             "diameter": 216.0, 
-            "revolution": 2016.459953948938, 
+            "PR_revolution": 2016.459953948938, 
             "EC_e": 0.1059015834712286, 
             "name": "375 Ursula (1893 AL)", 
             "orbit_class": "MBA", 
@@ -555,7 +555,7 @@
         "107": {
             "OM_longitude_of_ascendingnode": 172.61086924, 
             "diameter": 210.37, 
-            "revolution": 2382.1020933587, 
+            "PR_revolution": 2382.1020933587, 
             "EC_e": 0.06573532957784638, 
             "name": "107 Camilla", 
             "orbit_class": "OMB", 
@@ -579,7 +579,7 @@
         "121": {
             "OM_longitude_of_ascendingnode": 73.13064374664354, 
             "diameter": 209.0, 
-            "revolution": 2337.68808992198, 
+            "PR_revolution": 2337.68808992198, 
             "EC_e": 0.1333947755127489, 
             "name": "121 Hermione", 
             "orbit_class": "OMB", 
@@ -603,7 +603,7 @@
         "117": {
             "OM_longitude_of_ascendingnode": 348.7835559560114, 
             "diameter": 208.974, 
-            "revolution": 1889.861376738689, 
+            "PR_revolution": 1889.861376738689, 
             "EC_e": 0.0278637000479154, 
             "name": "117 Lomia", 
             "orbit_class": "MBA", 
@@ -627,7 +627,7 @@
         "106": {
             "OM_longitude_of_ascendingnode": 62.15479146229219, 
             "diameter": 207.869, 
-            "revolution": 2067.0468844603, 
+            "PR_revolution": 2067.0468844603, 
             "EC_e": 0.1661508719781144, 
             "name": "106 Dione", 
             "orbit_class": "MBA", 
@@ -651,7 +651,7 @@
         "41": {
             "OM_longitude_of_ascendingnode": 178.0905239169724, 
             "diameter": 205.495, 
-            "revolution": 1675.244540789923, 
+            "PR_revolution": 1675.244540789923, 
             "EC_e": 0.2757893423759838, 
             "name": "41 Daphne", 
             "orbit_class": "MBA", 
@@ -675,7 +675,7 @@
         "94": {
             "OM_longitude_of_ascendingnode": 2.580421596000191, 
             "diameter": 204.89, 
-            "revolution": 2048.130122038746, 
+            "PR_revolution": 2048.130122038746, 
             "EC_e": 0.09356239196685735, 
             "name": "94 Aurora", 
             "orbit_class": "MBA", 
@@ -699,7 +699,7 @@
         "45": {
             "OM_longitude_of_ascendingnode": 147.6713443442752, 
             "diameter": 202.327, 
-            "revolution": 1638.11624677353, 
+            "PR_revolution": 1638.11624677353, 
             "EC_e": 0.08399506498648018, 
             "name": "45 Eugenia", 
             "orbit_class": "MBA", 
@@ -723,7 +723,7 @@
         "19": {
             "OM_longitude_of_ascendingnode": 211.142699376109, 
             "diameter": 200.0, 
-            "revolution": 1393.740814507447, 
+            "PR_revolution": 1393.740814507447, 
             "EC_e": 0.1587423105768554, 
             "name": "19 Fortuna", 
             "orbit_class": "MBA", 
@@ -747,7 +747,7 @@
         "884": {
             "OM_longitude_of_ascendingnode": 301.5587568275818, 
             "diameter": 101.093, 
-            "revolution": 4308.385728117957, 
+            "PR_revolution": 4308.385728117957, 
             "EC_e": 0.1219357025924379, 
             "name": "884 Priamus (1917 CQ)", 
             "orbit_class": "TJN", 
@@ -771,7 +771,7 @@
         "911": {
             "OM_longitude_of_ascendingnode": 338.0082277658631, 
             "diameter": 131.038, 
-            "revolution": 4426.505977584196, 
+            "PR_revolution": 4426.505977584196, 
             "EC_e": 0.06564559226977358, 
             "name": "911 Agamemnon (1919 FD)", 
             "orbit_class": "TJN", 
@@ -795,7 +795,7 @@
         "1143": {
             "OM_longitude_of_ascendingnode": 221.2890708502383, 
             "diameter": 114.624, 
-            "revolution": 4393.361996569107, 
+            "PR_revolution": 4393.361996569107, 
             "EC_e": 0.0892716579107441, 
             "name": "1143 Odysseus (1930 BH)", 
             "orbit_class": "TJN", 
@@ -819,7 +819,7 @@
         "1172": {
             "OM_longitude_of_ascendingnode": 247.3261334068605, 
             "diameter": 118.02, 
-            "revolution": 4353.629076384355, 
+            "PR_revolution": 4353.629076384355, 
             "EC_e": 0.1036917573001626, 
             "name": "1172 Aneas (1930 UA)", 
             "orbit_class": "TJN", 
@@ -843,7 +843,7 @@
         "1173": {
             "OM_longitude_of_ascendingnode": 283.9077539439996, 
             "diameter": 99.549, 
-            "revolution": 4452.609821875952, 
+            "PR_revolution": 4452.609821875952, 
             "EC_e": 0.1371634024711917, 
             "name": "1173 Anchises (1930 UB)", 
             "orbit_class": "TJN", 
@@ -867,7 +867,7 @@
         "1208": {
             "OM_longitude_of_ascendingnode": 48.54672168321487, 
             "diameter": 100.477, 
-            "revolution": 4394.119999008092, 
+            "PR_revolution": 4394.119999008092, 
             "EC_e": 0.09146605789494006, 
             "name": "1208 Troilus (1931 YA)", 
             "orbit_class": "TJN", 

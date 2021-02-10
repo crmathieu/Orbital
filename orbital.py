@@ -570,7 +570,7 @@ class makeBody:
 		self.BodyRadius 			= objects_data[key]["radius"]		# body radius
 		self.Color 					= color
 		self.BodyType 				= bodyType
-		self.Revolution 			= objects_data[key]["revolution"]
+		self.Revolution 			= objects_data[key]["PR_revolution"]
 		self.Perihelion 			= objects_data[key]["QR_perihelion"]	# body perhelion
 		self.Distance 				= objects_data[key]["QR_perihelion"]	# body distance at perige from focus
 		self.Details				= False
@@ -899,7 +899,7 @@ class makeBody:
 		self.Mean_motion				= elts["N_mean_motion"]
 		self.Epoch						= elts["epochJD"]
 		self.Mean_anomaly				= elts["MA_mean_anomaly"]
-		self.revolution					= elts["revolution"]
+		self.revolution					= elts["PR_revolution"]
 		self.OrbitClass					= elts["orbit_class"]
 
 		# calculate current position based on orbital elements
@@ -1400,7 +1400,11 @@ class spacecraft(makeBody):
 		sphere(frame=self.BodyShape[0], pos=(self.FWD_TANK_CENTER_XCOOR, 0, 0), radius=self.FWD_TANK_RADIUS, color=color.white)		
 
 		# create tesla
-		self.makeTesla()
+		roadster = self.makeTesla()
+		roadster.frame = self.BodyShape[0]
+		# place roadster on the top of stage-2
+		roadster.pos = (self.FWD_TANK_CENTER_XCOOR+(self.FWD_TANK_RADIUS)*1.3, self.carlength/2, -self.carwidth/2)
+		roadster.axis = (-0.3, 1, 0)
 
 		# create engine
 		self.ENGINE_HEIGHT = self.length/13
@@ -1467,17 +1471,93 @@ class spacecraft(makeBody):
 				#material=materials.silver)
 
 	def makeTesla(self):
-		roadster = box(frame=self.BodyShape[0], pos=(self.FWD_TANK_CENTER_XCOOR+self.FWD_TANK_RADIUS,0,0), 
-		axis=(0,1,0),
-		length=self.radius*1.5, 
-		height=self.radius*1.5/5, 
-		width=self.radius*2.8/3, color=color.redish)
+		roadster = frame()
+		# create a box with a slight angle
+		"""
+		carbody = box(pos=(0, 0, 0), 
+			frame=roadster
+			axis=(0.25,1,0),
+			length=self.radius*1.5, 
+			height=self.radius*1.5/5, 
+			width=self.radius*2.8/3, color=color.redish, material=materials.emissive)
+		"""
+		# describe extrusion path for wheels:
+		self.carlength = self.radius*1.5
+		self.carheight = self.radius*1.5/5
+		self.carwidth = self.radius*2/3
 
-		self.makeWheel(roadster)
+		straight = [(0,0,0),(0,0,self.carwidth)]
+		#wheelLiners = Polygon( [(-.5,.5),(-.5,2.5),(.5,2.5),(.5,.5)] )
+		BODY_ROUND_VERTICAL = 2
+		BODY_ROUND_HORIZONTAL = 3
 
-	def makeWheel(self, roadster):
-		cylinder(frame=self.BodyShape[0], axis=(0,0,1), pos=(self.FWD_TANK_CENTER_XCOOR + self.FWD_TANK_RADIUS - roadster.height/3, roadster.length/3, roadster.width/3), radius=self.AFT_TANK_RADIUS/5.1, length=self.length/20, color=color.darkgrey)
+		# create a 2D profile of roadster
+		carbody2D = Polygon( [	(0,0),
+								(self.carlength-BODY_ROUND_HORIZONTAL, 0),
+								(self.carlength-BODY_ROUND_HORIZONTAL+BODY_ROUND_VERTICAL, BODY_ROUND_VERTICAL/2),
+								(self.carlength, BODY_ROUND_VERTICAL),
+ 							  	(self.carlength, self.carheight), 
+								(BODY_ROUND_HORIZONTAL, self.carheight),
+								(0, self.carheight-BODY_ROUND_VERTICAL)])
 
+		# Front wheels elements as (coordinates of center as (x, y), radius)
+		FWelements = vector(4*self.carlength/5, 3*self.carheight/3.5, self.carheight/2.1)
+		frontwheelWell = shapes.circle(
+#			pos=(4*self.carlength/5, 3*self.carheight/3.5), radius=self.carheight/2.2)
+			pos=(FWelements[0], FWelements[1]), radius=FWelements[2])
+
+		# Rear wheels elements as (coordinates of center as (x, y), radius)
+		RWelements = vector(self.carlength/5, 3*self.carheight/3.5, self.carheight/2.2)
+		rearwheelWell = shapes.circle(
+#			pos=(self.carlength/5, 3*self.carheight/3.5), radius=self.carheight/2.2)
+			pos=(RWelements[0], RWelements[1]), radius=RWelements[2])
+
+		# make car body from 2D polygones set
+		body = extrusion(pos=straight, 
+				shape=carbody2D-rearwheelWell-frontwheelWell,
+				color=color.red,
+				material=materials.emissive)
+
+
+		body.frame = roadster
+		self.makeWheels(body, FWelements, RWelements)
+		self.makeHeadlights(body)
+		return roadster
+		
+	def makeHeadlights(self, body):
+#		rightHL = ellipsoid(frame=body.frame, pos=(-self.carlength * 0.95, self.carheight*0.1, self.carwidth*0.1), up=(0,1,0), axis=(1,0, -0.5),
+		rightHL = ellipsoid(frame=body.frame, pos=(-self.carlength * 0.95, 0, self.carwidth*0.1), up=(0,1,0), axis=(-1, -1, -0.5),
+         					length=self.carwidth/4, height=self.carheight/3, width=0.1, color=color.white, material=materials.emissive)
+
+	def makeWheels(self, body, front, rear):
+		
+		cylinder(frame=body.frame, axis=(0,0,1), pos=(-front[0], front[1], 0), 					radius=front[2]*0.90, length=self.carwidth * 0.15, color=color.darkgrey)
+		cylinder(frame=body.frame, axis=(0,0,1), pos=(-front[0], front[1], -0.1), 				radius=front[2]*0.60, length=self.carwidth * 0.10, color=color.white)
+
+		cylinder(frame=body.frame, axis=(0,0,1), pos=(-front[0], front[1], (self.carwidth * (1 - 0.15))),  radius=front[2]*0.90, length=self.carwidth * 0.15, color=color.darkgrey)
+		cylinder(frame=body.frame, axis=(0,0,1), pos=(-front[0], front[1], self.carwidth*0.91),	radius=front[2]*0.60, length=self.carwidth * 0.10, color=color.white)
+
+		cylinder(frame=body.frame, axis=(0,0,1), pos=(-rear[0], rear[1], 0), 					radius=rear[2]*0.90, length=self.carwidth * 0.15, color=color.darkgrey)
+		cylinder(frame=body.frame, axis=(0,0,1), pos=(-rear[0], rear[1], -0.1), 				radius=rear[2]*0.60, length=self.carwidth * 0.10, color=color.white)
+
+		cylinder(frame=body.frame, axis=(0,0,1), pos=(-rear[0], rear[1], (self.carwidth * (1 - 0.15))), 	radius=rear[2]*0.90, length=self.carwidth * 0.15, color=color.darkgrey)
+		cylinder(frame=body.frame, axis=(0,0,1), pos=(-rear[0], rear[1], self.carwidth*0.91), 	radius=rear[2]*0.60, length=self.carwidth * 0.10, color=color.white)
+
+
+	def makeTesla2(self):
+		carbody = box(frame=self.BodyShape[0], pos=(self.FWD_TANK_CENTER_XCOOR+(self.FWD_TANK_RADIUS)*1.1, 0, 0), 
+			axis=(0.25,1,0),
+			length=self.radius*1.5, 
+			height=self.radius*1.5/5, 
+			width=self.radius*2.8/3, color=color.redish, material=materials.emissive)
+
+			# describe extrusion path for wheels:
+			#straight = [(0, 0, 0)
+		roadster =extrusion(pos=circle,
+				shape=section,
+				color=color.grey)
+				#material=materials.silver)
+		self.makeWheels(roadster)
 
 
 	"""
@@ -1811,7 +1891,7 @@ def loadBodies(SolarSystem, type, filename, maxentries = 0):
 				"radius": obj[key]["diameter"]/2, 
 				"QR_perihelion": obj[key]["QR_perihelion"] * AU,
 				"EC_e": obj[key]["EC_e"],
-				"revolution": obj[key]["revolution"],
+				"PR_revolution": obj[key]["PR_revolution"],
 				"IN_orbital_inclination": 	obj[key]["IN_orbital_inclination"],
 				"OM_longitude_of_ascendingnode":obj[key]["OM_longitude_of_ascendingnode"],
 				"W_argument_of_perihelion": obj[key]["W_argument_of_perihelion"],
@@ -1868,7 +1948,7 @@ def loadBodiesOldway(SolarSystem, type, filename, maxentries = 0):
 					"radius": float(token[JPL_DIAMETER])/2 if token[JPL_DIAMETER] else 0, #DEFAULT_RADIUS,
 					"QR_perihelion": float(token[JPL_OE_q]) * AU,
 					"EC_e": float(token[JPL_OE_e]),
-					"revolution": float(token[JPL_OE_Pd]),
+					"PR_revolution": float(token[JPL_OE_Pd]),
 					"IN_orbital_inclination": 	float(token[JPL_OE_i]),
 					"OM_longitude_of_ascendingnode":float(token[JPL_OE_N]),
 					"W_argument_of_perihelion": float(token[JPL_OE_w]),
