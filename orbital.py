@@ -1403,7 +1403,8 @@ class spacecraft(makeBody):
 		roadster = self.makeTesla()
 		roadster.frame = self.BodyShape[0]
 		# place roadster on the top of stage-2
-		roadster.pos = (self.FWD_TANK_CENTER_XCOOR+(self.FWD_TANK_RADIUS)*1.3, self.carlength/2, -self.carwidth/2)
+#		roadster.pos = (self.FWD_TANK_CENTER_XCOOR+(self.FWD_TANK_RADIUS)*1.3, self.carlength/2, -self.carwidth/2)
+		roadster.pos = (self.FWD_TANK_CENTER_XCOOR+(self.FWD_TANK_RADIUS)*1.14, self.carlength/2, -self.carwidth/2)
 		roadster.axis = (-0.3, 1, 0)
 
 		# create engine
@@ -1515,8 +1516,7 @@ class spacecraft(makeBody):
 		# make car body from 2D polygones set
 		body = extrusion(pos=straight, 
 				shape=carbody2D-rearwheelWell-frontwheelWell,
-				color=color.red,
-				material=materials.emissive)
+				color=color.red)
 
 
 		body.frame = roadster
@@ -1525,9 +1525,38 @@ class spacecraft(makeBody):
 		return roadster
 		
 	def makeHeadlights(self, body):
-#		rightHL = ellipsoid(frame=body.frame, pos=(-self.carlength * 0.95, self.carheight*0.1, self.carwidth*0.1), up=(0,1,0), axis=(1,0, -0.5),
-		rightHL = ellipsoid(frame=body.frame, pos=(-self.carlength * 0.95, 0, self.carwidth*0.1), up=(0,1,0), axis=(-1, -1, -0.5),
-         					length=self.carwidth/4, height=self.carheight/3, width=0.1, color=color.white, material=materials.emissive)
+		HL_SCALE = 0.45
+		HL1 = Polygon([(0, 0),(5*HL_SCALE, 0),(0, 3*HL_SCALE)])
+		LeftHL = extrusion(pos=[(0,-0.1,0),(0,0.4,0)], 
+				shape=HL1,
+				color=color.white,
+				material=materials.emissive)
+		LeftHL.x = -self.carlength * 0.94
+		LeftHL.z = LeftHL.z + self.carwidth * 0.1
+		LeftHL.frame = body.frame
+
+		HL2 = Polygon([(0, self.carwidth),(5*HL_SCALE, self.carwidth),(0, self.carwidth - 3*HL_SCALE)])
+		RightHL = extrusion(pos=[(0,-0.1,0),(0,0.4,0)], 
+				shape=HL2,
+				color=color.white,
+				material=materials.emissive)
+		RightHL.x = -self.carlength * 0.94
+		RightHL.z = RightHL.z - self.carwidth * 0.1
+		RightHL.frame = body.frame
+
+		# make windshield
+		WS = Polygon([(0, 0), (0.2,0), (self.carheight*0.6, -self.carheight*0.4), (self.carheight*0.6 - 0.2, -self.carheight*0.4)])
+		windshield = extrusion(pos=[(0, 0, 0),(0, 0, -self.carwidth * 0.90)], 
+								shape=WS,
+								color=color.white)
+		windshield.x = -self.carlength * 0.6
+		windshield.z = windshield.z + self.carwidth * 0.95
+		windshield.frame = body.frame
+
+		# make starman
+#		SM = sphere(radius=self.carwidth/20, pos=(windshield.x + 10, windshield.y, windshield.z), color=color.white)
+		SM = sphere(radius=self.carheight * 0.2, pos=(-self.carlength * 0.41, -self.carheight/5, 2 * self.carwidth/7), color=color.white)
+		SM.frame = body.frame
 
 	def makeWheels(self, body, front, rear):
 		
