@@ -22,6 +22,7 @@
             "W_argument_of_perihelion": 10.58656476502922, 
             "axial_tilt": 0.0,
             "profile": {
+                "look": "generic",
                 "engine": 1,
                 "COPV": 2
             }
@@ -50,6 +51,7 @@
             "W_argument_of_perihelion": 107.9739340618470, 
             "axial_tilt": 0.0,
             "profile": {
+                "look": "generic",
                 "engine": 2,
                 "COPV": 2
             }
@@ -78,6 +80,7 @@
             "W_argument_of_perihelion": 177.6752997719221,
             "axial_tilt": 0.0,
             "profile":  {
+                "look": "starman",
                 "engine": 1,
                 "COPV": 1
             }

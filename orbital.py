@@ -1315,6 +1315,16 @@ class hyperbolic(makeBody):
 
 		self.hasRenderedOrbit = True
 
+class roadster(spacecraft):
+	def __init__(self, system, key, color):
+		spacecraft.__init__(self, system, key, color)
+
+	def makeShape(self):
+		spacecraft.makeShape(self)
+		
+		# create tesla
+		roadster = self.makeTesla()
+		roadster.frame = self.BodyShape[0]
 	
 class spacecraft(makeBody):
 	def __init__(self, system, key, color):
@@ -1376,6 +1386,7 @@ class spacecraft(makeBody):
 			data = materials.loadTGA("./img/"+ self.Tga)
 			self.BodyShape[0].objects[0].material = materials.texture(data=data, mapping="cylinder", interpolate=False)
 
+
 	def makeShape(self):
 		self.length = 2 * self.radiusToShow/self.SizeCorrection[self.sizeType]
 		self.radius = 20 
@@ -1387,7 +1398,6 @@ class spacecraft(makeBody):
 		# create fuselage
 		self.BARYCENTER_XCOOR = -self.length/2
 		cylinder(frame=self.BodyShape[0], pos=(self.BARYCENTER_XCOOR,0,0), radius=self.radius, length=self.length)
-#		sphere(frame=self.BodyShape[0], pos=(-self.length/14, self.length/8, 0), radius=self.length/15, color=color.yellowish)		
 
 		# create aft tank
 		self.AFT_TANK_RADIUS = self.radius
@@ -1399,11 +1409,8 @@ class spacecraft(makeBody):
 		self.FWD_TANK_CENTER_XCOOR = self.BARYCENTER_XCOOR + self.length - self.radius/1.5
 		sphere(frame=self.BodyShape[0], pos=(self.FWD_TANK_CENTER_XCOOR, 0, 0), radius=self.FWD_TANK_RADIUS, color=color.white)		
 
-		# create tesla
-		roadster = self.makeTesla()
-		roadster.frame = self.BodyShape[0]
+
 		# place roadster on the top of stage-2
-#		roadster.pos = (self.FWD_TANK_CENTER_XCOOR+(self.FWD_TANK_RADIUS)*1.3, self.carlength/2, -self.carwidth/2)
 		roadster.pos = (self.FWD_TANK_CENTER_XCOOR+(self.FWD_TANK_RADIUS)*1.14, self.carlength/2, -self.carwidth/2)
 		roadster.axis = (-0.3, 1, 0)
 
@@ -1419,7 +1426,12 @@ class spacecraft(makeBody):
 		nozzle = self.makeNozzle()
 		nozzle.frame = self.BodyShape[0]
 		self.BodyShape[0].pos = self.Position[X_COOR]+self.Foci[X_COOR],self.Position[Y_COOR]+self.Foci[Y_COOR],self.Position[Z_COOR]+self.Foci[Z_COOR]
-		
+
+		# create tesla
+		#roadster = self.makeTesla()
+		#roadster.frame = self.BodyShape[0]
+
+
 	def initRotation(self):
 		self.RotAngle = pi/200
 		self.RotAxis = (5, 5, -5)
@@ -1469,26 +1481,15 @@ class spacecraft(makeBody):
 		return extrusion(pos=circle,
 				shape=section,
 				color=color.grey)
-				#material=materials.silver)
 
 	def makeTesla(self):
 		roadster = frame()
-		# create a box with a slight angle
-		"""
-		carbody = box(pos=(0, 0, 0), 
-			frame=roadster
-			axis=(0.25,1,0),
-			length=self.radius*1.5, 
-			height=self.radius*1.5/5, 
-			width=self.radius*2.8/3, color=color.redish, material=materials.emissive)
-		"""
-		# describe extrusion path for wheels:
+		# create a box with a slight angle using an extruded polygon...
 		self.carlength = self.radius*1.5
 		self.carheight = self.radius*1.5/5
 		self.carwidth = self.radius*2/3
 
 		straight = [(0,0,0),(0,0,self.carwidth)]
-		#wheelLiners = Polygon( [(-.5,.5),(-.5,2.5),(.5,2.5),(.5,.5)] )
 		BODY_ROUND_VERTICAL = 2
 		BODY_ROUND_HORIZONTAL = 3
 
@@ -1501,22 +1502,21 @@ class spacecraft(makeBody):
 								(BODY_ROUND_HORIZONTAL, self.carheight),
 								(0, self.carheight-BODY_ROUND_VERTICAL)])
 
+		# describe extrusion path for wheels:
 		# Front wheels elements as (coordinates of center as (x, y), radius)
 		FWelements = vector(4*self.carlength/5, 3*self.carheight/3.5, self.carheight/2.1)
 		frontwheelWell = shapes.circle(
-#			pos=(4*self.carlength/5, 3*self.carheight/3.5), radius=self.carheight/2.2)
 			pos=(FWelements[0], FWelements[1]), radius=FWelements[2])
 
 		# Rear wheels elements as (coordinates of center as (x, y), radius)
 		RWelements = vector(self.carlength/5, 3*self.carheight/3.5, self.carheight/2.2)
 		rearwheelWell = shapes.circle(
-#			pos=(self.carlength/5, 3*self.carheight/3.5), radius=self.carheight/2.2)
 			pos=(RWelements[0], RWelements[1]), radius=RWelements[2])
 
 		# make car body from 2D polygones set
 		body = extrusion(pos=straight, 
-				shape=carbody2D-rearwheelWell-frontwheelWell,
-				color=color.red)
+						shape=carbody2D-rearwheelWell-frontwheelWell,
+						color=color.red)
 
 
 		body.frame = roadster
@@ -1527,26 +1527,26 @@ class spacecraft(makeBody):
 	def makeHeadlights(self, body):
 		HL_SCALE = 0.45
 		HL1 = Polygon([(0, 0),(5*HL_SCALE, 0),(0, 3*HL_SCALE)])
-		LeftHL = extrusion(pos=[(0,-0.1,0),(0,0.4,0)], 
-				shape=HL1,
-				color=color.white,
-				material=materials.emissive)
+		LeftHL = extrusion(	pos=[(0,-0.1,0),(0,0.4,0)], 
+							shape=HL1,
+							color=color.white,
+							material=materials.emissive)
 		LeftHL.x = -self.carlength * 0.94
 		LeftHL.z = LeftHL.z + self.carwidth * 0.1
 		LeftHL.frame = body.frame
 
 		HL2 = Polygon([(0, self.carwidth),(5*HL_SCALE, self.carwidth),(0, self.carwidth - 3*HL_SCALE)])
 		RightHL = extrusion(pos=[(0,-0.1,0),(0,0.4,0)], 
-				shape=HL2,
-				color=color.white,
-				material=materials.emissive)
+							shape=HL2,
+							color=color.white,
+							material=materials.emissive)
 		RightHL.x = -self.carlength * 0.94
 		RightHL.z = RightHL.z - self.carwidth * 0.1
 		RightHL.frame = body.frame
 
 		# make windshield
 		WS = Polygon([(0, 0), (0.2,0), (self.carheight*0.6, -self.carheight*0.4), (self.carheight*0.6 - 0.2, -self.carheight*0.4)])
-		windshield = extrusion(pos=[(0, 0, 0),(0, 0, -self.carwidth * 0.90)], 
+		windshield = extrusion(	pos=[(0, 0, 0),(0, 0, -self.carwidth * 0.90)], 
 								shape=WS,
 								color=color.white)
 		windshield.x = -self.carlength * 0.6
@@ -1554,9 +1554,9 @@ class spacecraft(makeBody):
 		windshield.frame = body.frame
 
 		# make starman
-#		SM = sphere(radius=self.carwidth/20, pos=(windshield.x + 10, windshield.y, windshield.z), color=color.white)
-		SM = sphere(radius=self.carheight * 0.2, pos=(-self.carlength * 0.41, -self.carheight/5, 2 * self.carwidth/7), color=color.white)
-		SM.frame = body.frame
+		sphere(frame=body.frame, radius=self.carheight * 0.2, 
+								 pos=(-self.carlength * 0.41, -self.carheight/5, 2 * self.carwidth/7), 
+								 color=color.white)
 
 	def makeWheels(self, body, front, rear):
 		
@@ -1573,56 +1573,6 @@ class spacecraft(makeBody):
 		cylinder(frame=body.frame, axis=(0,0,1), pos=(-rear[0], rear[1], self.carwidth*0.91), 	radius=rear[2]*0.60, length=self.carwidth * 0.10, color=color.white)
 
 
-	def makeTesla2(self):
-		carbody = box(frame=self.BodyShape[0], pos=(self.FWD_TANK_CENTER_XCOOR+(self.FWD_TANK_RADIUS)*1.1, 0, 0), 
-			axis=(0.25,1,0),
-			length=self.radius*1.5, 
-			height=self.radius*1.5/5, 
-			width=self.radius*2.8/3, color=color.redish, material=materials.emissive)
-
-			# describe extrusion path for wheels:
-			#straight = [(0, 0, 0)
-		roadster =extrusion(pos=circle,
-				shape=section,
-				color=color.grey)
-				#material=materials.silver)
-		self.makeWheels(roadster)
-
-
-	"""
-
-
-	tri = Polygon( [(-2,0), (0,4), (2,0)] )
-
-	circ = shapes.circle(pos=(0,1.5), radius=0.8)
-
-	2) Create a path along which to extrude your shape (just like the pos attribute of a curve object), either by giving a list of points or by choosing a path from a supplied library of common shapes. Here are two example. The first is a 2-point line, headed into the screen (-z direction). The second chooses a semicircular arc from the paths library to be discussed later (pi radians is 180 degrees).
-
-	straight = [(0,0,0),(0,0,-4)]
-
-	semicircle = paths.arc(radius=3, angle2=pi)
-	3) Create an extrusion object to extrude your shape along your path. Here we've assigned the "straight" path to the pos attribute, and the "tri" shape to the shape attribute.
-
-	extrusion(pos=straight, shape=tri,
-			color=color.yellow)
-
- 
-
-The result is that the triangular shape is extruded in the -z direction.
-
-extruded triangle
-An important feature is that you can combine simple shapes to make complex ones. For example, if we subtract the circular shape ("circ") from the triangle shape ("tri"), and assign this to the extrusion shape attribute, we get the following:
-
-extrusion(pos=straight, shape=tri-circ,
-          color=color.yellow)
-
-triangle with hole
-If we assign the semicircle path to the extrusion pos attribute, we get the following:
-
-extrusion(pos=semicircle,
-          shape=tri-circ,
-          color=color.yellow)
-"""
 
 class comet(makeBody):
 	def __init__(self, system, key, color):
