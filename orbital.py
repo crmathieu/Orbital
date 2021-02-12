@@ -39,7 +39,7 @@ locationInfo = Timeloc()
 mouse = Controller()
 print "Mouse position", mouse.position
 
-
+# CLASS SOLARSYSTEM -----------------------------------------------------------
 class solarSystem:
 
 	INNER_RING_COEF = 1.3
@@ -121,8 +121,6 @@ class solarSystem:
 			self.makeCelestialSphere()
 
 		#self.Scene.scale = self.Scene.scale/100
-
-
 
 
 	def makeCelestialSphere(self): # Unused
@@ -408,7 +406,7 @@ class solarSystem:
 				Position = Rotation_3D * Position + planet.Position
 				planet.InnerRing.append(pos=(Position[X_COOR], Position[Y_COOR], Position[Z_COOR]), color=planet.Color) #radius=pointRadius/planet.SizeCorrection, size=1)
 
-
+# CLASS MAKEECLIPTIC ----------------------------------------------------------
 class makeEcliptic:
 
 	def __init__(self, system, color):  # change default values during instantiation
@@ -433,7 +431,7 @@ class makeEcliptic:
 		self.BodyShape.append(cylinder(pos=vector(0,0,0), radius=250*AU*DIST_FACTOR, color=self.Color, length=10, opacity=0.1, axis=(0,0,1)))
 		self.BodyShape[0].visible = False
 
-
+# CLASS MAKEBELT --------------------------------------------------------------
 class makeBelt:
 
 	def __init__(self, system, key, name, bodyType, color, size, density = 1, planetname = None):  # change default values during instantiation
@@ -492,6 +490,7 @@ class makeBelt:
 				for i in range(len(self.Labels)):
 					self.Labels[i].visible = False
 
+# CLASS MAKETROJAN ------------------------------------------------------------
 class makeJtrojan(makeBelt):
 
 	def __init__(self, system, key, name, bodyType, color, size, density = 1, planetname = None):
@@ -544,7 +543,7 @@ class makeJtrojan(makeBelt):
 		self.Labels.append(label(pos=(self.RadiusMaxAU * AU * DIST_FACTOR * cos(L4), self.RadiusMaxAU * AU * DIST_FACTOR * sin(L4), 0), text="L4 Trojans", xoffset=20, yoffset=12, space=0, height=10, border=6, box=false, font='sans', visible = False))
 		self.Labels.append(label(pos=(self.RadiusMaxAU * AU * DIST_FACTOR * cos(L5), self.RadiusMaxAU * AU * DIST_FACTOR * sin(L5), 0), text="L5 Trojans", xoffset=20, yoffset=12, space=0, height=10, border=6, box=false, font='sans', visible = False))
 
-
+# CLASS MAKEBODY --------------------------------------------------------------
 class makeBody:
 
 	RING_BASE_THICKNESS = 2000
@@ -1076,7 +1075,7 @@ class makeBody:
 					(self.Position[Y_COOR] - self.SolarSystem.EarthRef.Position[Y_COOR])**2 + \
 					(self.Position[Z_COOR] - self.SolarSystem.EarthRef.Position[Z_COOR])**2)/DIST_FACTOR/AU
 
-
+# CLASS PLANET ----------------------------------------------------------------
 class planet(makeBody):
 	
 	def __init__(self, system, key, color, type, sizeCorrectionType, defaultSizeCorrection):
@@ -1112,7 +1111,7 @@ class planet(makeBody):
 		elt = objects_data[key]["kep_elt_1"] if "kep_elt_1" in objects_data[key] else objects_data[key]["kep_elt"]
 		self.setOrbitalFromKeplerianElements(elt, timeincrement) #-1.4) #0.7)
 
-
+# CLASS MAKEEARTH -------------------------------------------------------------
 class makeEarth(planet):
 	
 	def __init__(self, system, color, type, sizeCorrectionType, defaultSizeCorrection):
@@ -1208,6 +1207,7 @@ class makeEarth(planet):
 			print ("Could not converge for "+self.Name+", E = "+str(self.E)+", last precision = "+str(dE))
 
 
+# CLASS SATELLITE -------------------------------------------------------------
 class satellite(makeBody):
 	def __init__(self, system, key, color, planetBody):
 		#if planetBody != None:
@@ -1267,6 +1267,7 @@ class satellite(makeBody):
 
 		self.hasRenderedOrbit = True
 
+# CLASS HYBERBOLIC ------------------------------------------------------------
 class hyperbolic(makeBody):
 	def __init__(self, system, key, color, planetBody):
 		makeBody.__init__(self, system, key, color, HYPERBOLIC, HYPERBOLIC, HYPERBOLIC_SZ_CORRECTION, planetBody)
@@ -1315,19 +1316,11 @@ class hyperbolic(makeBody):
 
 		self.hasRenderedOrbit = True
 
-class roadster(spacecraft):
-	def __init__(self, system, key, color):
-		spacecraft.__init__(self, system, key, color)
 
-	def makeShape(self):
-		spacecraft.makeShape(self)
-		
-		# create tesla
-		roadster = self.makeTesla()
-		roadster.frame = self.BodyShape[0]
-	
-class spacecraft(makeBody):
+# CLASS GENERICSPACECRAFT -----------------------------------------------------
+class genericSpacecraft(makeBody):
 	def __init__(self, system, key, color):
+		#print "genericSpacecraft: CALLED FOR KEY=", key
 		makeBody.__init__(self, system, key, color, SPACECRAFT, SPACECRAFT, SMALLBODY_SZ_CORRECTION, system)
 		self.BARYCENTER = 0.0
 		self.AFT_TANK_RADIUS = 0.0
@@ -1388,6 +1381,8 @@ class spacecraft(makeBody):
 
 
 	def makeShape(self):
+		print "genericCraft: makeShape", self.__class__
+
 		self.length = 2 * self.radiusToShow/self.SizeCorrection[self.sizeType]
 		self.radius = 20 
 		self.compounded = True
@@ -1409,12 +1404,9 @@ class spacecraft(makeBody):
 		self.FWD_TANK_CENTER_XCOOR = self.BARYCENTER_XCOOR + self.length - self.radius/1.5
 		sphere(frame=self.BodyShape[0], pos=(self.FWD_TANK_CENTER_XCOOR, 0, 0), radius=self.FWD_TANK_RADIUS, color=color.white)		
 
-
-		# place roadster on the top of stage-2
-		roadster.pos = (self.FWD_TANK_CENTER_XCOOR+(self.FWD_TANK_RADIUS)*1.14, self.carlength/2, -self.carwidth/2)
-		roadster.axis = (-0.3, 1, 0)
-
 		# create engine
+		self.makeEngine()
+		"""
 		self.ENGINE_HEIGHT = self.length/13
 		self.ENGINE_TOP_XCOOR = self.AFT_TANK_CENTER_XCOOR - self.AFT_TANK_RADIUS - self.ENGINE_HEIGHT/2 - self.length/30
 		cylinder(frame=self.BodyShape[0], pos=(self.ENGINE_TOP_XCOOR,0,0), radius=self.AFT_TANK_RADIUS/5, length=self.length/13, color=color.darkgrey)
@@ -1425,12 +1417,94 @@ class spacecraft(makeBody):
 	
 		nozzle = self.makeNozzle()
 		nozzle.frame = self.BodyShape[0]
+		"""
+
 		self.BodyShape[0].pos = self.Position[X_COOR]+self.Foci[X_COOR],self.Position[Y_COOR]+self.Foci[Y_COOR],self.Position[Z_COOR]+self.Foci[Z_COOR]
+		
+	def makeEngine(self):
+		# create engine
+		print "engine=", self.engine
+		if self.engine <= 1:
+			self.ENGINE_HEIGHT = self.length/13
+			self.ENGINE_YOFFSET = 0
+			self.ENGINE_RADIUS = self.AFT_TANK_RADIUS/5
+			self.NOZZLE_LENGTH = self.length/4
+			self.NOZZLE_THROAT = self.radius/7
+		#cylinder(frame=self.BodyShape[0], pos=(self.ENGINE_TOP_XCOOR,0,0), radius=self.AFT_TANK_RADIUS/5, length=self.length/13, color=color.darkgrey)
+		else:
+			self.engine = 2
+			self.ENGINE_HEIGHT = self.length/16
+			self.ENGINE_YOFFSET = self.AFT_TANK_RADIUS / (self.engine+1)
+			self.ENGINE_RADIUS = self.AFT_TANK_RADIUS/7
+			self.NOZZLE_LENGTH = self.length/6
+			self.NOZZLE_THROAT = self.radius * 0.01
 
-		# create tesla
-		#roadster = self.makeTesla()
-		#roadster.frame = self.BodyShape[0]
+		self.ENGINE_TOP_XCOOR = self.AFT_TANK_CENTER_XCOOR - self.AFT_TANK_RADIUS - self.ENGINE_HEIGHT/2 - self.length/30
+		k = -1
+		for i in range(self.engine):
+			cylinder(frame=self.BodyShape[0], pos=(self.ENGINE_TOP_XCOOR, self.ENGINE_YOFFSET * k, 0), radius=self.ENGINE_RADIUS, length=self.ENGINE_HEIGHT, color=color.darkgrey)
+			nozzle = self.makeNozzle(self.ENGINE_YOFFSET * k)
+			nozzle.frame = self.BodyShape[0]
+			k = -k
+		k = -1
+		for i in range(self.COPV):
+			# create COPV
+			#self.COPV_RADIUS = self.length/18 + k*(self.length/80)
+			self.COPV_RADIUS = self.length/18 - i*(self.length/100)
+			sphere(frame=self.BodyShape[0], pos=(self.ENGINE_TOP_XCOOR + self.length/31, 0, self.length/11 * k), radius=self.COPV_RADIUS, color=color.grey)		
+			k = -k
 
+	def makeEngineSAVE(self):
+		# create engine
+		if self.engine <= 1:
+			self.ENGINE_HEIGHT = self.length/13
+		else:
+			self.engine = 2
+			self.ENGINE_HEIGHT = self.length/16
+
+		self.ENGINE_TOP_XCOOR = self.AFT_TANK_CENTER_XCOOR - self.AFT_TANK_RADIUS - self.ENGINE_HEIGHT/2 - self.length/30
+		cylinder(frame=self.BodyShape[0], pos=(self.ENGINE_TOP_XCOOR,0,0), radius=self.AFT_TANK_RADIUS/5, length=self.length/13, color=color.darkgrey)
+
+		# create COPV
+		self.COPV_RADIUS = self.length/17
+		sphere(frame=self.BodyShape[0], pos=(self.ENGINE_TOP_XCOOR + self.length/31, self.length/9, 0), radius=self.COPV_RADIUS, color=color.grey)		
+	
+		nozzle = self.makeNozzle()
+		nozzle.frame = self.BodyShape[0]
+
+	def makeSimpleNozzle(self):
+		# to create a nozzle, we need to start from a polygon representing the cross section of
+		# the nozzle, and then create a cone by rotating this xsection around a circle
+
+		# create a section of cone of 60, length d
+		alpha = pi/2.5
+		d = self.length/4 #self.radius/2
+		THROAT_SECTION = self.radius/7
+		section = Polygon([(0, 0), (self.length/100, 0), ((self.length/100)+d*np.cos(alpha), d*np.sin(alpha)), (d*np.cos(alpha), d*np.sin(alpha))])
+		
+		# set up to x=-1 so that the axis will be going towards the -x axis of the frame. also position the origin
+		# negatively to push the nozzle cone further out
+		circle = paths.arc(radius=self.ENGINE_THROAT, angle2=2*pi, up=(-1,0,0), pos=(-self.length/6, 0, 0))
+		return extrusion(pos=circle,
+				shape=section,
+				color=color.yellow)
+
+	def makeNozzle(self, yoffset):
+		# to create a nozzle, we need to start from a polygon representing the cross section of
+		# the nozzle, and then create a cone by rotating this xsection around a circle
+
+		# create a section of cone of 60, length d
+		alpha = pi/2.5
+		d = self.NOZZLE_LENGTH #self.length/4
+		#THROAT_SECTION = self.radius/7
+		section = Polygon([(0, 0), (self.length/100, 0), ((self.length/100)+d*np.cos(alpha), d*np.sin(alpha)), (d*np.cos(alpha), d*np.sin(alpha))])
+		
+		# set up to x=-1 so that the axis will be going towards the -x axis of the frame. also position the origin
+		# negatively to push the nozzle cone further out
+		circle = paths.arc(radius=self.NOZZLE_THROAT, angle2=2*pi, up=(-1,0,0), pos=(self.BARYCENTER_XCOOR -self.length/6, yoffset, 0))
+		return extrusion(pos=circle,
+				shape=section,
+				color=color.grey)
 
 	def initRotation(self):
 		self.RotAngle = pi/200
@@ -1448,39 +1522,24 @@ class spacecraft(makeBody):
 		return
 
 
-	def makeSimpleNozzle(self):
-		# to create a nozzle, we need to start from a polygon representing the cross section of
-		# the nozzle, and then create a cone by rotating this xsection around a circle
+# CLASS STARMAN ---------------------------------------------------------------
+class starman(makeBody):
+	def __init__(self, system, key, color):
+		print "starman: CALLED FOR KEY=", key
+		makeBody.__init__(self, system, key, color, SPACECRAFT, SPACECRAFT, SMALLBODY_SZ_CORRECTION, system)
 
-		# create a section of cone of 60, length d
-		alpha = pi/2.5
-		d = self.length/4 #self.radius/2
-		THROAT_SECTION = self.radius/7
-		section = Polygon([(0, 0), (self.length/100, 0), ((self.length/100)+d*np.cos(alpha), d*np.sin(alpha)), (d*np.cos(alpha), d*np.sin(alpha))])
+	def makeShape(self):
+		#print "====================making FUSELAGE\n"
+		genericSpacecraft.makeShape(self)
 		
-		# set up to x=-1 so that the axis will be going towards the -x axis of the frame. also position the origin
-		# negatively to push the nozzle cone further out
-		circle = paths.arc(radius=THROAT_SECTION, angle2=2*pi, up=(-1,0,0), pos=(-self.length/6, 0, 0))
-		return extrusion(pos=circle,
-				shape=section,
-				color=color.yellow)
+		#print "--------------------------now making ROADSTER\n"
+		# create tesla
+		roadster = self.makeTesla()
+		roadster.frame = self.BodyShape[0]
 
-	def makeNozzle(self):
-		# to create a nozzle, we need to start from a polygon representing the cross section of
-		# the nozzle, and then create a cone by rotating this xsection around a circle
-
-		# create a section of cone of 60, length d
-		alpha = pi/2.5
-		d = self.length/4 #self.radius/2
-		THROAT_SECTION = self.radius/7
-		section = Polygon([(0, 0), (self.length/100, 0), ((self.length/100)+d*np.cos(alpha), d*np.sin(alpha)), (d*np.cos(alpha), d*np.sin(alpha))])
-		
-		# set up to x=-1 so that the axis will be going towards the -x axis of the frame. also position the origin
-		# negatively to push the nozzle cone further out
-		circle = paths.arc(radius=THROAT_SECTION, angle2=2*pi, up=(-1,0,0), pos=(self.BARYCENTER_XCOOR -self.length/6, 0, 0))
-		return extrusion(pos=circle,
-				shape=section,
-				color=color.grey)
+		# place roadster on the top of stage-2
+		roadster.pos = (self.FWD_TANK_CENTER_XCOOR+(self.FWD_TANK_RADIUS)*1.14, self.carlength/2, -self.carwidth/2)
+		roadster.axis = (-0.3, 1, 0)
 
 	def makeTesla(self):
 		roadster = frame()
@@ -1573,7 +1632,31 @@ class spacecraft(makeBody):
 		cylinder(frame=body.frame, axis=(0,0,1), pos=(-rear[0], rear[1], self.carwidth*0.91), 	radius=rear[2]*0.60, length=self.carwidth * 0.10, color=color.white)
 
 
+# CLASS SPACECRAFT ------------------------------------------------------------
+class spacecraft(genericSpacecraft, starman):
+	def __init__(self, system, key, color):
+		if "profile" in objects_data[key]:
+			print objects_data[key]["profile"]
+			profile = json.loads(objects_data[key]["profile"])
+			self.profile = profile["look"]
+			self.engine  = profile["engine"]
+			self.COPV    = profile["COPV"]
 
+			if self.profile == "generic":
+				self.profile = "genericSpacecraft"
+
+			# call appropriate class based on profile name
+			globals()[self.profile].__init__(self, system, key, color)
+		else:
+			print "Could not find spacecraft profile for ", key
+			raise 
+	
+	def makeShape(self):
+		# call appropriate makeShape method based on required profile
+		globals()[self.profile].makeShape(self)
+
+
+# CLASS COMET -----------------------------------------------------------------
 class comet(makeBody):
 	def __init__(self, system, key, color):
 		makeBody.__init__(self, system, key, color, COMET, COMET, SMALLBODY_SZ_CORRECTION, system)
@@ -1621,6 +1704,7 @@ class comet(makeBody):
 		# to insure a smooth curve, hence we need to take smaller increments of 12.5 arcminutes or less in radians
 		return pi/(180 * 4)
 
+# CLASS ASTEROID --------------------------------------------------------------
 class asteroid(makeBody):
 	def __init__(self, system, key, color):
 		makeBody.__init__(self, system, key, color, BIG_ASTEROID, BIG_ASTEROID, ASTEROID_SZ_CORRECTION, system)
@@ -1642,7 +1726,7 @@ class asteroid(makeBody):
 		#ASTEROID_SZ_CORRECTION = 1e-2/(DIST_FACTOR*5)
 		return 1e-2/(DIST_FACTOR*5)
 
-
+# CLASS PHA -------------------------------------------------------------------
 class pha(makeBody):
 	def __init__(self, system, key, color):
 		makeBody.__init__(self, system, key, color, PHA, PHA, SMALLBODY_SZ_CORRECTION, system)
@@ -1687,6 +1771,7 @@ class pha(makeBody):
 	def setAxisVisibility(self, setTo):
 		return
 
+# CLASS SMALLASTEROID ---------------------------------------------------------
 class smallAsteroid(makeBody):
 	def __init__(self, system, key, color):
 		makeBody.__init__(self, system, key, color, SMALL_ASTEROID, SMALL_ASTEROID, SMALLBODY_SZ_CORRECTION, system)
@@ -1722,6 +1807,7 @@ class smallAsteroid(makeBody):
 	def setAxisVisibility(self, setTo):
 		return
 
+# CLASS DWARFPLANET -----------------------------------------------------------
 class dwarfPlanet(makeBody):
 	def __init__(self, system, key, color):
 		makeBody.__init__(self, system, key, color, DWARFPLANET, DWARFPLANET, DWARFPLANET_SZ_CORRECTION, system)
@@ -1730,7 +1816,7 @@ class dwarfPlanet(makeBody):
 		#DWARFPLANET_SZ_CORRECTION = 1e-2/(DIST_FACTOR*5)
 		return 1e-2/(DIST_FACTOR*5)
 
-
+# CLASS TRANSNEPTUNIAN --------------------------------------------------------
 class transNeptunian(makeBody):
 	def __init__(self, system, key, color):
 		makeBody.__init__(self, system, key, color, TRANS_NEPT, TRANS_NEPT, SMALLBODY_SZ_CORRECTION, system)
@@ -1862,6 +1948,8 @@ def loadBodies(SolarSystem, type, filename, maxentries = 0):
 	for obj in allObj:
 		for key in obj:
 			objects_data[obj[key]["jpl_designation"]] = {
+#			objects_data[obj[key]] = {
+				"profile": "{ \"look\":\""+obj[key]["profile"]["look"]+"\", \"engine\":"+str(obj[key]["profile"]["engine"])+", \"COPV\":"+str(obj[key]["profile"]["COPV"])+"}" if "profile" in obj[key] else "",
 				"material": 1 if obj[key]["tga_name"] != "" else 0,
 				"name": str(obj[key]["name"]),
 				"iau_name": str(obj[key]["iau_name"]),
@@ -1896,6 +1984,7 @@ def loadBodies(SolarSystem, type, filename, maxentries = 0):
 					SATELLITE:		satellite,
 					SMALL_ASTEROID:	smallAsteroid,
 					}[type](SolarSystem, obj[key]["jpl_designation"], getColor())
+#					}[type](SolarSystem, key, getColor())
 
 			SolarSystem.addTo(body)
 			#if body.Name == "Moon":
@@ -1908,6 +1997,7 @@ def loadBodies(SolarSystem, type, filename, maxentries = 0):
 		#break
 	fo.close()
 
+"""
 def loadBodiesOldway(SolarSystem, type, filename, maxentries = 0):
 	fo  = open(filename, "r")
 	token = []
@@ -1959,6 +2049,7 @@ def loadBodiesOldway(SolarSystem, type, filename, maxentries = 0):
 				if maxentries <= 0:
 					break
 	fo.close()
+"""
 
 def deg2rad(deg):
 	return deg * math.pi/180
