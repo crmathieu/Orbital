@@ -29,8 +29,8 @@ def main():
 	
 	solarsystem = solarSystem()
 	# set what is displayed by default
-#	solarsystem.setDefaultFeatures(INNERPLANET|OUTERPLANET|ORBITS|SATELLITE|KUIPER_BELT|ASTEROID_BELT|JTROJANS|LABELS|LIT_SCENE|CELESTIAL_SPHERE)
-	solarsystem.setDefaultFeatures(INNERPLANET|OUTERPLANET|ORBITS)
+	solarsystem.setDefaultFeatures(INNERPLANET|OUTERPLANET|ORBITS|SATELLITE|KUIPER_BELT|ASTEROID_BELT|JTROJANS|LABELS|CELESTIAL_SPHERE)
+#	solarsystem.setDefaultFeatures(INNERPLANET|OUTERPLANET|ORBITS)
 
 	solarsystem.addTo(makeEcliptic(solarsystem, color.white))
 	solarsystem.addTo(planet(solarsystem, 'mercury', color.green, INNERPLANET, INNERPLANET, PLANET_SZ_CORRECTION))

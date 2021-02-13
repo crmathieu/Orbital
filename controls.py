@@ -210,8 +210,8 @@ class POVpanel(wx.Panel):
 			if (Body.SolarSystem.ShowFeatures & Body.BodyType) == 0:
 				# if the body is not visible, Make it so
 				#print "Making "+Body.Name+" visible! bodyType = "+str(Body.BodyType)
-				for i in range(len(body.BodyShape)):
-					Body.BodyShape[i].visible = True
+				#for i in range(len(body.BodyShape)):
+				Body.BodyShape.visible = True
 				Body.Labels[0].visible = True
 				#planetBody.SolarSystem.ShowFeatures |= planetBody.BodyType
 				Body.SolarSystem.setFeature(Body.BodyType, True)
@@ -262,7 +262,7 @@ class POVpanel(wx.Panel):
 		if (planetBody.SolarSystem.ShowFeatures & planetBody.BodyType) == 0:
 			# if the body is not visible, Make it so
 			#print "Making "+planetBody.Name+" visible! bodyType = "+str(planetBody.BodyType)
-			planetBody.BodyShape[0].visible = True
+			planetBody.BodyShape.visible = True
 			planetBody.Labels[0].visible = True
 			#planetBody.SolarSystem.ShowFeatures |= planetBody.BodyType
 			planetBody.SolarSystem.setFeature(planetBody.BodyType, True)
@@ -732,7 +732,7 @@ class orbitalCtrlPanel(wx.Panel):
 		self.SolarSystem.animate(self.DeltaT)
 		for body in self.SolarSystem.bodies:
 			if body.BodyType in [SPACECRAFT, OUTERPLANET, INNERPLANET, SATELLITE, ASTEROID, COMET, DWARFPLANET, PHA, BIG_ASTEROID, TRANS_NEPT]:
-				if body.BodyShape[0].visible == True:
+				if body.BodyShape.visible == True:
 					velocity, distance = body.animate(self.DeltaT)
 					if self.SolarSystem.currentPOV != None:
 						if body.JPL_designation == self.SolarSystem.currentPOV.JPL_designation:
@@ -925,8 +925,8 @@ class orbitalCtrlPanel(wx.Panel):
 		self.refreshDate()
 
 
-		for i in range(len(body.BodyShape)):
-			body.BodyShape[i].visible = True
+		#for i in range(len(body.BodyShape)):
+		body.BodyShape.visible = True
 		for i in range(len(body.Labels)):
 			body.Labels[i].visible = True
 		body.Trail.visible = True
@@ -985,8 +985,8 @@ class orbitalCtrlPanel(wx.Panel):
 		self.resetSlideShow()
 
 	def hideCurrentObject(self, body):
-		for i in range(len(body.BodyShape)):
-			body.BodyShape[i].visible = False
+		#for i in range(len(body.BodyShape)):
+		body.BodyShape.visible = False
 		for i in range(len(body.Labels)):
 			body.Labels[i].visible = False
 
