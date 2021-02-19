@@ -2,12 +2,32 @@ import cv2
 import numpy as np 
 import pyautogui
 import time
+import datetime
+
+def setVideoRecording(frameRate = 20, filename = "output.avi"):
+    vr = VideoRecorder(VideoRecorder.SCREEN_SIZE, "XVID", frameRate)
+    dt = datetime.datetime.now()
+    date_time = dt.strftime("%Y%m%d-%H%M%S")
+    print "video-recordings/"+date_time+"-"+str(frameRate)+"fr/s"+"-"+filename
+    vr.setVideoOutput("video-recordings/"+date_time+"-"+str(frameRate)+"frps"+"-"+filename)
+    return vr
+
+def recOneFrame(videoRecorder):
+    videoRecorder.takeAshot()
+#    videoRecorder.showFrame()
+    videoRecorder.recordFrame()
+
+def stopRecording(videoRecorder):
+    videoRecorder.closeVideo()
 
 class VideoRecorder:
+    SCREEN_SIZE = (1920, 1080)
+
     def __init__(self, screen, codectype, framerate):
         self.screen = screen
         self.framerate = framerate
         self.codec = cv2.VideoWriter_fourcc(*codectype)
+        # screen resolution
 
     def setVideoOutput(self, name):
         self.name = name
@@ -30,5 +50,6 @@ class VideoRecorder:
     def closeVideo(self):
         cv2.destroyAllWindows()
         self.out.release()
+
     def waitKey(self, t):
         return cv2.waitKey(t) & 0xFF

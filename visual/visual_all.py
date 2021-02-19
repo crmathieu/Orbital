@@ -63,6 +63,7 @@ for ufunc in ('hypot',):
 ## Fix the problem that numpy dot(vector,vector) returns numpy.float64 rather
 ## than an ordinary float, causing trouble with later vector calculations:
 import visual_common.cvisual as _cvisual
+
 ##def _dot(x,y,mathtypes = (float,int,int)):
 def _dot(x,y = (float,float)):
     numpy = getattr(_numpy,'dot')

@@ -1,11 +1,11 @@
 [
     {
-        "486958": {
+        "Arrokoth (2014 MU69)": {
             "OM_longitude_of_ascendingnode": 158.9860995817701, 
             "diameter": 0.0, 
             "PR_revolution": 108273.8543019219, 
             "EC_e": 0.04710496472429965, 
-            "name": "486958 (2014 MU69)", 
+            "name": "486958", 
             "orbit_class": "TNO\n", 
             "iau_name": "MU69", 
             "N_mean_motion": 0.003324902418234221, 
@@ -16,7 +16,7 @@
             "MA_mean_anomaly": 306.3056787099708, 
             "tga_name": "", 
             "QR_perihelion": 42.36382619492954, 
-            "jpl_designation": "486958", 
+            "jpl_designation": "486958 (2014 MU69)", 
             "earth_moid": 41.3555, 
             "Tp_Time_of_perihelion_passage_JD": 2474149.6420005476, 
             "W_argument_of_perihelion": 183.6616926244331, 
