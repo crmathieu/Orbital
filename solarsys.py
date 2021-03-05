@@ -49,12 +49,12 @@ def main():
 	solarsystem.addTo(planet(solarsystem, 'jupiter', color.magenta, pd.OUTERPLANET, GASGIANT, pd.PLANET_SZ_CORRECTION))
 	
 	#solarsystem.addTo(planet(solarsystem, 'saturn', color.cyan, pd.OUTERPLANET, GASGIANT, pd.PLANET_SZ_CORRECTION))
-	saturn = makeRingPlanet(solarsystem, 'saturn', color.cyan, pd.INNERPLANET, pd.INNERPLANET, pd.PLANET_SZ_CORRECTION)
+	saturn = makeRingPlanet(solarsystem, 'saturn', color.cyan, pd.OUTERPLANET, GASGIANT, pd.PLANET_SZ_CORRECTION)
 	solarsystem.addTo(saturn)
 
-#	solarsystem.addTo(planet(solarsystem, 'uranus', color.yellow, pd.OUTERPLANET, GASGIANT, pd.PLANET_SZ_CORRECTION))
-	uranus = makeRingPlanet(solarsystem, 'uranus', color.yellow, pd.OUTERPLANET, GASGIANT, pd.PLANET_SZ_CORRECTION)
-	solarsystem.addTo(uranus)
+	solarsystem.addTo(planet(solarsystem, 'uranus', color.yellow, pd.OUTERPLANET, GASGIANT, pd.PLANET_SZ_CORRECTION))
+#	uranus = makeRingPlanet(solarsystem, 'uranus', color.yellow, pd.OUTERPLANET, GASGIANT, pd.PLANET_SZ_CORRECTION)
+#	solarsystem.addTo(uranus)
 	
 
 	solarsystem.addTo(planet(solarsystem, 'neptune', color.orange, pd.OUTERPLANET, GASGIANT, pd.PLANET_SZ_CORRECTION))

@@ -158,7 +158,7 @@ Time_Intervals = { # values are all in munutes, regardless of the unit in effect
 }
 
 
-INITIAL_TIMEINCR = TI_ONE_MINUTE #TI_TEN_MINUTES
+INITIAL_TIMEINCR = TI_ONE_MINUTE #TI_TEN_MINUTES # 
 
 # scale toggling
 SCALE_OVERSIZED = 0

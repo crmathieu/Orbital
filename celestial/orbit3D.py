@@ -617,6 +617,9 @@ class makeBody:
 		self.Color 					= color
 		self.BodyType 				= bodyType
 		self.BodyShape 				= None
+		
+		self.Origin 				= frame()
+
 		self.Revolution 			= objects_data[key]["PR_revolution"]
 		self.Perihelion 			= objects_data[key]["QR_perihelion"]	# body perhelion
 		self.Distance 				= objects_data[key]["QR_perihelion"]	# body distance at perige from focus
@@ -712,7 +715,8 @@ class makeBody:
 		# attach a curve to the object to display its orbit
 		if self.BodyShape != None:
 			self.Trail = curve(color=(self.Color[0]*0.6, self.Color[1]*0.6, self.Color[2]*0.6))
-			self.Trail.append(pos=self.BodyShape.pos)
+#			self.Trail.append(pos=self.BodyShape.pos)
+			self.Trail.append(pos=self.Origin.pos)
 		else:
 			return
 
@@ -756,7 +760,9 @@ class makeBody:
 		self.BodyShape.material = materials.texture(data=data, mapping="spherical", interpolate=False)
 
 	def makeShape(self):
-		self.BodyShape = sphere(pos=(self.Position[X_COOR]+self.Foci[X_COOR],self.Position[Y_COOR]+self.Foci[Y_COOR],self.Position[Z_COOR]+self.Foci[Z_COOR]), radius=self.radiusToShow/self.SizeCorrection[self.sizeType], make_trail=false)
+#		self.BodyShape = sphere(pos=(self.Position[X_COOR]+self.Foci[X_COOR],self.Position[Y_COOR]+self.Foci[Y_COOR],self.Position[Z_COOR]+self.Foci[Z_COOR]), radius=self.radiusToShow/self.SizeCorrection[self.sizeType], make_trail=false)
+		self.Origin.pos=(self.Position[X_COOR]+self.Foci[X_COOR],self.Position[Y_COOR]+self.Foci[Y_COOR],self.Position[Z_COOR]+self.Foci[Z_COOR])
+		self.BodyShape = sphere(frame=self.Origin, pos=(0,0,0), radius=self.radiusToShow/self.SizeCorrection[self.sizeType], make_trail=false)
 
 	def makeAxis(self, size, position):
 		self.directions = [vector(2*size,0,0), vector(0,2*size,0), vector(0,0,2*size)]
@@ -834,7 +840,8 @@ class makeBody:
 		self.Foci = self.SatelliteOf.Position
 			#self.Trail.pos = self.Foci
 
-		self.BodyShape.pos = vector(self.Position[X_COOR]+self.Foci[X_COOR],self.Position[Y_COOR]+self.Foci[Y_COOR],self.Position[Z_COOR]+self.Foci[Z_COOR])
+		self.Origin.pos = vector(self.Position[X_COOR]+self.Foci[X_COOR],self.Position[Y_COOR]+self.Foci[Y_COOR],self.Position[Z_COOR]+self.Foci[Z_COOR])
+#		self.BodyShape.pos = vector(self.Position[X_COOR]+self.Foci[X_COOR],self.Position[Y_COOR]+self.Foci[Y_COOR],self.Position[Z_COOR]+self.Foci[Z_COOR])
 		self.Labels[0].pos = vector(self.Position[X_COOR]+self.Foci[X_COOR],self.Position[Y_COOR]+self.Foci[Y_COOR],self.Position[Z_COOR]+self.Foci[Z_COOR])
 		self.setRotation()
 		if self.Ring == True:
@@ -997,7 +1004,9 @@ class makeBody:
 	def initRotation(self):
 		TEXTURE_POSITIONING_CORRECTION = pi/12
 		# we need to rotate around X axis by pi/2 to properly align the planet's texture
-		self.BodyShape.rotate(angle=(pi/2+self.TiltAngle), axis=self.XdirectionUnit, origine=(self.Position[X_COOR]+self.Foci[X_COOR],self.Position[Y_COOR]+self.Foci[Y_COOR],self.Position[Z_COOR]+self.Foci[Z_COOR]))
+#		self.BodyShape.rotate(angle=(pi/2+self.TiltAngle), axis=self.XdirectionUnit, origine=(self.Position[X_COOR]+self.Foci[X_COOR],self.Position[Y_COOR]+self.Foci[Y_COOR],self.Position[Z_COOR]+self.Foci[Z_COOR]))
+		self.BodyShape.rotate(angle=(pi/2+self.TiltAngle), axis=self.XdirectionUnit, origine=(0,0,0))
+
 		# then further rotation will apply to Z axis
 		self.RotAxis = self.ZdirectionUnit
 		
@@ -1005,7 +1014,8 @@ class makeBody:
 		if "RA_1" in objects_data[self.ObjectIndex]:
 			T = daysSinceJ2000UTC()/36525. # T is in centuries
 			self.RA = objects_data[self.ObjectIndex]["RA_1"] + objects_data[self.ObjectIndex]["RA_2"] * T
-			self.BodyShape.rotate(angle=deg2rad(self.RA), axis=self.ZdirectionUnit, origine=(self.Position[X_COOR]+self.Foci[X_COOR],self.Position[Y_COOR]+self.Foci[Y_COOR],self.Position[Z_COOR]+self.Foci[Z_COOR]))
+#			self.BodyShape.rotate(angle=deg2rad(self.RA), axis=self.ZdirectionUnit, origine=(self.Position[X_COOR]+self.Foci[X_COOR],self.Position[Y_COOR]+self.Foci[Y_COOR],self.Position[Z_COOR]+self.Foci[Z_COOR]))
+			self.BodyShape.rotate(angle=deg2rad(self.RA), axis=self.ZdirectionUnit, origine=(0,0,0))
 		#else:
 		#	print "No RA for " +self.Name
 
@@ -1013,17 +1023,20 @@ class makeBody:
 	# default
 	def setRotation(self):
 		ti = self.SolarSystem.getTimeIncrement()
-		self.RotAngle = abs((2*pi/self.Rotation)*ti) if self.Rotation > 0 else 0
+#		self.RotAngle = abs((2*pi/self.Rotation)*ti) if self.Rotation > 0 else 0
+		self.RotAngle = ((2*pi/self.Rotation)*ti) # if self.Rotation > 0 else 0
 
-		if ti < 0:
-			self.RotAngle *= -1
+		#if ti < 0:
+		#	self.RotAngle *= -1
 
 		self.updateAxis()
-		self.BodyShape.rotate(angle=self.RotAngle, axis=self.RotAxis, origine=(self.Position[X_COOR]+self.Foci[X_COOR],self.Position[Y_COOR]+self.Foci[Y_COOR],self.Position[Z_COOR]+self.Foci[Z_COOR]))
+#		self.BodyShape.rotate(angle=self.RotAngle, axis=self.RotAxis, origine=(self.Position[X_COOR]+self.Foci[X_COOR],self.Position[Y_COOR]+self.Foci[Y_COOR],self.Position[Z_COOR]+self.Foci[Z_COOR]))
+		self.BodyShape.rotate(angle=self.RotAngle, axis=self.RotAxis, origine=(0,0,0))
 
 	def updatePosition(self, trace = True):
 		self.setCartesianCoordinates()
-		self.BodyShape.pos = vector(self.Position[X_COOR]+self.Foci[X_COOR],self.Position[Y_COOR]+self.Foci[Y_COOR],self.Position[Z_COOR]+self.Foci[Z_COOR])
+#		self.BodyShape.pos = vector(self.Position[X_COOR]+self.Foci[X_COOR],self.Position[Y_COOR]+self.Foci[Y_COOR],self.Position[Z_COOR]+self.Foci[Z_COOR])
+		self.Origin.pos = vector(self.Position[X_COOR]+self.Foci[X_COOR],self.Position[Y_COOR]+self.Foci[Y_COOR],self.Position[Z_COOR]+self.Foci[Z_COOR])
 		if trace:
 			if self.Position[Z_COOR]+self.Foci[Z_COOR] < 0:
 				"""
@@ -1035,10 +1048,12 @@ class makeBody:
 					self.Trail.append(pos=self.BodyShape.pos, color=color.black) #, interval=50)
 				"""
 				# new
-				self.Trail.append(pos=self.BodyShape.pos, color=(self.Color[0]*0.3, self.Color[1]*0.3, self.Color[2]*0.3))
+#				self.Trail.append(pos=self.BodyShape.pos, color=(self.Color[0]*0.3, self.Color[1]*0.3, self.Color[2]*0.3))
+				self.Trail.append(pos=self.Origin.pos, color=(self.Color[0]*0.3, self.Color[1]*0.3, self.Color[2]*0.3))
 			else:
 				#self.Trail.append(pos=self.BodyShape.pos, color=self.Color)
-				self.Trail.append(pos=self.BodyShape.pos, color=(self.Color[0]*0.6, self.Color[1]*0.6, self.Color[2]*0.6))
+#				self.Trail.append(pos=self.BodyShape.pos, color=(self.Color[0]*0.6, self.Color[1]*0.6, self.Color[2]*0.6))
+				self.Trail.append(pos=self.Origin.pos, color=(self.Color[0]*0.6, self.Color[1]*0.6, self.Color[2]*0.6))
 
 	def setCartesianCoordinates(self):
 		self.Position[X_COOR] = self.R * DIST_FACTOR * ( cos(self.N) * cos(self.Nu+self.w) - sin(self.N) * sin(self.Nu+self.w) * cos(self.i) )
@@ -1163,29 +1178,7 @@ class makeRingPlanet(planet):
 
 	def __init__(self, system, nameId, color, type, sizeCorrectionType, defaultSizeCorrection):
 		planet.__init__(self, system, nameId, color, type, sizeCorrectionType, defaultSizeCorrection)
-
-	def setAspect(self, key):
-		#data = materials.loadTGA("./img/"+key) if objects_data[key]["material"] != 0 else materials.loadTGA("./img/asteroid")
-		data = materials.loadTGA("./img/"+self.Tga) if objects_data[key]["material"] != 0 else materials.loadTGA("./img/asteroid")
-		self.BodyShape.material = materials.texture(data=data, mapping="spherical", interpolate=False)
-
-	def makeShapeOLD(self):
-		self.BodyShape = sphere(pos=(self.Position[X_COOR]+self.Foci[X_COOR],self.Position[Y_COOR]+self.Foci[Y_COOR],self.Position[Z_COOR]+self.Foci[Z_COOR]), radius=self.radiusToShow/self.SizeCorrection[self.sizeType], make_trail=false)
-
-
-	def makeShape(self):
-
-		#self.length = 2 * self.radiusToShow/self.SizeCorrection[self.sizeType]
-		#self.radius = 20 
-		#self.compounded = True
-
-		# create compound object
-		self.CentralBody = frame()
-		self.CentralBody.pos = (self.Position[X_COOR]+self.Foci[X_COOR],self.Position[Y_COOR]+self.Foci[Y_COOR],self.Position[Z_COOR]+self.Foci[Z_COOR])
-
-		# create Planet
-#		self.BodyShape = sphere(frame=self.CentralBody, pos=(self.Position[X_COOR]+self.Foci[X_COOR],self.Position[Y_COOR]+self.Foci[Y_COOR],self.Position[Z_COOR]+self.Foci[Z_COOR]), radius=self.radiusToShow/self.SizeCorrection[self.sizeType], make_trail=false)		
-		self.BodyShape = sphere(frame=self.CentralBody, pos=(0, 0, 0), radius=self.radiusToShow/self.SizeCorrection[self.sizeType], make_trail=false)		
+		print self.Rotation
 
 
 # CLASS MAKEEARTH -------------------------------------------------------------
@@ -1203,7 +1196,8 @@ class makeEarth(planet):
 		TEXTURE_POSITIONING_CORRECTION = pi/12
 
 		# we need to rotate around X axis by pi/2 to properly align the planet's texture
-		self.BodyShape.rotate(angle=(pi/2+self.TiltAngle), axis=self.XdirectionUnit, origine=(self.Position[X_COOR]+self.Foci[X_COOR],self.Position[Y_COOR]+self.Foci[Y_COOR],self.Position[Z_COOR]+self.Foci[Z_COOR]))
+#		self.BodyShape.rotate(angle=(pi/2+self.TiltAngle), axis=self.XdirectionUnit, origine=(self.Position[X_COOR]+self.Foci[X_COOR],self.Position[Y_COOR]+self.Foci[Y_COOR],self.Position[Z_COOR]+self.Foci[Z_COOR]))
+		self.BodyShape.rotate(angle=(pi/2+self.TiltAngle), axis=self.XdirectionUnit, origine=(0,0,0))
 
 		# then further rotation will apply to Z axis
 		self.RotAxis = self.ZdirectionUnit
@@ -1218,7 +1212,8 @@ class makeEarth(planet):
 
 		# add correction due to initial position of texture on earth sphere, then rotate texture to make it match current time
 		self.LocalInitialAngle = -TEXTURE_POSITIONING_CORRECTION + self.Gamma
-		self.BodyShape.rotate(angle=(self.LocalInitialAngle), axis=self.RotAxis, origine=(self.Position[X_COOR]+self.Foci[X_COOR],self.Position[Y_COOR]+self.Foci[Y_COOR],self.Position[Z_COOR]+self.Foci[Z_COOR]))
+#		self.BodyShape.rotate(angle=(self.LocalInitialAngle), axis=self.RotAxis, origine=(self.Position[X_COOR]+self.Foci[X_COOR],self.Position[Y_COOR]+self.Foci[Y_COOR],self.Position[Z_COOR]+self.Foci[Z_COOR]))
+		self.BodyShape.rotate(angle=(self.LocalInitialAngle), axis=self.RotAxis, origine=(0,0,0))
 		
 		"""
 		# calculate current RA, to position the obliquity properly:
@@ -1247,7 +1242,8 @@ class makeEarth(planet):
 							   - self.iDelta 
 
 		# rotate for the difference between updated angle and its formal value
-		self.BodyShape.rotate(angle=(newLocalInitialAngle - self.Gamma), axis=self.RotAxis, origine=(self.Position[X_COOR]+self.Foci[X_COOR],self.Position[Y_COOR]+self.Foci[Y_COOR],self.Position[Z_COOR]+self.Foci[Z_COOR]))
+#		self.BodyShape.rotate(angle=(newLocalInitialAngle - self.Gamma), axis=self.RotAxis, origine=(self.Position[X_COOR]+self.Foci[X_COOR],self.Position[Y_COOR]+self.Foci[Y_COOR],self.Position[Z_COOR]+self.Foci[Z_COOR]))
+		self.BodyShape.rotate(angle=(newLocalInitialAngle - self.Gamma), axis=self.RotAxis, origine=(0,0,0))
 		print "rotating by ", newLocalInitialAngle - self.Gamma, " degree"
 		# update angle with its updated value
 		self.Gamma = newLocalInitialAngle
@@ -1437,7 +1433,9 @@ class genericSpacecraft(makeBody):
 		self.Foci = self.SatelliteOf.Position
 			#self.Trail.pos = self.Foci
 
-		self.BodyShape.pos = vector(self.Position[X_COOR]+self.Foci[X_COOR],self.Position[Y_COOR]+self.Foci[Y_COOR],self.Position[Z_COOR]+self.Foci[Z_COOR])
+#		self.BodyShape.pos = vector(self.Position[X_COOR]+self.Foci[X_COOR],self.Position[Y_COOR]+self.Foci[Y_COOR],self.Position[Z_COOR]+self.Foci[Z_COOR])
+		self.Origin.pos = vector(self.Position[X_COOR]+self.Foci[X_COOR],self.Position[Y_COOR]+self.Foci[Y_COOR],self.Position[Z_COOR]+self.Foci[Z_COOR])
+		
 		#self.BodyShape[1].pos = vector(self.Position[X_COOR] - 15 + self.Foci[X_COOR],self.Position[Y_COOR]+self.Foci[Y_COOR],self.Position[Z_COOR]+self.Foci[Z_COOR])
 
 		self.Labels[0].pos = vector(self.Position[X_COOR]+self.Foci[X_COOR],self.Position[Y_COOR]+self.Foci[Y_COOR],self.Position[Z_COOR]+self.Foci[Z_COOR])
@@ -1465,21 +1463,25 @@ class genericSpacecraft(makeBody):
 		self.compounded = True
 
 		# create compound object
-		self.BodyShape = frame()
+#		self.BodyShape = frame()
+		self.BodyShape = self.Origin
 
 		# create fuselage
 		self.BARYCENTER_XCOOR = -self.length/2
-		cylinder(frame=self.BodyShape, pos=(self.BARYCENTER_XCOOR,0,0), radius=self.radius, length=self.length)
+#		cylinder(frame=self.BodyShape, pos=(self.BARYCENTER_XCOOR,0,0), radius=self.radius, length=self.length)
+		cylinder(frame=self.Origin, pos=(self.BARYCENTER_XCOOR,0,0), radius=self.radius, length=self.length)
 
 		# create aft tank
 		self.AFT_TANK_RADIUS = self.radius
 		self.AFT_TANK_CENTER_XCOOR = self.BARYCENTER_XCOOR + self.length/9
-		sphere(frame=self.BodyShape, pos=(self.AFT_TANK_CENTER_XCOOR, 0, 0), radius=self.AFT_TANK_RADIUS, color=color.white)		
+#		sphere(frame=self.BodyShape, pos=(self.AFT_TANK_CENTER_XCOOR, 0, 0), radius=self.AFT_TANK_RADIUS, color=color.white)		
+		sphere(frame=self.Origin, pos=(self.AFT_TANK_CENTER_XCOOR, 0, 0), radius=self.AFT_TANK_RADIUS, color=color.white)		
 
 		# create forward Platform
 		self.FWD_TANK_RADIUS = self.radius
 		self.FWD_TANK_CENTER_XCOOR = self.BARYCENTER_XCOOR + self.length - self.radius/1.5
-		sphere(frame=self.BodyShape, pos=(self.FWD_TANK_CENTER_XCOOR, 0, 0), radius=self.FWD_TANK_RADIUS, color=color.white)		
+#		sphere(frame=self.BodyShape, pos=(self.FWD_TANK_CENTER_XCOOR, 0, 0), radius=self.FWD_TANK_RADIUS, color=color.white)		
+		sphere(frame=self.Origin, pos=(self.FWD_TANK_CENTER_XCOOR, 0, 0), radius=self.FWD_TANK_RADIUS, color=color.white)		
 
 		# create engine
 		self.makeEngine()
@@ -1496,7 +1498,8 @@ class genericSpacecraft(makeBody):
 		nozzle.frame = self.BodyShape
 		"""
 
-		self.BodyShape.pos = self.Position[X_COOR]+self.Foci[X_COOR],self.Position[Y_COOR]+self.Foci[Y_COOR],self.Position[Z_COOR]+self.Foci[Z_COOR]
+#		self.BodyShape.pos = self.Position[X_COOR]+self.Foci[X_COOR],self.Position[Y_COOR]+self.Foci[Y_COOR],self.Position[Z_COOR]+self.Foci[Z_COOR]
+		self.Origin.pos = self.Position[X_COOR]+self.Foci[X_COOR],self.Position[Y_COOR]+self.Foci[Y_COOR],self.Position[Z_COOR]+self.Foci[Z_COOR]
 		
 	def makeEngine(self):
 		# create engine
@@ -1517,20 +1520,24 @@ class genericSpacecraft(makeBody):
 			self.NOZZLE_LENGTH = self.length/6
 			self.NOZZLE_THROAT = self.radius * 0.01
 			self.ENGINE_TOP_XCOOR = self.AFT_TANK_CENTER_XCOOR - self.AFT_TANK_RADIUS - self.ENGINE_HEIGHT/2 - self.length/30
-			cylinder(frame=self.BodyShape, axis=(0,1,0), pos=(self.ENGINE_TOP_XCOOR + (self.ENGINE_HEIGHT*0.8), -self.length/12, 0), radius=self.ENGINE_RADIUS, length=self.length/6, color=color.darkgrey)
+#			cylinder(frame=self.BodyShape, axis=(0,1,0), pos=(self.ENGINE_TOP_XCOOR + (self.ENGINE_HEIGHT*0.8), -self.length/12, 0), radius=self.ENGINE_RADIUS, length=self.length/6, color=color.darkgrey)
+			cylinder(frame=self.Origin, axis=(0,1,0), pos=(self.ENGINE_TOP_XCOOR + (self.ENGINE_HEIGHT*0.8), -self.length/12, 0), radius=self.ENGINE_RADIUS, length=self.length/6, color=color.darkgrey)
 
 		k = -1
 		for i in range(self.engine):
-			cylinder(frame=self.BodyShape, pos=(self.ENGINE_TOP_XCOOR, self.ENGINE_YOFFSET * k, 0), radius=self.ENGINE_RADIUS, length=self.ENGINE_HEIGHT, color=color.darkgrey)
+#			cylinder(frame=self.BodyShape, pos=(self.ENGINE_TOP_XCOOR, self.ENGINE_YOFFSET * k, 0), radius=self.ENGINE_RADIUS, length=self.ENGINE_HEIGHT, color=color.darkgrey)
+			cylinder(frame=self.Origin, pos=(self.ENGINE_TOP_XCOOR, self.ENGINE_YOFFSET * k, 0), radius=self.ENGINE_RADIUS, length=self.ENGINE_HEIGHT, color=color.darkgrey)
 			nozzle = self.makeNozzle(self.ENGINE_YOFFSET * k)
-			nozzle.frame = self.BodyShape
+#			nozzle.frame = self.BodyShape
+			nozzle.frame = self.Origin
 			k = -k
 		k = -1
 		for i in range(self.COPV):
 			# create COPV
 			#self.COPV_RADIUS = self.length/18 + k*(self.length/80)
 			self.COPV_RADIUS = self.length/18 - i*(self.length/100)
-			sphere(frame=self.BodyShape, pos=(self.ENGINE_TOP_XCOOR + self.length/31, 0, self.length/11 * k), radius=self.COPV_RADIUS, color=color.grey)		
+#			sphere(frame=self.BodyShape, pos=(self.ENGINE_TOP_XCOOR + self.length/31, 0, self.length/11 * k), radius=self.COPV_RADIUS, color=color.grey)		
+			sphere(frame=self.Origin, pos=(self.ENGINE_TOP_XCOOR + self.length/31, 0, self.length/11 * k), radius=self.COPV_RADIUS, color=color.grey)		
 			k = -k
 
 	def makeEngineSAVE(self):
@@ -1542,14 +1549,14 @@ class genericSpacecraft(makeBody):
 			self.ENGINE_HEIGHT = self.length/16
 
 		self.ENGINE_TOP_XCOOR = self.AFT_TANK_CENTER_XCOOR - self.AFT_TANK_RADIUS - self.ENGINE_HEIGHT/2 - self.length/30
-		cylinder(frame=self.BodyShape, pos=(self.ENGINE_TOP_XCOOR,0,0), radius=self.AFT_TANK_RADIUS/5, length=self.length/13, color=color.darkgrey)
+		cylinder(frame=self.Origin, pos=(self.ENGINE_TOP_XCOOR,0,0), radius=self.AFT_TANK_RADIUS/5, length=self.length/13, color=color.darkgrey)
 
 		# create COPV
 		self.COPV_RADIUS = self.length/17
-		sphere(frame=self.BodyShape, pos=(self.ENGINE_TOP_XCOOR + self.length/31, self.length/9, 0), radius=self.COPV_RADIUS, color=color.grey)		
+		sphere(frame=self.Origin, pos=(self.ENGINE_TOP_XCOOR + self.length/31, self.length/9, 0), radius=self.COPV_RADIUS, color=color.grey)		
 	
 		nozzle = self.makeNozzle()
-		nozzle.frame = self.BodyShape
+		nozzle.frame = self.Origin
 
 	def makeSimpleNozzle(self):
 		# to create a nozzle, we need to start from a polygon representing the cross section of
@@ -1602,7 +1609,8 @@ class genericSpacecraft(makeBody):
 		
 	def setRotation(self):
 		#for i in range(len(self.BodyShape)):
-		self.BodyShape.rotate(angle=self.RotAngle, axis=self.RotAxis, origine=(self.Position[X_COOR] + 10*self.length, self.Position[Y_COOR] + 10*self.length, self.Position[Z_COOR])) #-sin(alpha), cos(alpha)))
+#		self.BodyShape.rotate(angle=self.RotAngle, axis=self.RotAxis, origine=(self.Position[X_COOR] + 10*self.length, self.Position[Y_COOR] + 10*self.length, self.Position[Z_COOR])) #-sin(alpha), cos(alpha)))
+		self.Origin.rotate(angle=self.RotAngle, axis=self.RotAxis, origine=(10*self.length, 10*self.length, 0)) #-sin(alpha), cos(alpha)))
 		#self.Engine.rotate(angle=self.RotAngle, axis=self.RotAxis, origine=(self.Position[X_COOR] + 10*self.length, self.Position[Y_COOR] + 10*self.length, self.Position[Z_COOR])) #-sin(alpha), cos(alpha)))
 
 	def makeAxis(self, size, position):
@@ -1625,7 +1633,8 @@ class starman(makeBody):
 		#print "--------------------------now making ROADSTER\n"
 		# create tesla
 		roadster = self.makeTesla()
-		roadster.frame = self.BodyShape
+#		roadster.frame = self.BodyShape
+		roadster.frame = self.Origin
 
 		# place roadster on the top of stage-2
 		roadster.pos = (self.FWD_TANK_CENTER_XCOOR+(self.FWD_TANK_RADIUS)*1.14, self.carlength/2, -self.carwidth/2)
@@ -1752,7 +1761,8 @@ class comet(makeBody):
 		makeBody.__init__(self, system, key, color, COMET, COMET, SMALLBODY_SZ_CORRECTION, system)
 
 	def makeShape(self):
-		self.BodyShape = ellipsoid(	pos=(self.Position[X_COOR],self.Position[Y_COOR],self.Position[Z_COOR]),
+#		self.BodyShape = ellipsoid(	pos=(self.Position[X_COOR],self.Position[Y_COOR],self.Position[Z_COOR]),
+		self.BodyShape = ellipsoid(	frame=self.Origin, pos=(0,0,0),
 									length=(self.radiusToShow * randint(10, 20)/10)/self.SizeCorrection[self.sizeType],
 									height=(self.radiusToShow * randint(10, 20)/10)/self.SizeCorrection[self.sizeType],
 									width=(self.radiusToShow * randint(10, 20)/10)/self.SizeCorrection[self.sizeType], make_trail=false)
@@ -1769,7 +1779,9 @@ class comet(makeBody):
 
 	def setRotation(self):
 		#self.updateAxis()
-		self.BodyShape.rotate(angle=self.RotAngle, axis=self.RotAxis, origine=(self.Position[X_COOR],self.Position[Y_COOR],self.Position[Z_COOR])) #-sin(alpha), cos(alpha)))
+#		self.BodyShape.rotate(angle=self.RotAngle, axis=self.RotAxis, origine=(self.Position[X_COOR],self.Position[Y_COOR],self.Position[Z_COOR])) #-sin(alpha), cos(alpha)))
+		self.Origin.pos = vector(self.Position[X_COOR],self.Position[Y_COOR],self.Position[Z_COOR])
+		self.BodyShape.rotate(angle=self.RotAngle, axis=self.RotAxis, origine=(0,0,0)) #-sin(alpha), cos(alpha)))
 
 	def makeAxis(self, size, position):
 		return
@@ -1804,7 +1816,8 @@ class asteroid(makeBody):
 		self.RotAxis = (1,1,1)
 
 	def setRotation(self):
-		self.BodyShape.rotate(angle=self.RotAngle, axis=self.RotAxis, origine=(self.Position[X_COOR],self.Position[Y_COOR],self.Position[Z_COOR])) #-sin(alpha), cos(alpha)))
+		self.Origin = vector(self.Position[X_COOR],self.Position[Y_COOR],self.Position[Z_COOR])
+		self.BodyShape.rotate(angle=self.RotAngle, axis=self.RotAxis, origine=(0,0,0)) #-sin(alpha), cos(alpha)))
 
 	def makeAxis(self, size, position):
 		return
@@ -1829,7 +1842,9 @@ class pha(makeBody):
 									width=(self.radiusToShow * randint(10, 20)/10)/self.SizeCorrection[self.sizeType], make_trail=false)
 		"""
 		asteroidRandom = [(1.5, 2, 1), (1.5, 2, 1)]
-		self.BodyShape = ellipsoid(	pos=(self.Position[X_COOR],self.Position[Y_COOR],self.Position[Z_COOR]),
+#		self.BodyShape = ellipsoid(	pos=(self.Position[X_COOR],self.Position[Y_COOR],self.Position[Z_COOR]),
+		self.Origin.pos = vector(self.Position[X_COOR],self.Position[Y_COOR],self.Position[Z_COOR])
+		self.BodyShape = ellipsoid(	frame = self.Origin, pos=(0,0,0),
 									length=(self.radiusToShow * asteroidRandom[self.sizeType][0])/self.SizeCorrection[self.sizeType],
 									height=(self.radiusToShow * asteroidRandom[self.sizeType][1])/self.SizeCorrection[self.sizeType],
 									width=(self.radiusToShow * asteroidRandom[self.sizeType][2])/self.SizeCorrection[self.sizeType], make_trail=false)
@@ -1853,7 +1868,8 @@ class pha(makeBody):
 
 	def setRotation(self):
 		#self.updateAxis()
-		self.BodyShape.rotate(angle=self.RotAngle, axis=self.RotAxis, origine=(self.Position[X_COOR],self.Position[Y_COOR],self.Position[Z_COOR])) #-sin(alpha), cos(alpha)))
+		self.Origin.pos = vector(self.Position[X_COOR],self.Position[Y_COOR],self.Position[Z_COOR])
+		self.BodyShape.rotate(angle=self.RotAngle, axis=self.RotAxis, origine=(0,0,0)) #-sin(alpha), cos(alpha)))
 
 	def makeAxis(self, size, position):
 		return
@@ -1867,7 +1883,9 @@ class smallAsteroid(makeBody):
 		makeBody.__init__(self, system, key, color, SMALL_ASTEROID, SMALL_ASTEROID, SMALLBODY_SZ_CORRECTION, system)
 
 	def makeShape(self):
-		self.BodyShape = ellipsoid(	pos=(self.Position[X_COOR],self.Position[Y_COOR],self.Position[Z_COOR]),
+
+#		self.BodyShape = ellipsoid(	pos=(self.Position[X_COOR],self.Position[Y_COOR],self.Position[Z_COOR]),
+		self.BodyShape = ellipsoid(	frame=self.Origin, pos=(0,0,0),
 									length=(self.radiusToShow * randint(10, 20)/10)/self.SizeCorrection[self.sizeType],
 									height=(self.radiusToShow * randint(10, 20)/10)/self.SizeCorrection[self.sizeType],
 									width=(self.radiusToShow * randint(10, 20)/10)/self.SizeCorrection[self.sizeType], make_trail=false)
@@ -1889,7 +1907,8 @@ class smallAsteroid(makeBody):
 		self.RotAxis = (1,1,1)
 
 	def setRotation(self):
-		self.BodyShape.rotate(angle=self.RotAngle, axis=self.RotAxis, origine=(self.Position[X_COOR],self.Position[Y_COOR],self.Position[Z_COOR])) #-sin(alpha), cos(alpha)))
+		self.Origin.pos= vector(self.Position[X_COOR],self.Position[Y_COOR],self.Position[Z_COOR])
+		self.BodyShape.rotate(angle=self.RotAngle, axis=self.RotAxis, origine=(0,0,0)) #-sin(alpha), cos(alpha)))
 
 	def makeAxis(self, size, position):
 		return
@@ -1912,7 +1931,8 @@ class transNeptunian(makeBody):
 		makeBody.__init__(self, system, key, color, TRANS_NEPT, TRANS_NEPT, SMALLBODY_SZ_CORRECTION, system)
 
 	def makeShape(self):
-		self.BodyShape = ellipsoid(	pos=(self.Position[X_COOR],self.Position[Y_COOR],self.Position[Z_COOR]),
+#		self.BodyShape = ellipsoid(	pos=(self.Position[X_COOR],self.Position[Y_COOR],self.Position[Z_COOR]),
+		self.BodyShape = ellipsoid(	frame=self.Origin, pos=(0,0,0),
 									length=(self.radiusToShow * randint(10, 20)/10)/self.SizeCorrection[self.sizeType],
 									height=(self.radiusToShow * randint(10, 20)/10)/self.SizeCorrection[self.sizeType],
 									width=(self.radiusToShow * randint(10, 20)/10)/self.SizeCorrection[self.sizeType], make_trail=false)
@@ -1934,7 +1954,8 @@ class transNeptunian(makeBody):
 		self.RotAxis = (1,1,1)
 
 	def setRotation(self):
-		self.BodyShape.rotate(angle=self.RotAngle, axis=self.RotAxis, origine=(self.Position[X_COOR],self.Position[Y_COOR],self.Position[Z_COOR])) #-sin(alpha), cos(alpha)))
+		self.Origin.pos = vector(self.Position[X_COOR],self.Position[Y_COOR],self.Position[Z_COOR])
+		self.BodyShape.rotate(angle=self.RotAngle, axis=self.RotAxis, origine=(0,0,0)) #-sin(alpha), cos(alpha)))
 
 	def makeAxis(self, size, position):
 		return
