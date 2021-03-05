@@ -565,9 +565,10 @@ class orbitalCtrlPanel(wx.Panel):
 		self.DetailsOn = False
 		self.currentBody = None
 		self.DisableAnimationCallback = True
-
+		self.RecorderOn = False
 		self.InitUI()
 		self.Hide()
+		#f = codecs.open("unicode.txt", "r", "utf-8")
 
 	def resetDate(self, deltaT):
 		self.DeltaT = deltaT
@@ -686,17 +687,23 @@ class orbitalCtrlPanel(wx.Panel):
 		self.sliderTitle = wx.StaticText(self, label="Ani.Frame = ", pos=(200, ANI_Y), size=(60, 20))
 		self.sliderTitle.SetFont(self.BoldFont)
 
-		self.aniSpeed = wx.StaticText(self, label="10 mi", pos=(305, ANI_Y), size=(15, 20))
+
+#		self.aniSpeed = wx.StaticText(self, label="10 mi", pos=(305, ANI_Y), size=(15, 20))
+		self.aniSpeed = wx.StaticText(self, label= "%s %s" % (Time_Intervals[INITIAL_TIMEINCR]["label"], Time_Intervals[INITIAL_TIMEINCR]["unit"]), pos=(305, ANI_Y), size=(15, 20))
 		self.aniSpeed.SetFont(self.BoldFont)
 
 		self.aniSlider = wx.Slider(self, id=wx.ID_ANY, value=1, minValue=-24, maxValue=24, pos=(195, ANI_Y+30), size=(150, 20), style=wx.SL_HORIZONTAL)
 		self.aniSlider.Bind(wx.EVT_SLIDER,self.OnAnimSlider)
 
-		self.Animate = wx.Button(self, label='>', pos=(370, ANI_Y), size=(40, 40))
+		self.Animate = wx.Button(self, label='>', pos=(360, ANI_Y), size=(35, 35))
 		self.Animate.Bind(wx.EVT_BUTTON, self.OnAnimate)
 
-		self.Stepper = wx.Button(self, label='+', pos=(415, ANI_Y), size=(40, 40))
+		self.Stepper = wx.Button(self, label='+', pos=(395, ANI_Y), size=(35, 35))
 		self.Stepper.Bind(wx.EVT_BUTTON, self.OnStepper)
+
+		#s = u'\u25a0' # square character
+		self.Recorder = wx.Button(self, label=u'\u25a0', pos=(440, ANI_Y), size=(35, 35))
+		self.Recorder.Bind(wx.EVT_BUTTON, self.OnRecord)
 
 		self.InfoTitle = wx.StaticText(self, label="", pos=(20, DET_Y))
 		self.InfoTitle.SetFont(wx.Font(10, wx.SWISS, wx.NORMAL, wx.BOLD))
@@ -813,7 +820,9 @@ class orbitalCtrlPanel(wx.Panel):
 		# copy time increment to solarsystem class for realtime update
 		self.SolarSystem.setTimeIncrement(self.TimeIncrement)
 		#self.aniSpeed.SetLabel(setPrecision(str(self.TimeIncrement), 2)+" d")
-		self.aniSpeed.SetLabel(str(self.aniSlider.GetValue()*10)+" mi")
+#		self.aniSpeed.SetLabel(str(self.aniSlider.GetValue()*10)+" mi")
+		self.aniSpeed.SetLabel(str(self.aniSlider.GetValue()*Time_Intervals[INITIAL_TIMEINCR]["value"])+" "+Time_Intervals[INITIAL_TIMEINCR]["unit"])
+		
 		return
 
 	def OnTimeSpin(self, e):
@@ -1013,10 +1022,25 @@ class orbitalCtrlPanel(wx.Panel):
 		self.Pause.SetLabel("Pause")
 
 	def OnStepper(self, e):
+		if self.RecorderOn == True:
+			self.RecorderOn = False
+
 		self.StepByStep = True
 		self.disableBeltsForAnimation()
 		self.AnimationInProgress = False # stop potential animation in progress
 		self.OneTimeIncrement()
+
+	def OnRecord(self, e):
+		if self.RecorderOn == False:
+			self.RecorderOn = True
+			self.Recorder.SetOwnForegroundColour(wx.RED)
+		else:
+			self.RecorderOn = False
+			self.Recorder.SetOwnForegroundColour(wx.BLACK)
+
+		#self.disableBeltsForAnimation()
+		#self.AnimationInProgress = False # stop potential animation in progress
+		#self.OneTimeIncrement()
 
 	def OneTimeIncrement(self):
 		self.DeltaT += self.TimeIncrement
@@ -1036,23 +1060,28 @@ class orbitalCtrlPanel(wx.Panel):
 				self.AnimationCallback()
 	
 	def OnAnimate(self, e):
-		#sleep(2)
 		self.StepByStep = False
 		if self.AnimationInProgress == True:
 			self.AnimationInProgress = False
 			self.Animate.SetLabel(">")
-			if self.VideoRecorder != None:
+			if self.RecorderOn == True and self.VideoRecorder != None:
 				stopRecording(self.VideoRecorder)
+
 			return
 
-		self.VideoRecorder = setVideoRecording(15, "output.avi")
+		self.VideoRecorder = None
+
 		self.Animate.SetLabel("||")
 		self.disableBeltsForAnimation()
 		self.AnimationInProgress = True
 		while self.AnimationInProgress:
-			sleep(1e-2)
+#			sleep(1e-2)
+			sleep(1e-3)
 			self.OneTimeIncrement()
-			recOneFrame(self.VideoRecorder)
+			if self.RecorderOn == True:
+				if self.VideoRecorder == None:
+					self.VideoRecorder = setVideoRecording(15, "output.avi")
+				recOneFrame(self.VideoRecorder)
 			#if self.DisableAnimationCallback == False:
 			#	print "PROUT "
 			#	self.AnimationCallback()
@@ -1060,6 +1089,7 @@ class orbitalCtrlPanel(wx.Panel):
 
 
 		self.Animate.SetLabel(">")
+		#self.Recorder.SetColor() ####
 
 
 class WIDGETSpanel(wx.Panel):

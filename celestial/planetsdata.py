@@ -139,11 +139,26 @@ JPL_EARTH_MOID_LD = 44
 JPL_JUPITER_MOID_AU = 45
 JPL_ORBIT_CLASS = 58
 
-# time increment
-TI_TEN_MINUTES = 0.006944444433 # in days
-TI_ONE_HOUR = 0.0416666666
-TI_SIX_HOURS = 0.25
-INITIAL_TIMEINCR = TI_TEN_MINUTES
+# time increment in days
+TI_ONE_MINUTE = 6.9444444e-4
+TI_FIVE_MINUTES = TI_ONE_MINUTE * 5 
+TI_TEN_MINUTES = TI_ONE_MINUTE * 10 # 0.006944444433 # in days
+TI_ONE_HOUR = TI_ONE_MINUTE * 60 #0.0416666666
+TI_SIX_HOURS = TI_ONE_HOUR * 6 #0.25
+TI_TWELVE_HOURS = TI_ONE_HOUR * 12
+
+
+Time_Intervals = { # values are all in munutes, regardless of the unit in effect
+	TI_ONE_MINUTE 	: { "value": 1, "label": "1", "unit": "m"},
+	TI_FIVE_MINUTES : { "value": 5, "label": "5", "unit": "m"},
+	TI_TEN_MINUTES 	: { "value": 10, "label": "10", "unit": "m"}, 
+	TI_ONE_HOUR 	: { "value": 60, "label": "1", "unit": "h"}, 
+	TI_SIX_HOURS 	: { "value": 360, "label": "6", "unit": "h"},
+	TI_TWELVE_HOURS : { "value": 720, "label": "12", "unit": "h"}
+}
+
+
+INITIAL_TIMEINCR = TI_ONE_MINUTE #TI_TEN_MINUTES
 
 # scale toggling
 SCALE_OVERSIZED = 0

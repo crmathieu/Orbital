@@ -328,7 +328,52 @@ class solarSystem:
 			planet.RingColors = colorArray
 			self.makeRings(planet)
 
-	def makeRings(self, planet): #, system, bodyName, numberOfRings, colorArray):  # change default values during instantiation
+	def makeRings(self, planet):
+
+		for i in range(0, planet.nRings):
+			curRadius = planet.BodyRadius * (self.INNER_RING_COEF + i * self.RING_INCREMENT) / planet.SizeCorrection[planet.sizeType]
+			planet.Rings.insert(i, cylinder(frame=planet.BodyShape, pos=(planet.Position[0], planet.Position[1], planet.Position[2]), radius=curRadius, color=planet.RingColors[i][0], length=(planet.RingThickness-(i*planet.RingThickness/10)), opacity=planet.RingColors[i][1], axis=planet.RotAxis))
+			print planet.Name
+			#cylinder(frame=planet.BodyShape, pos=(planet.Position[0], planet.Position[1], planet.Position[2]), radius=curRadius, color=planet.RingColors[i][0], length=(planet.RingThickness-(i*planet.RingThickness/10)), opacity=planet.RingColors[i][1], axis=planet.RotAxis)			
+			if (self.SolarSystem.ShowFeatures & planet.BodyType) == 0:
+				planet.Rings[i].visible = False
+		"""
+		# create engine
+		print "engine=", self.engine
+		if self.engine <= 1:
+			self.ENGINE_HEIGHT = self.length/13
+			self.ENGINE_YOFFSET = 0
+			self.ENGINE_RADIUS = self.AFT_TANK_RADIUS/5
+			self.NOZZLE_LENGTH = self.length/4
+			self.NOZZLE_THROAT = self.radius/7
+			self.ENGINE_TOP_XCOOR = self.AFT_TANK_CENTER_XCOOR - self.AFT_TANK_RADIUS - self.ENGINE_HEIGHT/2 - self.length/30
+		#cylinder(frame=self.BodyShape, pos=(self.ENGINE_TOP_XCOOR,0,0), radius=self.AFT_TANK_RADIUS/5, length=self.length/13, color=color.darkgrey)
+		else:
+			self.engine = 2
+			self.ENGINE_HEIGHT = self.length/16
+			self.ENGINE_YOFFSET = self.AFT_TANK_RADIUS / (self.engine+1)
+			self.ENGINE_RADIUS = self.AFT_TANK_RADIUS/7
+			self.NOZZLE_LENGTH = self.length/6
+			self.NOZZLE_THROAT = self.radius * 0.01
+			self.ENGINE_TOP_XCOOR = self.AFT_TANK_CENTER_XCOOR - self.AFT_TANK_RADIUS - self.ENGINE_HEIGHT/2 - self.length/30
+			cylinder(frame=self.BodyShape, axis=(0,1,0), pos=(self.ENGINE_TOP_XCOOR + (self.ENGINE_HEIGHT*0.8), -self.length/12, 0), radius=self.ENGINE_RADIUS, length=self.length/6, color=color.darkgrey)
+
+		k = -1
+		for i in range(self.engine):
+			cylinder(frame=self.BodyShape, pos=(self.ENGINE_TOP_XCOOR, self.ENGINE_YOFFSET * k, 0), radius=self.ENGINE_RADIUS, length=self.ENGINE_HEIGHT, color=color.darkgrey)
+			nozzle = self.makeNozzle(self.ENGINE_YOFFSET * k)
+			nozzle.frame = self.BodyShape
+			k = -k
+		k = -1
+		for i in range(self.COPV):
+			# create COPV
+			#self.COPV_RADIUS = self.length/18 + k*(self.length/80)
+			self.COPV_RADIUS = self.length/18 - i*(self.length/100)
+			sphere(frame=self.BodyShape, pos=(self.ENGINE_TOP_XCOOR + self.length/31, 0, self.length/11 * k), radius=self.COPV_RADIUS, color=color.grey)		
+			k = -k
+	"""
+
+	def makeRingsCurrent(self, planet): #, system, bodyName, numberOfRings, colorArray):  # change default values during instantiation
 		#print planet.RingThickness
 		for i in range(0, planet.nRings):
 			curRadius = planet.BodyRadius * (self.INNER_RING_COEF + i * self.RING_INCREMENT) / planet.SizeCorrection[planet.sizeType]
@@ -1112,6 +1157,36 @@ class planet(makeBody):
 		# elements to calculate the body's current approximated position on orbit
 		elt = objects_data[key]["kep_elt_1"] if "kep_elt_1" in objects_data[key] else objects_data[key]["kep_elt"]
 		self.setOrbitalFromKeplerianElements(elt, timeincrement) #-1.4) #0.7)
+
+# CLASS RINGPLANET -------------------------------------------------------------
+class makeRingPlanet(planet):
+
+	def __init__(self, system, nameId, color, type, sizeCorrectionType, defaultSizeCorrection):
+		planet.__init__(self, system, nameId, color, type, sizeCorrectionType, defaultSizeCorrection)
+
+	def setAspect(self, key):
+		#data = materials.loadTGA("./img/"+key) if objects_data[key]["material"] != 0 else materials.loadTGA("./img/asteroid")
+		data = materials.loadTGA("./img/"+self.Tga) if objects_data[key]["material"] != 0 else materials.loadTGA("./img/asteroid")
+		self.BodyShape.material = materials.texture(data=data, mapping="spherical", interpolate=False)
+
+	def makeShapeOLD(self):
+		self.BodyShape = sphere(pos=(self.Position[X_COOR]+self.Foci[X_COOR],self.Position[Y_COOR]+self.Foci[Y_COOR],self.Position[Z_COOR]+self.Foci[Z_COOR]), radius=self.radiusToShow/self.SizeCorrection[self.sizeType], make_trail=false)
+
+
+	def makeShape(self):
+
+		#self.length = 2 * self.radiusToShow/self.SizeCorrection[self.sizeType]
+		#self.radius = 20 
+		#self.compounded = True
+
+		# create compound object
+		self.CentralBody = frame()
+		self.CentralBody.pos = (self.Position[X_COOR]+self.Foci[X_COOR],self.Position[Y_COOR]+self.Foci[Y_COOR],self.Position[Z_COOR]+self.Foci[Z_COOR])
+
+		# create Planet
+#		self.BodyShape = sphere(frame=self.CentralBody, pos=(self.Position[X_COOR]+self.Foci[X_COOR],self.Position[Y_COOR]+self.Foci[Y_COOR],self.Position[Z_COOR]+self.Foci[Z_COOR]), radius=self.radiusToShow/self.SizeCorrection[self.sizeType], make_trail=false)		
+		self.BodyShape = sphere(frame=self.CentralBody, pos=(0, 0, 0), radius=self.radiusToShow/self.SizeCorrection[self.sizeType], make_trail=false)		
+
 
 # CLASS MAKEEARTH -------------------------------------------------------------
 class makeEarth(planet):
