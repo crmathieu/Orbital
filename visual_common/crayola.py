@@ -2,8 +2,10 @@ import colorsys
 
 black = (0,0,0)
 white = (1,1,1)
+whiteish = (0.9, 0.9, 0.9)
 grey = (0.5,0.5,0.5)
 darkgrey = (0.32, 0.32, 0.32)
+lightgrey = (0.75,0.75,0.75)
 
 red = (1,0,0)
 redish = (0.5, 0, 0)
@@ -11,6 +13,8 @@ green = (0,1,0)
 greenish = (0, 0.5, 0)
 blue = (0,0,1)
 blueish = (0, 0, 0.5)
+darkblue = (0, 0.5, 1)
+
 yellow = (1,1,0)
 yellowish = (0.5, 0.5, 0)
 cyan = (0,1,1)
