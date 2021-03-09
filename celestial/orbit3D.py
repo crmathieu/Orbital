@@ -654,7 +654,7 @@ class makeBody:
 
 	def makeShape(self):
 		self.Origin.pos=(self.Position[X_COOR]+self.Foci[X_COOR],self.Position[Y_COOR]+self.Foci[Y_COOR],self.Position[Z_COOR]+self.Foci[Z_COOR])
-		self.BodyShape = sphere(frame=self.Origin, pos=(0,0,0), radius=self.radiusToShow/self.SizeCorrection[self.sizeType], make_trail=false)
+		self.BodyShape = sphere(frame=self.Origin, pos=(0,0,0), np=64, radius=self.radiusToShow/self.SizeCorrection[self.sizeType], make_trail=false)
 
 	def makeAxis(self, size, position):
 		self.directions = [vector(2*size,0,0), vector(0,2*size,0), vector(0,0,2*size)]
@@ -1052,7 +1052,7 @@ class planet(makeBody):
 			self.Rings.insert(self.nRings, self.makeRingElt(curRadius, width, thickness, ring["color"]))
 			self.nRings += 1
 
-	def makeRingElt(self, radius, width, thickness, color):
+	def makeRingElt(self, radius, width, thickness, colour):
 
 		ringframe = frame()
 		straight = [(0,0,0),(0,0,thickness)]
@@ -1066,7 +1066,7 @@ class planet(makeBody):
 		# make car body from 2D polygones set
 		body = extrusion(pos=straight, 
 						shape=outerEdge-innerEdge,
-						color=color)
+						color=colour)
 
 		body.frame = ringframe
 
@@ -1096,13 +1096,6 @@ class planet(makeBody):
 		# elements to calculate the body's current approximated position on orbit
 		elt = objects_data[key]["kep_elt_1"] if "kep_elt_1" in objects_data[key] else objects_data[key]["kep_elt"]
 		self.setOrbitalFromKeplerianElements(elt, timeincrement) #-1.4) #0.7)
-
-# CLASS RINGPLANET -------------------------------------------------------------
-class makeRingPlanetXX(planet):
-
-	def __init__(self, system, nameId, color, type, sizeCorrectionType, defaultSizeCorrection):
-		planet.__init__(self, system, nameId, color, type, sizeCorrectionType, defaultSizeCorrection)
-		print self.Rotation
 
 
 # CLASS MAKEEARTH -------------------------------------------------------------
@@ -1171,7 +1164,10 @@ class makeEarth(planet):
 	def setOrbitalFromKeplerianElements(self, elts, timeincrement):
 		# get number of days since J2000 epoch and obtain the fraction of century
 		# (the rate adjustment is given as a rate per century)
-		days = daysSinceJ2000UTC() + timeincrement - ADJUSTMENT_FACTOR_PLANETS # - 1.43
+		
+#		days = daysSinceJ2000UTC() + timeincrement - ADJUSTMENT_FACTOR_PLANETS # - 1.43
+		days = daysSinceJ2000UTC() + timeincrement # - 1.43
+		
 		#T = (daysSinceJ2000UTC() + timeincrement)/36525. # T is in centuries
 
 		T = (days-1.95)/36525. # T is in centuries
@@ -1374,7 +1370,7 @@ class genericSpacecraft(makeBody):
 		# create aft tank
 		self.AFT_TANK_RADIUS = self.radius
 		self.AFT_TANK_CENTER_XCOOR = self.BARYCENTER_XCOOR + self.length/9
-		sphere(frame=self.Origin, pos=(self.AFT_TANK_CENTER_XCOOR, 0, 0), radius=self.AFT_TANK_RADIUS, color=color.white)		
+		sphere(frame=self.Origin, pos=(self.AFT_TANK_CENTER_XCOOR, 0, 0), radius=self.AFT_TANK_RADIUS, color=color.white, np=64)		
 
 		# create forward Platform
 		self.FWD_TANK_RADIUS = self.radius

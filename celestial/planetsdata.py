@@ -139,21 +139,21 @@ JPL_EARTH_MOID_LD = 44
 JPL_JUPITER_MOID_AU = 45
 JPL_ORBIT_CLASS = 58
 
-# time increment in days
+# time increments in day unit
 
-TI_ONE_SECOND = 1.157407e-5
-TI_10_SECONDS = TI_ONE_SECOND * 10
-TI_30_SECONDS = TI_ONE_SECOND * 30
-TI_ONE_MINUTE = TI_ONE_SECOND * 60
-#TI_ONE_MINUTE = 6.9444444e-4        # 1d -> 8640/6 mi => 1mi = 6/8640 day
+TI_ONE_SECOND 	= 1.157407e-5			# 1d -> 86400 sec => 1sec = 1/86400 day
+TI_10_SECONDS 	= TI_ONE_SECOND * 10
+TI_30_SECONDS 	= TI_ONE_SECOND * 30
+TI_ONE_MINUTE 	= TI_ONE_SECOND * 60
 TI_FIVE_MINUTES = TI_ONE_MINUTE * 5 
-TI_TEN_MINUTES = TI_ONE_MINUTE * 10 # 0.006944444433 # in days
-TI_ONE_HOUR = TI_ONE_MINUTE * 60 #0.0416666666
-TI_SIX_HOURS = TI_ONE_HOUR * 6 #0.25
-TI_TWELVE_HOURS = TI_ONE_HOUR * 12
+TI_TEN_MINUTES 	= TI_ONE_MINUTE * 10 
+TI_ONE_HOUR 	= 0.0416666666
+TI_SIX_HOURS 	= 0.25
+TI_TWELVE_HOURS = 0.5
+TI_24_HOURS 	= 1
 
 
-Time_Intervals = { # values are all in munutes, regardless of the unit in effect
+Frame_IntervalsXX = { 
 	TI_ONE_SECOND 	: { "value": 1, "label": "1", "unit": "s"},
 	TI_10_SECONDS 	: { "value": 10, "label": "10", "unit": "s"},
 	TI_30_SECONDS 	: { "value": 30, "label": "30", "unit": "s"},
@@ -166,8 +166,24 @@ Time_Intervals = { # values are all in munutes, regardless of the unit in effect
 	TI_TWELVE_HOURS : { "value": 720, "label": "12", "unit": "h"}
 }
 
+Frame_Intervals = { # values are always in seconds...
+	1: { "incr": TI_ONE_SECOND,  "value": 1, 		"label": "1", 	"unit": "s"},
+	2: { "incr": TI_10_SECONDS,  "value": 10, 		"label": "10", 	"unit": "s"},
+	3: { "incr": TI_30_SECONDS,  "value": 30, 		"label": "30", 	"unit": "s"},
+	4: { "incr": TI_ONE_MINUTE,  "value": 1,  		"label": "1", 	"unit": "m"},
+	5: { "incr": TI_FIVE_MINUTES,"value": 5, 		"label": "5", 	"unit": "m"},
+	6: { "incr": TI_TEN_MINUTES, "value": 10, 		"label": "10", 	"unit": "m"}, 
+	7: { "incr": TI_ONE_HOUR,    "value": 1, 		"label": "1", 	"unit": "h"}, 
+	8: { "incr": TI_SIX_HOURS, 	 "value": 6, 		"label": "6", 	"unit": "h"},
+	9: { "incr": TI_TWELVE_HOURS,"value": 12, 		"label": "12", 	"unit": "h"},
+   10: { "incr": TI_24_HOURS,	 "value": 1, 		"label": "24", 	"unit": "d"}
+}
 
-INITIAL_TIMEINCR = TI_ONE_SECOND #TI_TEN_MINUTES # 
+
+INITIAL_INCREMENT_KEY = 1
+#TimeIncrementKey = 1
+INITIAL_TIMEINCR = Frame_Intervals[INITIAL_INCREMENT_KEY]["incr"] #TI_ONE_SECOND #TI_TEN_MINUTES # 
+#BaseTimeIncrement = INITIAL_TIMEINCR
 
 # scale toggling
 SCALE_OVERSIZED = 0

@@ -110,9 +110,9 @@ NASA_API_KEY_DETAILS = "https://api.nasa.gov/neo/rest/v1/neo/"
 # PANELS numbers - Note that panels MUST be added in the same order to the parent
 # notebook to make it possible to switch from panel to panel programmatically
 
-PANEL_MAIN = 0
-PANEL_POV = 1
-PANEL_CAPP = 2
+PANEL_MAIN 	= 0
+PANEL_POV 	= 1
+PANEL_CAPP 	= 2
 
 POV_Y = 15
 POV_FOCUS_Y = POV_Y+150
@@ -518,14 +518,14 @@ class JPLpanel(wx.Panel):
 			"radius": float(entry["estimated_diameter"]["kilometers"]["estimated_diameter_max"])/2, # if float(entry["estimated_diameter"]["kilometers"]["estimated_diameter_max"])/2 > DEFAULT_RADIUS else DEFAULT_RADIUS,
 			"QR_perihelion": float(entry["orbital_data"]["perihelion_distance"]) * AU,
 			"EC_e": float(entry["orbital_data"]["eccentricity"]),
-			"revolution": float(entry["orbital_data"]["orbital_period"]),
+			"PR_revolution": float(entry["orbital_data"]["orbital_period"]),
 			"IN_orbital_inclination": float(entry["orbital_data"]["inclination"]),
 			"OM_longitude_of_ascendingnode":float(entry["orbital_data"]["ascending_node_longitude"]),
 			"W_argument_of_perihelion": float(entry["orbital_data"]["perihelion_argument"]),
 			"longitude_of_perihelion": float(entry["orbital_data"]["ascending_node_longitude"])+float(entry["orbital_data"]["perihelion_argument"]),
 			"Tp_Time_of_perihelion_passage_JD": float(entry["orbital_data"]["perihelion_time"]),
-			"N_mean_motion": float(entry["orbital_data"]["N_mean_motion"]),
-			"MA_mean_anomaly": float(entry["orbital_data"]["MA_mean_anomaly"]),
+			"N_mean_motion": float(entry["orbital_data"]["mean_motion"]),
+			"MA_mean_anomaly": float(entry["orbital_data"]["mean_anomaly"]),
 			"epochJD": float(entry["orbital_data"]["epoch_osculation"]),
 			"earth_moid": float(entry["orbital_data"]["minimum_orbit_intersection"]) * AU,
 			"orbit_class": "N/A",
@@ -533,7 +533,7 @@ class JPLpanel(wx.Panel):
 			"axial_tilt": 0.0
 		}
 		# CLose approach objects are considered as PHAs
-		body = pha(self.SolarSystem, entry["neo_reference_id"], getColor())
+		body = orbit3D.pha(self.SolarSystem, entry["neo_reference_id"], orbit3D.getColor())
 		self.SolarSystem.addTo(body)
 		return entry["neo_reference_id"]
 
@@ -553,6 +553,8 @@ class orbitalCtrlPanel(wx.Panel):
 		self.AnimationInProgress = False
 		self.Source = PHA
 		self.TimeIncrement = INITIAL_TIMEINCR
+		self.BaseTimeIncrement = INITIAL_TIMEINCR
+		self.TimeIncrementKey = INITIAL_INCREMENT_KEY
 		self.AnimLoop = 0
 		self.SolarSystem = solarsystem
 		self.todayDate = datetime.date.today()
@@ -566,6 +568,7 @@ class orbitalCtrlPanel(wx.Panel):
 		self.currentBody = None
 		self.DisableAnimationCallback = True
 		self.RecorderOn = False
+
 		self.InitUI()
 		self.Hide()
 		#f = codecs.open("unicode.txt", "r", "utf-8")
@@ -684,16 +687,24 @@ class orbitalCtrlPanel(wx.Panel):
 		self.Pause.Bind(wx.EVT_BUTTON, self.OnPauseSlideShow)
 		self.Pause.Hide()
 
-		self.sliderTitle = wx.StaticText(self, label="Ani.Frame = ", pos=(200, ANI_Y), size=(60, 20))
+		# Time slider
+
+		self.sliderTitle = wx.StaticText(self, label="Fr Intval: ", pos=(200, ANI_Y), size=(60, 20))
 		self.sliderTitle.SetFont(self.BoldFont)
 
+		self.aniTime = wx.StaticText(self, label= "%s %s" % (Frame_Intervals[self.TimeIncrementKey]["label"], Frame_Intervals[self.TimeIncrementKey]["unit"]), pos=(250, ANI_Y+30), size=(15, 20))
+		self.aniTime.SetFont(self.BoldFont)
+		self.aniTimeSlider = wx.Slider(self, id=wx.ID_ANY, value=1, minValue=1, maxValue=10, pos=(195, ANI_Y+50), size=(150, 20), style=wx.SL_HORIZONTAL)
+		self.aniTimeSlider.Bind(wx.EVT_SLIDER,self.OnAnimTimeSlider) 
+
+		# Speed slider
 
 #		self.aniSpeed = wx.StaticText(self, label="10 mi", pos=(305, ANI_Y), size=(15, 20))
-		self.aniSpeed = wx.StaticText(self, label= "%s %s" % (Time_Intervals[INITIAL_TIMEINCR]["label"], Time_Intervals[INITIAL_TIMEINCR]["unit"]), pos=(305, ANI_Y), size=(15, 20))
+		self.aniSpeed = wx.StaticText(self, label= "%s %s" % (Frame_Intervals[self.TimeIncrementKey]["label"], Frame_Intervals[self.TimeIncrementKey]["unit"]), pos=(305, ANI_Y), size=(15, 20))
 		self.aniSpeed.SetFont(self.BoldFont)
+		self.aniSpeedSlider = wx.Slider(self, id=wx.ID_ANY, value=1, minValue=-24, maxValue=24, pos=(195, ANI_Y+30), size=(150, 20), style=wx.SL_HORIZONTAL)
+		self.aniSpeedSlider.Bind(wx.EVT_SLIDER,self.OnAnimSpeedSlider)
 
-		self.aniSlider = wx.Slider(self, id=wx.ID_ANY, value=1, minValue=-24, maxValue=24, pos=(195, ANI_Y+30), size=(150, 20), style=wx.SL_HORIZONTAL)
-		self.aniSlider.Bind(wx.EVT_SLIDER,self.OnAnimSlider)
 
 		self.Animate = wx.Button(self, label='>', pos=(360, ANI_Y), size=(35, 35))
 		self.Animate.Bind(wx.EVT_BUTTON, self.OnAnimate)
@@ -815,14 +826,28 @@ class orbitalCtrlPanel(wx.Panel):
 		self.Source = {0: PHA, 1: COMET, 2:BIG_ASTEROID, 3:TRANS_NEPT}[index]
 		self.SolarSystem.currentSource = self.Source
 
-	def OnAnimSlider(self, e):
-		self.TimeIncrement = float(self.aniSlider.GetValue()) * INITIAL_TIMEINCR
+	def OnAnimSpeedSlider(self, e):
+		#print "OnAnimSpeedSlider", self.TimeIncrementKey, self.BaseTimeIncrement
+		self.TimeIncrement = float(self.aniSpeedSlider.GetValue()) * self.BaseTimeIncrement
 		# copy time increment to solarsystem class for realtime update
 		self.SolarSystem.setTimeIncrement(self.TimeIncrement)
-		#self.aniSpeed.SetLabel(setPrecision(str(self.TimeIncrement), 2)+" d")
-#		self.aniSpeed.SetLabel(str(self.aniSlider.GetValue()*10)+" mi")
-		self.aniSpeed.SetLabel(str(self.aniSlider.GetValue()*Time_Intervals[INITIAL_TIMEINCR]["value"])+" "+Time_Intervals[INITIAL_TIMEINCR]["unit"])
+#		self.aniSpeed.SetLabel(str(self.aniSpeedSlider.GetValue()*10)+" mi")
+		self.aniSpeed.SetLabel(str(self.aniSpeedSlider.GetValue()*Frame_Intervals[self.TimeIncrementKey]["value"])+" "+Frame_Intervals[self.TimeIncrementKey]["unit"])
 		
+		return
+
+	def OnAnimTimeSlider(self, e):
+		self.TimeIncrementKey = float(self.aniTimeSlider.GetValue())
+		self.BaseTimeIncrement = Frame_Intervals[self.TimeIncrementKey]["incr"]
+		print "OnAnimTimeSlider", self.TimeIncrementKey, self.BaseTimeIncrement
+
+#		self.TimeIncrement = float(self.aniTimeSlider.GetValue()) * BaseTimeIncrement
+		# copy time increment to solarsystem class for realtime update
+#		self.SolarSystem.setTimeIncrement(self.TimeIncrement)
+#		self.aniTimeSpeed.SetLabel(str(self.aniSpeedSlider.GetValue()*Frame_Intervals[TimeIncrementKey]["value"])+" "+Frame_Intervals[TimeIncrementKey]["unit"])
+
+		# finally reflect new time interval in speed slider		
+		self.OnAnimSpeedSlider(e)
 		return
 
 	def OnTimeSpin(self, e):
@@ -1109,13 +1134,14 @@ class WIDGETSpanel(wx.Panel):
 class controlWindow(wx.Frame):
 
 	def __init__(self, solarsystem):
-		wx.Frame.__init__(self, None, wx.ID_ANY, title="Orbits Control", size=(500, INFO1_Y+220))
+		newHeight = INFO1_Y+250 # +220
+		wx.Frame.__init__(self, None, wx.ID_ANY, title="Orbits Control", size=(500, newHeight))
 
 		# create parent panel
-		self.Panel = wx.Panel(self, size=(500, INFO1_Y+220))
+		self.Panel = wx.Panel(self, size=(500, newHeight))
 
 		# create notebook to handle tabs
-		self.Notebook = wx.Notebook(self.Panel, size=(500, INFO1_Y+220))
+		self.Notebook = wx.Notebook(self.Panel, size=(500, newHeight))
 		# create subpanels to be used with tabs
 		self.orbitalBox = orbitalCtrlPanel(self, self.Notebook, solarsystem)
 		self.jplBox = JPLpanel(self, self.Notebook, solarsystem)
