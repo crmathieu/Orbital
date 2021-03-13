@@ -39,7 +39,7 @@ def main():
 #	solarsystem.setDefaultFeatures(pd.INNERPLANET|pd.OUTERPLANET|pd.ORBITS|pd.SATELLITE|pd.KUIPER_BELT|pd.ASTEROID_BELT|pd.JTROJANS|pd.LABELS|pd.CELESTIAL_SPHERE)
 #	solarsystem.setDefaultFeatures(pd.INNERPLANET|pd.OUTERPLANET|pd.ORBITS)
 
-	solarsystem.addTo(makeEcliptic(solarsystem, color.white))
+	solarsystem.addTo(makeEcliptic(solarsystem, color.cyan, 0.4))
 	solarsystem.addTo(planet(solarsystem, 'mercury', color.green, pd.INNERPLANET, pd.INNERPLANET, pd.PLANET_SZ_CORRECTION))
 	solarsystem.addTo(planet(solarsystem, 'venus', color.yellow, pd.INNERPLANET, pd.INNERPLANET, pd.PLANET_SZ_CORRECTION))
 

@@ -366,7 +366,7 @@ class solarSystem:
 # CLASS MAKEECLIPTIC ----------------------------------------------------------
 class makeEcliptic:
 
-	def __init__(self, system, color):  # change default values during instantiation
+	def __init__(self, system, color, opacity):  # change default values during instantiation
 		# draw a circle of 250 AU
 		self.Labels = []
 		self.Name = "Ecliptic Plane"
@@ -374,18 +374,37 @@ class makeEcliptic:
 		self.JPL_designation = "ecliptic"
 		self.SolarSystem = system
 		self.Color = color
+		self.Opacity = opacity
+		self.Lines = []
 		self.BodyType = ECLIPTIC_PLANE
 		self.Labels.append(label(pos=(250*AU*DIST_FACTOR, 250*AU*DIST_FACTOR, 0), text=self.Name, xoffset=20, yoffset=12, space=0, height=10, border=6, box=false, font='sans', visible = False))
 
+	def getIncrement(self):
+		# provide 1 degree increment in radians
+		return pi/180
+
 	def draw(self):
-		self.BodyShape = cylinder(pos=vector(0,0,0), radius=250*AU*DIST_FACTOR, color=self.Color, length=10, opacity=0.1, axis=(0,0,1))
-		self.BodyShape.visible = False
+		self.Origin = frame()
+		self.BodyShape = cylinder(frame=self.Origin, pos=vector(0,0,0), radius=250*AU*DIST_FACTOR, color=self.Color, length=10, opacity=self.Opacity, axis=(0,0,1))
+		self.Origin.visible = False
+		"""
+		increment = self.getIncrement()
+
+		refDirections = [vector(size,0,0), vector(0,size,0), vector(0,0,size/4)]
+		relsize = 2 * (self.BodyRadius/self.CorrectionSize)
+		relDirections = [vector(relsize,0,0), vector(0,relsize,0), vector(0,0,relsize)]
+		pos = vector(0,0,0)
+
+		for E in np.arange(increment, 2*pi+increment, increment):
+			# draw a line outward from center with length = radius of ecliptic disk
+			self.Lines.append(curve( frame = self.Origin, color = color.dirtyYellow, pos= [ pos, pos+refDirections[i]], visible=False)
+		"""
 
 	def refresh(self):
 		if self.SolarSystem.ShowFeatures & ECLIPTIC_PLANE != 0:
-			self.BodyShape.visible = True
+			self.Origin.visible = True
 		else:
-			self.BodyShape.visible = False
+			self.Origin.visible = False
 
 
 # CLASS MAKEBELT --------------------------------------------------------------
