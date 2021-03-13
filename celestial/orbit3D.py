@@ -54,6 +54,7 @@ class solarSystem:
 		self.JPL_designation = "SUN"
 		self.nameIndex = {}
 		self.BodyRadius = SUN_R
+		#self.BodyType = 0
 		self.Mass = SUN_M
 		self.AbortSlideShow = False
 		self.SlideShowInProgress = False
@@ -158,6 +159,11 @@ class solarSystem:
 			self.ShowFeatures |= type
 		else:
 			self.ShowFeatures = (self.ShowFeatures & ~type)
+			if 	self.currentPOVselection != "SUN" and self.currentPOV.BodyType == type:
+				# reset SUN as current POV when the currobject should not longer be visible
+				#print "POUET!"
+				return 1
+		return 0
 
 	def getTimeIncrement(self):
 		return self.TimeIncrement
@@ -271,7 +277,8 @@ class solarSystem:
 			if body.BodyType in [SPACECRAFT, OUTERPLANET, INNERPLANET, ASTEROID, COMET, SATELLITE, DWARFPLANET, PHA, BIG_ASTEROID, TRANS_NEPT]:
 				body.toggleSize(realisticSize)
 
-				if body.BodyShape.visible == True:
+			#	if body.BodyShape.visible == True:
+				if body.Origin.visible == True:
 					body.Trail.visible = orbitTrace
 					if body.isMoon == True:
 						if body.sizeType == SCALE_NORMALIZED: # apply label on/off when moon in real size
@@ -280,8 +287,11 @@ class solarSystem:
 							value = False
 					else:
 						value = labelVisible
+
 					for i in range(len(body.Labels)):
 						body.Labels[i].visible = value
+				else:
+					print body.Name, " is not visible" 
 			else: # belts / rings
 				if body.BodyShape.visible == True and animationInProgress == True:
 					#for i in range(len(body.BodyShape)):
@@ -641,7 +651,8 @@ class makeBody:
 		self.Labels.append(label(pos=(self.Position[X_COOR]+self.Foci[X_COOR],self.Position[Y_COOR]+self.Foci[Y_COOR],self.Position[Z_COOR]+self.Foci[Z_COOR]), text=self.Name, xoffset=20, yoffset=12, space=0, height=10, color=color, border=6, box=false, font='sans'))
 
 		if (self.SolarSystem.ShowFeatures & bodyType) == 0:
-			self.BodyShape.visible = False
+#			self.BodyShape.visible = False
+			self.Origin.visible = False
 			self.Labels[0].visible = False
 
 		self.makeAxis(self.radiusToShow/self.SizeCorrection[self.sizeType], self.Position) #(self.Position[X_COOR],self.Position[Y_COOR],self.Position[Z_COOR]))
@@ -699,7 +710,8 @@ class makeBody:
 		self.BodyShape.radius = self.radiusToShow  / self.SizeCorrection[self.sizeType]
 
 	def setTraceAndLabelVisibility(self, value):
-		if self.BodyShape.visible == True:
+#		if self.BodyShape.visible == True:
+		if self.Origin.visible == True:
 			self.Trail.visible = value
 			for i in range(len(self.Labels)):
 				self.Labels[i].visible = value
@@ -869,7 +881,8 @@ class makeBody:
 			self.updatePosition(trace=True) #E*180/pi)
 			rate(5000)
 
-		if self.BodyShape.visible:
+#		if self.BodyShape.visible:
+		if self.Origin.visible:
 			self.Trail.visible = True
 
 		self.hasRenderedOrbit = True
@@ -975,10 +988,13 @@ class makeBody:
 			self.AxisLabel[i].visible = setTo
 
 	def refresh(self):
-		if self.SolarSystem.SlideShowInProgress and self.BodyType == self.SolarSystem.currentSource:
+		if 	self.SolarSystem.SlideShowInProgress and \
+			self.BodyType == self.SolarSystem.currentSource:
 			return
 
-		if self.BodyType & self.SolarSystem.ShowFeatures != 0 or self.Name == 'Earth' or self.Details == True:
+		if 	self.BodyType & self.SolarSystem.ShowFeatures != 0 or \
+			self.Name == 'Earth' or \
+			self.Details == True:
 			if self.Origin.visible == False:
 				self.show()
 			# if this is the currentPOV, check for local referential attribute
@@ -1109,6 +1125,7 @@ class makeEarth(planet):
 
 
 	def initRotation(self):
+
 		# texture alignment correction coefficient
 		TEXTURE_POSITIONING_CORRECTION = pi/12
 
@@ -1127,7 +1144,8 @@ class makeEarth(planet):
 					 - self.iDelta 
 
 		# add correction due to initial position of texture on earth sphere, then rotate texture to make it match current time
-		self.LocalInitialAngle = -TEXTURE_POSITIONING_CORRECTION + self.Gamma
+#		self.LocalInitialAngle = -TEXTURE_POSITIONING_CORRECTION + self.Gamma
+		self.LocalInitialAngle = TEXTURE_POSITIONING_CORRECTION + self.Gamma
 		self.BodyShape.rotate(angle=(self.LocalInitialAngle), axis=self.RotAxis, origine=(0,0,0))
 		
 		"""
@@ -1142,6 +1160,7 @@ class makeEarth(planet):
 		"""
 
 	def updateStillPosition(self, timeinsec):
+		
 		if self.wasAnimated == false:
 			self.rotationInterval -= timeinsec
 			if self.rotationInterval <= 0:
@@ -1356,7 +1375,7 @@ class genericSpacecraft(makeBody):
 
 
 	def makeShape(self):
-		self.length = 2 * self.radiusToShow/self.SizeCorrection[self.sizeType]
+		self.length = self.lengthFactor * 2 * self.radiusToShow/self.SizeCorrection[self.sizeType]
 		self.radius = 20 
 		self.compounded = True
 
@@ -1619,9 +1638,10 @@ class spacecraft(genericSpacecraft, starman):
 		if "profile" in objects_data[key]:
 			print objects_data[key]["profile"]
 			profile = json.loads(objects_data[key]["profile"])
-			self.profile = profile["look"]
-			self.engine  = profile["engine"]
-			self.COPV    = profile["COPV"]
+			self.profile 		= profile["look"]
+			self.engine  		= profile["engine"]
+			self.COPV    		= profile["COPV"]
+			self.lengthFactor 	= profile["length"]
 
 			if self.profile == "generic":
 				self.profile = "genericSpacecraft"
@@ -1791,6 +1811,11 @@ class smallAsteroid(makeBody):
 class dwarfPlanet(makeBody):
 	def __init__(self, system, key, color):
 		makeBody.__init__(self, system, key, color, DWARFPLANET, DWARFPLANET, DWARFPLANET_SZ_CORRECTION, system)
+		#print "Making ", key
+
+	def makeShape(self):
+		makeBody.makeShape(self)
+		#print "DWARF ", self.Name
 
 	def getRealisticSizeCorrectionXX(self):
 		#DWARFPLANET_SZ_CORRECTION = 1e-2/(DIST_FACTOR*5)
@@ -1930,7 +1955,7 @@ def loadBodies(SolarSystem, type, filename, maxentries = 0):
 		for key in obj:
 			objects_data[obj[key]["jpl_designation"]] = {
 #			objects_data[obj[key]] = {
-				"profile": "{ \"look\":\""+obj[key]["profile"]["look"]+"\", \"engine\":"+str(obj[key]["profile"]["engine"])+", \"COPV\":"+str(obj[key]["profile"]["COPV"])+"}" if "profile" in obj[key] else "",
+				"profile": "{ \"look\":\""+obj[key]["profile"]["look"]+"\", \"engine\":"+str(obj[key]["profile"]["engine"])+", \"length\":"+str(obj[key]["profile"]["length"])+", \"COPV\":"+str(obj[key]["profile"]["COPV"])+"}" if "profile" in obj[key] else "",
 				"material": 1 if obj[key]["tga_name"] != "" else 0,
 				"name": str(obj[key]["name"]),
 				"iau_name": str(obj[key]["iau_name"]),

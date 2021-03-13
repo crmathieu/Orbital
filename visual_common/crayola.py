@@ -13,7 +13,7 @@ green = (0,1,0)
 greenish = (0, 0.5, 0)
 blue = (0,0,1)
 blueish = (0, 0, 0.5)
-darkblue = (0, 0.5, 1)
+darkblue = (0, 0, 0.2)
 
 yellow = (1,1,0)
 yellowish = (0.5, 0.5, 0)

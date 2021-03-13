@@ -136,22 +136,25 @@ class POVpanel(wx.Panel):
 		self.Header = wx.StaticText(self, label="", pos=(220, POV_Y), size=(TOTAL_X-210, 200))
 		self.Header.SetFont(self.RegFont)
 		self.Header.Wrap(self.GetSize().width)
-		self.Header.SetLabel("Select which body the animation should focus on. 'Current\nObject' will follow the last object selected, whether it comes\nfrom the Drop down selection, a paused slideshow selection\nor a Close Approach object pick.\n\nYou may also choose any particular planet or the sun." )
-		size2 = "Select which body the animation\nshould focus on. 'Current Object'\nwill follow the last object selected,\nwhether it comes from the Drop\ndown selection, a paused slide-\nshow selection or a Close App-\nroach object pick.\n\nYou may also choose any parti-\ncular planet or the sun."
-		self.Header.SetLabel(size2)
-		#lblList = ['Current Object', 'Sun', 'Earth', 'Mercury', 'Venus', 'Mars', 'Jupiter', 'Saturn', 'Uranus', 'Neptune', 'Pluto', 'Sedna', 'Makemake', 'Haumea','Eris','moon']
-		lblList = ['Current Object', 'Sun', 'Earth', 'Mercury', 'Venus', 'Mars', 'Jupiter', 'Saturn', 'Uranus', 'Neptune', 'Pluto', 'Sedna', 'Deimos', 'Charon','Eris','Moon']
-		self.rbox = wx.RadioBox(self, label = ' Focus on ', pos = (20, POV_Y), size=(170, 500), choices = lblList ,majorDimension = 1, style = wx.RA_SPECIFY_COLS)
+		#self.Header.SetLabel("Select which body the animation should focus on. 'Current\nObject' will follow the last object selected, whether it comes\nfrom the Drop down selection, a paused slideshow selection\nor a Close Approach object pick.\n\nYou may also choose any particular planet or the sun." )
+		Description = "Select which body the animation\nshould focus on. 'Current Object'\nwill follow the last object selected,\nwhether it comes from the Drop\ndown selection, a paused slide-\nshow selection or a Close App-\nroach object pick.\n\nYou may also choose any parti-\ncular planet or the sun."
+		self.Header.SetLabel(Description)
+		
+		lblList = ['Current Object', 'Sun', 'Earth', 'Mercury', 'Venus', 'Mars', 'Jupiter', 'Saturn', 'Uranus', 'Neptune', 'Pluto', 'Sedna', 'Makemake', 'Haumea','Eris','Charon', 'Phobos', 'Deimos', 'Moon']
+		self.rbox = wx.RadioBox(self, label = ' Focus on ', pos = (20, POV_Y), size=(170, 610), choices = lblList ,majorDimension = 1, style = wx.RA_SPECIFY_COLS)
 		self.rbox.SetFont(self.RegFont)
 		self.rbox.Bind(wx.EVT_RADIOBOX,self.OnRadioBox)
 
-		self.cb = wx.CheckBox(self, label="Show Local Referential", pos=(20, POV_Y+510))
+		self.cb = wx.CheckBox(self, label="Show Local Referential", pos=(200, POV_Y+580))
+		print "Y local ref=", POV_Y+580
+		print "Y bottom info=", POV_FOCUS_Y+80+TOTAL_Y-160
+
 		self.cb.SetValue(False)
 		self.cb.Bind(wx.EVT_CHECKBOX,self.OnLocalRef)
 
-		self.Title = wx.StaticText(self, label="", pos=(200, POV_FOCUS_Y+60), size=(TOTAL_X-210, TOTAL_Y-160))
+		self.Title = wx.StaticText(self, label="", pos=(200, POV_FOCUS_Y+60), size=(TOTAL_X-210, TOTAL_Y -240))# -160))
 		self.Title.SetFont(self.BoldFont)
-		self.Info = wx.StaticText(self, label="", pos=(200, POV_FOCUS_Y+80), size=(TOTAL_X-210, TOTAL_Y-160))
+		self.Info = wx.StaticText(self, label="", pos=(200, POV_FOCUS_Y+80), size=(TOTAL_X-210, TOTAL_Y -240)) #-160))
 		self.Info.SetFont(wx.Font(10, wx.MODERN, wx.NORMAL, wx.NORMAL)) #self.RegFont)
 
 		self.Info.Wrap(self.GetSize().width)
@@ -159,6 +162,7 @@ class POVpanel(wx.Panel):
 
 	def OnLocalRef(self, e):
 		#print "on local ref -> "+str(self.cb.GetValue())
+		print "currentPOV:",self.SolarSystem.currentPOVselection
 		self.setLocalRef()
 
 	def setLocalRef(self):
@@ -176,11 +180,13 @@ class POVpanel(wx.Panel):
 			self.parentFrame.orbitalBox.updateCameraPOV()
 			self.setBodyFocus(self.SolarSystem.currentPOV)
 
-	def setCurrentBodyFocusManually(self, body):
-		self.SolarSystem.currentPOV = body
+	def setCurrentBodyFocusManually(self, body, selectIndex):
+		#self.SolarSystem.currentPOV = body
 		# TODO check the body's option box in POV tab 
-		self.parentFrame.orbitalBox.updateCameraPOV()
-		self.setBodyFocus(self.SolarSystem.currentPOV)
+		#self.parentFrame.orbitalBox.updateCameraPOV()
+		self.setBodyFocus(body) #self.SolarSystem.currentPOV)
+		self.rbox.SetSelection(selectIndex)
+
 
 	def setBodyFocus(self, Body):
 		# display planet Info
@@ -215,18 +221,26 @@ class POVpanel(wx.Panel):
 				"Axial Tilt(deg) ", Body.AxialTilt))
 
 		if self.SolarSystem.currentPOVselection != 'curobj':
+			print "CurrentPOV", self.SolarSystem.currentPOVselection
+
 			if (Body.SolarSystem.ShowFeatures & Body.BodyType) == 0:
+				#print "MAKING OBJECT VISIBLE"
 				# if the body is not visible, Make it so
 				#print "Making "+Body.Name+" visible! bodyType = "+str(Body.BodyType)
 				#for i in range(len(body.BodyShape)):
-				Body.BodyShape.visible = True
+
+				#Body.BodyShape.visible = True
+				Body.Origin.visible = True
 				Body.Labels[0].visible = True
 				#planetBody.SolarSystem.ShowFeatures |= planetBody.BodyType
 				Body.SolarSystem.setFeature(Body.BodyType, True)
 				self.parentFrame.orbitalBox.checkboxList[Body.BodyType].SetValue(True)
 				#glbRefresh(self.SolarSystem, self.parentFrame.orbitalBox.AnimationInProgress)
+			#else:
+			#	print "OBJECT ALREADY VISIBLE"
 
 		self.SolarSystem.currentPOV = Body
+		self.SolarSystem.currentPOVselection = Body.JPL_designation
 		self.parentFrame.orbitalBox.updateCameraPOV()
 		#print "END setBodyFocus..."
 
@@ -235,52 +249,6 @@ class POVpanel(wx.Panel):
 		planetBody = self.SolarSystem.getBodyFromName(self.SolarSystem.currentPOVselection)
 		#print planetBody.Name
 		return self.setBodyFocus(planetBody)
-
-		"""
-		# display planet Info
-		mass = setPrecision(str(planetBody.Mass), 3)
-
-		radius = planetBody.BodyRadius/1000
-		rev = round(float(planetBody.Revolution / 365.25) * 1000)/1000
-
-		i = round(float(planetBody.Inclination) * 1000)/1000
-		N = round(float(planetBody.Longitude_of_ascendingnode) * 1000)/1000
-		w = round(float(planetBody.Argument_of_perihelion) * 1000)/1000
-		e = round(float(planetBody.e) * 1000)/1000
-		q = round(float(planetBody.Perihelion/AU) * 1000)/1000
-		a = round(float(planetBody.Aphelion/AU) * 1000)/1000
-
-		######
-		self.Title.SetLabel(planetBody.Name)
-		self.Info.SetLabel("{:<17}{:>10}\n{:<20}{:>7.1f}\n{:<15}{:>12.4f}\n{:<15}{:>12.4f}\n{:<14}{:>10.2f}\n{:<14}{:>10.2f}\n{:<14}{:>10.2f}\n{:<22}{:>5.2f}\n{:<12}{:>7.3f}\n{:<12}{:>7.3f}\n{:<20}{:>7.3f}\n{:<20}{:>7.2f}".
-		format(	"Mass(kg) ", mass,
-				"Radius(km) ", radius,
-				"Perihelion(AU) ", q,
-				"Aphelion(AU) ", a,
-				"Orb.Period(days) ", planetBody.Revolution,
-				"Orb.Period(yrs)  ", planetBody.Revolution/365.25,
-				"Rot.Period(days) ", planetBody.Rotation,
-				"Orb.Incli.(deg) ", i,
-				"Lg.of Asc Node(deg) ", N,
-				"Arg. of Perih.(deg) ", w,
-				"Eccentricity ", e,
-				"Axial Tilt(deg) ", planetBody.AxialTilt))
-
-
-		if (planetBody.SolarSystem.ShowFeatures & planetBody.BodyType) == 0:
-			# if the body is not visible, Make it so
-			#print "Making "+planetBody.Name+" visible! bodyType = "+str(planetBody.BodyType)
-			planetBody.BodyShape.visible = True
-			planetBody.Labels[0].visible = True
-			#planetBody.SolarSystem.ShowFeatures |= planetBody.BodyType
-			planetBody.SolarSystem.setFeature(planetBody.BodyType, True)
-			self.parentFrame.orbitalBox.checkboxList[planetBody.BodyType].SetValue(True)
-			#glbRefresh(self.SolarSystem, self.parentFrame.orbitalBox.AnimationInProgress)
-
-		self.SolarSystem.currentPOV = planetBody
-		self.parentFrame.orbitalBox.updateCameraPOV()
-		#print "END setPlanetFocus..."
-		"""
 
 	def setSunFocus(self):
 		mass = setPrecision(str(self.SolarSystem.Mass), 3)
@@ -303,9 +271,10 @@ class POVpanel(wx.Panel):
 
 	def OnRadioBox(self, e):
 		index = self.rbox.GetSelection()
+
 		self.SolarSystem.currentPOVselection = {0: "curobj", 1: "sun", 2:"earth", 3:"mercury", 4:"venus",
 												5: "mars", 6:"jupiter", 7:"saturn", 8:"uranus", 9:"neptune",
-												10:"pluto", 11:"sedna", 12:"deimos", 13:"charon",14:"eris", 15:"moon"}[index]
+												10:"pluto", 11:"sedna", 12:"makemake", 13:"haumea", 14:"eris", 15:"charon", 16: "phobos", 17:"deimos", 18:"moon"}[index]
 		{0:	self.setCurrentBodyFocus, 1: self.setSunFocus,
 		 2: self.setPlanetFocus, 3: self.setPlanetFocus,
 		 4: self.setPlanetFocus, 5: self.setPlanetFocus,
@@ -313,7 +282,9 @@ class POVpanel(wx.Panel):
 		 8: self.setPlanetFocus, 9: self.setPlanetFocus,
 		 10: self.setPlanetFocus, 11: self.setPlanetFocus,
 		 12: self.setPlanetFocus, 13: self.setPlanetFocus,
-		 14: self.setPlanetFocus, 15: self.setPlanetFocus }[index]()
+		 14: self.setPlanetFocus, 15: self.setPlanetFocus,
+		 16: self.setPlanetFocus, 17: self.setPlanetFocus,
+		 18: self.setPlanetFocus }[index]()
 
 		self.setLocalRef()
 
@@ -758,7 +729,8 @@ class orbitalCtrlPanel(wx.Panel):
 		self.SolarSystem.animate(self.DeltaT)
 		for body in self.SolarSystem.bodies:
 			if body.BodyType in [SPACECRAFT, OUTERPLANET, INNERPLANET, SATELLITE, ASTEROID, COMET, DWARFPLANET, PHA, BIG_ASTEROID, TRANS_NEPT]:
-				if body.BodyShape.visible == True:
+#				if body.BodyShape.visible == True:
+				if body.Origin.visible == True:
 					velocity, distance = body.animate(self.DeltaT)
 					if self.SolarSystem.currentPOV != None:
 						if body.JPL_designation == self.SolarSystem.currentPOV.JPL_designation:
@@ -884,11 +856,15 @@ class orbitalCtrlPanel(wx.Panel):
 			self.checkboxList[ASTEROID_BELT].SetValue(False)
 			self.checkboxList[KUIPER_BELT].SetValue(False)
 
+				
 		for type, cbox in self.checkboxList.iteritems():
-			self.SolarSystem.setFeature(type, cbox.GetValue())
+			reset = self.SolarSystem.setFeature(type, cbox.GetValue())
+			if reset == True:
+				self.parentFrame.povBox.setSunFocus()
+
 			#if self.SolarSystem.currentPOV != None and self.SolarSystem.currentPOV.BodyType == type:
 			#		self.parentFrame.povBox.resetPOV()
-		"""
+			"""
 		for type, cbox in self.checkboxList.iteritems():
 			if cbox.GetValue() == True:
 				self.SolarSystem.ShowFeatures |= type
@@ -896,7 +872,7 @@ class orbitalCtrlPanel(wx.Panel):
 				if self.SolarSystem.currentPOV != None and self.SolarSystem.currentPOV.BodyType == type:
 					self.parentFrame.povBox.resetPOV()
 				self.SolarSystem.ShowFeatures = (self.SolarSystem.ShowFeatures & ~type)
-		"""
+			"""
 
 		orbit3D.glbRefresh(self.SolarSystem, self.AnimationInProgress)
 
@@ -968,7 +944,9 @@ class orbitalCtrlPanel(wx.Panel):
 
 
 		#for i in range(len(body.BodyShape)):
-		body.BodyShape.visible = True
+
+#		body.BodyShape.visible = True
+		body.Origin.visible = True
 		for i in range(len(body.Labels)):
 			body.Labels[i].visible = True
 		body.Trail.visible = True
@@ -1027,8 +1005,8 @@ class orbitalCtrlPanel(wx.Panel):
 		self.resetSlideShow()
 
 	def hideCurrentObject(self, body):
-		#for i in range(len(body.BodyShape)):
-		body.BodyShape.visible = False
+		#body.BodyShape.visible = False
+		body.Origin.visible = False
 		for i in range(len(body.Labels)):
 			body.Labels[i].visible = False
 
@@ -1134,7 +1112,7 @@ class WIDGETSpanel(wx.Panel):
 class controlWindow(wx.Frame):
 
 	def __init__(self, solarsystem):
-		newHeight = INFO1_Y+250 # +220
+		newHeight = INFO1_Y+300 # +220
 		wx.Frame.__init__(self, None, wx.ID_ANY, title="Orbits Control", size=(500, newHeight))
 
 		# create parent panel
