@@ -919,10 +919,10 @@ class makeBody:
 	# default
 	def setRotation(self):
 		ti = self.SolarSystem.getTimeIncrement()
-		self.RotAngle = ((2*pi/self.Rotation)*ti) # if self.Rotation > 0 else 0
-
-		#if ti < 0:
-		#	self.RotAngle *= -1
+		self.RotAngle = (2*pi/self.Rotation)*ti
+		# if polar axis inverted, reverse rotational direction
+		if self.ZdirectionUnit[2] < 0:
+			self.RotAngle *= -1
 
 		self.updateAxis()
 		self.Origin.rotate(angle=self.RotAngle, axis=self.RotAxis, origine=(self.Position[X_COOR]+self.Foci[X_COOR],self.Position[Y_COOR]+self.Foci[Y_COOR],self.Position[Z_COOR]+self.Foci[Z_COOR]))
@@ -993,7 +993,7 @@ class makeBody:
 			return
 
 		if 	self.BodyType & self.SolarSystem.ShowFeatures != 0 or \
-			self.Name == 'Earth' or \
+			self.Name.lower() == 'earth' or \
 			self.Details == True:
 			if self.Origin.visible == False:
 				self.show()
