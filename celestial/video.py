@@ -4,6 +4,19 @@ import pyautogui
 import time
 import datetime
 
+"""
+IMPORTANT NOTE:
+When possible, it is preferable to stop the animation first before stopping the
+recording, otherwise some packet corruption may occur in the video stream.
+If this is the case, the corruption can be fixed by using the video tool "ffmpeg", 
+using the command line:
+
+> ffmepg -i filename.avi filename.mp4
+
+Where filename.avi is the corrupted file. Corrupted files may still play ok but when loaded
+into a video editor, they will likely be rejected.
+"""
+
 def setVideoRecording(frameRate = 20, filename = "output.avi"):
     vr = VideoRecorder(VideoRecorder.SCREEN_SIZE, "XVID", frameRate)
     dt = datetime.datetime.now()
