@@ -6,6 +6,7 @@ import datetime
 
 """
 IMPORTANT NOTE:
+===============
 When possible, it is preferable to stop the animation first before stopping the
 recording, otherwise some packet corruption may occur in the video stream.
 If this is the case, the corruption can be fixed by using the video tool "ffmpeg", 
