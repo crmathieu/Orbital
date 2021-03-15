@@ -32,29 +32,33 @@ def main():
 	# determine where this program runs 
 	#locationInfo = location()
 	
-	solarsystem = orbit3D.solarSystem()
+	solarsystem = solarSystem()
 	# set what is displayed by default
-	solarsystem.setDefaultFeatures(pd.INNERPLANET|pd.OUTERPLANET|pd.ORBITS|pd.SATELLITE|pd.KUIPER_BELT|pd.ASTEROID_BELT|pd.JTROJANS|pd.LABELS|pd.CELESTIAL_SPHERE)
+	bodySet = pd.INNERPLANET|pd.OUTERPLANET|pd.ORBITS|pd.SATELLITE|pd.KUIPER_BELT|pd.ASTEROID_BELT|pd.JTROJANS|pd.LABELS
+	solarsystem.setDefaultFeatures(bodySet) #pd.INNERPLANET|pd.OUTERPLANET|pd.ORBITS|pd.SATELLITE|pd.KUIPER_BELT|pd.ASTEROID_BELT|pd.JTROJANS|pd.LABELS|pd.CELESTIAL_SPHERE)
+#	solarsystem.setDefaultFeatures(pd.INNERPLANET|pd.OUTERPLANET|pd.ORBITS|pd.SATELLITE|pd.KUIPER_BELT|pd.ASTEROID_BELT|pd.JTROJANS|pd.LABELS|pd.CELESTIAL_SPHERE)
 #	solarsystem.setDefaultFeatures(pd.INNERPLANET|pd.OUTERPLANET|pd.ORBITS)
 
-	solarsystem.addTo(makeEcliptic(solarsystem, color.white))
+	solarsystem.addTo(makeEcliptic(solarsystem, color.cyan, 0.4))
 	solarsystem.addTo(planet(solarsystem, 'mercury', color.green, pd.INNERPLANET, pd.INNERPLANET, pd.PLANET_SZ_CORRECTION))
 	solarsystem.addTo(planet(solarsystem, 'venus', color.yellow, pd.INNERPLANET, pd.INNERPLANET, pd.PLANET_SZ_CORRECTION))
-	#earth = planet(solarsystem, 'earth', color.cyan, pd.INNERPLANET, pd.INNERPLANET, pd.PLANET_SZ_CORRECTION)
-	earth = orbit3D.makeEarth(solarsystem, color.cyan, pd.INNERPLANET, pd.INNERPLANET, pd.PLANET_SZ_CORRECTION)
 
+	earth = makeEarth(solarsystem, color.cyan, pd.INNERPLANET, pd.INNERPLANET, pd.PLANET_SZ_CORRECTION)
 	solarsystem.addTo(earth)
+
 	mars = planet(solarsystem, 'mars', color.red, pd.INNERPLANET, pd.INNERPLANET, pd.PLANET_SZ_CORRECTION)
 	solarsystem.addTo(mars)
+	
 	solarsystem.addTo(planet(solarsystem, 'jupiter', color.magenta, pd.OUTERPLANET, GASGIANT, pd.PLANET_SZ_CORRECTION))
 	solarsystem.addTo(planet(solarsystem, 'saturn', color.cyan, pd.OUTERPLANET, GASGIANT, pd.PLANET_SZ_CORRECTION))
 	solarsystem.addTo(planet(solarsystem, 'uranus', color.yellow, pd.OUTERPLANET, GASGIANT, pd.PLANET_SZ_CORRECTION))
 	solarsystem.addTo(planet(solarsystem, 'neptune', color.orange, pd.OUTERPLANET, GASGIANT, pd.PLANET_SZ_CORRECTION))
+
 	pluto = planet(solarsystem, 'pluto', color.green, DWARFPLANET, DWARFPLANET, pd.DWARFPLANET_SZ_CORRECTION) #pd.OUTERPLANET, DWARFPLANET)
 	solarsystem.addTo(pluto)
 
-	solarsystem.setRings(solarsystem, "saturn", [((0.8,0.8,0.8), 0.9), ((0.5,0.5,0.5), 0.2)]) #[color.gray(0.7), (0.5,0.5,0.5)])
-	solarsystem.setRings(solarsystem, "uranus", [((0.1,0.1,0.8), 0.1), ((0.2,0.2,0.7), 0.3)])
+#	solarsystem.setRings(solarsystem, "saturn") #, [((0.8,0.8,0.8), 0.9), ((0.5,0.5,0.5), 0.2)]) 
+#	solarsystem.setRings(solarsystem, "uranus") #, [((0.1,0.1,0.8), 0.1), ((0.2,0.2,0.7), 0.3)])
 
 	# generate DWARF planets
 	solarsystem.addTo(dwarfPlanet(solarsystem, 'eris', color.yellow))
@@ -77,11 +81,14 @@ def main():
 
 	MAX_OBJECTS = 1000
 
+	"""
 	loadBodies(solarsystem, PHA, "data/200m+PHA_orbital_elements.txt.json", MAX_OBJECTS)
 	loadBodies(solarsystem, BIG_ASTEROID,"data/200km+asteroids_orbital_elements.txt.json", MAX_OBJECTS)
 	loadBodies(solarsystem, COMET, "data/200m+comets_orbital_elements.txt.json", MAX_OBJECTS)
 	loadBodies(solarsystem, TRANS_NEPT, "data/transNeptunian_objects.txt.json", MAX_OBJECTS)
 	loadBodies(solarsystem, SPACECRAFT, "data/spacecrafts_orbital_elements.txt.json", MAX_OBJECTS)
+	"""
+
 	#loadBodies(solarsystem, pd.SATELLITE, "pd.SATELLITEs.txt", MAX_OBJECTS)
 
 	solarsystem.drawAllBodiesTrajectory()
@@ -100,7 +107,7 @@ def main():
 
 	ex = wx.App(False)
 	cw = controlWindow(solarsystem)
-	cw.povBox.setCurrentBodyFocusManually(earth)
+	cw.povBox.setCurrentBodyFocusManually(earth, 2)
 	cw.Show()
 
 

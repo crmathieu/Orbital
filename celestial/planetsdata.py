@@ -139,11 +139,51 @@ JPL_EARTH_MOID_LD = 44
 JPL_JUPITER_MOID_AU = 45
 JPL_ORBIT_CLASS = 58
 
-# time increment
-TI_TEN_MINUTES = 0.006944444433 # in days
-TI_ONE_HOUR = 0.0416666666
-TI_SIX_HOURS = 0.25
-INITIAL_TIMEINCR = TI_TEN_MINUTES
+# time increments in day unit
+
+TI_ONE_SECOND 	= 1.157407e-5			# 1d -> 86400 sec => 1sec = 1/86400 day
+TI_10_SECONDS 	= TI_ONE_SECOND * 10
+TI_30_SECONDS 	= TI_ONE_SECOND * 30
+TI_ONE_MINUTE 	= TI_ONE_SECOND * 60
+TI_FIVE_MINUTES = TI_ONE_MINUTE * 5 
+TI_TEN_MINUTES 	= TI_ONE_MINUTE * 10 
+TI_ONE_HOUR 	= 0.0416666666
+TI_SIX_HOURS 	= 0.25
+TI_TWELVE_HOURS = 0.5
+TI_24_HOURS 	= 1
+
+
+Frame_IntervalsXX = { 
+	TI_ONE_SECOND 	: { "value": 1, "label": "1", "unit": "s"},
+	TI_10_SECONDS 	: { "value": 10, "label": "10", "unit": "s"},
+	TI_30_SECONDS 	: { "value": 30, "label": "30", "unit": "s"},
+
+	TI_ONE_MINUTE 	: { "value": 1, "label": "1", "unit": "m"},
+	TI_FIVE_MINUTES : { "value": 5, "label": "5", "unit": "m"},
+	TI_TEN_MINUTES 	: { "value": 10, "label": "10", "unit": "m"}, 
+	TI_ONE_HOUR 	: { "value": 60, "label": "1", "unit": "h"}, 
+	TI_SIX_HOURS 	: { "value": 360, "label": "6", "unit": "h"},
+	TI_TWELVE_HOURS : { "value": 720, "label": "12", "unit": "h"}
+}
+
+Frame_Intervals = { # values are always in seconds...
+	1: { "incr": TI_ONE_SECOND,  "value": 1, 		"label": "1", 	"unit": "s"},
+	2: { "incr": TI_10_SECONDS,  "value": 10, 		"label": "10", 	"unit": "s"},
+	3: { "incr": TI_30_SECONDS,  "value": 30, 		"label": "30", 	"unit": "s"},
+	4: { "incr": TI_ONE_MINUTE,  "value": 1,  		"label": "1", 	"unit": "m"},
+	5: { "incr": TI_FIVE_MINUTES,"value": 5, 		"label": "5", 	"unit": "m"},
+	6: { "incr": TI_TEN_MINUTES, "value": 10, 		"label": "10", 	"unit": "m"}, 
+	7: { "incr": TI_ONE_HOUR,    "value": 1, 		"label": "1", 	"unit": "h"}, 
+	8: { "incr": TI_SIX_HOURS, 	 "value": 6, 		"label": "6", 	"unit": "h"},
+	9: { "incr": TI_TWELVE_HOURS,"value": 12, 		"label": "12", 	"unit": "h"},
+   10: { "incr": TI_24_HOURS,	 "value": 1, 		"label": "24", 	"unit": "d"}
+}
+
+
+INITIAL_INCREMENT_KEY = 1
+#TimeIncrementKey = 1
+INITIAL_TIMEINCR = Frame_Intervals[INITIAL_INCREMENT_KEY]["incr"] #TI_ONE_SECOND #TI_TEN_MINUTES # 
+#BaseTimeIncrement = INITIAL_TIMEINCR
 
 # scale toggling
 SCALE_OVERSIZED = 0
@@ -163,6 +203,8 @@ DWARFPLANET_SZ_CORRECTION = 1e-2/(DIST_FACTOR * 5)
 #Adjustment_cte = 1.85
 ADJUSTMENT_FACTOR_PLANETS = 0 # 1.95
 ADJUSTMENT_FACTOR = 1.72 #1.80
+
+from visual import color
 
 objects_data = {
 	"moon" :{
@@ -636,4 +678,80 @@ belt_data = {
 		"radius_max":20000,
 		"thickness": 0,
 		"thickness_factor":1.e9},
+}
+
+"""
+		"radius":58232e3,
+		"QR_perihelion":1352.55e9,
+		"EC_e":0.05415060,
+		"PR_revolution":10759.22,
+		"rotation":0.4407868753677,
+
+		SATURN
+Name(1)	Distance from Saturn's
+            center (km)				Width (km)		Thickness
+
+D ring 		66,900  -  74,510		7,500	 	
+C Ring 		74,658  -   92,000		17,500
+B Ring		92,000  -  117,580		25,500	 	*
+A ring		122,170 -   136,775		14,600	 	*
+F Ring		140,180 (3)				30 - 500	* 
+G Ring		166,000  -  175,000		9,000	 
+E Ring		180,000 - 480,000		300,000	 
+
+		URANUS
+
+Mu			86 000 - 103 000		17000				0.14			
+Nu			66 100 - 69 900			3800				0.012
+Tau			37 850 - 41 350			3500				1
+"""
+rings_data = {
+	"uranus": {
+		"rings":[
+			{	"name": "Mu",
+				"radius": 103000e3,
+				"width": 17000e3,
+				"color": color.darkblue
+			},
+			{	"name": "Nu",
+				"radius": 69900e3,
+				"width": 3800e3,
+				"color": color.darkblue
+			},
+			{	"name": "Tau",
+				"radius": 41350e3,
+				"width": 3500e3,
+				"color": color.blueish
+			}
+		]
+	},
+	"saturn": {
+		"rings": [
+			{	"name": "F",
+				"radius": 140180e3,
+				"width":100e3,
+				"color": color.whiteish
+			},
+			{	"name": "A",
+				"radius": 136775e3,
+				"width": 14600e3,
+				"color": color.lightgrey
+			},
+			{	"name": "B",
+				"radius": 117580e3,
+				"width": 25500e3,
+				"color": color.whiteish
+			},
+			{	"name": "C",
+				"radius": 92000e3,
+				"width": 17500e3,
+				"color": color.grey
+			},
+			{	"name": "D",
+				"radius": 74510e3,
+				"width": 7500e3,
+				"color": color.darkgrey
+			}		
+		]
+	}
 }
