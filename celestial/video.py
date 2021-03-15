@@ -27,9 +27,10 @@ def setVideoRecording(frameRate = 20, filename = "output.avi"):
     return vr
 
 def recOneFrame(videoRecorder):
+    videoRecorder.Exclusive = True
     videoRecorder.takeAshot()
-#    videoRecorder.showFrame()
     videoRecorder.recordFrame()
+    videoRecorder.Exclusive = False
 
 def stopRecording(videoRecorder):
     videoRecorder.closeVideo()
@@ -38,6 +39,7 @@ class VideoRecorder:
     SCREEN_SIZE = (1920, 1080)
 
     def __init__(self, screen, codectype, framerate):
+        self.Exclusive = False
         self.screen = screen
         self.framerate = framerate
         self.codec = cv2.VideoWriter_fourcc(*codectype)
@@ -62,8 +64,13 @@ class VideoRecorder:
         self.out.write(self.frame)
     
     def closeVideo(self):
+        while self.Exclusive == True:
+            print "@"
+            sleep(1e-3)
+
         cv2.destroyAllWindows()
         self.out.release()
+        print "Closing video file ", self.name
 
     def waitKey(self, t):
         return cv2.waitKey(t) & 0xFF
