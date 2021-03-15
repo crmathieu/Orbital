@@ -261,17 +261,20 @@ class solarSystem:
 		return False
 
 	def refresh(self, animationInProgress = False):
-		orbitTrace = False
-		if self.ShowFeatures & ORBITS != 0:
-			orbitTrace = True
+#		orbitTrace = False
+#		if self.ShowFeatures & ORBITS != 0:
+#			orbitTrace = True
+		orbitTrace = True if self.ShowFeatures & ORBITS != 0 else False
 
-		labelVisible = False
-		if self.ShowFeatures & LABELS != 0:
-			labelVisible = True
+#		labelVisible = False
+#		if self.ShowFeatures & LABELS != 0:
+#			labelVisible = True
+		labelVisible = True if self.ShowFeatures & LABELS != 0 else False
 
-		realisticSize = False
-		if self.ShowFeatures & REALSIZE != 0:
-			realisticSize = True
+#		realisticSize = False
+#		if self.ShowFeatures & REALSIZE != 0:
+#			realisticSize = True
+		realisticSize = True if self.ShowFeatures & REALSIZE != 0 else False
 
 		for body in self.bodies:
 			if body.BodyType in [SPACECRAFT, OUTERPLANET, INNERPLANET, ASTEROID, COMET, SATELLITE, DWARFPLANET, PHA, BIG_ASTEROID, TRANS_NEPT]:
@@ -401,10 +404,11 @@ class makeEcliptic:
 		"""
 
 	def refresh(self):
-		if self.SolarSystem.ShowFeatures & ECLIPTIC_PLANE != 0:
-			self.Origin.visible = True
-		else:
-			self.Origin.visible = False
+		self.Origin.visible = True if self.SolarSystem.ShowFeatures & ECLIPTIC_PLANE != 0 else False
+#		if self.SolarSystem.ShowFeatures & ECLIPTIC_PLANE != 0:
+#			self.Origin.visible = True
+#		else:
+#			self.Origin.visible = False
 
 
 # CLASS MAKEBELT --------------------------------------------------------------
@@ -450,11 +454,11 @@ class makeBelt:
 		if self.SolarSystem.ShowFeatures & self.BodyType != 0:
 			if self.BodyShape.visible == False:
 				self.BodyShape.visible = True
-
-			if self.SolarSystem.ShowFeatures & LABELS != 0:
-				labelVisible = True
-			else:
-				labelVisible = False
+			labelVisible = True if self.SolarSystem.ShowFeatures & LABELS != 0 else False
+#			if self.SolarSystem.ShowFeatures & LABELS != 0:
+#				labelVisible = True
+#			else:
+#				labelVisible = False
 
 			for i in range(len(self.Labels)):
 				self.Labels[i].visible = labelVisible
@@ -977,13 +981,14 @@ class makeBody:
 
 		#for i in range(len(self.BodyShape)):
 		self.Origin.visible = True
-		for i in range(len(self.Labels)):
-			self.Labels[i].visible = True
+#		for i in range(len(self.Labels)):
+#			self.Labels[i].visible = True
 
-		if self.SolarSystem.ShowFeatures & ORBITS != 0:
-			self.Trail.visible = True
-		else:
-			self.Trail.visible = False
+		self.Trail.visible = True if self.SolarSystem.ShowFeatures & ORBITS != 0 else False
+	#	if self.SolarSystem.ShowFeatures & ORBITS != 0:
+	#		self.Trail.visible = True
+	#	else:
+	#		self.Trail.visible = False
 
 		if self.SolarSystem.ShowFeatures & LABELS != 0:
 			for i in range(len(self.Labels)):
