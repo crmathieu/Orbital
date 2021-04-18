@@ -104,6 +104,11 @@ class Timeloc:
 		# 15 deg corresponds to 1hour (3600s). 1s -> 15/3600
 		return time_in_sec * 15/3600
 
+	# returns local time as a structure:
+	# time.struct_time(tm_year=2021, tm_mon=4, tm_mday=15, tm_hour=13, tm_min=34, tm_sec=41, tm_wday=3, tm_yday=105, tm_isdst=1) 
+	def getLocalTime(self):
+		return self.localtime
+
 """
 	def solar_timestrXX(self, strDatetime, longit):
 		dt = datetime.datetime.strptime(strDatetime,  '%Y/%m/%d %H:%M:%S')

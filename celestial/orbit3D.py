@@ -31,6 +31,8 @@ import scipy.special as sp
 from pynput.mouse import Button, Controller
 from visual import *
 
+import spice
+
 from location import *
 from planetsdata import *
 
@@ -829,9 +831,9 @@ class makeBody:
 	def setOrbitalFromKeplerianElements(self, elts, timeincrement):
 		# get number of days since J2000 epoch and obtain the fraction of century
 		# (the rate adjustment is given as a rate per century)
-		days = daysSinceJ2000UTC() + timeincrement - ADJUSTMENT_FACTOR_PLANETS # - 1.43
+		days = daysSinceJ2000UTC() + timeincrement #- ADJUSTMENT_FACTOR_PLANETS # - 1.43
 		#T = (daysSinceJ2000UTC() + timeincrement)/36525. # T is in centuries
-		T = days/36525. # T is in centuries
+		T = (days-1.945)/36525. # T is in centuries
 
 		self.a = (elts["a"] + (elts["ar"] * T)) * AU
 		self.e = elts["EC_e"] + (elts["er"] * T)
@@ -1151,7 +1153,7 @@ class makeEarth(planet):
 	def initRotation(self):
 
 		# texture alignment correction coefficient
-		TEXTURE_POSITIONING_CORRECTION = pi/12
+		TEXTURE_POSITIONING_CORRECTION =  2*pi/5 #pi/12
 
 		# we need to rotate around X axis by pi/2 to properly align the planet's texture
 		self.BodyShape.rotate(angle=(pi/2+self.TiltAngle), axis=self.XdirectionUnit, origine=(0,0,0))
@@ -1160,7 +1162,7 @@ class makeEarth(planet):
 		self.RotAxis = self.ZdirectionUnit
 
 		# calculate initial angle between body and solar referential x axis
-		self.iDelta = atan2(self.Position[Y_COOR], self.Position[X_COOR])
+		self.iDelta = 0 #atan2(self.Position[Y_COOR], self.Position[X_COOR])
 
 		# Calculate the local initial angle between the normal to the sun and our location
 		self.Gamma = deg2rad(locationInfo.solarT) \
@@ -1204,6 +1206,55 @@ class makeEarth(planet):
 		# update angle with its updated value
 		self.Gamma = newLocalInitialAngle
 
+	def setOrbitalFromKeplerianElements2(self, elts, timeincrement):
+		"""
+		self.Perihelion, self.e, 
+		self.Longitude_of_perihelion
+		self.Longitude_of_ascendingnode
+		self.Argument_of_perihelion
+		self.E
+		self.e 
+		self.a 
+		self.Inclination
+
+		y = spice.GetOcltx("EARTH", timeincrement)
+
+		self.Perihelion 				= y[0] * 1000
+		self.e 							= y[1]
+		self.Inclination 				= rad2deg(y[2])
+		self.Longitude_of_ascendingnode = rad2deg(y[3])
+		self.Argument_of_perihelion 	= rad2deg(y[4])
+		self.a 							= getSemiMajor(self.Perihelion, self.e)
+		
+
+		# compute mean Anomaly M = L - W
+		M = toRange(L - self.Longitude_of_perihelion)
+
+		# Obtain ecc. Anomaly E (in degrees) from M using an approx method of resolution:
+		success, self.E, dE, it = solveKepler(M, self.e, 12000)
+		if success == False:
+			print ("Could not converge for "+self.Name+", E = "+str(self.E)+", last precision = "+str(dE))
+
+		return 	
+		print "=========="
+		print "Perifocal:" + str(y[0]) + " km"
+
+		print "Eccentricity:"+str(y[1])
+		
+		print "Inclination:"+str(rad2deg(y[2])) + " deg"
+		print "Long.Ascending Node:"+str(rad2deg(y[3])) + " deg"
+		print "Argumt of periapsis:"+str(rad2deg(y[4])) + " deg"
+		print "Mean anomaly:"+str(rad2deg(y[5]))
+		print "Epoch:"+str(y[6])
+		print "MU:"+str(y[7])
+		print "NU:"+str(rad2deg(y[8])) + " deg/s"
+		print "Semi-major:"+str(y[9])
+		print "Period:"+str(y[10]/86400) + " d"
+
+		
+
+		"""
+
 	def setOrbitalFromKeplerianElements(self, elts, timeincrement):
 		# get number of days since J2000 epoch and obtain the fraction of century
 		# (the rate adjustment is given as a rate per century)
@@ -1213,7 +1264,8 @@ class makeEarth(planet):
 		
 		#T = (daysSinceJ2000UTC() + timeincrement)/36525. # T is in centuries
 
-		T = (days-1.95)/36525. # T is in centuries
+		#T = (days-1.5)/36525. # T is in centuries
+		T = (days-1.945)/36525. # T is in centuries
 		#T = (days)/36525. # T is in centuries
 
 		self.a = (elts["a"] + (elts["ar"] * T)) * AU

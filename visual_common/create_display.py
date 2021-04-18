@@ -363,7 +363,8 @@ class _mouseTracker:
 ##        self.__class__.__name__, `self.lastZooming`, `self.lastSpinning`)
       return '<%s lastZoom=%s, lastSpin=%s>' % (
         self.__class__.__name__, self.lastZooming, self.lastSpinning)
-        
+       
+# CM Custom class  
 class mouseTracker(_mouseTracker):
     def __init__(self):
         _mouseTracker.__init__(self)
@@ -559,7 +560,7 @@ class display(cvisual.display_kernel):
             self.height = self.y + self.height
             self.y = 0
             
-        self._mt = mouseTracker() #_mouseTracker()
+        self._mt = mouseTracker() # CM replaced _mouseTracker() with mouseTracker()
         self._captured = 0
         self._cursorx = self._cursory = 0
 
@@ -980,6 +981,7 @@ class display(cvisual.display_kernel):
         # mouse, repeated move mouse events mostly give the fixed cursor position.
         # Hence, for now, dragging off-screen stops spin/zoom on the Mac.
         # Similar problems on Ubuntu 12.04, plus wx.CURSOR_BLANK not available on Linux.
+        
         if (spinning or zooming) and (_plat != 'Macintosh'): # reset mouse to original location
             self.win.WarpPointer(self._cursorx, self._cursory)
             if self.fillswindow:

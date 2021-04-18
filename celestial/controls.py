@@ -606,6 +606,10 @@ class orbitalCtrlPanel(wx.Panel):
 		dateLabel = wx.StaticText(self, label='Orbital Date', pos=(200, DATE_Y))
 		dateLabel.SetFont(self.BoldFont)
 
+		self.timeLabel = wx.StaticText(self, label='hh:mm:ss', pos=(320, DATE_Y-2))
+		lt = orbit3D.locationInfo.getLocalTime()
+		self.timeLabel.SetLabel("{:>2} : {:>2} : {:2}".format(str(lt.tm_hour).zfill(2), str(lt.tm_min).zfill(2), str(lt.tm_sec).zfill(2)))
+
 		self.dateMSpin = wx.SpinCtrl(self, id=wx.ID_ANY, initial=self.todayDate.month, min=1, max=12, pos=(200, DATE_SLD_Y), size=(65, 25), style=wx.SP_ARROW_KEYS)
 		self.dateMSpin.Bind(wx.EVT_SPINCTRL,self.OnTimeSpin)
 		self.dateDSpin = wx.SpinCtrl(self, id=wx.ID_ANY, initial=self.todayDate.day, min=1, max=31, pos=(265, DATE_SLD_Y), size=(65, 25), style=wx.SP_ARROW_KEYS)
@@ -660,7 +664,7 @@ class orbitalCtrlPanel(wx.Panel):
 
 		# Time slider
 
-		self.sliderTitle = wx.StaticText(self, label="Fr Intval: ", pos=(200, ANI_Y), size=(60, 20))
+		self.sliderTitle = wx.StaticText(self, label="Frame Interval: ", pos=(200-30, ANI_Y), size=(60, 20))
 		self.sliderTitle.SetFont(self.BoldFont)
 
 		self.aniTime = wx.StaticText(self, label= "%s %s" % (Frame_Intervals[self.TimeIncrementKey]["label"], Frame_Intervals[self.TimeIncrementKey]["unit"]), pos=(250, ANI_Y+30), size=(15, 20))
@@ -743,6 +747,13 @@ class orbitalCtrlPanel(wx.Panel):
 	def OnValidateDate(self, e):
 		newdate = datetime.date(self.dateYSpin.GetValue(),self.dateMSpin.GetValue(),self.dateDSpin.GetValue())
 		self.DeltaT = (newdate - self.todayDate).days
+		"""
+		ztime = split(self.timeLabel.Getvalue(), " : ")
+		print len(ztime)
+		if len(ztime) > 0:
+			self.DeltaT += (float(ztime[0]) * TI_ONE_HOUR) + (float(ztime[1]) * TI_ONE_MINUTE) + (float(ztime[2]) * TI_ONE_SECOND)
+			print "##############", self.DeltaT
+		"""
 		self.OneTimeIncrement()
 		self.disableBeltsForAnimation()
 		self.DeltaT -= self.TimeIncrement
@@ -759,13 +770,37 @@ class orbitalCtrlPanel(wx.Panel):
 			self.ObjDistance.SetLabel("{:<12}{:>10.4f}".format("DTE (AU)", float(self.distance)))
 
 	def refreshDate(self):
-		newdate = self.todayDate + datetime.timedelta(days = self.DeltaT)
+		# update date spin wheels
+		time_delta = datetime.timedelta(days = self.DeltaT)
+		newdate = self.todayDate + time_delta
 		self.dateDSpin.SetValue(newdate.day)
 		self.dateMSpin.SetValue(newdate.month)
 		self.dateYSpin.SetValue(newdate.year)
 
+		# update time display
+		self.updateTimeDisplay(time_delta)
+
+		"""
+		zdelta = time_delta.seconds
+		hours = zdelta / 3600
+		zdelta -= hours * 3600
+		minutes = zdelta / 60
+		zdelta -= minutes * 60
+		seconds = zdelta
+		self.timeLabel.SetLabel("{:>2} : {:>2} : {:2}".format(str(hours).zfill(2), str(minutes).zfill(2), str(seconds).zfill(2)))
+		"""
+
 		self.setVelocityLabel()
 		self.setDistanceLabel()
+
+	def updateTimeDisplay(self, timeDelta):
+		zdelta = timeDelta.seconds
+		hours = zdelta / 3600
+		zdelta -= hours * 3600
+		minutes = zdelta / 60
+		zdelta -= minutes * 60
+		seconds = zdelta
+		self.timeLabel.SetLabel("{:>2} : {:>2} : {:2}".format(str(hours).zfill(2), str(minutes).zfill(2), str(seconds).zfill(2)))
 
 	def disableBeltsForAnimation(self):
 		self.checkboxList[JTROJANS].SetValue(False)
@@ -1077,6 +1112,16 @@ class orbitalCtrlPanel(wx.Panel):
 		self.Animate.SetLabel("||")
 		self.disableBeltsForAnimation()
 		self.AnimationInProgress = True
+
+		# if we animate for the first time, make sure to initialize 
+		# deltaT with current time as a fraction of day
+		if 0 == self.DeltaT:
+			ztime = self.timeLabel.GetLabel().split(" : ")
+			if len(ztime) > 0:
+				#print "before correction", self.DeltaT
+				self.DeltaT += (float(ztime[0]) * TI_ONE_HOUR) + (float(ztime[1]) * TI_ONE_MINUTE) + (float(ztime[2]) * TI_ONE_SECOND)
+				print "##############", self.DeltaT
+		print self.DeltaT
 		while self.AnimationInProgress:
 #			sleep(1e-2)
 			sleep(1e-3)
