@@ -1054,7 +1054,7 @@ class display(cvisual.display_kernel):
         if k != 'invalid key':
 		self.kb.pushkey(k)
 		self._dispatch_event('keydown', self.keyboard)
-        #print ("got keydown:", evt.GetKeyCode(), codeLookup.get(evt.GetKeyCode(),k))
+        #print ("got keydown:", evt.GetKeyCode()) #, codeLookup.get(evt.GetKeyCode(),k))
         if evt.GetKeyCode() == VPY_MAC_CTRL and _plat=='Macintosh':
             self._mt.macCtrlDown()
         #evt.Skip()

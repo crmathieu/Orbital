@@ -1122,6 +1122,7 @@ class orbitalCtrlPanel(wx.Panel):
 				self.DeltaT += (float(ztime[0]) * TI_ONE_HOUR) + (float(ztime[1]) * TI_ONE_MINUTE) + (float(ztime[2]) * TI_ONE_SECOND)
 				print "##############", self.DeltaT
 		print self.DeltaT
+
 		while self.AnimationInProgress:
 #			sleep(1e-2)
 			sleep(1e-3)
@@ -1130,9 +1131,10 @@ class orbitalCtrlPanel(wx.Panel):
 				if self.VideoRecorder == None:
 					self.VideoRecorder = setVideoRecording(15, "output.avi")
 				recOneFrame(self.VideoRecorder)
-			#if self.DisableAnimationCallback == False:
-			#	print "PROUT "
-			#	self.AnimationCallback()
+			
+			# if we have an animation callback set up, run it
+			if self.DisableAnimationCallback == False:
+				self.AnimationCallback()
 			#	print self.SolarSystem.Scene.center
 
 
@@ -1147,10 +1149,22 @@ class WIDGETSpanel(wx.Panel):
 		self.nb = notebook
 		self.SolarSystem = solarsystem
 		self.ca_deltaT = 0
+		self.Earth = solarsystem.EarthRef
+		self.drawEquator()
+		self.drawTimeZone()
 		#self.InitUI()
 		#self.resetPOV()
 		#self.Hide()
 
+	def drawEquator(self):
+		self.eq = cylinder(frame=self.Earth.Origin, pos=(0,0,0), color=color.blue, radius=self.Earth.BodyShape.radius*1.003, length=self.Earth.BodyShape.radius*0.003)
+		self.eq.rotate(angle=(pi/2), axis=self.Earth.YdirectionUnit, origine=(0,0,0))
+
+	def drawTimeZone(self):
+
+		for i in np.arange(0, pi, deg2rad(15)):
+			TZ = cylinder(frame=self.Earth.Origin, pos=(0,0,0), color=color.blue, radius=self.Earth.BodyShape.radius*1.003, length=self.Earth.BodyShape.radius*0.003)
+			TZ.rotate(angle=(i), axis=self.Earth.ZdirectionUnit, origine=(0,0,0))
 #
 #	This is the GUI entry point
 #
@@ -1165,6 +1179,7 @@ class controlWindow(wx.Frame):
 
 		# create notebook to handle tabs
 		self.Notebook = wx.Notebook(self.Panel, size=(500, newHeight))
+
 		# create subpanels to be used with tabs
 		self.orbitalBox = orbitalCtrlPanel(self, self.Notebook, solarsystem)
 		self.jplBox = JPLpanel(self, self.Notebook, solarsystem)
@@ -1179,7 +1194,7 @@ class controlWindow(wx.Frame):
 		#self.getLocationFromIPaddress()
 
 		# if we want flyOver animation
-		self.orbitalBox.SetAnimationCallback(orbit3D.flyover_approach)
+		#self.orbitalBox.SetAnimationCallback(orbit3D.flyover_approach)
 
 		self.orbitalBox.Show()
 

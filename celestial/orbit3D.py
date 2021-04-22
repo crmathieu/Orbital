@@ -85,10 +85,19 @@ class solarSystem:
 		self.CorrectionSize = self.BodyRadius*DIST_FACTOR/1.e-2
 		self.Rotation = 25.05 # in days
 		self.RotAngle = 0
-		self.AxialTilt = 7.25
+		self.AxialTilt = 7.25 # in degres
 		self.Position = vector(0,0,0)
 		self.EarthRef = None
 		self.ShowFeatures = 0
+
+		self.SizeCorrection = [1] * 2
+		self.RealisticCorrectionSize = SUN_SZ_CORRECTION
+
+		self.SizeCorrection[0] = 60
+		self.SizeCorrection[1] = self.RealisticCorrectionSize 
+
+		#self.sizeCorrectionType = OUTERPLANET
+		self.sizeType = SCALE_OVERSIZED
 
 		# make all light coming from origin
 		self.sunLight = local_light(pos=(0,0,0), color=color.white)
@@ -113,7 +122,14 @@ class solarSystem:
 			[0,		sinv,  cosv]]
 		)
 
-		self.BodyShape = sphere(pos=vector(0,0,0), radius=self.BodyRadius/self.CorrectionSize, color=color.yellow)
+		if self.BodyRadius < DEFAULT_RADIUS:
+			self.radiusToShow = DEFAULT_RADIUS
+		else:
+			self.radiusToShow = self.BodyRadius
+
+		self.toggleSize(False)
+
+		self.BodyShape = sphere(pos=vector(0,0,0), radius=self.radiusToShow/self.SizeCorrection[self.sizeType], color=color.yellow)
 		self.BodyShape.material = materials.emissive
 
 		# make referential
@@ -124,6 +140,15 @@ class solarSystem:
 			self.makeCelestialSphere()
 
 		#self.Scene.scale = self.Scene.scale * 10
+
+
+	def toggleSize(self, realisticSize):
+		x = SCALE_NORMALIZED if realisticSize == True else SCALE_OVERSIZED
+		if x == self.sizeType:
+			return
+		else:
+			self.sizeType = x
+		self.BodyShape.radius = self.radiusToShow  / self.SizeCorrection[self.sizeType]
 
 
 	def makeCelestialSphere(self): # Unused
@@ -180,7 +205,7 @@ class solarSystem:
 		refDirections = [vector(size,0,0), vector(0,size,0), vector(0,0,size/4)]
 		relsize = 2 * (self.BodyRadius/self.CorrectionSize)
 		relDirections = [vector(relsize,0,0), vector(0,relsize,0), vector(0,0,relsize)]
-		refText = ["x (vernal eq.)","y","z"]
+		refText = ["x (V. Equinox)","y","z"]
 		relText = ["x","y","z"]
 		pos = vector(position)
 		for i in range (3): # Each direction
@@ -263,20 +288,11 @@ class solarSystem:
 		return False
 
 	def refresh(self, animationInProgress = False):
-#		orbitTrace = False
-#		if self.ShowFeatures & ORBITS != 0:
-#			orbitTrace = True
-		orbitTrace = True if self.ShowFeatures & ORBITS != 0 else False
+		orbitTrace 		= True if self.ShowFeatures & ORBITS 	!= 0 else False
+		labelVisible 	= True if self.ShowFeatures & LABELS 	!= 0 else False
+		realisticSize 	= True if self.ShowFeatures & REALSIZE 	!= 0 else False
 
-#		labelVisible = False
-#		if self.ShowFeatures & LABELS != 0:
-#			labelVisible = True
-		labelVisible = True if self.ShowFeatures & LABELS != 0 else False
-
-#		realisticSize = False
-#		if self.ShowFeatures & REALSIZE != 0:
-#			realisticSize = True
-		realisticSize = True if self.ShowFeatures & REALSIZE != 0 else False
+		self.toggleSize(realisticSize)
 
 		for body in self.bodies:
 			if body.BodyType in [SPACECRAFT, OUTERPLANET, INNERPLANET, ASTEROID, COMET, SATELLITE, DWARFPLANET, PHA, BIG_ASTEROID, TRANS_NEPT]:
