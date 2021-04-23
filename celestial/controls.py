@@ -41,29 +41,31 @@ MAIN_HEADING_Y = 40
 DATE_Y = MAIN_HEADING_Y
 DATE_SLD_Y = DATE_Y + 20
 JPL_BRW_Y = DATE_SLD_Y
-INNER_Y = MAIN_HEADING_Y + 20
-ORB_Y = INNER_Y + 20
-GASG_Y = ORB_Y + 20
-DWARF_Y = GASG_Y + 20
-#TNO_Y = DWARF_Y + 20
-AB_Y = DWARF_Y + 20
-JT_Y = AB_Y + 20
-KB_Y = JT_Y + 20
-IOC_Y = KB_Y + 20
-ECL_Y = IOC_Y + 20
-LABEL_Y = ECL_Y + 20
-LIT_Y = LABEL_Y + 20
-SIZE_Y = LIT_Y + 20
-AXIS_Y = SIZE_Y + 20
 
-REF_Y = AXIS_Y + 20
+# checkboxes lines
+CHK_L1 = MAIN_HEADING_Y + 20
+CHK_L2 = CHK_L1 + 20
+CHK_L3 = CHK_L2 + 20
+CHK_L4 = CHK_L3 + 20
+#TNO_Y = CHK_L4 + 20
+CHK_L5 = CHK_L4 + 20
+CHK_L6 = CHK_L5 + 20
+CHK_L7 = CHK_L6 + 20
+CHK_L8 = CHK_L7 + 20
+CHK_L9 = CHK_L8 + 20
+CHK_L10 = CHK_L9 + 20
+CHK_L11 = CHK_L10 + 20
+CHK_L12 = CHK_L11 + 20
+CHK_L13 = CHK_L12 + 20
+CHK_L14 = CHK_L13 + 20
+
 LSTB_Y = DATE_Y + 60
 SLDS_Y = LSTB_Y + 40
 
 STRT_Y = SLDS_Y
 PAU_Y = STRT_Y + 40
 JPL_Y = PAU_Y + 40
-DET_Y = REF_Y + 70
+DET_Y = CHK_L14 + 70
 ANI_Y = JPL_Y + 100
 
 INFO1_Y = DET_Y + 20
@@ -117,16 +119,42 @@ PANEL_CAPP 	= 2
 POV_Y = 15
 POV_FOCUS_Y = POV_Y+150
 
-class POVpanel(wx.Panel):
+from abc import ABCMeta
+
+class AbstractUI(wx.Panel):
+	__metaclass__ = ABCMeta
+
 	def __init__(self, parent, notebook, solarsystem):
 		wx.Panel.__init__(self, parent=notebook)
 		self.parentFrame = parent
 		self.nb = notebook
 		self.SolarSystem = solarsystem
-		self.ca_deltaT = 0
+		self.Earth = solarsystem.EarthRef
+
+		self.InitVariables()
 		self.InitUI()
-		self.resetPOV()
-		self.Hide()
+
+	def InitVariables(self):
+		pass
+
+	def InitUI(self):
+		pass
+
+	def createCheckBox(self, panel, title, type, xpos, ypos):
+		cb = wx.CheckBox(panel, label=title, pos=(xpos, ypos))
+		if self.SolarSystem.ShowFeatures & type != 0:
+			cb.SetValue(True)
+		else:
+			cb.SetValue(False)
+		self.checkboxList[type] = cb
+
+
+
+#class POVpanel(wx.Panel, AbstractUI):
+class POVpanel(AbstractUI):
+
+	def InitVariables(self):
+		self.ca_deltaT = 0
 
 	def InitUI(self):
 		self.BoldFont = wx.Font(10, wx.SWISS, wx.NORMAL, wx.BOLD)
@@ -146,8 +174,8 @@ class POVpanel(wx.Panel):
 		self.rbox.Bind(wx.EVT_RADIOBOX,self.OnRadioBox)
 
 		self.cb = wx.CheckBox(self, label="Show Local Referential", pos=(200, POV_Y+580))
-		print "Y local ref=", POV_Y+580
-		print "Y bottom info=", POV_FOCUS_Y+80+TOTAL_Y-160
+		#print "Y local ref=", POV_Y+580
+		#print "Y bottom info=", POV_FOCUS_Y+80+TOTAL_Y-160
 
 		self.cb.SetValue(False)
 		self.cb.Bind(wx.EVT_CHECKBOX,self.OnLocalRef)
@@ -159,6 +187,8 @@ class POVpanel(wx.Panel):
 
 		self.Info.Wrap(self.GetSize().width)
 		self.setSunFocus()
+		self.resetPOV()
+		self.Hide()
 
 	def OnLocalRef(self, e):
 		#print "on local ref -> "+str(self.cb.GetValue())
@@ -294,15 +324,11 @@ class POVpanel(wx.Panel):
 	def OnReset(self, e):
 		self.resetPOV()
 
-class JPLpanel(wx.Panel):
+#class JPLpanel(wx.Panel, AbstractUI):
+class JPLpanel(AbstractUI):
 
-	def __init__(self, parent, notebook, solarsystem):
-		wx.Panel.__init__(self, parent=notebook)
-		self.parentFrame = parent
-		self.nb = notebook
-		self.SolarSystem = solarsystem
+	def InitVariables(self):
 		self.ca_deltaT = 0
-		self.InitUI()
 		self.Hide()
 
 	def InitUI(self):
@@ -512,13 +538,11 @@ class JPLpanel(wx.Panel):
 # Orbital Control Panel
 #
 
-class orbitalCtrlPanel(wx.Panel):
+#class orbitalCtrlPanel(wx.Panel, AbstractUI):
+class orbitalCtrlPanel(AbstractUI):
 
-	def __init__(self, parent, notebook, solarsystem):
-		wx.Panel.__init__(self, parent=notebook)
-		self.parentFrame = parent
-		self.Earth = solarsystem.getBodyFromName("earth")
-		self.nb = notebook
+	def InitVariables(self):
+		self.Earth = self.SolarSystem.getBodyFromName("earth")
 		self.checkboxList = {}
 		self.ResumeSlideShowLabel = False
 		self.AnimationInProgress = False
@@ -527,7 +551,6 @@ class orbitalCtrlPanel(wx.Panel):
 		self.BaseTimeIncrement = INITIAL_TIMEINCR
 		self.TimeIncrementKey = INITIAL_INCREMENT_KEY
 		self.AnimLoop = 0
-		self.SolarSystem = solarsystem
 		self.todayDate = datetime.date.today()
 
 		self.DeltaT = 0 # number of days from today - used for animation into future or past (detalT < 0)
@@ -540,9 +563,10 @@ class orbitalCtrlPanel(wx.Panel):
 		self.DisableAnimationCallback = True
 		self.RecorderOn = False
 
-		self.InitUI()
+		#self.InitUI()
 		self.Hide()
 		#f = codecs.open("unicode.txt", "r", "utf-8")
+
 
 	def resetDate(self, deltaT):
 		self.DeltaT = deltaT
@@ -588,14 +612,6 @@ class orbitalCtrlPanel(wx.Panel):
 		self.currentBody.Details = True
 		self.showObjectDetails(self.currentBody)
 
-	def createCheckBox(self, panel, title, type, xpos, ypos):
-		cb = wx.CheckBox(panel, label=title, pos=(xpos, ypos))
-		if self.SolarSystem.ShowFeatures & type != 0:
-			cb.SetValue(True)
-		else:
-			cb.SetValue(False)
-		self.checkboxList[type] = cb
-
 	def InitUI(self):
 		self.BoldFont = wx.Font(10, wx.SWISS, wx.NORMAL, wx.BOLD)
 		self.RegFont = wx.Font(10, wx.SWISS, wx.NORMAL, wx.NORMAL)
@@ -631,23 +647,23 @@ class orbitalCtrlPanel(wx.Panel):
 		self.ValidateDate.Bind(wx.EVT_BUTTON, self.OnValidateDate)
 
 
-		self.createCheckBox(self, "Inner Planets", INNERPLANET, 20, INNER_Y)
-		self.createCheckBox(self, "Orbits", ORBITS, 20, ORB_Y)
-		self.createCheckBox(self, "Outer Planets", OUTERPLANET, 20, GASG_Y)
-		self.createCheckBox(self, "Dwarf Planets", DWARFPLANET, 20, DWARF_Y)
-		self.createCheckBox(self, "Asteroids Belt", ASTEROID_BELT, 20, AB_Y)
-		self.createCheckBox(self, "Jupiter Trojans", JTROJANS, 20, JT_Y)
-		self.createCheckBox(self, "Kuiper Belt", KUIPER_BELT, 20, KB_Y)
-		self.createCheckBox(self, "Inner Oort Cloud", INNER_OORT_CLOUD, 20, IOC_Y)
-		self.createCheckBox(self, "Ecliptic", ECLIPTIC_PLANE, 20, ECL_Y)
-		self.createCheckBox(self, "Labels", LABELS, 20, LABEL_Y)
-		self.createCheckBox(self, "Lit Scene", LIT_SCENE, 20, LIT_Y)
-		self.createCheckBox(self, "Adjust objects size", REALSIZE, 20, SIZE_Y)
-		self.createCheckBox(self, "Referential", REFERENTIAL, 20, AXIS_Y)
+		self.createCheckBox(self, "Inner Planets", INNERPLANET, 20, CHK_L1)
+		self.createCheckBox(self, "Orbits", ORBITS, 20, CHK_L2)
+		self.createCheckBox(self, "Outer Planets", OUTERPLANET, 20, CHK_L3)
+		self.createCheckBox(self, "Dwarf Planets", DWARFPLANET, 20, CHK_L4)
+		self.createCheckBox(self, "Asteroids Belt", ASTEROID_BELT, 20, CHK_L5)
+		self.createCheckBox(self, "Jupiter Trojans", JTROJANS, 20, CHK_L6)
+		self.createCheckBox(self, "Kuiper Belt", KUIPER_BELT, 20, CHK_L7)
+		self.createCheckBox(self, "Inner Oort Cloud", INNER_OORT_CLOUD, 20, CHK_L8)
+		self.createCheckBox(self, "Ecliptic", ECLIPTIC_PLANE, 20, CHK_L9)
+		self.createCheckBox(self, "Labels", LABELS, 20, CHK_L10)
+		self.createCheckBox(self, "Lit Scene", LIT_SCENE, 20, CHK_L11)
+		self.createCheckBox(self, "Adjust objects size", REALSIZE, 20, CHK_L12)
+		self.createCheckBox(self, "Referential", REFERENTIAL, 20, CHK_L13)
 
 		self.createBodyList(200, LSTB_Y)
 
-		cbtn = wx.Button(self, label='Refresh', pos=(20, REF_Y))
+		cbtn = wx.Button(self, label='Refresh', pos=(20, CHK_L14))
 		cbtn.Bind(wx.EVT_BUTTON, self.OnRefresh)
 
 		lblList = ['PHA', 'Comets', 'Major Asteroids', 'Trans Neptunians']
@@ -1142,26 +1158,89 @@ class orbitalCtrlPanel(wx.Panel):
 		#self.Recorder.SetColor() ####
 
 
-class WIDGETSpanel(wx.Panel):
-	def __init__(self, parent, notebook, solarsystem):
-		wx.Panel.__init__(self, parent=notebook)
-		self.parentFrame = parent
-		self.nb = notebook
-		self.SolarSystem = solarsystem
+#class WIDGETSpanel(wx.Panel, AbstractUI):
+class WIDGETSpanel(AbstractUI):
+
+	def InitVariables(self):	
 		self.ca_deltaT = 0
-		self.Earth = solarsystem.EarthRef
-		self.drawEquator()
-		self.drawTimeZone()
-		#self.InitUI()
-		#self.resetPOV()
-		#self.Hide()
+		self.Earth = self.SolarSystem.EarthRef
+		self.checkboxList = {}
+
+		#self.drawEquator()
+		#self.drawTimeZone()
+
+	def InitUI(self):
+
+		self.BoldFont = wx.Font(10, wx.SWISS, wx.NORMAL, wx.BOLD)
+		self.RegFont = wx.Font(10, wx.SWISS, wx.NORMAL, wx.NORMAL)
+
+		heading = wx.StaticText(self, label='Earth Widgets', pos=(20, MAIN_HEADING_Y))
+		heading.SetFont(self.BoldFont)
+
+		#dateLabel = wx.StaticText(self, label='Orbital Date', pos=(200, DATE_Y))
+		#dateLabel.SetFont(self.BoldFont)
+
+		#self.timeLabel = wx.StaticText(self, label='hh:mm:ss', pos=(320, DATE_Y-2))
+		#lt = orbit3D.locationInfo.getLocalTime()
+		#self.timeLabel.SetLabel("{:>2} : {:>2} : {:2}".format(str(lt.tm_hour).zfill(2), str(lt.tm_min).zfill(2), str(lt.tm_sec).zfill(2)))
+
+		#self.dateMSpin = wx.SpinCtrl(self, id=wx.ID_ANY, initial=self.todayDate.month, min=1, max=12, pos=(200, DATE_SLD_Y), size=(65, 25), style=wx.SP_ARROW_KEYS)
+		#self.dateMSpin.Bind(wx.EVT_SPINCTRL,self.OnTimeSpin)
+		#self.dateDSpin = wx.SpinCtrl(self, id=wx.ID_ANY, initial=self.todayDate.day, min=1, max=31, pos=(265, DATE_SLD_Y), size=(65, 25), style=wx.SP_ARROW_KEYS)
+		#self.dateDSpin.Bind(wx.EVT_SPINCTRL,self.OnTimeSpin)
+
+		# Create a custom event in order to update the content of the day spinner if its value is out-of-range
+		#self.CustomEvent, EVT_RESET_SPINNER = wx.lib.newevent.NewEvent()
+		#self.dateDSpin.Bind(EVT_RESET_SPINNER, self.ResetSpinner) # bind it as usual
+		# The day spinner has 2 events. one triggered when clicking on an arrow, and one
+		# triggered programmatically to update the value of the day spinner in order to correct it
+		# The firing of the EVT_RESET_SPINNER is programmatically done during the execution
+		# of the EVT_SPINCTRL handler
+
+
+		#self.dateYSpin = wx.SpinCtrl(self, id=wx.ID_ANY, initial=self.todayDate.year, min=-3000, max=3000, pos=(330, DATE_SLD_Y), size=(65, 25), style=wx.SP_ARROW_KEYS)
+		#self.dateYSpin.Bind(wx.EVT_SPINCTRL,self.OnTimeSpin)
+
+		#self.ValidateDate = wx.Button(self, label='Set', pos=(400, DATE_SLD_Y), size=(60, 25))
+		#self.ValidateDate.Bind(wx.EVT_BUTTON, self.OnValidateDate)
+
+
+		self.createCheckBox(self, "Equator", INNERPLANET, 20, CHK_L1)
+		self.createCheckBox(self, "Time Zones", OUTERPLANET, 20, CHK_L2)
+		self.createCheckBox(self, "Referential", REFERENTIAL, 20, CHK_L3)
+
+		#self.createBodyList(200, LSTB_Y)
+
+		cbtn = wx.Button(self, label='Refresh', pos=(20, CHK_L14))
+		cbtn.Bind(wx.EVT_BUTTON, self.OnRefresh)
+
+	def OnRefresh(self, e):
+		pass
+
+	def OnRadioBox(self, e):
+		index = self.rbox.GetSelection()
+
+		self.SolarSystem.currentPOVselection = {0: "curobj", 1: "sun", 2:"earth", 3:"mercury", 4:"venus",
+												5: "mars", 6:"jupiter", 7:"saturn", 8:"uranus", 9:"neptune",
+												10:"pluto", 11:"sedna", 12:"makemake", 13:"haumea", 14:"eris", 15:"charon", 16: "phobos", 17:"deimos", 18:"moon"}[index]
+		{0:	self.setCurrentBodyFocus, 1: self.setSunFocus,
+		 2: self.setPlanetFocus, 3: self.setPlanetFocus,
+		 4: self.setPlanetFocus, 5: self.setPlanetFocus,
+		 6: self.setPlanetFocus, 7: self.setPlanetFocus,
+		 8: self.setPlanetFocus, 9: self.setPlanetFocus,
+		 10: self.setPlanetFocus, 11: self.setPlanetFocus,
+		 12: self.setPlanetFocus, 13: self.setPlanetFocus,
+		 14: self.setPlanetFocus, 15: self.setPlanetFocus,
+		 16: self.setPlanetFocus, 17: self.setPlanetFocus,
+		 18: self.setPlanetFocus }[index]()
+
+		self.setLocalRef()
 
 	def drawEquator(self):
 		self.eq = cylinder(frame=self.Earth.Origin, pos=(0,0,0), color=color.blue, radius=self.Earth.BodyShape.radius*1.003, length=self.Earth.BodyShape.radius*0.003)
 		self.eq.rotate(angle=(pi/2), axis=self.Earth.YdirectionUnit, origine=(0,0,0))
 
 	def drawTimeZone(self):
-
 		for i in np.arange(0, pi, deg2rad(15)):
 			TZ = cylinder(frame=self.Earth.Origin, pos=(0,0,0), color=color.blue, radius=self.Earth.BodyShape.radius*1.003, length=self.Earth.BodyShape.radius*0.003)
 			TZ.rotate(angle=(i), axis=self.Earth.ZdirectionUnit, origine=(0,0,0))

@@ -312,7 +312,8 @@ class solarSystem:
 					for i in range(len(body.Labels)):
 						body.Labels[i].visible = value
 				else:
-					print body.Name, " is not visible" 
+					#print body.Name, " is not visible" 
+					pass
 			else: # belts / rings
 				if body.BodyShape.visible == True and animationInProgress == True:
 					#for i in range(len(body.BodyShape)):
@@ -1121,7 +1122,7 @@ class planet(makeBody):
 		# shape of inner edge
 		innerEdge = shapes.circle(pos=(0,0), radius=radius-width, np=128)
 
-		# make car body from 2D polygones set
+		# create ring body from extrusion
 		body = extrusion(pos=straight, 
 						shape=outerEdge-innerEdge,
 						color=colour)
