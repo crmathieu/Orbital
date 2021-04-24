@@ -11,9 +11,9 @@ pathOut = "c:/proj/orbital/img"
 #TGAarrayOut = ["earthnocloud"]
 #TGAarrayIn = ["milkyway"]
 #TGAarrayOut = ["starmap"]
-TGAarrayIn = ["FH2stage-Reversed"]
-TGAarrayOut = ["FH2Sreversed"]
-width = 2048 # must be power of 2
+TGAarrayIn = ["Highres-earth-8192x4096-clouds"]
+TGAarrayOut = ["highres-earth-8192x4096-clouds"]
+width = 8192 # must be power of 2
 height = 4096 # must be power of 2
 
 for i in range (0, len(TGAarrayIn), 1):
