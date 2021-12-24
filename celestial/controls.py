@@ -20,7 +20,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 
 """
-import datetime
+import datetime #import datetime
 import orbit3D 
 from planetsdata import *
 from visual import *
@@ -28,12 +28,15 @@ from visual import *
 #from celestial.orbit3D import *
 #import celestial.planetsdata as pd
 
+#from concurrent.futures import ThreadPoolExecutor, ProcessPoolExecutor, as_completed
+
 from numberfmt import *
 import urllib2
 import httplib
 from video import * #VideoRecorder
 import re
 import json
+
 import wx
 import wx.lib.newevent # necessary for custom event
 
@@ -328,7 +331,7 @@ class POVpanel(AbstractUI):
 class JPLpanel(AbstractUI):
 
 	def InitVariables(self):
-		self.ca_deltaT = 0
+		self.ca_deltaT = 0 # close approach deltaT
 		self.Hide()
 
 	def InitUI(self):
@@ -379,8 +382,7 @@ class JPLpanel(AbstractUI):
 		self.fetchDateStr = self.fetchDate.strftime('%Y-%m-%d')
 #		self.fetchJPL(host, url)
 		self.fetchJPL(NASA_API_V1_FEED_TODAY_HOST, NASA_API_V1_FEED_TODAY_URL)
-		self.heading.SetLabel('Close Approach for '+self.fetchDateStr)
-
+		self.heading.SetLabel('Close Approaches On '+self.fetchDateStr)
 
 	def OnCloseApproach(self, event):
 		self.download.SetLabel("Fetching ...")
@@ -392,24 +394,121 @@ class JPLpanel(AbstractUI):
 		self.prev.Show()
 		self.legend.SetLabel("To display orbit details, double click on desired row")
 
+
+
+		"""
+		{
+			u'orbital_data': {
+				u'last_observation_date': u'2021-12-21', 
+				u'equinox': u'J2000', 
+				u'first_observation_date': u'2021-12-12', 
+				u'orbit_uncertainty': u'6', 
+				u'aphelion_distance': u'1.18532314028115', 
+				u'data_arc_in_days': 9, 
+				u'orbit_class': {
+					u'orbit_class_type': u'APO', 
+					u'orbit_class_description': u'Near-Earth asteroid orbits which cross the Earth\u2019s orbit similar to that of 1862 Apollo', 
+					u'orbit_class_range': u'a (semi-major axis) > 1.0 AU; q (perihelion) < 1.017 AU'
+				}, 
+				u'mean_anomaly': u'318.8328851178307', 
+				u'orbital_period': u'375.1140964088063', 
+				u'ascending_node_longitude': u'270.7427283860751', 
+				u'orbit_id': u'2', 
+				u'inclination': u'5.221606940066634', 
+				u'observations_used': 27, 
+				u'epoch_osculation': u'2459600.5', 
+				u'mean_motion': u'.9597080020359068', 
+				u'jupiter_tisserand_invariant': u'5.981', 
+				u'orbit_determination_date': u'2021-12-21 04:57:50', 
+				u'perihelion_time': u'2459643.395458613285', 
+				u'eccentricity': u'.1644659421290264', 
+				u'perihelion_argument': u'268.1851698378069', 
+				u'minimum_orbit_intersection': u'.000831432', 
+				u'semi_major_axis': u'1.017911385294781', 
+				u'perihelion_distance': u'.8504996303084128'
+			}, 
+			u'links': {
+				u'self': u'http://www.neowsapp.com/rest/v1/neo/54231259?api_key=KTTV4ZQFuTywtkoi3gA59Qdlk5H2V1ry6UdYL0xU'
+			}, 
+			u'nasa_jpl_url': u'http://ssd.jpl.nasa.gov/sbdb.cgi?sstr=54231259', 
+			u'absolute_magnitude_h': 27.489, 
+			u'estimated_diameter': {
+				u'feet': {
+					u'estimated_diameter_max': 61.9762122093, 
+					u'estimated_diameter_min': 27.7166046976
+				}, 
+				u'miles': {
+					u'estimated_diameter_max': 0.011737915, 
+					u'estimated_diameter_min': 0.0052493552
+				}, 
+				u'meters': {
+					u'estimated_diameter_max': 18.8903488769, 
+					u'estimated_diameter_min': 8.4480208415
+				}, 
+				u'kilometers': {
+					u'estimated_diameter_max': 0.0188903489, 
+					u'estimated_diameter_min': 0.0084480208
+				}
+			}, 
+			u'close_approach_data': [
+				{	u'epoch_date_close_approach': 1640218740000L, 
+					u'orbiting_body': u'Earth', 
+					u'close_approach_date': u'2021-12-23', 
+					u'relative_velocity': {
+						u'kilometers_per_second': u'5.7756022357', 
+						u'miles_per_hour': u'12919.4446409401', 
+						u'kilometers_per_hour': u'20792.1680483635'
+					}, 
+					u'miss_distance': {
+						u'astronomical': u'0.0037073317', 
+						u'miles': u'344618.0062828502', 
+						u'lunar': u'1.4421520313', 
+						u'kilometers': u'554608.925703479'
+					}, 
+					u'close_approach_date_full': u'2021-Dec-23 00:19'
+				}
+			], 
+			u'neo_reference_id': u'54231259', 
+			u'is_potentially_hazardous_asteroid': False, 
+			u'is_sentry_object': False, 
+			u'id': u'54231259', 
+			u'name': u'(2021 YB)'
+		}
+		"""
+
 	def fetchJPL(self, host, url):
+		import ssl
+
 		url = url+"&start_date="+self.fetchDateStr
-		print host+url+"\n"
+		#print host+url+"\n"
 		try:
-			opener = urllib2.build_opener()
-			opener.addheaders = [('User-Agent', 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_12_2) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/55.0.2883.95 Safari/537.36')]
-			response = opener.open(host+url)
+
+			#opener = urllib2.build_opener()
+			#opener.addheaders = [('User-Agent', 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_12_2) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/55.0.2883.95 Safari/537.36')]
+			#response = opener.urlopen(host+url)
+			
+			print host
+			print url
+			
+			####
+			#req = urllib2.Request(host+url, headers={ 'X-Mashape-Key': 'XXXXXXXXXXXXXXXXXXXX', 'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_12_2) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/55.0.2883.95 Safari/537.36' })
+			req = urllib2.Request(host+url, headers={ 'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_12_2) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/55.0.2883.95 Safari/537.36' })
+ 			#response = urllib2.urlopen(req).read()
+			#gcontext = ssl.SSLContext()  # Only for gangstars
+			gcontext = ssl._create_unverified_context()
+			response = urllib2.urlopen(req, context=gcontext)
+			####
+
 
 			#c = httplib.HTTPSConnection(host)
-			#print url
 			#c.request("GET", url)
 			#response = c.getresponse()
-			print response
+			#print response
 			#response = urllib2.urlopen(url, headers={'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_12_2) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/55.0.2883.95 Safari/537.36'})
+
 		except urllib2.HTTPError as err:
 			print "Exception...\n\nError: " + str(err.code)
 			raise
-
 
 		#response = requests.get(url, headers={'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_12_2) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/55.0.2883.95 Safari/537.36'})
 
@@ -426,9 +525,9 @@ class JPLpanel(AbstractUI):
 		if self.ListIndex != 0:
 			self.list.DeleteAllItems()
 
- 		print "*****PREV"+self.prevUrl
- 		print "*****CURR"+self.selfUrl
- 		print "*****NEXT"+self.nextUrl
+ 		#print "*****PREV "+self.prevUrl
+ 		#print "*****CURR "+self.selfUrl
+ 		#print "*****NEXT "+self.nextUrl
 
 		self.ListIndex = 0
 		if self.jsonResp["element_count"] > 0:
@@ -451,7 +550,7 @@ class JPLpanel(AbstractUI):
 					self.ListIndex += 1
 
 	
-	def fetchDetails(self, link):
+	def fetchDetailsXX(self, link):
 		#https://api.nasa.gov/neo/rest/v1/neo/3542519?api_key=DEMO_KEY
 		#url = NASA_API_KEY_DETAILS+
 		#url = url+"&start_date="+self.fetchDateStr
@@ -465,9 +564,9 @@ class JPLpanel(AbstractUI):
 			#print url
 			#c.request("GET", url)
 			#response = c.getresponse()
-			print response
+			#print response
 			rawResp = response.read()
-			#print rawResp
+			print rawResp
 			return json.loads(rawResp)
 			#response = urllib2.urlopen(url, headers={'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_12_2) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/55.0.2883.95 Safari/537.36'})
 		except urllib2.HTTPError as err:
@@ -478,13 +577,16 @@ class JPLpanel(AbstractUI):
 		#print e.GetText() + " - " + self.BodiesSPK_ID[e.m_itemIndex] + " - " + str(e.m_itemIndex)
 		# load orbital elements
 		id = self.loadBodyInfo(e.m_itemIndex)
+		
 		# switch to main panel to display orbit
 		self.nb.SetSelection(PANEL_MAIN)
+		
 		# If slide show in progress, stop it, and reset body List
 		self.parentFrame.orbitalBox.stopSlideSHow()
 		self.parentFrame.orbitalBox.resetBodyList()
+
 		# make sure to reset the date to today's date
-		self.parentFrame.orbitalBox.resetDate(self.ca_deltaT)
+		####### self.parentFrame.orbitalBox.resetDate(self.ca_deltaT)  <<<<<<<<<<<----------------------
 		self.parentFrame.orbitalBox.setCurrentBodyFromId(id)
 		if self.SolarSystem.currentPOVselection == "curobj":
 			self.SolarSystem.currentPOV = self.parentFrame.orbitalBox.currentBody
@@ -494,9 +596,39 @@ class JPLpanel(AbstractUI):
 			toggle = True
 		self.parentFrame.orbitalBox.currentBody.toggleSize(toggle)
 
+	def GetOcltx(self, objectId, timeincrement):
+		# load spice files from meta kernel
+		spice.furnsh("spice/spice-kernels/solarsys_metakernel.mk")
+
+		_, GM_SUN_PRE = spice.bodvcd(10, item='GM', maxn=1)
+		print GM_SUN_PRE
+
+		# odt contains the date (as string) we want to get ocultation info for
+		et = spice.str2et(self.fetchDateStr) # 'Apr 13, 2021' );
+		print et
+
+	# 	state, ltime = spice.spkezr( 'EARTH', et, 'ECLIPJ2000', 'LT+S', 'SUN' );
+	 	state, ltime = spice.spkezr( objectId, et, FRAME, 'LT+S', 'SUN' );
+
+		y = spice.oscltx( state, et, GM_SUN_PRE[0] );
+		print "=========="
+		print "Perifocal:" + str(y[0]) + " km"
+		print "Eccentricity:"+str(y[1])
+		
+		print "Inclination:"+str(rad2deg(y[2])) + " deg"
+		print "Long.Ascending Node:"+str(rad2deg(y[3])) + " deg"
+		print "Argumt of periapsis:"+str(rad2deg(y[4])) + " deg"
+		print "Mean anomaly:"+str(rad2deg(y[5]))
+		print "Epoch:"+str(y[6])
+		print "MU:"+str(y[7])
+		print "NU:"+str(rad2deg(y[8])) + " deg/s"
+		print "Semi-major:"+str(y[9])
+		print "Period:"+str(y[10]/86400) + " d"
+		return y
+
 	def loadBodyInfo(self, index):
 		entry = self.jsonResp["near_earth_objects"][self.fetchDateStr][index]
-		#print entry
+		print entry
 
 		# if the key already exists, the object has already been loaded, simply return its spk-id
 		#if entry["neo_reference_id"] in objects_data:
@@ -504,15 +636,23 @@ class JPLpanel(AbstractUI):
 
 		# grab details link
 		#entry = self.fetchDetails(entry["links"]["self"])
+		utc_timestamp = entry["close_approach_data"][0]["epoch_date_close_approach"]*0.001
+		
+		utc_close_approach = datetime.datetime.utcfromtimestamp(utc_timestamp)
+
+		# utc_close_approach is a naive datetime object
+		print "LOADBODY_INFO utc_close_approach= ", utc_close_approach, "==? timestamp=", utc_timestamp
 
 		# otherwise add data to dictionary
 		objects_data[entry["neo_reference_id"]] = {
 			"material": 0,
+			# epoch_date_close_approach comes as the number of milliseconds in unix TT
+			"epoch_date_close_approach": utc_close_approach, # in seconds using J2000
 			"name": entry["name"],
 			"iau_name": entry["name"],
 			"jpl_designation": entry["neo_reference_id"],
 			"mass": 0.0,
-			"radius": float(entry["estimated_diameter"]["kilometers"]["estimated_diameter_max"])/2, # if float(entry["estimated_diameter"]["kilometers"]["estimated_diameter_max"])/2 > DEFAULT_RADIUS else DEFAULT_RADIUS,
+			"radius": float(entry["estimated_diameter"]["kilometers"]["estimated_diameter_max"])*0.5, # if float(entry["estimated_diameter"]["kilometers"]["estimated_diameter_max"])/2 > DEFAULT_RADIUS else DEFAULT_RADIUS,
 			"QR_perihelion": float(entry["orbital_data"]["perihelion_distance"]) * AU,
 			"EC_e": float(entry["orbital_data"]["eccentricity"]),
 			"PR_revolution": float(entry["orbital_data"]["orbital_period"]),
@@ -527,12 +667,150 @@ class JPLpanel(AbstractUI):
 			"earth_moid": float(entry["orbital_data"]["minimum_orbit_intersection"]) * AU,
 			"orbit_class": "N/A",
 			"absolute_mag": float(entry["absolute_magnitude_h"]),
-			"axial_tilt": 0.0
+			"axial_tilt": 0.0,
+			"utcstr": utc_close_approach.strftime('%Y-%m-%d %H:%M:%S'),
+			"utc": utc_close_approach,
+#			"local": orbit3D.datetime_from_utc_to_local(utc_close_approach)
+			"local": datetime.datetime.fromtimestamp(utc_timestamp) #, utc_close_approach.TZ)
+#			"local": orbit3D.UTC_to_local(utc_close_approach)
 		}
+		print "UTCstr =========>", objects_data[entry["neo_reference_id"]]["utcstr"]
+		print "Local  --------->", objects_data[entry["neo_reference_id"]]["local"]
+		"""
+		{'orbital_data': 
+			{'last_observation_date': '2021-05-25', 
+			 'equinox': 'J2000', 
+			 'first_observation_date': '2021-05-18', 
+			 'orbit_uncertainty': '8', 
+			 'aphelion_distance': '3.366832672811661', 
+			 'data_arc_in_days': 7, 
+			 'orbit_class': {
+			 					'orbit_class_type': 'APO', 
+			 					'orbit_class_description': 'Near-Earth asteroid orbits which cross the Earths orbit similar to that of 1862 Apollo', 
+			 					'orbit_class_range': 'a (semi-major axis) > 1.0 AU; q (perihelion) < 1.017 AU'
+			 				}, 
+			 'mean_anomaly': '350.1777410030417', 
+			 'orbital_period': '1161.694290418128', 
+			 'ascending_node_longitude': '65.36895860260729', 
+			 'orbit_id': '6', 
+			 'inclination': '9.045387641087999', 
+			 'observations_used': 28, 
+			 'epoch_osculation': '2459354.5', 
+			 'mean_motion': '.3098922005293023', 
+			 'jupiter_tisserand_invariant': '3.464', 
+			 'orbit_determination_date': '2021-05-25 09:49:07', 
+			 'perihelion_time': '2459386.195728321596', 
+			 'eccentricity': '.5567752354409493', 
+			 'perihelion_argument': '211.3061357765496', 
+			 'minimum_orbit_intersection': '.00110192', 
+			 'semi_major_axis': '2.162696705448312', 
+			 'perihelion_distance': '.9585607380849626'
+			}, 
+		'links': {
+			'self': 'http://www.neowsapp.com/rest/v1/neo/54146674?api_key=KTTV4ZQFuTywtkoi3gA59Qdlk5H2V1ry6UdYL0xU'
+		}, 
+		'nasa_jpl_url': 'http://ssd.jpl.nasa.gov/sbdb.cgi?sstr=54146674', 
+		'absolute_magnitude_h': 26.119, 
+		'estimated_diameter': {
+			'feet': {
+				'estimated_diameter_max': 116.4729378467, 
+				'estimated_diameter_min': 52.0882813128
+			}, 
+			'miles': {
+				'estimated_diameter_max': 0.022059261, 
+				'estimated_diameter_min': 0.0098652014
+			}, 
+			'meters': {
+				'estimated_diameter_max': 35.5009503196, 
+				'estimated_diameter_min': 15.8765076361
+			}, 
+			'kilometers': {
+				'estimated_diameter_max': 0.0355009503, 
+				'estimated_diameter_min': 0.0158765076
+			}
+		}, 
+		'close_approach_data': [{
+								'epoch_date_close_approach': 1622077320000L, 
+								'orbiting_body': 'Earth', 
+								'close_approach_date': '2021-05-27', 
+								'relative_velocity': {
+									'kilometers_per_second': '11.1194145219', 
+									'miles_per_hour': '24873.0183439614', 
+									'kilometers_per_hour': u'40029.8922787165'
+								},
+								'miss_distance': {
+									'astronomical': '0.0040865681', 
+									'miles': '379870.2315093886', 
+									'lunar': '1.5896749909', 
+									'kilometers': '611341.883369947'
+								}, 
+								'close_approach_date_full': '2021-May-27 01:02'
+								}], 
+		'neo_reference_id': '54146674', 
+		'is_potentially_hazardous_asteroid': False, 
+		'is_sentry_object': False, 
+		'id': '54146674', 
+		'name': '(2021 KP)'
+	}
+		"""
+
+		"""
+		{
+		'epochJD': 2459352.5, 
+		'Tp_Time_of_perihelion_passage_JD': 2459406.6742558605, 
+		'radius': 0.0084763715, 
+		'orbit_class': 'N/A', 
+		'iau_name': u'(2021 KW)', 
+		'W_argument_of_perihelion': 221.3606034753813, 
+		'earth_moid': 559452653.0018396, 
+		'local': datetime(2021, 5, 22, 8, 21), 
+		'material': 0, 
+		'utc': '2021-05-22 15:21:00', 
+		'IN_orbital_inclination': 0.3739940530040262, 
+		'epoch_date_close_approach': datetime(2021, 5, 22, 15, 21), 
+		'N_mean_motion': 0.46579168692434, 
+		'jpl_designation': u'54146681', 
+		'QR_perihelion': 110379200877.4296, 
+		'EC_e': 0.5523345202621396, 
+		'name': u'(2021 KW)', 
+		'longitude_of_perihelion': 317.9484100244705, 
+		'OM_longitude_of_ascendingnode': 96.58780654908915, 
+		'absolute_mag': 27.724, 
+		'mass': 0.0, 
+		'axial_tilt': 0.0, 
+		'MA_mean_anomaly':334.7660819748012, 
+		'PR_revolution': 772.8776835351206
+		}
+		"""
+
+		# convert UTC to local time
+		utcNewdate = objects_data[entry["neo_reference_id"]]["utc"]
+
+
+		#utcNewdate = objects_data[entry["neo_reference_id"]]["utc"]
+		self.SolarSystem.utcTimeInCurrentDay = (utcNewdate).hour * TI_ONE_HOUR + \
+											(utcNewdate).minute * TI_ONE_MINUTE + \
+											(utcNewdate).second * TI_ONE_SECOND
+		self.SolarSystem.utcDaysIncrement = (utcNewdate.day - self.SolarSystem.utcTodayDate.day) + self.SolarSystem.utcTimeInCurrentDay
+
+		newdate = objects_data[entry["neo_reference_id"]]["local"]
+		self.SolarSystem.TimeInCurrentDay = (newdate).hour * TI_ONE_HOUR + \
+											(newdate).minute * TI_ONE_MINUTE + \
+											(newdate).second * TI_ONE_SECOND
+		self.SolarSystem.DaysIncrement = (newdate.day - self.SolarSystem.todayDate.day) + self.SolarSystem.TimeInCurrentDay
+
+
+		print objects_data[entry["neo_reference_id"]]
+		# print time of closest approach on this date
+		#utc = datetime.utcfromtimestamp(objects_data[entry["neo_reference_id"]]["epoch_date_close_approach"])
+		#print "Local Time of approach: ", orbit3D.datetime_from_utc_to_local(utc_close_approach).strftime('%Y-%m-%d %H:%M:%S')
+ 		print "Local Time of approach: ", datetime.datetime.fromtimestamp(utc_timestamp)
+
 		# CLose approach objects are considered as PHAs
 		body = orbit3D.pha(self.SolarSystem, entry["neo_reference_id"], orbit3D.getColor())
 		self.SolarSystem.addTo(body)
 		return entry["neo_reference_id"]
+
 
 #
 # Orbital Control Panel
@@ -551,9 +829,9 @@ class orbitalCtrlPanel(AbstractUI):
 		self.BaseTimeIncrement = INITIAL_TIMEINCR
 		self.TimeIncrementKey = INITIAL_INCREMENT_KEY
 		self.AnimLoop = 0
-		self.todayDate = datetime.date.today()
+#		self.todayDate = datetime.date.today()
 
-		self.DeltaT = 0 # number of days from today - used for animation into future or past (detalT < 0)
+#		self.DaysIncrement = 0 # number of days from today - used for animation into future or past (detalT < 0)
 		self.velocity = 0
 		self.distance = 0
 		self.list = []
@@ -563,13 +841,15 @@ class orbitalCtrlPanel(AbstractUI):
 		self.DisableAnimationCallback = True
 		self.RecorderOn = False
 
+
 		#self.InitUI()
 		self.Hide()
 		#f = codecs.open("unicode.txt", "r", "utf-8")
 
 
-	def resetDate(self, deltaT):
-		self.DeltaT = deltaT
+	def resetDate(self, DaysIncrement):
+		self.SolarSystem.DaysIncrement = DaysIncrement
+		self.SolarSystem.utcDaysIncrement = DaysIncrement
 		self.updateSolarSystem()
 
 	def createBodyList(self, xpos, ypos):
@@ -626,9 +906,9 @@ class orbitalCtrlPanel(AbstractUI):
 		lt = orbit3D.locationInfo.getLocalTime()
 		self.timeLabel.SetLabel("{:>2} : {:>2} : {:2}".format(str(lt.tm_hour).zfill(2), str(lt.tm_min).zfill(2), str(lt.tm_sec).zfill(2)))
 
-		self.dateMSpin = wx.SpinCtrl(self, id=wx.ID_ANY, initial=self.todayDate.month, min=1, max=12, pos=(200, DATE_SLD_Y), size=(65, 25), style=wx.SP_ARROW_KEYS)
+		self.dateMSpin = wx.SpinCtrl(self, id=wx.ID_ANY, initial=self.SolarSystem.todayDate.month, min=1, max=12, pos=(200, DATE_SLD_Y), size=(65, 25), style=wx.SP_ARROW_KEYS)
 		self.dateMSpin.Bind(wx.EVT_SPINCTRL,self.OnTimeSpin)
-		self.dateDSpin = wx.SpinCtrl(self, id=wx.ID_ANY, initial=self.todayDate.day, min=1, max=31, pos=(265, DATE_SLD_Y), size=(65, 25), style=wx.SP_ARROW_KEYS)
+		self.dateDSpin = wx.SpinCtrl(self, id=wx.ID_ANY, initial=self.SolarSystem.todayDate.day, min=1, max=31, pos=(265, DATE_SLD_Y), size=(65, 25), style=wx.SP_ARROW_KEYS)
 		self.dateDSpin.Bind(wx.EVT_SPINCTRL,self.OnTimeSpin)
 
 		# Create a custom event in order to update the content of the day spinner if its value is out-of-range
@@ -640,7 +920,7 @@ class orbitalCtrlPanel(AbstractUI):
 		# of the EVT_SPINCTRL handler
 
 
-		self.dateYSpin = wx.SpinCtrl(self, id=wx.ID_ANY, initial=self.todayDate.year, min=-3000, max=3000, pos=(330, DATE_SLD_Y), size=(65, 25), style=wx.SP_ARROW_KEYS)
+		self.dateYSpin = wx.SpinCtrl(self, id=wx.ID_ANY, initial=self.SolarSystem.todayDate.year, min=-3000, max=3000, pos=(330, DATE_SLD_Y), size=(65, 25), style=wx.SP_ARROW_KEYS)
 		self.dateYSpin.Bind(wx.EVT_SPINCTRL,self.OnTimeSpin)
 
 		self.ValidateDate = wx.Button(self, label='Set', pos=(400, DATE_SLD_Y), size=(60, 25))
@@ -727,6 +1007,8 @@ class orbitalCtrlPanel(AbstractUI):
 		self.SetSize((TOTAL_X, TOTAL_Y))
 		self.Centre()
 
+		self.setDeltaT()
+
 	def setCameraPOV(self, body):
 		self.SolarSystem.currentPOV = body
 
@@ -746,12 +1028,14 @@ class orbitalCtrlPanel(AbstractUI):
 
 	def updateSolarSystem(self):
 		self.refreshDate()
-		self.SolarSystem.animate(self.DeltaT)
+		self.SolarSystem.animate(self.SolarSystem.DaysIncrement)
+#		self.SolarSystem.animate(self.SolarSystem.utcDaysIncrement)
 		for body in self.SolarSystem.bodies:
 			if body.BodyType in [SPACECRAFT, OUTERPLANET, INNERPLANET, SATELLITE, ASTEROID, COMET, DWARFPLANET, PHA, BIG_ASTEROID, TRANS_NEPT]:
 #				if body.BodyShape.visible == True:
 				if body.Origin.visible == True:
-					velocity, distance = body.animate(self.DeltaT)
+					velocity, distance = body.animate(self.SolarSystem.DaysIncrement)
+#					velocity, distance = body.animate(self.SolarSystem.utcDaysIncrement)
 					if self.SolarSystem.currentPOV != None:
 						if body.JPL_designation == self.SolarSystem.currentPOV.JPL_designation:
 							self.updateCameraPOV()
@@ -761,18 +1045,34 @@ class orbitalCtrlPanel(AbstractUI):
 						self.distance = distance
 
 	def OnValidateDate(self, e):
-		newdate = datetime.date(self.dateYSpin.GetValue(),self.dateMSpin.GetValue(),self.dateDSpin.GetValue())
-		self.DeltaT = (newdate - self.todayDate).days
+
+		ztime = self.timeLabel.GetLabel().split(" : ")
+		if len(ztime) > 0:
+			#self.timeInDay = (float(ztime[0]) * TI_ONE_HOUR) + (float(ztime[1]) * TI_ONE_MINUTE) + (float(ztime[2]) * TI_ONE_SECOND)
+			
+			new_Localdate =datetime.datetime(self.dateYSpin.GetValue(), self.dateMSpin.GetValue(), self.dateDSpin.GetValue(), int(ztime[0]), int(ztime[1]), int(ztime[2]))
+			# newLocaldate is naive (no tz info)
+
+#			utcNewdate = orbit3D.local_to_utc(newLocaldate)
+			NewUTCdate, NewLocaldate = orbit3D.local_to_UTC(new_Localdate) # tz aware date
+
+#		newdate = datetime(self.dateYSpin.GetValue(),self.dateMSpin.GetValue(),self.dateDSpin.GetValue())
+
+#		self.SolarSystem.DaysIncrement = (newdate - self.SolarSystem.todayDate).days 
+		self.SolarSystem.DaysIncrement = (NewLocaldate - self.SolarSystem.todayDate).days + self.SolarSystem.TimeInCurrentDay
+#		self.SolarSystem.utcDaysIncrement = (NewUTCdate - self.SolarSystem.utcTodayDate).days + self.SolarSystem.utcTimeInCurrentDay
+
+
 		"""
 		ztime = split(self.timeLabel.Getvalue(), " : ")
 		print len(ztime)
 		if len(ztime) > 0:
-			self.DeltaT += (float(ztime[0]) * TI_ONE_HOUR) + (float(ztime[1]) * TI_ONE_MINUTE) + (float(ztime[2]) * TI_ONE_SECOND)
-			print "##############", self.DeltaT
+			self.DaysIncrement += (float(ztime[0]) * TI_ONE_HOUR) + (float(ztime[1]) * TI_ONE_MINUTE) + (float(ztime[2]) * TI_ONE_SECOND)
+			print "##############", self.DaysIncrement
 		"""
 		self.OneTimeIncrement()
 		self.disableBeltsForAnimation()
-		self.DeltaT -= self.TimeIncrement
+		self.SolarSystem.DaysIncrement -= self.TimeIncrement
 
 		self.refreshDate()
 
@@ -785,10 +1085,21 @@ class orbitalCtrlPanel(AbstractUI):
 			#print "distance="+str(self.distance)
 			self.ObjDistance.SetLabel("{:<12}{:>10.4f}".format("DTE (AU)", float(self.distance)))
 
+
+
+	def deltaTtick(self, timeinsec):
+		# make sure to convert timeinsec as a fraction of day
+		#print self.SolarSystem.DaysIncrement, "+", float(timeinsec)/86400, "for", timeinsec 
+		self.SolarSystem.DaysIncrement += float(timeinsec)/86400
+
+		#print self.SolarSystem.DaysIncrement
+
 	def refreshDate(self):
 		# update date spin wheels
-		time_delta = datetime.timedelta(days = self.DeltaT)
-		newdate = self.todayDate + time_delta
+		time_delta = datetime.timedelta(days = self.SolarSystem.DaysIncrement)
+		#print time_delta.seconds
+
+		newdate = self.SolarSystem.todayDate + time_delta
 		self.dateDSpin.SetValue(newdate.day)
 		self.dateMSpin.SetValue(newdate.month)
 		self.dateYSpin.SetValue(newdate.year)
@@ -817,6 +1128,8 @@ class orbitalCtrlPanel(AbstractUI):
 		zdelta -= minutes * 60
 		seconds = zdelta
 		self.timeLabel.SetLabel("{:>2} : {:>2} : {:2}".format(str(hours).zfill(2), str(minutes).zfill(2), str(seconds).zfill(2)))
+
+
 
 	def disableBeltsForAnimation(self):
 		self.checkboxList[JTROJANS].SetValue(False)
@@ -862,7 +1175,7 @@ class orbitalCtrlPanel(AbstractUI):
 	def OnAnimTimeSlider(self, e):
 		self.TimeIncrementKey = float(self.aniTimeSlider.GetValue())
 		self.BaseTimeIncrement = Frame_Intervals[self.TimeIncrementKey]["incr"]
-		print "OnAnimTimeSlider", self.TimeIncrementKey, self.BaseTimeIncrement
+		#print "OnAnimTimeSlider", self.TimeIncrementKey, self.BaseTimeIncrement
 
 #		self.TimeIncrement = float(self.aniTimeSlider.GetValue()) * BaseTimeIncrement
 		# copy time increment to solarsystem class for realtime update
@@ -943,7 +1256,7 @@ class orbitalCtrlPanel(AbstractUI):
 
 	def showObjectDetails(self, body):
 		self.InfoTitle.SetLabel(body.Name)
-		self.velocity, self.distance = body.animate(self.DeltaT)
+		self.velocity, self.distance = body.animate(self.SolarSystem.DaysIncrement)
 		if body.Mass == 0:
 			mass = "???"
 		else:
@@ -992,7 +1305,6 @@ class orbitalCtrlPanel(AbstractUI):
 				"Moid(AU) ", moid));
 
 		self.refreshDate()
-
 
 		#for i in range(len(body.BodyShape)):
 
@@ -1097,7 +1409,10 @@ class orbitalCtrlPanel(AbstractUI):
 		#self.OneTimeIncrement()
 
 	def OneTimeIncrement(self):
-		self.DeltaT += self.TimeIncrement
+		self.SolarSystem.DaysIncrement += self.TimeIncrement
+		#self.SolarSystem.utcDaysIncrement += self.TimeIncrement
+		self.SolarSystem.TimeInCurrentDay = self.SolarSystem.DaysIncrement % 86400
+		#self.SolarSystem.utcTimeInCurrentDay = self.SolarSystem.utcDaysIncrement % 86400
 		self.updateSolarSystem()
 		sleep(1e-4)
 
@@ -1113,6 +1428,31 @@ class orbitalCtrlPanel(AbstractUI):
 			if self.DisableAnimationCallback == False:
 				self.AnimationCallback()
 	
+	#def setTimeLabel(self):
+
+
+
+	def setDeltaT(self):
+
+		ztime = self.timeLabel.GetLabel().split(" : ")
+		if len(ztime) > 0:
+			#print "before correction", self.DaysIncrement
+			self.SolarSystem.TimeInCurrentDay = (float(ztime[0]) * TI_ONE_HOUR) + (float(ztime[1]) * TI_ONE_MINUTE) + (float(ztime[2]) * TI_ONE_SECOND)
+			print "SETDELTA_T", self.SolarSystem.TimeInCurrentDay
+		
+		self.SolarSystem.DaysIncrement = self.SolarSystem.TimeInCurrentDay
+		#print self.SolarSystem.TimeInCurrentDay
+
+	def setDeltaT_XXX(self):
+
+		ztime = self.timeLabel.GetLabel().split(" : ")
+		if len(ztime) > 0:
+			#print "before correction", self.DaysIncrement
+			self.SolarSystem.DaysIncrement = (float(ztime[0]) * TI_ONE_HOUR) + (float(ztime[1]) * TI_ONE_MINUTE) + (float(ztime[2]) * TI_ONE_SECOND)
+			print "##############", self.SolarSystem.DaysIncrement
+		
+		print self.SolarSystem.DaysIncrement
+
 	def OnAnimate(self, e):
 		self.StepByStep = False
 		if self.AnimationInProgress == True:
@@ -1130,22 +1470,28 @@ class orbitalCtrlPanel(AbstractUI):
 		self.AnimationInProgress = True
 
 		# if we animate for the first time, make sure to initialize 
-		# deltaT with current time as a fraction of day
-		if 0 == self.DeltaT:
+		# DaysIncrement with current time as a fraction of day
+		"""
+		if UNINITIALIZED == self.SolarSystem.DaysIncrement:
 			ztime = self.timeLabel.GetLabel().split(" : ")
 			if len(ztime) > 0:
-				#print "before correction", self.DeltaT
-				self.DeltaT += (float(ztime[0]) * TI_ONE_HOUR) + (float(ztime[1]) * TI_ONE_MINUTE) + (float(ztime[2]) * TI_ONE_SECOND)
-				print "##############", self.DeltaT
-		print self.DeltaT
+				#print "before correction", self.DaysIncrement
+				self.SolarSystem.DaysIncrement += (float(ztime[0]) * TI_ONE_HOUR) + (float(ztime[1]) * TI_ONE_MINUTE) + (float(ztime[2]) * TI_ONE_SECOND)
+				print "##############", self.SolarSystem.DaysIncrement
+		print self.SolarSystem.DaysIncrement
+		"""
+		self.setDeltaT()
 
+		sec = time.gmtime(time.time()).tm_sec
+		framerate = 0
 		while self.AnimationInProgress:
 #			sleep(1e-2)
-			sleep(1e-3)
+			#sleep(1e-3)
+
 			self.OneTimeIncrement()
 			if self.RecorderOn == True:
 				if self.VideoRecorder == None:
-					self.VideoRecorder = setVideoRecording(15, "output.avi")
+					self.VideoRecorder = setVideoRecording(25, "output.avi")
 				recOneFrame(self.VideoRecorder)
 			
 			# if we have an animation callback set up, run it
@@ -1153,8 +1499,18 @@ class orbitalCtrlPanel(AbstractUI):
 				self.AnimationCallback()
 			#	print self.SolarSystem.Scene.center
 
+			# determine # of frames/sec
+			t = time.gmtime(time.time()).tm_sec
+			if t != sec:
+				sec = t 
+				#print framerate
+				framerate = 0
+			else:
+				framerate += 1
 
+		# as soon as we exit animation, restore "play" sign
 		self.Animate.SetLabel(">")
+
 		#self.Recorder.SetColor() ####
 
 

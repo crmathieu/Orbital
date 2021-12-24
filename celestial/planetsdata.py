@@ -203,7 +203,7 @@ DWARFPLANET_SZ_CORRECTION = 1e-2/(DIST_FACTOR * 5)
 # adjustment factor
 #Adjustment_cte = 1.85
 ADJUSTMENT_FACTOR_PLANETS = 0 # 1.95
-ADJUSTMENT_FACTOR = 1.72 #1.80
+ADJUSTMENT_FACTOR = 0 #1.72 #1.80
 
 from visual import color
 

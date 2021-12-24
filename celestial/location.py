@@ -3,10 +3,12 @@ import urllib2
 import httplib
 import re
 import json
-import datetime
-import time
 import sys
 import math
+
+import pytz
+import datetime
+import time
 
 class Timeloc:
 	def __init__(self):
@@ -79,14 +81,17 @@ class Timeloc:
 			- 0.006758 * math.cos(2 * gamma) + 0.000907 * math.sin(2 * gamma) \
 			- 0.002697 * math.cos(3 * gamma) + 0.00148 * math.sin(3 * gamma)
 
-		# get timezone in minutes from GT to current location. 
+		# get timezone in seconds from GT to current location. 
 		# When longitude is negative (west of GT), we need to change the sign
 		tz = time.timezone
 		if longit < 0:
 			tz = -tz
 
+		self.utcDeltaInSecondsFromLocal = -tz
+		print "seconds from local to UTC", self.utcDeltaInSecondsFromLocal
+
 		time_offset = eqtime + (4 * longit)  - (tz/60)
-		self.TimeToGreenwich = tz  # in seconds
+		self.UTCoffsetInSeconds = tz  # in seconds
 		print time.timezone/3600
 		self.RelativeTimeToDateline = 86400/2 - abs(tz)
 		self.AbsoluteTimeToDateline = 86400/2 - tz
@@ -96,9 +101,14 @@ class Timeloc:
 		#self.solar_time = datetime.datetime.combine(dt.date(), time(0)) + timedelta(minutes=tst)
 		#self.solar_time = datetime.datetime.combine(datetime.datetime.date(), time(0)) + timedelta(minutes=tst)
 		self.solarT = (tst / 4) - 180
-		print "time zone=", self.TimeToGreenwich/3600
+
+		print "time zone=", self.UTCoffsetInSeconds/3600
 		print "time-to-dateline=", self.RelativeTimeToDateline/3600 
+		print "solar Time=", self.solarT
 		return self.solarT
+
+	def RelativeTimeToUtcInSec(self):
+		return self.utcDeltaInSecondsFromLocal
 
 	def Time2degree(self, time_in_sec):
 		# 15 deg corresponds to 1hour (3600s). 1s -> 15/3600
@@ -108,6 +118,13 @@ class Timeloc:
 	# time.struct_time(tm_year=2021, tm_mon=4, tm_mday=15, tm_hour=13, tm_min=34, tm_sec=41, tm_wday=3, tm_yday=105, tm_isdst=1) 
 	def getLocalTime(self):
 		return self.localtime
+
+	def getTZ(self):
+		return self.timezone
+		
+	def getPytzValue(self):
+		print "TZ INFO: timezoneSTR=", self.timezone, "timezoneINT=", pytz.timezone(self.timezone)
+		return pytz.timezone(self.timezone)
 
 """
 	def solar_timestrXX(self, strDatetime, longit):
@@ -132,12 +149,12 @@ class Timeloc:
 
 
 		#time_offset = eqtime + (4 * longit)  - (tz/60)
-		self.TimeToGreenwich = tz  # in seconds
+		self.UTCoffsetInSeconds = tz  # in seconds
 		print time.timezone/3600
 		self.RelativeTimeToDateline = 86400/2 - abs(tz)
 		self.AbsoluteTimeToDateline = 86400/2 - tz
 
-		print "time zone=", self.TimeToGreenwich/3600
+		print "time zone=", self.UTCoffsetInSeconds/3600
 		print "time-to-dateline=", self.RelativeTimeToDateline/3600 
 		return self.solarT
 """

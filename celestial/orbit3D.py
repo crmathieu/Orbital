@@ -20,9 +20,11 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 
 """
+import pytz
 import datetime
-import sys
 import time
+
+import sys
 from random import *
 
 #from vpython import *
@@ -31,7 +33,7 @@ import scipy.special as sp
 from pynput.mouse import Button, Controller
 from visual import *
 
-import spice
+#import spice
 
 from location import *
 from planetsdata import *
@@ -40,6 +42,8 @@ mouse = mouseTracker()
 locationInfo = Timeloc() 
 mouse = Controller()
 print "Mouse position", mouse.position
+
+#UNINITIALIZED = -600
 
 # CLASS SOLARSYSTEM -----------------------------------------------------------
 class solarSystem:
@@ -69,6 +73,19 @@ class solarSystem:
 		self.MT = self.Scene.getMouseTracker()
 		self.MT.SetMouseStateReporter(self.Scene)
 
+		# time management
+		#self.todayDate = datetime.datetime.now() #date.today()
+		local_time = pytz.timezone(locationInfo.getTZ())
+		self.todayDate = local_time.localize(datetime.datetime.now(), is_dst=None)
+
+		self.utcTodayDate = datetime.datetime.utcnow()
+		
+		self.DaysIncrement = 0.0 #UNINITIALIZED # number of days from today - used for animation into future or past (DaysIncrement < 0)
+		self.utcDaysIncrement = 0.0 #UNINITIALIZED # number of days from today - used for animation into future or past (DaysIncrement < 0)
+		
+		self.TimeInCurrentDay = 0 
+		self.utcTimeInCurrentDay = 0
+
 		self.Scene.lights = []
 		self.Scene.forward = (2,0,-1) #(0,0,-1)
 		self.Scene.fov = math.pi/3
@@ -81,7 +98,7 @@ class solarSystem:
 		self.RefAxisLabel = ["","",""]
 		self.Axis = [0,0,0]
 		self.AxisLabel = ["","",""]
-		self.TimeIncrement = INITIAL_TIMEINCR
+		self.TimeIncrement = INITIAL_TIMEINCR # in days
 		self.CorrectionSize = self.BodyRadius*DIST_FACTOR/1.e-2
 		self.Rotation = 25.05 # in days
 		self.RotAngle = 0
@@ -140,6 +157,9 @@ class solarSystem:
 			self.makeCelestialSphere()
 
 		#self.Scene.scale = self.Scene.scale * 10
+
+	def getgTimeIncrement(self):
+		return self.DaysIncrement + self.TimeInCurrentDay
 
 
 	def toggleSize(self, realisticSize):
@@ -298,6 +318,8 @@ class solarSystem:
 			if body.BodyType in [SPACECRAFT, OUTERPLANET, INNERPLANET, ASTEROID, COMET, SATELLITE, DWARFPLANET, PHA, BIG_ASTEROID, TRANS_NEPT]:
 				body.toggleSize(realisticSize)
 
+				if body.Name == "pluto":
+					print "Pluto is ", body.Origin.visible
 			#	if body.BodyShape.visible == True:
 				if body.Origin.visible == True:
 					body.Trail.visible = orbitTrace
@@ -694,6 +716,7 @@ class makeBody:
 
 		if (self.SolarSystem.ShowFeatures & bodyType) == 0:
 #			self.BodyShape.visible = False
+			#print "Planet ", self.Name, " is invisible"
 			self.Origin.visible = False
 			self.Labels[0].visible = False
 
@@ -796,7 +819,7 @@ class makeBody:
 		# files -or- predefined values. Orbital Position is calculated
 		# from the last time of perihelion passage. This is the default
 		# behavior
-		self.setOrbitalFromPredefinedElements(objects_data[key], timeincrement) #-0.7)
+		self.setOrbitalFromJPLhorizon(objects_data[key], timeincrement) #-0.7)
 
 	# unused
 	"""
@@ -845,12 +868,19 @@ class makeBody:
 
 	# will calculate current value of approximate position of the major planets
 	# including pluto. This won't work for Asteroid, Comets or Dwarf planets
-	def setOrbitalFromKeplerianElements(self, elts, timeincrement):
+
+	def setOrbitalFromApproximatePlanetPositioning(self, elts, timeincrement):
+	#def setOrbitalFromKeplerianElements(self, elts, timeincrement):
 		# get number of days since J2000 epoch and obtain the fraction of century
 		# (the rate adjustment is given as a rate per century)
 		days = daysSinceJ2000UTC() + timeincrement #- ADJUSTMENT_FACTOR_PLANETS # - 1.43
 		#T = (daysSinceJ2000UTC() + timeincrement)/36525. # T is in centuries
-		T = (days-1.945)/36525. # T is in centuries
+
+        # These formulas use 'days' based on days since 1/Jan/2000 12:00 UTC ("J2000.0"), 
+        # instead of 0/Jan/2000 0:00 UTC ("day value"). Correct by subtracting 1.5 days...
+#		T = (days-1.945)/36525. # T is in centuries
+
+		T = (days-1.5)/36525. # T is in centuries
 
 		self.a = (elts["a"] + (elts["ar"] * T)) * AU
 		self.e = elts["EC_e"] + (elts["er"] * T)
@@ -875,7 +905,7 @@ class makeBody:
 			print ("Could not converge for "+self.Name+", E = "+str(self.E)+", last precision = "+str(dE))
 
 
-	def setOrbitalFromPredefinedElements(self, elts, timeincrement):
+	def setOrbitalFromJPLhorizon(self, elts, timeincrement):
 		# data comes from data file or predefined values
 		self.e 							= elts["EC_e"]
 		self.Longitude_of_perihelion 	= elts["longitude_of_perihelion"]
@@ -912,7 +942,7 @@ class makeBody:
 		return pi/180
 
 	def draw(self):
-
+		print "Rendering orbit for ", self.Name
 		self.Trail.visible = False
 		rad_E = deg2rad(self.E)
 		increment = self.getIncrement()
@@ -1068,8 +1098,8 @@ class makeBody:
 # CLASS PLANET ----------------------------------------------------------------
 class planet(makeBody):
 	
-	def __init__(self, system, key, color, type, sizeCorrectionType, defaultSizeCorrection):
-		makeBody.__init__(self, system, key, color, type, sizeCorrectionType, defaultSizeCorrection, system)
+	def __init__(self, system, key, color, ptype, sizeCorrectionType, defaultSizeCorrection):
+		makeBody.__init__(self, system, key, color, ptype, sizeCorrectionType, defaultSizeCorrection, system)
 		self.setRings()
 
 	def updateStillPosition(self, timeinsec):
@@ -1154,7 +1184,7 @@ class planet(makeBody):
 		# for the Major planets (default) includig Pluto, we have Keplerian
 		# elements to calculate the body's current approximated position on orbit
 		elt = objects_data[key]["kep_elt_1"] if "kep_elt_1" in objects_data[key] else objects_data[key]["kep_elt"]
-		self.setOrbitalFromKeplerianElements(elt, timeincrement) #-1.4) #0.7)
+		self.setOrbitalFromApproximatePlanetPositioning(elt, timeincrement) #-1.4) #0.7)
 
 
 # CLASS MAKEEARTH -------------------------------------------------------------
@@ -1169,8 +1199,9 @@ class makeEarth(planet):
 
 	def initRotation(self):
 
-		# texture alignment correction coefficient
-		TEXTURE_POSITIONING_CORRECTION =  2*pi/5 #pi/12
+		# texture alignment correction coefficient. This is to take 
+		# into account the initial mapping of texture on sphere
+		TEXTURE_POSITIONING_CORRECTION = 2*pi/5 #pi/12
 
 		# we need to rotate around X axis by pi/2 to properly align the planet's texture
 		self.BodyShape.rotate(angle=(pi/2+self.TiltAngle), axis=self.XdirectionUnit, origine=(0,0,0))
@@ -1179,16 +1210,17 @@ class makeEarth(planet):
 		self.RotAxis = self.ZdirectionUnit
 
 		# calculate initial angle between body and solar referential x axis
-		self.iDelta = 0 #atan2(self.Position[Y_COOR], self.Position[X_COOR])
+		self.iDelta = atan2(self.Position[Y_COOR], self.Position[X_COOR])
+		print "Initial angle for earth referential Y is ", self.iDelta, " rd"
 
 		# Calculate the local initial angle between the normal to the sun and our location
 		self.Gamma = deg2rad(locationInfo.solarT) \
-					 - deg2rad(locationInfo.Time2degree(locationInfo.RelativeTimeToDateline)) \
-					 - self.iDelta 
+					 + deg2rad(locationInfo.Time2degree(locationInfo.RelativeTimeToDateline)) \
+					 + self.iDelta 
 
-		# add correction due to initial position of texture on earth sphere, then rotate texture to make it match current time
-#		self.LocalInitialAngle = -TEXTURE_POSITIONING_CORRECTION + self.Gamma
-		self.LocalInitialAngle = TEXTURE_POSITIONING_CORRECTION + self.Gamma
+
+		# deduct correction due to initial position of texture on earth sphere, then rotate texture to make it match current time
+		self.LocalInitialAngle =  self.Gamma - TEXTURE_POSITIONING_CORRECTION
 		self.BodyShape.rotate(angle=(self.LocalInitialAngle), axis=self.RotAxis, origine=(0,0,0))
 		
 		"""
@@ -1202,9 +1234,18 @@ class makeEarth(planet):
 		#	print "No RA for " +self.Name
 		"""
 
-	def updateStillPosition(self, timeinsec):
-		
+	def updateStillPosition(self, orbitalBoxInstance, timeinsec):
+
+		return 
+
+		# method called every few sec to allow for an update of the time label. BUT, the position is not updated
+		# until we call this method self.STILL_ROTATION_INTERVAL/timeinsec times.
+
 		if self.wasAnimated == false:
+			# here insert call to update clock
+			orbitalBoxInstance.deltaTtick(timeinsec)
+			orbitalBoxInstance.refreshDate()
+
 			self.rotationInterval -= timeinsec
 			if self.rotationInterval <= 0:
 				locationInfo.setSolarTime()
@@ -1213,76 +1254,36 @@ class makeEarth(planet):
 
 	def incrementRotation(self):
 		# recalculate the angle of the texture on sphere based on updated time 
+		#newLocalInitialAngle = deg2rad(locationInfo.solarT) \
+		#					   - deg2rad(locationInfo.Time2degree(locationInfo.RelativeTimeToDateline)) \
+		#					   - self.iDelta 
+
 		newLocalInitialAngle = deg2rad(locationInfo.solarT) \
-							   - deg2rad(locationInfo.Time2degree(locationInfo.RelativeTimeToDateline)) \
-							   - self.iDelta 
+							   + deg2rad(locationInfo.Time2degree(locationInfo.RelativeTimeToDateline)) \
+					 		   + self.iDelta 
 
 		# rotate for the difference between updated angle and its formal value
 		self.BodyShape.rotate(angle=(newLocalInitialAngle - self.Gamma), axis=self.RotAxis, origine=(0,0,0))
 		print "rotating by ", newLocalInitialAngle - self.Gamma, " degree"
+
 		# update angle with its updated value
 		self.Gamma = newLocalInitialAngle
 
-	def setOrbitalFromKeplerianElements2(self, elts, timeincrement):
-		"""
-		self.Perihelion, self.e, 
-		self.Longitude_of_perihelion
-		self.Longitude_of_ascendingnode
-		self.Argument_of_perihelion
-		self.E
-		self.e 
-		self.a 
-		self.Inclination
-
-		y = spice.GetOcltx("EARTH", timeincrement)
-
-		self.Perihelion 				= y[0] * 1000
-		self.e 							= y[1]
-		self.Inclination 				= rad2deg(y[2])
-		self.Longitude_of_ascendingnode = rad2deg(y[3])
-		self.Argument_of_perihelion 	= rad2deg(y[4])
-		self.a 							= getSemiMajor(self.Perihelion, self.e)
-		
-
-		# compute mean Anomaly M = L - W
-		M = toRange(L - self.Longitude_of_perihelion)
-
-		# Obtain ecc. Anomaly E (in degrees) from M using an approx method of resolution:
-		success, self.E, dE, it = solveKepler(M, self.e, 12000)
-		if success == False:
-			print ("Could not converge for "+self.Name+", E = "+str(self.E)+", last precision = "+str(dE))
-
-		return 	
-		print "=========="
-		print "Perifocal:" + str(y[0]) + " km"
-
-		print "Eccentricity:"+str(y[1])
-		
-		print "Inclination:"+str(rad2deg(y[2])) + " deg"
-		print "Long.Ascending Node:"+str(rad2deg(y[3])) + " deg"
-		print "Argumt of periapsis:"+str(rad2deg(y[4])) + " deg"
-		print "Mean anomaly:"+str(rad2deg(y[5]))
-		print "Epoch:"+str(y[6])
-		print "MU:"+str(y[7])
-		print "NU:"+str(rad2deg(y[8])) + " deg/s"
-		print "Semi-major:"+str(y[9])
-		print "Period:"+str(y[10]/86400) + " d"
-
-		
-
-		"""
-
-	def setOrbitalFromKeplerianElements(self, elts, timeincrement):
+	
+	def setOrbitalFromApproximatePlanetPositioning(self, elts, timeincrement):
 		# get number of days since J2000 epoch and obtain the fraction of century
 		# (the rate adjustment is given as a rate per century)
 		
-#		days = daysSinceJ2000UTC() + timeincrement - ADJUSTMENT_FACTOR_PLANETS # - 1.43
-		days = daysSinceJ2000UTC() + timeincrement # - 1.43
+		days = daysSinceJ2000UTC() + timeincrement - ADJUSTMENT_FACTOR_PLANETS # - 1.43
+#		days = daysSinceJ2000UTC() + timeincrement # - 1.43
 		
 		#T = (daysSinceJ2000UTC() + timeincrement)/36525. # T is in centuries
 
-		#T = (days-1.5)/36525. # T is in centuries
-		T = (days-1.945)/36525. # T is in centuries
+        # These formulas use 'days' based on days since 1/Jan/2000 12:00 UTC ("J2000.0"), 
+        # instead of 0/Jan/2000 0:00 UTC ("day value"). Correct by subtracting 1.5 days...
+
+		T = (days-1.5)/36525. # T is in Julian centuries since J2000.0
+		# T = (days-1.945)/36525. # T is in centuries
 		#T = (days)/36525. # T is in centuries
 
 		self.a = (elts["a"] + (elts["ar"] * T)) * AU
@@ -2073,19 +2074,21 @@ def loadBodies(SolarSystem, type, filename, maxentries = 0):
 				"tga_name": str(obj[key]["tga_name"])
 			}
 			
-			#print obj[key]["jpl_designation"]
-			#return
-			body = {SPACECRAFT: 	spacecraft,
-					COMET: 			comet,
-					BIG_ASTEROID: 	asteroid,
-					PHA:			pha,
-					TRANS_NEPT:		transNeptunian,
-					SATELLITE:		satellite,
-					SMALL_ASTEROID:	smallAsteroid,
-					}[type](SolarSystem, obj[key]["jpl_designation"], getColor())
-#					}[type](SolarSystem, key, getColor())
+			if 1:
+				#print obj[key]["jpl_designation"]
+				#return
+				body = {SPACECRAFT: 	spacecraft,
+						COMET: 			comet,
+						BIG_ASTEROID: 	asteroid,
+						PHA:			pha,
+						TRANS_NEPT:		transNeptunian,
+						SATELLITE:		satellite,
+						SMALL_ASTEROID:	smallAsteroid,
+						}[type](SolarSystem, obj[key]["jpl_designation"], getColor())
+	#					}[type](SolarSystem, key, getColor())
 
-			SolarSystem.addTo(body)
+				SolarSystem.addTo(body)
+	
 			#if body.Name == "Moon":
 			#	print body.JPL_designation
 			#	print "Satellite was added to solar system"
@@ -2229,7 +2232,7 @@ def daysSinceEpochJD(julianDate):
 	days = daysSinceJ2000UTC() # days from 2000
 	return days - (julianDate - EPOCH_2000_JD)
 
-def daysSinceEpochJDfromUnixTimeStamp(UnixTimestamp):
+def daysSinceEpochJDfromUnixTimeStamp(UnixTimeStamp):
 	# Unix timestamp are the number of seconds since 01-01-1970 GMT.
 	# first let's convert that number in a number of days, by a)
 	# calculating the number of days since 1970 and b) add the number
@@ -2239,6 +2242,92 @@ def daysSinceEpochJDfromUnixTimeStamp(UnixTimestamp):
 	# second convert that number of days into the number of days since
 	# 01-01-2000
 	return daysSinceEpochJD(ndays)
+
+def datetime_from_utc_to_localXX(utc_datetime):
+    local_timestamp = time.time() #datetime.datetime.timestamp(locationInfo.getLocalTime()) # - time.time()
+    offset = datetime.datetime.fromtimestamp(local_timestamp) - datetime.datetime.utcfromtimestamp(local_timestamp)
+    print utc_datetime + offset
+    return utc_datetime + offset
+
+#    now_timestamp = time.time()
+#    offset = datetime.datetime.fromtimestamp(now_timestamp) - datetime.datetime.utcfromtimestamp(now_timestamp)
+#    return utc_datetime + offset
+
+# Convert date/time from UTC to local date/time
+def utc_to_local():
+	UTC_datetime = datetime.datetime.utcnow()
+	UTC_datetime_timestamp = datetime.datetime.timestamp(UTC_datetime) #float(UTC_datetime.strftime("%S"))
+	local_datetime_converted = datetime.datetime.fromtimestamp(UTC_datetime_timestamp)
+	print "local datetime from utc", local_datetime_converted
+	return local_datetime_converted
+
+# Convert date/time from UTC to local date/time
+def utc_to_local(utc_datetime):
+	#UTC_datetime = datetime.datetime.utcnow()
+	utc_datetime_timestamp = utc_datetime.timestamp() #float(utc_datetime.strftime("%S"))
+#	utc_datetime_timestamp = datetime.datetime.timestamp(utc_datetime) #float(utc_datetime.strftime("%S"))
+	return datetime.datetime.fromtimestamp(utc_datetime_timestamp)
+
+# 	Convert time from local time to UTC
+def local_to_utcXX():
+	local_datetime = datetime.datetime.now()
+	local_datetime_timestamp = datetime.datetime.timestamp(local_datetime) #float(local_datetime.strftime("%S"))
+	UTC_datetime_converted = datetime.datetime.utcfromtimestamp(local_datetime_timestamp)
+
+def local_to_utcXXXXXXX(local_datetime):
+	#local_datetime = datetime.datetime.now()
+	local_datetime_timestamp = time.mktime(local_datetime.timetuple()) #float(local_datetime.strftime("%S"))
+	return datetime.datetime.utcfromtimestamp(local_datetime_timestamp)
+
+def local_to_utc2(local_datetime):
+	#local_datetime = datetime.datetime.now()
+	local_datetime_timestamp = local_datetime.timestamp()
+	return datetime.datetime.utcfromtimestamp(local_datetime_timestamp)
+
+def local_to_utcXXX(local_datetime):
+	#local_datetime_timestamp = local_datetime.timestamp() + locationInfo.RelativeTimeToUtcInSec()
+
+	local_datetime_timestamp = to_timestamp(local_datetime) + locationInfo.RelativeTimeToUtcInSec()
+
+	#local_datetime_timestamp += locationInfo.RelativeTimeToUtcInSec()
+	#return datetime.datetime.utcfromtimestamp(local_datetime_timestamp)
+	print "LOCAL_TO_UTC: Local=", local_datetime, "UTC=", datetime.datetime.fromtimestamp(local_datetime_timestamp)
+	return datetime.datetime.fromtimestamp(local_datetime_timestamp)
+
+# last version
+def local_to_UTC(local_naivedatetime):
+	local_time = pytz.timezone(locationInfo.getTZ())
+	local_datetime = local_time.localize(local_naivedatetime, is_dst=None)
+	utc_datetime = local_datetime.astimezone(pytz.utc)
+	print "local=", local_naivedatetime, "UTC=", utc_datetime
+	return utc_datetime, local_datetime
+
+def UTC_to_local(utc_naivedatetime):
+	utc_time = pytz.utc #timezone(locationInfo.getTZ())
+	utc_datetime = utc_time.localize(utc_naivedatetime, is_dst=None)
+	local_datetime = utc_datetime.astimezone(pytz.timezone(locationInfo.getTZ()))
+	print "UTC=", utc_naivedatetime, "local=", local_datetime
+	return local_datetime, utc_datetime
+
+
+def to_timestamp(a_date):
+
+    if a_date.tzinfo:
+    	pass
+    	"""
+    	print "TZINFO", a_date.tzinfo
+        epoch = datetime.datetime(1970, 1, 1, tzinfo=pytz.UTC)
+        diff = a_date.astimezone(pytz.UTC) - epoch
+        """
+    else:
+        epoch = datetime.datetime(1970, 1, 1)
+        diff = a_date - epoch
+    return int(diff.total_seconds())
+
+
+def from_timestamp(timestamp):
+    return datetime.datetime.fromtimestamp(timestamp, pytz.UTC)
+
 
 class flyingCamera():
 	def __init__(self, system):

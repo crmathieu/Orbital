@@ -49,12 +49,12 @@ def main():
 	mars = planet(solSystem, 'mars', color.red, pd.INNERPLANET, pd.INNERPLANET, pd.PLANET_SZ_CORRECTION)
 	solSystem.addTo(mars)
 	
-	solSystem.addTo(planet(solSystem, 'jupiter', color.magenta, pd.OUTERPLANET, GASGIANT, pd.PLANET_SZ_CORRECTION))
-	solSystem.addTo(planet(solSystem, 'saturn', color.cyan, pd.OUTERPLANET, GASGIANT, pd.PLANET_SZ_CORRECTION))
-	solSystem.addTo(planet(solSystem, 'uranus', color.yellow, pd.OUTERPLANET, GASGIANT, pd.PLANET_SZ_CORRECTION))
-	solSystem.addTo(planet(solSystem, 'neptune', color.orange, pd.OUTERPLANET, GASGIANT, pd.PLANET_SZ_CORRECTION))
+	solSystem.addTo(planet(solSystem, 'jupiter', color.magenta, pd.OUTERPLANET, pd.GASGIANT, pd.PLANET_SZ_CORRECTION))
+	solSystem.addTo(planet(solSystem, 'saturn', color.cyan, pd.OUTERPLANET, pd.GASGIANT, pd.PLANET_SZ_CORRECTION))
+	solSystem.addTo(planet(solSystem, 'uranus', color.yellow, pd.OUTERPLANET, pd.GASGIANT, pd.PLANET_SZ_CORRECTION))
+	solSystem.addTo(planet(solSystem, 'neptune', color.orange, pd.OUTERPLANET, pd.GASGIANT, pd.PLANET_SZ_CORRECTION))
 
-	pluto = planet(solSystem, 'pluto', color.green, DWARFPLANET, DWARFPLANET, pd.DWARFPLANET_SZ_CORRECTION) #pd.OUTERPLANET, DWARFPLANET)
+	pluto = planet(solSystem, 'pluto', color.green, pd.DWARFPLANET, pd.DWARFPLANET, pd.DWARFPLANET_SZ_CORRECTION) #pd.OUTERPLANET, DWARFPLANET)
 	solSystem.addTo(pluto)
 
 #	solSystem.setRings(solSystem, "saturn") #, [((0.8,0.8,0.8), 0.9), ((0.5,0.5,0.5), 0.2)]) 
@@ -81,17 +81,23 @@ def main():
 
 	MAX_OBJECTS = 1000
 
-	"""
+	# !!!!!!!!!!!!!!!!!!!!!!!!!! test
+	solSystem.drawAllBodiesTrajectory()
+	
 	loadBodies(solSystem, PHA, "data/200m+PHA_orbital_elements.txt.json", MAX_OBJECTS)
 	loadBodies(solSystem, BIG_ASTEROID,"data/200km+asteroids_orbital_elements.txt.json", MAX_OBJECTS)
 	loadBodies(solSystem, COMET, "data/200m+comets_orbital_elements.txt.json", MAX_OBJECTS)
 	loadBodies(solSystem, TRANS_NEPT, "data/transNeptunian_objects.txt.json", MAX_OBJECTS)
+
 	loadBodies(solSystem, SPACECRAFT, "data/spacecrafts_orbital_elements.txt.json", MAX_OBJECTS)
-	"""
+	
 
 	#loadBodies(solSystem, pd.SATELLITE, "pd.SATELLITEs.txt", MAX_OBJECTS)
 
-	solSystem.drawAllBodiesTrajectory()
+	# TEST TEST, should be uncommented!!!!!!!!!!!!
+	#solSystem.drawAllBodiesTrajectory()
+
+
 	#solSystem.updateCameraPOV(earth)
 	#print solSystem.currentPOV.Name
 	
@@ -110,10 +116,9 @@ def main():
 	cw.povBox.setCurrentBodyFocusManually(earth, 2)
 	cw.Show()
 
-
 	while True:
 		sleep(2)
-		earth.updateStillPosition(2)
+		earth.updateStillPosition(cw.orbitalBox, 2)
 
 
 if __name__ == '__main__' :
