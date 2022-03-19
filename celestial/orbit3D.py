@@ -158,7 +158,7 @@ class solarSystem:
 
 		#self.Scene.scale = self.Scene.scale * 10
 
-	def getgTimeIncrement(self):
+	def getTimeIncrement(self):
 		return self.DaysIncrement + self.TimeInCurrentDay
 
 
@@ -878,6 +878,8 @@ class makeBody:
 
         # These formulas use 'days' based on days since 1/Jan/2000 12:00 UTC ("J2000.0"), 
         # instead of 0/Jan/2000 0:00 UTC ("day value"). Correct by subtracting 1.5 days...
+
+#		T = days/36525. # T is in centuries
 #		T = (days-1.945)/36525. # T is in centuries
 
 		T = (days-1.5)/36525. # T is in centuries
@@ -1283,6 +1285,7 @@ class makeEarth(planet):
         # instead of 0/Jan/2000 0:00 UTC ("day value"). Correct by subtracting 1.5 days...
 
 		T = (days-1.5)/36525. # T is in Julian centuries since J2000.0
+
 		# T = (days-1.945)/36525. # T is in centuries
 		#T = (days)/36525. # T is in centuries
 

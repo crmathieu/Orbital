@@ -166,7 +166,7 @@ Frame_IntervalsXX = {
 	TI_TWELVE_HOURS : { "value": 720, "label": "12", "unit": "h"}
 }
 
-Frame_Intervals = { # values are always in seconds...
+Frame_Intervals = { # incr values are always expressed in (fraction of a) day...
 	1: { "incr": TI_ONE_SECOND,  "value": 1, 		"label": "1", 	"unit": "s"},
 	2: { "incr": TI_10_SECONDS,  "value": 10, 		"label": "10", 	"unit": "s"},
 	3: { "incr": TI_30_SECONDS,  "value": 30, 		"label": "30", 	"unit": "s"},

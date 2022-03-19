@@ -33,6 +33,8 @@ class Timeloc:
 		self.region		 = data['region']
 		self.coordinates = data['loc']      # 47.6104,-122.2007
 		self.timezone	 = data['timezone']
+		#self.UTCtime 	 = datetime.datetime.utcnow()
+		self.UTCtime 	 = time.gmtime()
 
 		coord = self.coordinates.split(',')
 		self.latitude = float(coord[0])
@@ -55,6 +57,7 @@ class Timeloc:
 		#now = datetime.now()
 		#date_time = now.strftime("%m/%d/%Y, %H:%M:%S")
 		#print("date and time:",date_time)	
+
 
 	def setSolarTime(self):
 		self.localtime = time.localtime(time.time())
@@ -92,7 +95,7 @@ class Timeloc:
 
 		time_offset = eqtime + (4 * longit)  - (tz/60)
 		self.UTCoffsetInSeconds = tz  # in seconds
-		print time.timezone/3600
+		print time.timezone/3600, " hours from UTC"
 		self.RelativeTimeToDateline = 86400/2 - abs(tz)
 		self.AbsoluteTimeToDateline = 86400/2 - tz
 
@@ -118,6 +121,20 @@ class Timeloc:
 	# time.struct_time(tm_year=2021, tm_mon=4, tm_mday=15, tm_hour=13, tm_min=34, tm_sec=41, tm_wday=3, tm_yday=105, tm_isdst=1) 
 	def getLocalTime(self):
 		return self.localtime
+
+	def setLocaltimeFromUTC(self, utcTime):
+		self.localtime = utcTime + something
+
+	def setUTCtime(self, utcTime):
+		self.UTCtime = utcTime
+
+	def getUTCtime(self):
+		return self.UTCtime
+
+	def updateUTCtime(self):
+		self.UTCtime = time.gmtime()
+		#self.UTCtime = datetime.datetime.utcnow()
+		return self.UTCtime
 
 	def getTZ(self):
 		return self.timezone

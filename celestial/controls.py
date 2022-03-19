@@ -786,7 +786,8 @@ class JPLpanel(AbstractUI):
 		# convert UTC to local time
 		utcNewdate = objects_data[entry["neo_reference_id"]]["utc"]
 
-
+		# for animation sake, calculate the dayIncrement
+		
 		#utcNewdate = objects_data[entry["neo_reference_id"]]["utc"]
 		self.SolarSystem.utcTimeInCurrentDay = (utcNewdate).hour * TI_ONE_HOUR + \
 											(utcNewdate).minute * TI_ONE_MINUTE + \
@@ -892,6 +893,14 @@ class orbitalCtrlPanel(AbstractUI):
 		self.currentBody.Details = True
 		self.showObjectDetails(self.currentBody)
 
+	def setLocalDateTimeLabel(self, ldt):
+		self.localTimeLabel.SetLabel("{:>2}:{:>2}:{:2}".format(str(ldt.tm_hour).zfill(2), str(ldt.tm_min).zfill(2), str(ldt.tm_sec).zfill(2)))
+		self.localDateLabel.SetLabel("{:>2}/{:>2}/{:2}".format(str(ldt.tm_mon).zfill(2), str(ldt.tm_mday).zfill(2), str(ldt.tm_year).zfill(2)))
+
+	def setUTCDateTimeLabel(self, utcdt):
+		self.UTCtimeLabel.SetLabel("{:>2}:{:>2}:{:2}".format(str(utcdt.tm_hour).zfill(2), str(utcdt.tm_min).zfill(2), str(utcdt.tm_sec).zfill(2)))
+		self.UTCdateLabel.SetLabel("{:>2}/{:>2}/{:2}".format(str(utcdt.tm_mon).zfill(2), str(utcdt.tm_mday).zfill(2), str(utcdt.tm_year).zfill(2)))
+
 	def InitUI(self):
 		self.BoldFont = wx.Font(10, wx.SWISS, wx.NORMAL, wx.BOLD)
 		self.RegFont = wx.Font(10, wx.SWISS, wx.NORMAL, wx.NORMAL)
@@ -899,13 +908,29 @@ class orbitalCtrlPanel(AbstractUI):
 		heading = wx.StaticText(self, label='Show', pos=(20, MAIN_HEADING_Y))
 		heading.SetFont(self.BoldFont)
 
+		OFF_TIME = 0
 		dateLabel = wx.StaticText(self, label='Orbital Date', pos=(200, DATE_Y))
 		dateLabel.SetFont(self.BoldFont)
+		wx.StaticText(self, label='Local Time: ', pos=(200+OFF_TIME, DATE_Y-18))
+		wx.StaticText(self, label='Universal Time:', pos=(200+OFF_TIME, DATE_Y-33))
 
-		self.timeLabel = wx.StaticText(self, label='hh:mm:ss', pos=(320, DATE_Y-2))
+		self.localTimeLabel = wx.StaticText(self, label='hh:mm:ss', pos=(280+OFF_TIME+5, DATE_Y-18))
+		self.localDateLabel = wx.StaticText(self, label='mm/dd/yyyy', pos=(280+OFF_TIME+75, DATE_Y-18))
+		self.UTCtimeLabel = wx.StaticText(self, label='hh:mm:ss', pos=(280+OFF_TIME+5, DATE_Y-33))
+		self.UTCdateLabel = wx.StaticText(self, label='mm/dd/yyyy', pos=(280+OFF_TIME+75, DATE_Y-33))
+
 		lt = orbit3D.locationInfo.getLocalTime()
-		self.timeLabel.SetLabel("{:>2} : {:>2} : {:2}".format(str(lt.tm_hour).zfill(2), str(lt.tm_min).zfill(2), str(lt.tm_sec).zfill(2)))
+		utct = orbit3D.locationInfo.getUTCtime()
 
+		self.setLocalDateTimeLabel(lt)
+		self.setUTCDateTimeLabel(utct)
+
+#		self.localTimeLabel.SetLabel("{:>2} : {:>2} : {:2}".format(str(lt.tm_hour).zfill(2), str(lt.tm_min).zfill(2), str(lt.tm_sec).zfill(2)))
+#		self.localDateLabel.SetLabel("{:>2}/{:>2}/{:2}".format(str(lt.tm_mon).zfill(2), str(lt.tm_mday).zfill(2), str(lt.tm_year).zfill(2)))
+#		self.UTCtimeLabel.SetLabel("{:>2} : {:>2} : {:2}".format(str(utct.tm_hour).zfill(2), str(utct.tm_min).zfill(2), str(utct.tm_sec).zfill(2)))
+#		self.UTCdateLabel.SetLabel("{:>2}/{:>2}/{:2}".format(str(utct.tm_mon).zfill(2), str(utct.tm_mday).zfill(2), str(utct.tm_year).zfill(2)))
+
+		# date spinner
 		self.dateMSpin = wx.SpinCtrl(self, id=wx.ID_ANY, initial=self.SolarSystem.todayDate.month, min=1, max=12, pos=(200, DATE_SLD_Y), size=(65, 25), style=wx.SP_ARROW_KEYS)
 		self.dateMSpin.Bind(wx.EVT_SPINCTRL,self.OnTimeSpin)
 		self.dateDSpin = wx.SpinCtrl(self, id=wx.ID_ANY, initial=self.SolarSystem.todayDate.day, min=1, max=31, pos=(265, DATE_SLD_Y), size=(65, 25), style=wx.SP_ARROW_KEYS)
@@ -1046,7 +1071,7 @@ class orbitalCtrlPanel(AbstractUI):
 
 	def OnValidateDate(self, e):
 
-		ztime = self.timeLabel.GetLabel().split(" : ")
+		ztime = self.localTimeLabel.GetLabel().split(":")
 		if len(ztime) > 0:
 			#self.timeInDay = (float(ztime[0]) * TI_ONE_HOUR) + (float(ztime[1]) * TI_ONE_MINUTE) + (float(ztime[2]) * TI_ONE_SECOND)
 			
@@ -1064,7 +1089,7 @@ class orbitalCtrlPanel(AbstractUI):
 
 
 		"""
-		ztime = split(self.timeLabel.Getvalue(), " : ")
+		ztime = split(self.localTimeLabel.Getvalue(), " : ")
 		print len(ztime)
 		if len(ztime) > 0:
 			self.DaysIncrement += (float(ztime[0]) * TI_ONE_HOUR) + (float(ztime[1]) * TI_ONE_MINUTE) + (float(ztime[2]) * TI_ONE_SECOND)
@@ -1073,6 +1098,8 @@ class orbitalCtrlPanel(AbstractUI):
 		self.OneTimeIncrement()
 		self.disableBeltsForAnimation()
 		self.SolarSystem.DaysIncrement -= self.TimeIncrement
+
+		self.setLocalDateTimeLabel(NewLocaldate) ##################
 
 		self.refreshDate()
 
@@ -1114,7 +1141,7 @@ class orbitalCtrlPanel(AbstractUI):
 		minutes = zdelta / 60
 		zdelta -= minutes * 60
 		seconds = zdelta
-		self.timeLabel.SetLabel("{:>2} : {:>2} : {:2}".format(str(hours).zfill(2), str(minutes).zfill(2), str(seconds).zfill(2)))
+		self.localTimeLabel.SetLabel("{:>2} : {:>2} : {:2}".format(str(hours).zfill(2), str(minutes).zfill(2), str(seconds).zfill(2)))
 		"""
 
 		self.setVelocityLabel()
@@ -1127,7 +1154,7 @@ class orbitalCtrlPanel(AbstractUI):
 		minutes = zdelta / 60
 		zdelta -= minutes * 60
 		seconds = zdelta
-		self.timeLabel.SetLabel("{:>2} : {:>2} : {:2}".format(str(hours).zfill(2), str(minutes).zfill(2), str(seconds).zfill(2)))
+		self.localTimeLabel.SetLabel("{:>2} : {:>2} : {:2}".format(str(hours).zfill(2), str(minutes).zfill(2), str(seconds).zfill(2)))
 
 
 
@@ -1434,7 +1461,8 @@ class orbitalCtrlPanel(AbstractUI):
 
 	def setDeltaT(self):
 
-		ztime = self.timeLabel.GetLabel().split(" : ")
+#		ztime = self.localTimeLabel.GetLabel().split(" : ")
+		ztime = self.localTimeLabel.GetLabel().split(":")
 		if len(ztime) > 0:
 			#print "before correction", self.DaysIncrement
 			self.SolarSystem.TimeInCurrentDay = (float(ztime[0]) * TI_ONE_HOUR) + (float(ztime[1]) * TI_ONE_MINUTE) + (float(ztime[2]) * TI_ONE_SECOND)
@@ -1445,7 +1473,7 @@ class orbitalCtrlPanel(AbstractUI):
 
 	def setDeltaT_XXX(self):
 
-		ztime = self.timeLabel.GetLabel().split(" : ")
+		ztime = self.localTimeLabel.GetLabel().split(" : ")
 		if len(ztime) > 0:
 			#print "before correction", self.DaysIncrement
 			self.SolarSystem.DaysIncrement = (float(ztime[0]) * TI_ONE_HOUR) + (float(ztime[1]) * TI_ONE_MINUTE) + (float(ztime[2]) * TI_ONE_SECOND)
@@ -1473,7 +1501,7 @@ class orbitalCtrlPanel(AbstractUI):
 		# DaysIncrement with current time as a fraction of day
 		"""
 		if UNINITIALIZED == self.SolarSystem.DaysIncrement:
-			ztime = self.timeLabel.GetLabel().split(" : ")
+			ztime = self.localTimeLabel.GetLabel().split(" : ")
 			if len(ztime) > 0:
 				#print "before correction", self.DaysIncrement
 				self.SolarSystem.DaysIncrement += (float(ztime[0]) * TI_ONE_HOUR) + (float(ztime[1]) * TI_ONE_MINUTE) + (float(ztime[2]) * TI_ONE_SECOND)
@@ -1522,7 +1550,7 @@ class WIDGETSpanel(AbstractUI):
 		self.Earth = self.SolarSystem.EarthRef
 		self.checkboxList = {}
 
-		#self.drawEquator()
+		self.drawEquator()
 		#self.drawTimeZone()
 
 	def InitUI(self):
@@ -1536,9 +1564,9 @@ class WIDGETSpanel(AbstractUI):
 		#dateLabel = wx.StaticText(self, label='Orbital Date', pos=(200, DATE_Y))
 		#dateLabel.SetFont(self.BoldFont)
 
-		#self.timeLabel = wx.StaticText(self, label='hh:mm:ss', pos=(320, DATE_Y-2))
+		#self.localTimeLabel = wx.StaticText(self, label='hh:mm:ss', pos=(320, DATE_Y-2))
 		#lt = orbit3D.locationInfo.getLocalTime()
-		#self.timeLabel.SetLabel("{:>2} : {:>2} : {:2}".format(str(lt.tm_hour).zfill(2), str(lt.tm_min).zfill(2), str(lt.tm_sec).zfill(2)))
+		#self.localTimeLabel.SetLabel("{:>2} : {:>2} : {:2}".format(str(lt.tm_hour).zfill(2), str(lt.tm_min).zfill(2), str(lt.tm_sec).zfill(2)))
 
 		#self.dateMSpin = wx.SpinCtrl(self, id=wx.ID_ANY, initial=self.todayDate.month, min=1, max=12, pos=(200, DATE_SLD_Y), size=(65, 25), style=wx.SP_ARROW_KEYS)
 		#self.dateMSpin.Bind(wx.EVT_SPINCTRL,self.OnTimeSpin)
@@ -1593,7 +1621,9 @@ class WIDGETSpanel(AbstractUI):
 		self.setLocalRef()
 
 	def drawEquator(self):
-		self.eq = cylinder(frame=self.Earth.Origin, pos=(0,0,0), color=color.blue, radius=self.Earth.BodyShape.radius*1.003, length=self.Earth.BodyShape.radius*0.003)
+		print "draw equator..."
+		#self.eq = cylinder(frame=self.Earth.Origin, pos=(0,0,0), color=color.blue, radius=self.Earth.BodyShape.radius*1.003, length=self.Earth.BodyShape.radius*0.003)
+		self.eq = cylinder(frame=self.Earth.Origin, pos=(0,0,0), color=color.cyan, radius=self.Earth.BodyShape.radius*1.004, length=self.Earth.BodyShape.radius*0.003)
 		self.eq.rotate(angle=(pi/2), axis=self.Earth.YdirectionUnit, origine=(0,0,0))
 
 	def drawTimeZone(self):
