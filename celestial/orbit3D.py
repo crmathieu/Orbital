@@ -75,16 +75,29 @@ class solarSystem:
 
 		# time management
 		#self.todayDate = datetime.datetime.now() #date.today()
-		local_time = pytz.timezone(locationInfo.getTZ())
-		self.todayDate = local_time.localize(datetime.datetime.now(), is_dst=None)
+		
+		#local_time = pytz.timezone(locationInfo.getTZ())
+		#self.todayDate = local_time.localize(datetime.datetime.now(), is_dst=None)
 
-		self.utcTodayDate = datetime.datetime.utcnow()
+		# locationInfo is a TimeLoc object containing information about the user's current location 
+		# (such as lat/long, localtime etc...). The solarSystem todayDate property represents a 
+		# datetime object referring to the local day and time. 
+		self.todayDate = locationInfo.getLocalDateTime()
+
+		# similarily, The solarSystem utcTodayDate property represents a datatime object referring to UTC day and time
+		self.utcTodayDate = locationInfo.getUTCDateTime() #datetime.datetime.utcnow()
 		
+		# DaysIncrement is a float used for animation. It represents a number of days and fraction of day (its unit is in days)
+		# used to go further in the future or in the past (when < 0) 
 		self.DaysIncrement = 0.0 #UNINITIALIZED # number of days from today - used for animation into future or past (DaysIncrement < 0)
-		self.utcDaysIncrement = 0.0 #UNINITIALIZED # number of days from today - used for animation into future or past (DaysIncrement < 0)
 		
-		self.TimeInCurrentDay = 0 
-		self.utcTimeInCurrentDay = 0
+
+		#self.utcDaysIncrement = 0.0 #UNINITIALIZED # number of days from today - used for animation into future or past (DaysIncrement < 0)
+		
+		# TimeInCurrentDay is a float representing the current time as a fration of day
+		self.TimeInCurrentDay = 0.0 
+
+		#self.utcTimeInCurrentDay = 0
 
 		self.Scene.lights = []
 		self.Scene.forward = (2,0,-1) #(0,0,-1)
@@ -98,11 +111,18 @@ class solarSystem:
 		self.RefAxisLabel = ["","",""]
 		self.Axis = [0,0,0]
 		self.AxisLabel = ["","",""]
-		self.TimeIncrement = INITIAL_TIMEINCR # in days
+
+		# TimeIncrement is a float representing the time quantity value by which 
+		# the solar system planet positions get updated with every tick
+		# during an animation - In fraction of day (from 1sec -> 1day)
+		# for 1sec, TimeIncrement = 1/86400
+		# for 1day, TimeIncrement = 1.0
+		self.TimeIncrement = INITIAL_TIMEINCR 
+
 		self.CorrectionSize = self.BodyRadius*DIST_FACTOR/1.e-2
-		self.Rotation = 25.05 # in days
+		self.Rotation = 25.05 # in days to complete a full rotation
 		self.RotAngle = 0
-		self.AxialTilt = 7.25 # in degres
+		self.AxialTilt = 7.25 # Sun axial tilt in degres
 		self.Position = vector(0,0,0)
 		self.EarthRef = None
 		self.ShowFeatures = 0
@@ -150,7 +170,7 @@ class solarSystem:
 		self.BodyShape.material = materials.emissive
 
 		# make referential
-		self.makeAxis(3*AU*DIST_FACTOR, (0,0,0))
+		self.makeAxis(5*AU*DIST_FACTOR, (0,0,0))
 		self.initRotation()
 
 		if self.isFeatured(CELESTIAL_SPHERE):
@@ -158,7 +178,8 @@ class solarSystem:
 
 		#self.Scene.scale = self.Scene.scale * 10
 
-	def getTimeIncrement(self):
+	def getTimeIncrementXX(self):
+		print "GTI-1", self.DaysIncrement + self.TimeInCurrentDay
 		return self.DaysIncrement + self.TimeInCurrentDay
 
 
@@ -213,6 +234,7 @@ class solarSystem:
 		return 0
 
 	def getTimeIncrement(self):
+		#print "GTI-2", self.TimeIncrement
 		return self.TimeIncrement
 
 	def setTimeIncrement(self, value):
@@ -225,11 +247,15 @@ class solarSystem:
 		refDirections = [vector(size,0,0), vector(0,size,0), vector(0,0,size/4)]
 		relsize = 2 * (self.BodyRadius/self.CorrectionSize)
 		relDirections = [vector(relsize,0,0), vector(0,relsize,0), vector(0,0,relsize)]
-		refText = ["x (V. Equinox)","y","z"]
+		refText = ["x (C. Aries)","y","z"]
 		relText = ["x","y","z"]
+		refOpRad = [[1.0, 200],[0.5, 50],[0.5,50]]
 		pos = vector(position)
 		for i in range (3): # Each direction
-			self.RefAxis[i] = curve( frame = None, color = color.dirtyYellow, pos= [ pos, pos+refDirections[i]], visible=False)
+			#self.RefAxis[i] = curve( frame = None, color = color.red, pos= [ pos, pos+refDirections[i]], visible=False, emissive=True, radius=3)
+			
+			self.RefAxis[i] = cylinder(pos=pos, axis=refDirections[i], color=color.white, emissive=True, opacity=refOpRad[i][0], radius=refOpRad[i][1]) 
+
 			self.RefAxisLabel[i] = label( frame = None, color = color.white,  text = refText[i],
 										pos = pos+refDirections[i], opacity = 0, box = False, visible=False )
 			A = np.matrix([[relDirections[i][0]],[relDirections[i][1]],[relDirections[i][2]]], np.float64)
@@ -315,7 +341,8 @@ class solarSystem:
 		self.toggleSize(realisticSize)
 
 		for body in self.bodies:
-			if body.BodyType in [SPACECRAFT, OUTERPLANET, INNERPLANET, ASTEROID, COMET, SATELLITE, DWARFPLANET, PHA, BIG_ASTEROID, TRANS_NEPT]:
+			if body.BodyType in [SPACECRAFT, OUTERPLANET, INNERPLANET, ASTEROID, COMET, \
+								 SATELLITE, DWARFPLANET, PHA, BIG_ASTEROID, TRANS_NEPT]:
 				body.toggleSize(realisticSize)
 
 				if body.Name == "pluto":
@@ -427,10 +454,37 @@ class makeEcliptic:
 		# provide 1 degree increment in radians
 		return pi/180
 
+
 	def draw(self):
 		self.Origin = frame()
-		self.BodyShape = cylinder(frame=self.Origin, pos=vector(0,0,0), radius=250*AU*DIST_FACTOR, color=self.Color, length=10, opacity=self.Opacity, axis=(0,0,1))
+
+#		self.BodyShape = cylinder(frame=self.Origin, pos=vector(0,0,0), radius=250*AU*DIST_FACTOR, color=self.Color, length=10, opacity=self.Opacity, axis=(0,0,1))
+#		self.BodyShape = box(frame=self.Origin, pos=vector(0,0,0), length=250*AU*DIST_FACTOR, width=10, height=250*AU*DIST_FACTOR, color=self.Color, opacity=self.Opacity, axis=(1,0,0))
+		side = 250*AU*DIST_FACTOR
+		side = 0.5*AU*DIST_FACTOR
+		earth = self.SolarSystem.getBodyFromName('earth')
+
+#		self.BodyShape = box(frame=self.Origin, pos=vector(0,0,0), length=side, width=10, height=side, color=self.Color, opacity=self.Opacity, axis=(1,0,0))
+		self.BodyShape = box(frame=self.SolarSystem.getBodyFromName('earth').Origin, pos=vector(earth.Position[0],earth.Position[1], 0), length=side, width=10, height=side, color=self.Color, opacity=self.Opacity, axis=(1,0,0))
+
+		position = earth.Position
+		position[2] = 0 # make sure the z coordinate is for the ecliptic, not the earth's one
+		l = self.BodyShape.length
+		increment = l/80
+		#for i = l; i >=0 ; i=i-increment:
+		i = 0
+		while (i < l): 
+			source1=vector(-l/2, l/2-i, 0)
+			target1=vector( l/2, l/2-i, 0)
+			source2=vector( l/2-i,  l/2, 0)
+			target2=vector( l/2-i, -l/2, 0)
+
+			self.Lines.append(curve( frame = self.Origin, color = color.white, pos= [source1+position, target1+position], visible=true, radius=0, material=materials.emissive))
+			self.Lines.append(curve( frame = self.Origin, color = color.white, pos= [source2+position, target2+position], visible=true, radius=0, material=materials.emissive))
+			i = i + increment
+
 		self.Origin.visible = False
+
 		"""
 		increment = self.getIncrement()
 
@@ -869,7 +923,7 @@ class makeBody:
 	# will calculate current value of approximate position of the major planets
 	# including pluto. This won't work for Asteroid, Comets or Dwarf planets
 
-	def setOrbitalFromApproximatePlanetPositioning(self, elts, timeincrement):
+	def setOrbitalEltFromApproximatePlanetPositioning(self, elts, timeincrement):
 	#def setOrbitalFromKeplerianElements(self, elts, timeincrement):
 		# get number of days since J2000 epoch and obtain the fraction of century
 		# (the rate adjustment is given as a rate per century)
@@ -922,13 +976,19 @@ class makeBody:
 		self.Time_of_perihelion_passage = elts["Tp_Time_of_perihelion_passage_JD"]
 		self.Mean_motion				= elts["N_mean_motion"]
 		self.Epoch						= elts["epochJD"]
-		self.Mean_anomaly				= elts["MA_mean_anomaly"]
+		self.Mean_anomaly				= elts["MA_mean_anomaly"] 	# the Mean Anomaly angle can also be computed using
+																	# the orbital period and Time of perihelion as:
+																	# M = (t - T) * 2*PI/P where T is the timeOfPerihelion,
+																	# t is the current time and P the orbital period 
 		self.revolution					= elts["PR_revolution"]
 		self.OrbitClass					= elts["orbit_class"]
 
 		# calculate current position based on orbital elements
 		#dT = daysSinceEpochJD(self.Epoch) + timeincrement # timeincrement comes in days
-		dT = daysSinceEpochJD(self.Epoch) + timeincrement - ADJUSTMENT_FACTOR # - 0.6 # timeincrement comes in days
+		
+		dT = daysSinceEpochJD(self.Epoch) + timeincrement 
+#		dT = daysSinceEpochJD(self.Time_of_perihelion_passage) + timeincrement 
+
 		# compute Longitude of Ascending node taking into account the time elapsed since epoch
 		incrementYears = timeincrement / 365.25
 		self.Longitude_of_ascendingnode +=  0.013967 * (2000.0 - (getCurrentYear() + incrementYears)) + 3.82394e-5 * dT
@@ -1005,6 +1065,7 @@ class makeBody:
 		self.setCartesianCoordinates()
 		self.Origin.pos = vector(self.Position[X_COOR]+self.Foci[X_COOR],self.Position[Y_COOR]+self.Foci[Y_COOR],self.Position[Z_COOR]+self.Foci[Z_COOR])
 		if trace:
+			# display orbit in brighter color when above ecliptic
 			if self.Position[Z_COOR]+self.Foci[Z_COOR] < 0:
 				"""
 				self.Interval += 1
@@ -1020,10 +1081,13 @@ class makeBody:
 				self.Trail.append(pos=self.Origin.pos, color=(self.Color[0]*0.6, self.Color[1]*0.6, self.Color[2]*0.6))
 
 	def setCartesianCoordinates(self):
+		# from polar coordinates, deduct cartesian coordinates using the current distance to object (R), the 
+		# True anomaly (Nu), and the orbital parameters pertaining to the orbit's orientation: (N, i, w) 
 		self.Position[X_COOR] = self.R * DIST_FACTOR * ( cos(self.N) * cos(self.Nu+self.w) - sin(self.N) * sin(self.Nu+self.w) * cos(self.i) )
 		self.Position[Y_COOR] = self.R * DIST_FACTOR * ( sin(self.N) * cos(self.Nu+self.w) + cos(self.N) * sin(self.Nu+self.w) * cos(self.i) )
 		self.Position[Z_COOR] = self.R * DIST_FACTOR * ( sin(self.Nu+self.w) * sin(self.i) )
 
+		# finally, calculate these coordinates in our arbitrary definition of the Constellation of Pisces (Vernal Equinox) referential.
 		self.Position = self.Rotation_VernalEquinox * self.Position
 
 	def show(self):
@@ -1186,7 +1250,7 @@ class planet(makeBody):
 		# for the Major planets (default) includig Pluto, we have Keplerian
 		# elements to calculate the body's current approximated position on orbit
 		elt = objects_data[key]["kep_elt_1"] if "kep_elt_1" in objects_data[key] else objects_data[key]["kep_elt"]
-		self.setOrbitalFromApproximatePlanetPositioning(elt, timeincrement) #-1.4) #0.7)
+		self.setOrbitalEltFromApproximatePlanetPositioning(elt, timeincrement) #-1.4) #0.7)
 
 
 # CLASS MAKEEARTH -------------------------------------------------------------
@@ -1238,7 +1302,7 @@ class makeEarth(planet):
 
 	def updateStillPosition(self, orbitalBoxInstance, timeinsec):
 
-		return 
+		return # disabled for the moment as we are debugging the UTC/local time issue
 
 		# method called every few sec to allow for an update of the time label. BUT, the position is not updated
 		# until we call this method self.STILL_ROTATION_INTERVAL/timeinsec times.
@@ -1272,11 +1336,11 @@ class makeEarth(planet):
 		self.Gamma = newLocalInitialAngle
 
 	
-	def setOrbitalFromApproximatePlanetPositioning(self, elts, timeincrement):
+	def setOrbitalEltFromApproximatePlanetPositioning(self, elts, timeincrement):
 		# get number of days since J2000 epoch and obtain the fraction of century
 		# (the rate adjustment is given as a rate per century)
 		
-		days = daysSinceJ2000UTC() + timeincrement - ADJUSTMENT_FACTOR_PLANETS # - 1.43
+		days = daysSinceJ2000UTC() + timeincrement #- ADJUSTMENT_FACTOR_PLANETS # - 1.43
 #		days = daysSinceJ2000UTC() + timeincrement # - 1.43
 		
 		#T = (daysSinceJ2000UTC() + timeincrement)/36525. # T is in centuries
@@ -2210,9 +2274,27 @@ def JDEtoJulian(jdediff_indays):
 	days = (Y - years)*365.25
 	return days
 
+def makeJulianDateALTernate(utc, delta):
+	# Fliegel / Van Flandern Formula - "delta" is in days (added minutes and seconds)
+	JL = delta + 367*utc.year - (7*(utc.year + ((utc.month+9)/12)))/4 + (275*utc.month)/9 + utc.day + 1721013.5 + (((utc.second/60) + utc.minute)/60 +utc.hour)/24
+
+	print "makeJulian------------", JL
+	return JL
+
 def makeJulianDate(utc, delta):
-	# Fliegel / Van Flandern Formula - "delta" is in days
-	return delta + 367*utc.year - (7*(utc.year + ((utc.month+9)/12)))/4 + (275*utc.month)/9 + utc.day - 730530 + (utc.hour/24.0)
+	# Fliegel / Van Flandern Formula - "delta" is in days (added minutes and seconds)
+	#JL = delta + 367*utc.year - (7*(utc.year + ((utc.month+9)//12)))//4 + (275*utc.month)//9 + utc.day - 730530 + (utc.hour/24.0) + \
+	#		(utc.minute/1440.0) + (utc.second/86400.0)
+
+	# Note that the // operator means "__floordiv__", where the result is rounded to the lower closest integer (it 1.689 -> 1)
+	# For the leftOver though, we need the exact value in float
+
+	JL = delta + 367*utc.year - 7*(utc.year + (utc.month+9)//12)//4 - 3*(((utc.year+(utc.month-9)//7)//100) + 1)//4 + 275*utc.month//9 + utc.day - 730515
+	leftOver = (utc.hour/24.0) + (utc.minute/1440.0) + (utc.second/86400.0)
+
+	print "makeJulian------------", JL+leftOver
+	return JL+leftOver
+
 	#return delta + julian(utc.day, utc.month, utc.year)
 
 def julian(d,m,y):
@@ -2264,10 +2346,17 @@ def utc_to_local():
 	print "local datetime from utc", local_datetime_converted
 	return local_datetime_converted
 
+def timestamp_utc_to_local(utcTimeStamp):
+	# add offset from utc to local. West of UTC, offset is negative
+	localTimeStamp = utcTimeStamp + locationInfo.UTCoffsetInSeconds
+	return datetime.datetime.fromtimestamp(localTimeStamp, locationInfo.getPytzValue())
+
 # Convert date/time from UTC to local date/time
 def utc_to_local(utc_datetime):
 	#UTC_datetime = datetime.datetime.utcnow()
 	utc_datetime_timestamp = utc_datetime.timestamp() #float(utc_datetime.strftime("%S"))
+
+	# add offset
 #	utc_datetime_timestamp = datetime.datetime.timestamp(utc_datetime) #float(utc_datetime.strftime("%S"))
 	return datetime.datetime.fromtimestamp(utc_datetime_timestamp)
 
@@ -2282,10 +2371,13 @@ def local_to_utcXXXXXXX(local_datetime):
 	local_datetime_timestamp = time.mktime(local_datetime.timetuple()) #float(local_datetime.strftime("%S"))
 	return datetime.datetime.utcfromtimestamp(local_datetime_timestamp)
 
-def local_to_utc2(local_datetime):
+def local_to_utc(local_datetime): ##################### working on it
+	# add utc delta to local time.
+	return local_datetime + datetime.timedelta(seconds=locationInfo.RelativeTimeToUtcInSec())
+
 	#local_datetime = datetime.datetime.now()
-	local_datetime_timestamp = local_datetime.timestamp()
-	return datetime.datetime.utcfromtimestamp(local_datetime_timestamp)
+	#local_datetime_timestamp = local_datetime.timestamp()
+	#return datetime.datetime.utcfromtimestamp(local_datetime_timestamp)
 
 def local_to_utcXXX(local_datetime):
 	#local_datetime_timestamp = local_datetime.timestamp() + locationInfo.RelativeTimeToUtcInSec()
@@ -2297,13 +2389,14 @@ def local_to_utcXXX(local_datetime):
 	print "LOCAL_TO_UTC: Local=", local_datetime, "UTC=", datetime.datetime.fromtimestamp(local_datetime_timestamp)
 	return datetime.datetime.fromtimestamp(local_datetime_timestamp)
 
-# last version
+# takes a naive local datetime and returns a timezone aware local datetime and the UTC datetime
 def local_to_UTC(local_naivedatetime):
+
 	local_time = pytz.timezone(locationInfo.getTZ())
-	local_datetime = local_time.localize(local_naivedatetime, is_dst=None)
-	utc_datetime = local_datetime.astimezone(pytz.utc)
-	print "local=", local_naivedatetime, "UTC=", utc_datetime
-	return utc_datetime, local_datetime
+	local_awaredatetime = local_time.localize(local_naivedatetime, is_dst=None)
+	utc_datetime = local_awaredatetime.astimezone(pytz.utc)
+	print "Naive local=", local_naivedatetime, "Aware local", local_awaredatetime, "UTC=", utc_datetime
+	return utc_datetime, local_awaredatetime
 
 def UTC_to_local(utc_naivedatetime):
 	utc_time = pytz.utc #timezone(locationInfo.getTZ())

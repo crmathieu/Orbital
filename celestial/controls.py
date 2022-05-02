@@ -586,7 +586,9 @@ class JPLpanel(AbstractUI):
 		self.parentFrame.orbitalBox.resetBodyList()
 
 		# make sure to reset the date to today's date
-		####### self.parentFrame.orbitalBox.resetDate(self.ca_deltaT)  <<<<<<<<<<<----------------------
+		#self.parentFrame.orbitalBox.resetDate(self.ca_deltaT)  #<<<<<<<<<<<----------------------
+		self.parentFrame.orbitalBox.refreshDate()
+
 		self.parentFrame.orbitalBox.setCurrentBodyFromId(id)
 		if self.SolarSystem.currentPOVselection == "curobj":
 			self.SolarSystem.currentPOV = self.parentFrame.orbitalBox.currentBody
@@ -638,10 +640,11 @@ class JPLpanel(AbstractUI):
 		#entry = self.fetchDetails(entry["links"]["self"])
 		utc_timestamp = entry["close_approach_data"][0]["epoch_date_close_approach"]*0.001
 		
-		utc_close_approach = datetime.datetime.utcfromtimestamp(utc_timestamp)
+#		utc_close_approach = datetime.datetime.utcfromtimestamp(utc_timestamp)
+		utc_close_approach = datetime.datetime.fromtimestamp(utc_timestamp, tz=orbit3D.locationInfo.getPytzValue())
 
 		# utc_close_approach is a naive datetime object
-		print "LOADBODY_INFO utc_close_approach= ", utc_close_approach, "==? timestamp=", utc_timestamp
+		print "LOADBODY_INFO utc_close_approach= ", utc_close_approach, "UTC from timestamp=", utc_timestamp
 
 		# otherwise add data to dictionary
 		objects_data[entry["neo_reference_id"]] = {
@@ -671,8 +674,8 @@ class JPLpanel(AbstractUI):
 			"utcstr": utc_close_approach.strftime('%Y-%m-%d %H:%M:%S'),
 			"utc": utc_close_approach,
 #			"local": orbit3D.datetime_from_utc_to_local(utc_close_approach)
-			"local": datetime.datetime.fromtimestamp(utc_timestamp) #, utc_close_approach.TZ)
-#			"local": orbit3D.UTC_to_local(utc_close_approach)
+#			"local": datetime.datetime.fromtimestamp(utc_timestamp) #, utc_close_approach.TZ)
+			"local": orbit3D.timestamp_utc_to_local(utc_timestamp)
 		}
 		print "UTCstr =========>", objects_data[entry["neo_reference_id"]]["utcstr"]
 		print "Local  --------->", objects_data[entry["neo_reference_id"]]["local"]
@@ -789,17 +792,27 @@ class JPLpanel(AbstractUI):
 		# for animation sake, calculate the dayIncrement
 		
 		#utcNewdate = objects_data[entry["neo_reference_id"]]["utc"]
-		self.SolarSystem.utcTimeInCurrentDay = (utcNewdate).hour * TI_ONE_HOUR + \
-											(utcNewdate).minute * TI_ONE_MINUTE + \
-											(utcNewdate).second * TI_ONE_SECOND
-		self.SolarSystem.utcDaysIncrement = (utcNewdate.day - self.SolarSystem.utcTodayDate.day) + self.SolarSystem.utcTimeInCurrentDay
 
-		newdate = objects_data[entry["neo_reference_id"]]["local"]
-		self.SolarSystem.TimeInCurrentDay = (newdate).hour * TI_ONE_HOUR + \
-											(newdate).minute * TI_ONE_MINUTE + \
-											(newdate).second * TI_ONE_SECOND
-		self.SolarSystem.DaysIncrement = (newdate.day - self.SolarSystem.todayDate.day) + self.SolarSystem.TimeInCurrentDay
+		# /////////////////////////////////
+		if False:
+			self.SolarSystem.utcTimeInCurrentDay = (utcNewdate).hour * TI_ONE_HOUR + \
+												(utcNewdate).minute * TI_ONE_MINUTE + \
+												(utcNewdate).second * TI_ONE_SECOND
+			self.SolarSystem.utcDaysIncrement = (utcNewdate.day - self.SolarSystem.utcTodayDate.day) + self.SolarSystem.utcTimeInCurrentDay
+			print "UTC time in current day=", self.SolarSystem.utcTimeInCurrentDay
+			print "UTC days increment=", self.SolarSystem.utcDaysIncrement
+		# /////////////////////////////////
 
+		LocNewdate = objects_data[entry["neo_reference_id"]]["local"]
+
+		self.SolarSystem.TimeInCurrentDay = (LocNewdate).hour * TI_ONE_HOUR + \
+											(LocNewdate).minute * TI_ONE_MINUTE + \
+											(LocNewdate).second * TI_ONE_SECOND
+#		self.SolarSystem.DaysIncrement = (LocNewdate.day - self.SolarSystem.todayDate.tm_mday) + self.SolarSystem.TimeInCurrentDay
+		self.SolarSystem.DaysIncrement = (LocNewdate.day - self.SolarSystem.todayDate.day) + self.SolarSystem.TimeInCurrentDay
+
+		print "LOCAL time in current day=", self.SolarSystem.TimeInCurrentDay
+		print "LOCAL days increment=", self.SolarSystem.DaysIncrement
 
 		print objects_data[entry["neo_reference_id"]]
 		# print time of closest approach on this date
@@ -810,6 +823,10 @@ class JPLpanel(AbstractUI):
 		# CLose approach objects are considered as PHAs
 		body = orbit3D.pha(self.SolarSystem, entry["neo_reference_id"], orbit3D.getColor())
 		self.SolarSystem.addTo(body)
+
+		# update timeStamps
+		self.parentFrame.orbitalBox.updateTimeStamps(LocNewdate, utcNewdate)
+
 		return entry["neo_reference_id"]
 
 
@@ -893,13 +910,24 @@ class orbitalCtrlPanel(AbstractUI):
 		self.currentBody.Details = True
 		self.showObjectDetails(self.currentBody)
 
+	def updateTimeStamps(self, ldt, utcdt):
+		print "LOCAL=", ldt
+		print "UTC=", utcdt
+		print "UTC minutes=", utcdt.minute
+		print "UTC seconds=", utcdt.second
+
+		self.localTimeLabel.SetLabel("{:>2}:{:>2}:{:2}".format(str(ldt.hour).zfill(2), str(ldt.minute).zfill(2), str(ldt.second).zfill(2)))
+		self.localDateLabel.SetLabel("{:>2}/{:>2}/{:2}".format(str(ldt.month).zfill(2), str(ldt.day).zfill(2), str(ldt.year).zfill(2)))
+		self.UTCtimeLabel.SetLabel("{:>2}:{:>2}:{:2}".format(str(utcdt.hour).zfill(2), str(utcdt.minute).zfill(2), str(utcdt.second).zfill(2)))
+		self.UTCdateLabel.SetLabel("{:>2}/{:>2}/{:2}".format(str(utcdt.month).zfill(2), str(utcdt.day).zfill(2), str(utcdt.year).zfill(2)))
+
 	def setLocalDateTimeLabel(self, ldt):
-		self.localTimeLabel.SetLabel("{:>2}:{:>2}:{:2}".format(str(ldt.tm_hour).zfill(2), str(ldt.tm_min).zfill(2), str(ldt.tm_sec).zfill(2)))
-		self.localDateLabel.SetLabel("{:>2}/{:>2}/{:2}".format(str(ldt.tm_mon).zfill(2), str(ldt.tm_mday).zfill(2), str(ldt.tm_year).zfill(2)))
+		self.localTimeLabel.SetLabel("{:>2}:{:>2}:{:2}".format(str(ldt.hour).zfill(2), str(ldt.minute).zfill(2), str(ldt.second).zfill(2)))
+		self.localDateLabel.SetLabel("{:>2}/{:>2}/{:2}".format(str(ldt.month).zfill(2), str(ldt.day).zfill(2), str(ldt.year).zfill(2)))
 
 	def setUTCDateTimeLabel(self, utcdt):
-		self.UTCtimeLabel.SetLabel("{:>2}:{:>2}:{:2}".format(str(utcdt.tm_hour).zfill(2), str(utcdt.tm_min).zfill(2), str(utcdt.tm_sec).zfill(2)))
-		self.UTCdateLabel.SetLabel("{:>2}/{:>2}/{:2}".format(str(utcdt.tm_mon).zfill(2), str(utcdt.tm_mday).zfill(2), str(utcdt.tm_year).zfill(2)))
+		self.UTCtimeLabel.SetLabel("{:>2}:{:>2}:{:2}".format(str(utcdt.hour).zfill(2), str(utcdt.minute).zfill(2), str(utcdt.second).zfill(2)))
+		self.UTCdateLabel.SetLabel("{:>2}/{:>2}/{:2}".format(str(utcdt.month).zfill(2), str(utcdt.day).zfill(2), str(utcdt.year).zfill(2)))
 
 	def InitUI(self):
 		self.BoldFont = wx.Font(10, wx.SWISS, wx.NORMAL, wx.BOLD)
@@ -919,8 +947,9 @@ class orbitalCtrlPanel(AbstractUI):
 		self.UTCtimeLabel = wx.StaticText(self, label='hh:mm:ss', pos=(280+OFF_TIME+5, DATE_Y-33))
 		self.UTCdateLabel = wx.StaticText(self, label='mm/dd/yyyy', pos=(280+OFF_TIME+75, DATE_Y-33))
 
-		lt = orbit3D.locationInfo.getLocalTime()
-		utct = orbit3D.locationInfo.getUTCtime()
+		lt = orbit3D.locationInfo.getLocalDateTime()
+		utct = orbit3D.locationInfo.getUTCDateTime()
+		print ">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>", lt, utct
 
 		self.setLocalDateTimeLabel(lt)
 		self.setUTCDateTimeLabel(utct)
@@ -1053,10 +1082,11 @@ class orbitalCtrlPanel(AbstractUI):
 
 	def updateSolarSystem(self):
 		self.refreshDate()
-		self.SolarSystem.animate(self.SolarSystem.DaysIncrement)
+		self.SolarSystem.animate(self.SolarSystem.DaysIncrement) # animates sun body rotation
 #		self.SolarSystem.animate(self.SolarSystem.utcDaysIncrement)
 		for body in self.SolarSystem.bodies:
-			if body.BodyType in [SPACECRAFT, OUTERPLANET, INNERPLANET, SATELLITE, ASTEROID, COMET, DWARFPLANET, PHA, BIG_ASTEROID, TRANS_NEPT]:
+			if body.BodyType in [SPACECRAFT, OUTERPLANET, INNERPLANET, SATELLITE, ASTEROID, \
+								 COMET, DWARFPLANET, PHA, BIG_ASTEROID, TRANS_NEPT]:
 #				if body.BodyShape.visible == True:
 				if body.Origin.visible == True:
 					velocity, distance = body.animate(self.SolarSystem.DaysIncrement)
@@ -1075,17 +1105,30 @@ class orbitalCtrlPanel(AbstractUI):
 		if len(ztime) > 0:
 			#self.timeInDay = (float(ztime[0]) * TI_ONE_HOUR) + (float(ztime[1]) * TI_ONE_MINUTE) + (float(ztime[2]) * TI_ONE_SECOND)
 			
-			new_Localdate =datetime.datetime(self.dateYSpin.GetValue(), self.dateMSpin.GetValue(), self.dateDSpin.GetValue(), int(ztime[0]), int(ztime[1]), int(ztime[2]))
-			# newLocaldate is naive (no tz info)
+			# the date in the spinners is the local datetime
+			new_NaiveLocaldatetime = datetime.datetime(self.dateYSpin.GetValue(), self.dateMSpin.GetValue(), self.dateDSpin.GetValue(), int(ztime[0]), int(ztime[1]), int(ztime[2]))
+			# newLocaldatetime is naive (no tz info)
 
-#			utcNewdate = orbit3D.local_to_utc(newLocaldate)
-			NewUTCdate, NewLocaldate = orbit3D.local_to_UTC(new_Localdate) # tz aware date
+			NewUTCdate = orbit3D.local_to_utc(new_NaiveLocaldatetime)
+#			NewUTCdate, new_AwareLocaldatetime = orbit3D.local_to_UTC(new_NaiveLocaldatetime) # tz aware date
 
 #		newdate = datetime(self.dateYSpin.GetValue(),self.dateMSpin.GetValue(),self.dateDSpin.GetValue())
 
-#		self.SolarSystem.DaysIncrement = (newdate - self.SolarSystem.todayDate).days 
-		self.SolarSystem.DaysIncrement = (NewLocaldate - self.SolarSystem.todayDate).days + self.SolarSystem.TimeInCurrentDay
+#		self.SolarSystem.DaysIncrement = (newdate - self.SolarSystem.todayDate).days
+
+		# typically the date spinner only changes the date. We keep the current time. In the end, the number in DaysIncrement
+		# represents a number of days corresponding to the difference in days between todays's date and the target new date, added with the
+		# fractional day corresponding to the current time in the day.
+		self.SolarSystem.DaysIncrement = (new_NaiveLocaldatetime - self.SolarSystem.todayDate).days + self.SolarSystem.TimeInCurrentDay
+		print "naive new local time", new_NaiveLocaldatetime
+		print "current local time", self.SolarSystem.todayDate
+		s = self.SolarSystem.TimeInCurrentDay
+		print "TimeInCurrentDay", s, "hours=",s*864/36 
+		print "timeDELTA=", datetime.timedelta(self.SolarSystem.DaysIncrement) # substract 1 to get the number of days between 2 dates without including "today" as well
+
 #		self.SolarSystem.utcDaysIncrement = (NewUTCdate - self.SolarSystem.utcTodayDate).days + self.SolarSystem.utcTimeInCurrentDay
+
+		# refresh Local Date and UTC date with new one
 
 
 		"""
@@ -1095,13 +1138,74 @@ class orbitalCtrlPanel(AbstractUI):
 			self.DaysIncrement += (float(ztime[0]) * TI_ONE_HOUR) + (float(ztime[1]) * TI_ONE_MINUTE) + (float(ztime[2]) * TI_ONE_SECOND)
 			print "##############", self.DaysIncrement
 		"""
-		self.OneTimeIncrement()
+		# set the new locations of planets $$$$$$$$$$$$$$$$$$$$$
+		#self.OneTimeIncrement()
+		#self.SolarSystem.TimeInCurrentDay = self.SolarSystem.DaysIncrement % 86400
+		# $$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
+
+		self.updateSolarSystem()
+
 		self.disableBeltsForAnimation()
-		self.SolarSystem.DaysIncrement -= self.TimeIncrement
+		#self.SolarSystem.DaysIncrement -= self.TimeIncrement <<<<<<<<<<<<<<<<<<<<<<< commented out the 03/26/22. may have to put it back
 
-		self.setLocalDateTimeLabel(NewLocaldate) ##################
+		#self.setLocalDateTimeLabel(new_AwareLocaldatetime) ##################
+		print "-------New Local date = ", new_NaiveLocaldatetime, " days between last and new dates", (new_NaiveLocaldatetime - self.SolarSystem.todayDate).days
 
-		self.refreshDate()
+		self.refreshDate() # <-------- ???? probably NOT!
+
+	def OnValidateDateSAVE(self, e):
+
+		ztime = self.localTimeLabel.GetLabel().split(":")
+		if len(ztime) > 0:
+			#self.timeInDay = (float(ztime[0]) * TI_ONE_HOUR) + (float(ztime[1]) * TI_ONE_MINUTE) + (float(ztime[2]) * TI_ONE_SECOND)
+			
+			# the date in the spinners is the local datetime
+			new_NaiveLocaldatetime = datetime.datetime(self.dateYSpin.GetValue(), self.dateMSpin.GetValue(), self.dateDSpin.GetValue(), int(ztime[0]), int(ztime[1]), int(ztime[2]))
+			# newLocaldatetime is naive (no tz info)
+
+			NewUTCdate = orbit3D.local_to_utc(new_NaiveLocaldatetime)
+#			NewUTCdate, new_AwareLocaldatetime = orbit3D.local_to_UTC(new_NaiveLocaldatetime) # tz aware date
+
+#		newdate = datetime(self.dateYSpin.GetValue(),self.dateMSpin.GetValue(),self.dateDSpin.GetValue())
+
+#		self.SolarSystem.DaysIncrement = (newdate - self.SolarSystem.todayDate).days
+
+		# typically the date spinner only changes the date. We keep the current time. In the end, the number in DaysIncrement
+		# represents a number of days corresponding to the difference in days between todays's date and the target new date, added with the
+		# fractional day corresponding to the current time in the day.
+		self.SolarSystem.DaysIncrement = (new_NaiveLocaldatetime - self.SolarSystem.todayDate).days + self.SolarSystem.TimeInCurrentDay
+		print "naive new local time", new_NaiveLocaldatetime
+		print "current local time", self.SolarSystem.todayDate
+		s = self.SolarSystem.TimeInCurrentDay
+		print "TimeInCurrentDay", s, "hours=",s*864/36 
+		print "timeDELTA=", datetime.timedelta(self.SolarSystem.DaysIncrement) # substract 1 to get the number of days between 2 dates without including "today" as well
+
+#		self.SolarSystem.utcDaysIncrement = (NewUTCdate - self.SolarSystem.utcTodayDate).days + self.SolarSystem.utcTimeInCurrentDay
+
+		# refresh Local Date and UTC date with new one
+
+
+		"""
+		ztime = split(self.localTimeLabel.Getvalue(), " : ")
+		print len(ztime)
+		if len(ztime) > 0:
+			self.DaysIncrement += (float(ztime[0]) * TI_ONE_HOUR) + (float(ztime[1]) * TI_ONE_MINUTE) + (float(ztime[2]) * TI_ONE_SECOND)
+			print "##############", self.DaysIncrement
+		"""
+		# set the new locations of planets $$$$$$$$$$$$$$$$$$$$$
+		#self.OneTimeIncrement()
+		#self.SolarSystem.TimeInCurrentDay = self.SolarSystem.DaysIncrement % 86400
+		# $$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
+
+		self.updateSolarSystem()
+
+		self.disableBeltsForAnimation()
+		#self.SolarSystem.DaysIncrement -= self.TimeIncrement <<<<<<<<<<<<<<<<<<<<<<< commented out the 03/26/22. may have to put it back
+
+		#self.setLocalDateTimeLabel(new_AwareLocaldatetime) ##################
+		print "-------New Local date = ", new_NaiveLocaldatetime, " days between last and new dates", (new_NaiveLocaldatetime - self.SolarSystem.todayDate).days
+
+		self.refreshDate() # <-------- ???? probably NOT!
 
 	def setVelocityLabel(self):
 		if self.DetailsOn == True:
@@ -1113,7 +1217,6 @@ class orbitalCtrlPanel(AbstractUI):
 			self.ObjDistance.SetLabel("{:<12}{:>10.4f}".format("DTE (AU)", float(self.distance)))
 
 
-
 	def deltaTtick(self, timeinsec):
 		# make sure to convert timeinsec as a fraction of day
 		#print self.SolarSystem.DaysIncrement, "+", float(timeinsec)/86400, "for", timeinsec 
@@ -1121,18 +1224,31 @@ class orbitalCtrlPanel(AbstractUI):
 
 		#print self.SolarSystem.DaysIncrement
 
+	def resetDaysIncrement(self):
+		self.SolarSystem.DaysIncrement = 0.0
+
 	def refreshDate(self):
-		# update date spin wheels
-		time_delta = datetime.timedelta(days = self.SolarSystem.DaysIncrement)
-		#print time_delta.seconds
+		# update date spin wheels: Add DaysIncrement to current time, but remove the TimeInCurrentDay since it
+		# is already included in the todayDate (it used to be date only without time, hence it didn't matter
+		# in previous version)
+		
+		# SUPER IMPORTANT: remove TimeInCurrentDay from the 
+		time_delta = datetime.timedelta(days = 1 - self.SolarSystem.DaysIncrement) # - self.SolarSystem.TimeInCurrentDay + 1)  # remove another "1"
+
+		# timedelta returns a datetime class that we can use to add to the current date and time 
+
+		#print type(time_delta), "=",time_delta #time_delta.seconds
 
 		newdate = self.SolarSystem.todayDate + time_delta
+		#print "Refresh newdate=", newdate, "old_date=", self.SolarSystem.todayDate
+
 		self.dateDSpin.SetValue(newdate.day)
 		self.dateMSpin.SetValue(newdate.month)
 		self.dateYSpin.SetValue(newdate.year)
 
 		# update time display
-		self.updateTimeDisplay(time_delta)
+		#self.updateTimeDisplayXX(time_delta)
+		self.updateTimeDisplay(newdate)
 
 		"""
 		zdelta = time_delta.seconds
@@ -1147,15 +1263,26 @@ class orbitalCtrlPanel(AbstractUI):
 		self.setVelocityLabel()
 		self.setDistanceLabel()
 
-	def updateTimeDisplay(self, timeDelta):
+
+	def updateTimeDisplay(self, newdate):
+		print "Update Time Display...", newdate
+		self.localTimeLabel.SetLabel("{:>2}:{:>2}:{:2}".format(str(newdate.hour).zfill(2), str(newdate.minute).zfill(2), str(newdate.second).zfill(2)))
+
+
+	def updateTimeDisplayXX(self, timeDelta):
 		zdelta = timeDelta.seconds
 		hours = zdelta / 3600
 		zdelta -= hours * 3600
 		minutes = zdelta / 60
 		zdelta -= minutes * 60
 		seconds = zdelta
-		self.localTimeLabel.SetLabel("{:>2} : {:>2} : {:2}".format(str(hours).zfill(2), str(minutes).zfill(2), str(seconds).zfill(2)))
+		self.localTimeLabel.SetLabel("{:>2}:{:>2}:{:2}".format(str(hours).zfill(2), str(minutes).zfill(2), str(seconds).zfill(2)))
 
+		# update UTC time as well...
+		zdelta += orbit3D.locationInfo.utcDeltaInSecondsFromLocal
+		#.
+		#.
+		#.
 
 
 	def disableBeltsForAnimation(self):
@@ -1192,6 +1319,7 @@ class orbitalCtrlPanel(AbstractUI):
 	def OnAnimSpeedSlider(self, e):
 		#print "OnAnimSpeedSlider", self.TimeIncrementKey, self.BaseTimeIncrement
 		self.TimeIncrement = float(self.aniSpeedSlider.GetValue()) * self.BaseTimeIncrement
+		
 		# copy time increment to solarsystem class for realtime update
 		self.SolarSystem.setTimeIncrement(self.TimeIncrement)
 #		self.aniSpeed.SetLabel(str(self.aniSpeedSlider.GetValue()*10)+" mi")
@@ -1331,7 +1459,7 @@ class orbitalCtrlPanel(AbstractUI):
 				"Period(yr) ", rev,
 				"Moid(AU) ", moid));
 
-		self.refreshDate()
+		self.refreshDate() # <<<<<<<<< removed on 03/23/22. it seems that we need to update
 
 		#for i in range(len(body.BodyShape)):
 
@@ -1437,6 +1565,8 @@ class orbitalCtrlPanel(AbstractUI):
 
 	def OneTimeIncrement(self):
 		self.SolarSystem.DaysIncrement += self.TimeIncrement
+		print "DaysIncrements = ", self.SolarSystem.DaysIncrement
+
 		#self.SolarSystem.utcDaysIncrement += self.TimeIncrement
 		self.SolarSystem.TimeInCurrentDay = self.SolarSystem.DaysIncrement % 86400
 		#self.SolarSystem.utcTimeInCurrentDay = self.SolarSystem.utcDaysIncrement % 86400
@@ -1465,9 +1595,11 @@ class orbitalCtrlPanel(AbstractUI):
 		ztime = self.localTimeLabel.GetLabel().split(":")
 		if len(ztime) > 0:
 			#print "before correction", self.DaysIncrement
+			# initialize time in current day
 			self.SolarSystem.TimeInCurrentDay = (float(ztime[0]) * TI_ONE_HOUR) + (float(ztime[1]) * TI_ONE_MINUTE) + (float(ztime[2]) * TI_ONE_SECOND)
 			print "SETDELTA_T", self.SolarSystem.TimeInCurrentDay
 		
+		# initialize Days Increment with current time (as read from the localtimeLabel)
 		self.SolarSystem.DaysIncrement = self.SolarSystem.TimeInCurrentDay
 		#print self.SolarSystem.TimeInCurrentDay
 
@@ -1510,6 +1642,7 @@ class orbitalCtrlPanel(AbstractUI):
 		"""
 		self.setDeltaT()
 
+		# set mechanic to determine the # of frame per seconds in Animation (if recorder is ON)
 		sec = time.gmtime(time.time()).tm_sec
 		framerate = 0
 		while self.AnimationInProgress:
