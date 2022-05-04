@@ -73,31 +73,32 @@ class solarSystem:
 		self.MT = self.Scene.getMouseTracker()
 		self.MT.SetMouseStateReporter(self.Scene)
 
-		# time management
-		#self.todayDate = datetime.datetime.now() #date.today()
-		
-		#local_time = pytz.timezone(locationInfo.getTZ())
-		#self.todayDate = local_time.localize(datetime.datetime.now(), is_dst=None)
+		if False:
+			# time management
+			#self.todayDate = datetime.datetime.now() #date.today()
+			
+			#local_time = pytz.timezone(locationInfo.getTZ())
+			#self.todayDate = local_time.localize(datetime.datetime.now(), is_dst=None)
 
-		# locationInfo is a TimeLoc object containing information about the user's current location 
-		# (such as lat/long, localtime etc...). The solarSystem todayDate property represents a 
-		# datetime object referring to the local day and time. 
-		self.todayDate = locationInfo.getLocalDateTime()
+			# locationInfo is a TimeLoc object containing information about the user's current location 
+			# (such as lat/long, localtime etc...). The solarSystem todayDate property represents a 
+			# datetime object referring to the local day and time. 
+			self.todayDate = locationInfo.getLocalDateTime()
 
-		# similarily, The solarSystem utcTodayDate property represents a datatime object referring to UTC day and time
-		self.utcTodayDate = locationInfo.getUTCDateTime() #datetime.datetime.utcnow()
-		
-		# DaysIncrement is a float used for animation. It represents a number of days and fraction of day (its unit is in days)
-		# used to go further in the future or in the past (when < 0) 
-		self.DaysIncrement = 0.0 #UNINITIALIZED # number of days from today - used for animation into future or past (DaysIncrement < 0)
+			# similarily, The solarSystem utcTodayDate property represents a datatime object referring to UTC day and time
+			self.utcTodayDate = locationInfo.getUTCDateTime() #datetime.datetime.utcnow()
+			
+			# DaysIncrement is a float used for animation. It represents a number of days and fraction of day (its unit is in days)
+			# used to go further in the future or in the past (when < 0) 
+			self.DaysIncrement = 0.0 #UNINITIALIZED # number of days from today - used for animation into future or past (DaysIncrement < 0)
 		
 
-		#self.utcDaysIncrement = 0.0 #UNINITIALIZED # number of days from today - used for animation into future or past (DaysIncrement < 0)
-		
-		# TimeInCurrentDay is a float representing the current time as a fration of day
-		self.TimeInCurrentDay = 0.0 
+			#self.utcDaysIncrement = 0.0 #UNINITIALIZED # number of days from today - used for animation into future or past (DaysIncrement < 0)
+			
+			# TimeInCurrentDay is a float representing the current time as a fration of day
+			self.TimeInCurrentDay = 0.0 
 
-		#self.utcTimeInCurrentDay = 0
+			#self.utcTimeInCurrentDay = 0
 
 		self.Scene.lights = []
 		self.Scene.forward = (2,0,-1) #(0,0,-1)
@@ -177,10 +178,6 @@ class solarSystem:
 			self.makeCelestialSphere()
 
 		#self.Scene.scale = self.Scene.scale * 10
-
-	def getTimeIncrementXX(self):
-		print "GTI-1", self.DaysIncrement + self.TimeInCurrentDay
-		return self.DaysIncrement + self.TimeInCurrentDay
 
 
 	def toggleSize(self, realisticSize):
@@ -436,7 +433,10 @@ class solarSystem:
 
 # CLASS MAKEECLIPTIC ----------------------------------------------------------
 class makeEcliptic:
-
+	# !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+	# malfunctioning! Also the code has been altered to test earth's ecliptic, so it's totally malfunctioning
+	# to REVIEW urgently after the time issue has been solved
+	# !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 	def __init__(self, system, color, opacity):  # change default values during instantiation
 		# draw a circle of 250 AU
 		self.Labels = []
@@ -448,14 +448,22 @@ class makeEcliptic:
 		self.Opacity = opacity
 		self.Lines = []
 		self.BodyType = ECLIPTIC_PLANE
+		# bogus bodyShape
+		self.BodyShape = curve(pos=(0, 0, 0), size=1, color=(color[0]*0.5, color[1]*0.5, color[2]*0.5))
+		self.Origin = frame()
 		self.Labels.append(label(pos=(250*AU*DIST_FACTOR, 250*AU*DIST_FACTOR, 0), text=self.Name, xoffset=20, yoffset=12, space=0, height=10, border=6, box=false, font='sans', visible = False))
 
 	def getIncrement(self):
 		# provide 1 degree increment in radians
 		return pi/180
 
+	def rotate(self):
+		pass 
 
 	def draw(self):
+		pass
+
+	def drawXX(self):
 		self.Origin = frame()
 
 #		self.BodyShape = cylinder(frame=self.Origin, pos=vector(0,0,0), radius=250*AU*DIST_FACTOR, color=self.Color, length=10, opacity=self.Opacity, axis=(0,0,1))
@@ -464,8 +472,11 @@ class makeEcliptic:
 		side = 0.5*AU*DIST_FACTOR
 		earth = self.SolarSystem.getBodyFromName('earth')
 
-#		self.BodyShape = box(frame=self.Origin, pos=vector(0,0,0), length=side, width=10, height=side, color=self.Color, opacity=self.Opacity, axis=(1,0,0))
-		self.BodyShape = box(frame=self.SolarSystem.getBodyFromName('earth').Origin, pos=vector(earth.Position[0],earth.Position[1], 0), length=side, width=10, height=side, color=self.Color, opacity=self.Opacity, axis=(1,0,0))
+##		self.BodyShape = box(frame=self.Origin, pos=vector(0,0,0), length=side, width=10, height=side, color=self.Color, opacity=self.Opacity, axis=(1,0,0))
+#		self.BodyShape = box(frame=self.SolarSystem.getBodyFromName('earth').Origin, pos=vector(earth.Position[0],earth.Position[1], 0), length=side, width=10, height=side, color=self.Color, opacity=self.Opacity, axis=(1,0,0))
+		self.BodyShape = box(frame=self.SolarSystem.getBodyFromName('earth').Origin, pos=vector(0, 0, 0), length=side, width=10, height=side, color=color.yellow, opacity=self.Opacity, axis=(1,0,0))
+
+		#self.BodyShape.rotate(angle=(-self.SolarSystem.getBodyFromName('earth').TiltAngle), axis=self.SolarSystem.getBodyFromName('earth').ZdirectionUnit, origine=(0,0,0))
 
 		position = earth.Position
 		position[2] = 0 # make sure the z coordinate is for the ecliptic, not the earth's one
@@ -479,8 +490,10 @@ class makeEcliptic:
 			source2=vector( l/2-i,  l/2, 0)
 			target2=vector( l/2-i, -l/2, 0)
 
-			self.Lines.append(curve( frame = self.Origin, color = color.white, pos= [source1+position, target1+position], visible=true, radius=0, material=materials.emissive))
-			self.Lines.append(curve( frame = self.Origin, color = color.white, pos= [source2+position, target2+position], visible=true, radius=0, material=materials.emissive))
+#			self.Lines.append(curve( frame = self.Origin, color = color.white, pos= [source1+position, target1+position], visible=true, radius=0, material=materials.emissive))
+#			self.Lines.append(curve( frame = self.Origin, color = color.white, pos= [source2+position, target2+position], visible=true, radius=0, material=materials.emissive))
+			self.Lines.append(curve( frame = self.SolarSystem.getBodyFromName('earth').Origin, color = color.white, pos= [source1+position, target1+position], visible=true, radius=0, material=materials.emissive))
+			self.Lines.append(curve( frame = self.SolarSystem.getBodyFromName('earth').Origin, color = color.white, pos= [source2+position, target2+position], visible=true, radius=0, material=materials.emissive))
 			i = i + increment
 
 		self.Origin.visible = False
@@ -848,7 +861,7 @@ class makeBody:
 		# initial acceleration
 		self.Acceleration = vector(0,0,0)
 
-		# calculate current body position on its orbit knowing
+		# calculate current body position in its orbit knowing
 		# its current distance from Sun (R) and True anomaly (Nu)
 		# that were set in setPolarCoordinates
 
@@ -2292,7 +2305,7 @@ def makeJulianDate(utc, delta):
 	JL = delta + 367*utc.year - 7*(utc.year + (utc.month+9)//12)//4 - 3*(((utc.year+(utc.month-9)//7)//100) + 1)//4 + 275*utc.month//9 + utc.day - 730515
 	leftOver = (utc.hour/24.0) + (utc.minute/1440.0) + (utc.second/86400.0)
 
-	print "makeJulian------------", JL+leftOver
+	#print "makeJulian------------", JL+leftOver
 	return JL+leftOver
 
 	#return delta + julian(utc.day, utc.month, utc.year)
@@ -2354,11 +2367,16 @@ def timestamp_utc_to_local(utcTimeStamp):
 # Convert date/time from UTC to local date/time
 def utc_to_local(utc_datetime):
 	#UTC_datetime = datetime.datetime.utcnow()
+	
+	return utc_datetime - datetime.timedelta(seconds=locationInfo.RelativeTimeToUtcInSec())
+
+
 	utc_datetime_timestamp = utc_datetime.timestamp() #float(utc_datetime.strftime("%S"))
 
 	# add offset
+	local_datetime_timestamp = utc_datetime_timestamp + locationInfo.RelativeTimeToUtcInSec()
 #	utc_datetime_timestamp = datetime.datetime.timestamp(utc_datetime) #float(utc_datetime.strftime("%S"))
-	return datetime.datetime.fromtimestamp(utc_datetime_timestamp)
+	return datetime.datetime.fromtimestamp(local_datetime_timestamp)
 
 # 	Convert time from local time to UTC
 def local_to_utcXX():

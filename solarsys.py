@@ -82,7 +82,7 @@ def main():
 	MAX_OBJECTS = 1000
 
 	# !!!!!!!!!!!!!!!!!!!!!!!!!! test
-	solSystem.drawAllBodiesTrajectory()
+#	solSystem.drawAllBodiesTrajectory()
 	
 	loadBodies(solSystem, PHA, "data/200m+PHA_orbital_elements.txt.json", MAX_OBJECTS)
 	loadBodies(solSystem, BIG_ASTEROID,"data/200km+asteroids_orbital_elements.txt.json", MAX_OBJECTS)
@@ -91,6 +91,8 @@ def main():
 
 	loadBodies(solSystem, SPACECRAFT, "data/spacecrafts_orbital_elements.txt.json", MAX_OBJECTS)
 	
+	# !!!!!!!!!!!!!!!!!!!!!!!!!! test
+	solSystem.drawAllBodiesTrajectory()
 
 	#loadBodies(solSystem, pd.SATELLITE, "pd.SATELLITEs.txt", MAX_OBJECTS)
 
