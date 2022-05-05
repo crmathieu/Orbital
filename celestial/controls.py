@@ -476,12 +476,10 @@ class JPLpanel(AbstractUI):
 			u'name': u'(2021 YB)'
 		}
 		"""
-
-	def fetchJPL(self, host, url):
+	def callJPL(self, host, url):
 		import ssl
-
 		url = url+"&start_date="+self.fetchDateStr
-		#print host+url+"\n"
+			#print host+url+"\n"
 		try:
 
 			#opener = urllib2.build_opener()
@@ -494,7 +492,7 @@ class JPLpanel(AbstractUI):
 			####
 			#req = urllib2.Request(host+url, headers={ 'X-Mashape-Key': 'XXXXXXXXXXXXXXXXXXXX', 'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_12_2) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/55.0.2883.95 Safari/537.36' })
 			req = urllib2.Request(host+url, headers={ 'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_12_2) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/55.0.2883.95 Safari/537.36' })
- 			#response = urllib2.urlopen(req).read()
+			#response = urllib2.urlopen(req).read()
 			#gcontext = ssl.SSLContext()  # Only for gangstars
 			gcontext = ssl._create_unverified_context()
 			response = urllib2.urlopen(req, context=gcontext)
@@ -522,13 +520,13 @@ class JPLpanel(AbstractUI):
 		self.nextUrl = self.jsonResp["links"]["next"] if "next" in self.jsonResp["links"] else ""
 		self.prevUrl = self.jsonResp["links"]["prev"] if "prev" in self.jsonResp["links"] else ""
 		self.selfUrl = self.jsonResp["links"]["self"] if "self" in self.jsonResp["links"] else ""
- 
+
 		if self.ListIndex != 0:
 			self.list.DeleteAllItems()
 
- 		#print "*****PREV "+self.prevUrl
- 		#print "*****CURR "+self.selfUrl
- 		#print "*****NEXT "+self.nextUrl
+		#print "*****PREV "+self.prevUrl
+		#print "*****CURR "+self.selfUrl
+		#print "*****NEXT "+self.nextUrl
 
 		self.ListIndex = 0
 		if self.jsonResp["element_count"] > 0:
@@ -549,7 +547,18 @@ class JPLpanel(AbstractUI):
 					# record the spk-id corresponding to this row
 					self.BodiesSPK_ID.append(entry["neo_reference_id"])
 					self.ListIndex += 1
+		
+		self.next.Enable()
+		self.prev.Enable()
 
+
+	def fetchJPL(self, host, url):
+		import threading
+		jplThread = threading.Thread(target=self.callJPL, name="JPLrequest", args=[host, url] )
+		jplThread.start()
+		self.next.Disable()
+		self.prev.Disable()
+	
 	
 	def fetchDetailsXX(self, link):
 		#https://api.nasa.gov/neo/rest/v1/neo/3542519?api_key=DEMO_KEY
@@ -646,7 +655,9 @@ class JPLpanel(AbstractUI):
 		
 #		utc_close_approach = datetime.datetime.utcfromtimestamp(utc_timestamp)
 		utc_close_approach = datetime.datetime.fromtimestamp(utc_timestamp) #, tz=orbit3D.locationInfo.getPytzValue())
-
+		print "*******************"
+		print "FROM_TIMESTAMP = ", utc_close_approach, ", WITH TZ info=", datetime.datetime.fromtimestamp(utc_timestamp, tz=orbit3D.locationInfo.getPytzValue())
+		print "*******************"
 		# utc_close_approach is a naive datetime object
 		print "LOADBODY_INFO utc_close_approach= ", utc_close_approach, "UTC from timestamp=", utc_timestamp
 

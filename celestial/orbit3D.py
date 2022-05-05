@@ -946,10 +946,9 @@ class makeBody:
         # These formulas use 'days' based on days since 1/Jan/2000 12:00 UTC ("J2000.0"), 
         # instead of 0/Jan/2000 0:00 UTC ("day value"). Correct by subtracting 1.5 days...
 
-#		T = days/36525. # T is in centuries
-#		T = (days-1.945)/36525. # T is in centuries
-
-		T = (days-1.5)/36525. # T is in centuries
+		T = (days-0.5)/36525. # T is in centuries
+		#T = days/36525. # T is in centuries
+#		T = (days-1.5)/36525. # T is in centuries
 
 		self.a = (elts["a"] + (elts["ar"] * T)) * AU
 		self.e = elts["EC_e"] + (elts["er"] * T)
@@ -999,7 +998,7 @@ class makeBody:
 		# calculate current position based on orbital elements
 		#dT = daysSinceEpochJD(self.Epoch) + timeincrement # timeincrement comes in days
 		
-		dT = daysSinceEpochJD(self.Epoch) + timeincrement 
+		dT = daysSinceEpochJD(self.Epoch) + timeincrement - 0.5 # substracting 0.5 to match for earth correction
 #		dT = daysSinceEpochJD(self.Time_of_perihelion_passage) + timeincrement 
 
 		# compute Longitude of Ascending node taking into account the time elapsed since epoch
@@ -1361,10 +1360,10 @@ class makeEarth(planet):
         # These formulas use 'days' based on days since 1/Jan/2000 12:00 UTC ("J2000.0"), 
         # instead of 0/Jan/2000 0:00 UTC ("day value"). Correct by subtracting 1.5 days...
 
-		T = (days-1.5)/36525. # T is in Julian centuries since J2000.0
-
-		# T = (days-1.945)/36525. # T is in centuries
+		#T = (days-1.5)/36525. # T is in Julian centuries since J2000.0
 		#T = (days)/36525. # T is in centuries
+		T = (days - 0.5)/36525. # T is in centuries
+
 
 		self.a = (elts["a"] + (elts["ar"] * T)) * AU
 		self.e = elts["EC_e"] + (elts["er"] * T)
