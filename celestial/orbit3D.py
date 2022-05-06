@@ -56,6 +56,7 @@ class solarSystem:
 	bodies = []
 
 	def __init__(self):
+		self.todayUTCdatetime = locationInfo.getUTCDateTime()
 		self.Name = "Sun"
 		self.JPL_designation = "SUN"
 		self.nameIndex = {}
@@ -2318,7 +2319,9 @@ def julian(d,m,y):
 
 # will compute the number of days since J2000 UTC
 def daysSinceJ2000UTC(delta = 0):
-	utc = datetime.datetime.utcnow()
+	#utc = datetime.datetime.utcnow()
+	utc = locationInfo.getUTCDateTime()
+
 	return makeJulianDate(utc, delta)
 
 def daysSinceEpochJD(julianDate):
@@ -2340,18 +2343,12 @@ def daysSinceEpochJDfromUnixTimeStamp(UnixTimeStamp):
 	# 01-01-2000
 	return daysSinceEpochJD(ndays)
 
-def datetime_from_utc_to_localXX(utc_datetime):
-    local_timestamp = time.time() #datetime.datetime.timestamp(locationInfo.getLocalTime()) # - time.time()
-    offset = datetime.datetime.fromtimestamp(local_timestamp) - datetime.datetime.utcfromtimestamp(local_timestamp)
-    print utc_datetime + offset
-    return utc_datetime + offset
-
 #    now_timestamp = time.time()
 #    offset = datetime.datetime.fromtimestamp(now_timestamp) - datetime.datetime.utcfromtimestamp(now_timestamp)
 #    return utc_datetime + offset
 
 # Convert date/time from UTC to local date/time
-def utc_to_local():
+def utc_to_localXX():
 	UTC_datetime = datetime.datetime.utcnow()
 	UTC_datetime_timestamp = datetime.datetime.timestamp(UTC_datetime) #float(UTC_datetime.strftime("%S"))
 	local_datetime_converted = datetime.datetime.fromtimestamp(UTC_datetime_timestamp)
@@ -2377,18 +2374,7 @@ def utc_to_local(utc_datetime):
 #	utc_datetime_timestamp = datetime.datetime.timestamp(utc_datetime) #float(utc_datetime.strftime("%S"))
 	return datetime.datetime.fromtimestamp(local_datetime_timestamp)
 
-# 	Convert time from local time to UTC
-def local_to_utcXX():
-	local_datetime = datetime.datetime.now()
-	local_datetime_timestamp = datetime.datetime.timestamp(local_datetime) #float(local_datetime.strftime("%S"))
-	UTC_datetime_converted = datetime.datetime.utcfromtimestamp(local_datetime_timestamp)
-
-def local_to_utcXXXXXXX(local_datetime):
-	#local_datetime = datetime.datetime.now()
-	local_datetime_timestamp = time.mktime(local_datetime.timetuple()) #float(local_datetime.strftime("%S"))
-	return datetime.datetime.utcfromtimestamp(local_datetime_timestamp)
-
-def local_to_utc(local_datetime): ##################### working on it
+def local_to_utcXX(local_datetime): ##################### working on it
 	# add utc delta to local time.
 	return local_datetime + datetime.timedelta(seconds=locationInfo.RelativeTimeToUtcInSec())
 
@@ -2396,18 +2382,8 @@ def local_to_utc(local_datetime): ##################### working on it
 	#local_datetime_timestamp = local_datetime.timestamp()
 	#return datetime.datetime.utcfromtimestamp(local_datetime_timestamp)
 
-def local_to_utcXXX(local_datetime):
-	#local_datetime_timestamp = local_datetime.timestamp() + locationInfo.RelativeTimeToUtcInSec()
-
-	local_datetime_timestamp = to_timestamp(local_datetime) + locationInfo.RelativeTimeToUtcInSec()
-
-	#local_datetime_timestamp += locationInfo.RelativeTimeToUtcInSec()
-	#return datetime.datetime.utcfromtimestamp(local_datetime_timestamp)
-	print "LOCAL_TO_UTC: Local=", local_datetime, "UTC=", datetime.datetime.fromtimestamp(local_datetime_timestamp)
-	return datetime.datetime.fromtimestamp(local_datetime_timestamp)
-
 # takes a naive local datetime and returns a timezone aware local datetime and the UTC datetime
-def local_to_UTC(local_naivedatetime):
+def local_to_UTCXX(local_naivedatetime):
 
 	local_time = pytz.timezone(locationInfo.getTZ())
 	local_awaredatetime = local_time.localize(local_naivedatetime, is_dst=None)
