@@ -134,6 +134,7 @@ class gdisplay:
                  xmax=None, xmin=None, ymax=None, ymin=None,
                  logx=False, logy=False, visible=True,
                  foreground=None, background=None):
+        print("INIT ******************* GDISPLAY ********************")
         global lastgdisplay
         lastgdisplay = self
         currentdisplay = display.get_selected()
@@ -334,7 +335,7 @@ class gdisplay:
             self.horline.visible = False
             self.vertline.visible = False
             self.display.cursor.visible = True
-            
+        print ("graph.py - Mouse")
         newpos = self.display.mouse.pos
         if newpos != self.mousepos:
             self.mousepos = newpos

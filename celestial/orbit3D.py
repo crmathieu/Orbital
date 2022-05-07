@@ -29,7 +29,7 @@ from random import *
 
 #from vpython import *
 import numpy as np
-import scipy.special as sp
+#import scipy.special as sp
 from pynput.mouse import Button, Controller
 from visual import *
 
@@ -37,6 +37,7 @@ from visual import *
 
 from location import *
 from planetsdata import *
+from camera import *
 
 mouse = mouseTracker()
 locationInfo = Timeloc() 
@@ -54,6 +55,91 @@ class solarSystem:
 	SCENE_WIDTH = 1920
 	SCENE_HEIGHT = 1080
 	bodies = []
+
+	def oneTimeCameraZoom(self, forward = True):
+		# for camera zoom motion, both right and left mouse buttons must be held down
+		left, right, middle = True, True, False
+		shift, ctrl, alt, cmd = False, False, False, False
+		x, y = 499, 499
+		lastx, lasty = 500, 500
+		if not forward:
+			x, y = 500, 500
+			lastx, lasty = 499, 499
+		self.Scene.report_mouse_state([left, right, middle],
+		lastx, lasty, x, y,
+		[shift, ctrl, alt, cmd])
+
+	def oneTimeCameraRotation(self):
+		# for camera rotation motion, the right mouse button must be held down
+		# y stays constant
+
+		left, right, middle = False, True, False
+		shift, ctrl, alt, cmd = False, False, False, False
+		x, y = 500, 500
+		lastx, lasty = 499, 500
+
+		self.Scene.report_mouse_state([left, right, middle],
+		lastx, lasty, x, y,
+		[shift, ctrl, alt, cmd])
+
+	def cameraCombo(self):
+		# for camera combo motion, we alternate rotation and zoom 
+		# for zoom both right and left mouse buttons must be held down
+		for i in range(100):
+			self.oneTimeCameraRotation()
+			self.oneTimeCameraZoom(forward=False)
+			sleep(1e-2)
+
+	def cameraZoom(self):
+		# for camera zoom motion, both right and left mouse buttons must be held down
+		left, right, middle = True, True, False
+		shift, ctrl, alt, cmd = False, False, False, False
+		x, y = 500, 500
+		lastx, lasty = 499, 499
+
+		for i in range(100):
+			self.Scene.report_mouse_state([left, right, middle],
+			lastx, lasty, x, y,
+			[shift, ctrl, alt, cmd])
+			lastx = x
+			lasty = y
+			x -= 1
+			y -= 1
+			sleep(1e-2)
+
+
+	def cameraPan(self):
+		# for camera vertical motion, the right mouse button must be held down
+		# x stays constant
+		left, right, middle = False, True, False
+		shift, ctrl, alt, cmd = False, False, False, False
+		x, y = 500, 500
+		lastx, lasty = 500, 499
+
+		for i in range(100):
+			self.Scene.report_mouse_state([left, right, middle],
+			lastx, lasty, x, y,
+			[shift, ctrl, alt, cmd])
+			lasty = y
+			y -= 1
+			sleep(1e-2)
+
+	def cameraRotation(self):
+		# for camera rotation motion, the right mouse button must be held down
+		# y stays constant
+
+		left, right, middle = False, True, False
+		shift, ctrl, alt, cmd = False, False, False, False
+		x, y = 500, 500
+		lastx, lasty = 499, 500
+
+		for i in range(100):
+			self.Scene.report_mouse_state([left, right, middle],
+			lastx, lasty, x, y,
+			[shift, ctrl, alt, cmd])
+			lastx = x
+			x -= 1
+			sleep(1e-2)
 
 	def __init__(self):
 		self.todayUTCdatetime = locationInfo.getUTCDateTime()
@@ -73,6 +159,7 @@ class solarSystem:
 		self.Scene = display(title = 'Solar System', width = self.SCENE_WIDTH, height =self.SCENE_HEIGHT, range=3, center = (0,0,0))
 		self.MT = self.Scene.getMouseTracker()
 		self.MT.SetMouseStateReporter(self.Scene)
+		self.camera = camera(self.Scene)
 
 		if False:
 			# time management

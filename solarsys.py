@@ -20,6 +20,8 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 
 """
+""" main module  """
+
 #from scipy.sparse.csgraph import _validation
 #from celestial import orbit3D, planetsdata as pd
 from celestial.orbit3D import *
@@ -120,6 +122,8 @@ def main():
 
 	while True:
 		sleep(2)
+		#solSystem.camera.cameraCombo()
+		#solSystem.cameraRotation()
 		earth.updateStillPosition(cw.orbitalBox, 2)
 
 

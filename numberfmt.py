@@ -1,4 +1,4 @@
-
+""" module handling number formatting """
 
 # will remove trailing 0 if the result is a float
 def trim(svalue):

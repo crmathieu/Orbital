@@ -364,7 +364,7 @@ class _mouseTracker:
       return '<%s lastZoom=%s, lastSpin=%s>' % (
         self.__class__.__name__, self.lastZooming, self.lastSpinning)
        
-# CM Custom class  
+# TODO CM - Custom class  
 class mouseTracker(_mouseTracker):
     def __init__(self):
         _mouseTracker.__init__(self)
@@ -577,7 +577,7 @@ class display(cvisual.display_kernel):
 
     def getMouseTracker(self):
 	    return self._mt
-	
+
     def select(self):
         cvisual.display_kernel.set_selected(self)
 
@@ -730,6 +730,7 @@ class display(cvisual.display_kernel):
         attribList = [_wx.glcanvas.WX_GL_DEPTH_SIZE, 24,
                       _wx.glcanvas.WX_GL_DOUBLEBUFFER, 1,
                       0]
+        # CM - create Canvas using wxPython GLcanvas method
         if _wx.glcanvas.GLCanvas_IsDisplaySupported(attribList):
             c = self.canvas = self._canvas = _wx.glcanvas.GLCanvas(parent, -1, pos=(x, y), size=(w, h), attribList = attribList)
         else:
@@ -741,10 +742,12 @@ class display(cvisual.display_kernel):
             else:
                 c = self.canvas = self._canvas = _wx.glcanvas.GLCanvas(parent, -1, pos=(x, y), size=(w, h))
 
+        # CM - then create a context from that canvas
         self._context = _wx.glcanvas.GLContext(c)
 
         if self.fillswindow: c.SetFocus()
         
+        # CM - bind events on the canvas with evenHandlers
         c.Bind(_wx.EVT_LEFT_DOWN, self._OnLeftMouseDown)
         c.Bind(_wx.EVT_LEFT_UP, self._OnLeftMouseUp)
         c.Bind(_wx.EVT_MIDDLE_DOWN, self._OnMiddleMouseDown)
@@ -994,6 +997,8 @@ class display(cvisual.display_kernel):
         else: 
             self._lastx = x
             self._lasty = y
+        
+        print("_report_mouse_state - Free Mouse location x=",self._lastx, ", y=", self._lasty)
 
     def ReportMouseState(self): ## added by CRM
         self._report_mouse_state(None)
@@ -1004,7 +1009,9 @@ class display(cvisual.display_kernel):
         #
         key = evt.GetKeyCode()
         shift = evt.ShiftDown()
-	
+
+        #print (key)
+        
         if key > 127:
             if   key == 310: k = 'break'
             elif key == 312: k = 'end'

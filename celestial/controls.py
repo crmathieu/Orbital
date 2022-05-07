@@ -20,7 +20,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 
 """
-import datetime #import datetime
+import datetime
 import orbit3D 
 from planetsdata import *
 from visual import *
@@ -49,7 +49,6 @@ CHK_L1 = MAIN_HEADING_Y + 20
 CHK_L2 = CHK_L1 + 20
 CHK_L3 = CHK_L2 + 20
 CHK_L4 = CHK_L3 + 20
-#TNO_Y = CHK_L4 + 20
 CHK_L5 = CHK_L4 + 20
 CHK_L6 = CHK_L5 + 20
 CHK_L7 = CHK_L6 + 20
@@ -1394,7 +1393,9 @@ class orbitalCtrlPanel(AbstractUI):
 	def OneTimeIncrement(self):
 		self.DeltaT += self.TimeIncrement
 		self.updateSolarSystem()
+		self.SolarSystem.camera.cameraTest(frame=1)
 		sleep(1e-4)
+		#sleep(1e-2)
 
 	def SetAnimationCallback(self, callbackFunc):
 		self.DisableAnimationCallback = True
