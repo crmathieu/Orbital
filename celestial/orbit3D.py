@@ -55,7 +55,7 @@ class solarSystem:
 	SCENE_WIDTH = 1920
 	SCENE_HEIGHT = 1080
 	bodies = []
-
+	"""
 	def oneTimeCameraZoom(self, forward = True):
 		# for camera zoom motion, both right and left mouse buttons must be held down
 		left, right, middle = True, True, False
@@ -140,7 +140,7 @@ class solarSystem:
 			lastx = x
 			x -= 1
 			sleep(1e-2)
-
+	"""
 	def __init__(self):
 		self.todayUTCdatetime = locationInfo.getUTCDateTime()
 		self.Name = "Sun"
@@ -160,40 +160,12 @@ class solarSystem:
 		self.MT = self.Scene.getMouseTracker()
 		self.MT.SetMouseStateReporter(self.Scene)
 		self.camera = camera(self.Scene)
-
-		if False:
-			# time management
-			#self.todayDate = datetime.datetime.now() #date.today()
-			
-			#local_time = pytz.timezone(locationInfo.getTZ())
-			#self.todayDate = local_time.localize(datetime.datetime.now(), is_dst=None)
-
-			# locationInfo is a TimeLoc object containing information about the user's current location 
-			# (such as lat/long, localtime etc...). The solarSystem todayDate property represents a 
-			# datetime object referring to the local day and time. 
-			self.todayDate = locationInfo.getLocalDateTime()
-
-			# similarily, The solarSystem utcTodayDate property represents a datatime object referring to UTC day and time
-			self.utcTodayDate = locationInfo.getUTCDateTime() #datetime.datetime.utcnow()
-			
-			# DaysIncrement is a float used for animation. It represents a number of days and fraction of day (its unit is in days)
-			# used to go further in the future or in the past (when < 0) 
-			self.DaysIncrement = 0.0 #UNINITIALIZED # number of days from today - used for animation into future or past (DaysIncrement < 0)
-		
-
-			#self.utcDaysIncrement = 0.0 #UNINITIALIZED # number of days from today - used for animation into future or past (DaysIncrement < 0)
-			
-			# TimeInCurrentDay is a float representing the current time as a fration of day
-			self.TimeInCurrentDay = 0.0 
-
-			#self.utcTimeInCurrentDay = 0
-
 		self.Scene.lights = []
-		self.Scene.forward = (2,0,-1) #(0,0,-1)
+		self.Scene.forward = vector(2,0,-1) #(0,0,-1)
 		self.Scene.fov = math.pi/3
 		self.Scene.userspin = True
 		self.Scene.userzoom = True
-		self.Scene.autoscale = True #1
+		self.Scene.autoscale = True
 		self.Scene.autocenter = False
 		self.Scene.up = (0,0,1)
 		self.RefAxis = [0,0,0]
@@ -1034,7 +1006,7 @@ class makeBody:
         # These formulas use 'days' based on days since 1/Jan/2000 12:00 UTC ("J2000.0"), 
         # instead of 0/Jan/2000 0:00 UTC ("day value"). Correct by subtracting 1.5 days...
 
-		T = (days-0.5)/36525. # T is in centuries
+		T = (days-0.35)/36525. # T is in centuries
 		#T = days/36525. # T is in centuries
 #		T = (days-1.5)/36525. # T is in centuries
 
@@ -1086,7 +1058,7 @@ class makeBody:
 		# calculate current position based on orbital elements
 		#dT = daysSinceEpochJD(self.Epoch) + timeincrement # timeincrement comes in days
 		
-		dT = daysSinceEpochJD(self.Epoch) + timeincrement - 0.5 # substracting 0.5 to match for earth correction
+		dT = daysSinceEpochJD(self.Epoch) + timeincrement # - ADJUSTMENT_COEFFICIENT # substracting 0.5 to match for earth correction
 #		dT = daysSinceEpochJD(self.Time_of_perihelion_passage) + timeincrement 
 
 		# compute Longitude of Ascending node taking into account the time elapsed since epoch
@@ -1352,6 +1324,7 @@ class planet(makeBody):
 		elt = objects_data[key]["kep_elt_1"] if "kep_elt_1" in objects_data[key] else objects_data[key]["kep_elt"]
 		self.setOrbitalEltFromApproximatePlanetPositioning(elt, timeincrement) #-1.4) #0.7)
 
+ADJUSTMENT_COEFFICIENT = 0.5
 
 # CLASS MAKEEARTH -------------------------------------------------------------
 class makeEarth(planet):
@@ -1450,7 +1423,7 @@ class makeEarth(planet):
 
 		#T = (days-1.5)/36525. # T is in Julian centuries since J2000.0
 		#T = (days)/36525. # T is in centuries
-		T = (days - 0.5)/36525. # T is in centuries
+		T = (days - 0.35)/36525. # T is in centuries
 
 
 		self.a = (elts["a"] + (elts["ar"] * T)) * AU

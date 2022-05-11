@@ -510,7 +510,6 @@ class display(cvisual.display_kernel):
         self.fillswindow = True # assume canvas fills the window
         self._visible = True
         self._fullscreen = False
-        
         self.material = materials.diffuse
         # If visible is set before width (say), can get error "can't change window".
         # So deal with visible attribute separately.
@@ -560,7 +559,7 @@ class display(cvisual.display_kernel):
             self.height = self.y + self.height
             self.y = 0
             
-        self._mt = mouseTracker() # CM replaced _mouseTracker() with mouseTracker()
+        self._mt = mouseTracker() # CM - replaced _mouseTracker() with mouseTracker()
         self._captured = 0
         self._cursorx = self._cursory = 0
 
@@ -998,7 +997,7 @@ class display(cvisual.display_kernel):
             self._lastx = x
             self._lasty = y
         
-        print("_report_mouse_state - Free Mouse location x=",self._lastx, ", y=", self._lasty)
+        #print("_report_mouse_state - Free Mouse location x=",self._lastx, ", y=", self._lasty)
 
     def ReportMouseState(self): ## added by CRM
         self._report_mouse_state(None)

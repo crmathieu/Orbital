@@ -42,6 +42,6 @@ def GetOcltx(objectId, timeincrement):
 	return y
 
 	#return y[0], y[1], rad2deg(y[2]), rad2deg(y[3]), rad2deg(y[4]), rad2deg(y[5]), y[6], y[7], rad2deg(y[8]), y[9], y[10]/86400
-id = 50000001 #-143205
+id = "54278349" #50000001 #-143205
 GetOcltx(str(id), datetime.datetime.today().strftime('%b %d, %Y'))
 

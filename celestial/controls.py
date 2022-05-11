@@ -1395,7 +1395,7 @@ class orbitalCtrlPanel(AbstractUI):
 		self.updateSolarSystem()
 		self.SolarSystem.camera.cameraTest(frame=1)
 		sleep(1e-4)
-		#sleep(1e-2)
+
 
 	def SetAnimationCallback(self, callbackFunc):
 		self.DisableAnimationCallback = True

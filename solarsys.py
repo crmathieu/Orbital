@@ -24,6 +24,8 @@ SOFTWARE.
 
 #from scipy.sparse.csgraph import _validation
 #from celestial import orbit3D, planetsdata as pd
+from celestial.rate_func import *	
+
 from celestial.orbit3D import *
 import celestial.planetsdata as pd
 from celestial.controls import *
@@ -34,9 +36,10 @@ def main():
 	# determine where this program runs 
 	#locationInfo = location()
 	
+
 	solSystem = solarSystem()
 	# set what is displayed by default
-	bodySet = pd.INNERPLANET|pd.OUTERPLANET|pd.ORBITS|pd.SATELLITE|pd.KUIPER_BELT|pd.ASTEROID_BELT|pd.JTROJANS|pd.LABELS
+	bodySet = pd.INNERPLANET|pd.OUTERPLANET|pd.ORBITS|pd.SATELLITE|pd.LABELS
 	solSystem.setDefaultFeatures(bodySet) #pd.INNERPLANET|pd.OUTERPLANET|pd.ORBITS|pd.SATELLITE|pd.KUIPER_BELT|pd.ASTEROID_BELT|pd.JTROJANS|pd.LABELS|pd.CELESTIAL_SPHERE)
 #	solSystem.setDefaultFeatures(pd.INNERPLANET|pd.OUTERPLANET|pd.ORBITS|pd.SATELLITE|pd.KUIPER_BELT|pd.ASTEROID_BELT|pd.JTROJANS|pd.LABELS|pd.CELESTIAL_SPHERE)
 #	solSystem.setDefaultFeatures(pd.INNERPLANET|pd.OUTERPLANET|pd.ORBITS)
@@ -119,6 +122,10 @@ def main():
 	cw = controlWindow(solSystem)
 	cw.povBox.setCurrentBodyFocusManually(earth, 2)
 	cw.Show()
+
+	solSystem.camera.cameraSet(velocity=20)
+
+	#solSystem.camera.cameraZoom(10)
 
 	while True:
 		sleep(2)
