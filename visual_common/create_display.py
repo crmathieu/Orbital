@@ -261,6 +261,12 @@ class _mouseTracker:
         self.lastSpinning = self.lastZooming = 0
         self.macCtrl = 0  # mac ctrl is tricky..
         
+    def resetMouse(self):
+        #print("") # ("Resetting Mouse state in _mouseTracker Class")
+        self.leftIsDown = self.rightIsDown = self.middleIsDown = 0
+        self.lastSpinning = self.lastZooming = 0
+        self.macCtrl = 0
+
     def macCtrlDown(self):
         self.macCtrl = 1  # we don't always get these ;-(. Only if the window has focus... dang.
         
@@ -271,15 +277,23 @@ class _mouseTracker:
         self.macCtrl = 0
         
     def leftDown(self):
+        #print ("")
+#        sleep(1e-1)
         self.leftIsDown = 1
         
     def leftUp(self):
+        #print ("")
+#        sleep(1e-1)
         self.leftIsDown = 0
         
     def rightDown(self):
+        #print ("")
+#        sleep(1e-1)
         self.rightIsDown = 1
         
     def rightUp(self):
+        #print ("")
+#        sleep(1e-1)
         self.rightIsDown = 0
 
     def midDown(self):
@@ -365,6 +379,7 @@ class _mouseTracker:
         self.__class__.__name__, self.lastZooming, self.lastSpinning)
        
 # TODO CM - Custom class  
+"""
 class mouseTracker(_mouseTracker):
     def __init__(self):
         _mouseTracker.__init__(self)
@@ -400,7 +415,7 @@ class mouseTracker(_mouseTracker):
     def _OnMiddleMouseUp(self, evt):
         self.midUp()
         self.ReportMouseState()
-
+"""
 	
 	
 class binding_enabler(object):
@@ -511,6 +526,10 @@ class display(cvisual.display_kernel):
         self._visible = True
         self._fullscreen = False
         self.material = materials.diffuse
+
+         # CM addition. Indicates when an animation automatically zooms in an pans around a focus point
+        self._auto_movement = False    
+        
         # If visible is set before width (say), can get error "can't change window".
         # So deal with visible attribute separately.
         v = None
@@ -559,7 +578,7 @@ class display(cvisual.display_kernel):
             self.height = self.y + self.height
             self.y = 0
             
-        self._mt = mouseTracker() # CM - replaced _mouseTracker() with mouseTracker()
+        self._mt = _mouseTracker() # CM - replaced _mouseTracker() with mouseTracker()
         self._captured = 0
         self._cursorx = self._cursory = 0
 
@@ -574,11 +593,30 @@ class display(cvisual.display_kernel):
         self.keyboard = eventInfo()
         self.kb = kb()
 
+    # CM: returns the mouse tracker, if needed
     def getMouseTracker(self):
 	    return self._mt
 
     def select(self):
         cvisual.display_kernel.set_selected(self)
+
+    # CM: new method to change the status of _auto_movement
+    def _set_autoMovement(self, is_movement):
+        self._auto_movement = is_movement
+        if is_movement == False:
+            self._mt.resetMouse()
+        """
+            self._cursorx = self._lastx
+            self._cursory = self._lasty
+        else:
+            self.win.WarpPointer(self._cursorx, self._cursory)
+            self._lastx = self._cursorx
+            self._lasty = self._cursory
+            set_cursor(self.canvas, self.cursor.visible)
+
+        self._x = self._lastx
+        self._y = self._lasty  
+        """      
 
     def waitfor_event(self, evt):
         """
@@ -882,6 +920,17 @@ class display(cvisual.display_kernel):
 ##    def OnMouseWheel(self, evt): # not supported by VPython 5.x
 ##        print(evt.GetWheelRotation(), evt.GetWheelDelta())
 
+    def _OnMouseMotion2(self, evt):
+        x, y = evt.GetPosition()
+        if (x != self._lastx or y != self._lasty) and self._auto_movement == False:
+            self._report_mouse_state(evt)
+            self._dispatch_event('mousemove', self.mouse)
+        else:
+            self._lastx = x 
+            self._lasty = y
+
+        evt.Skip() # to permit setting focus
+
     def _OnMouseMotion(self, evt):
         x, y = evt.GetPosition()
         if x != self._lastx or y != self._lasty:
@@ -906,10 +955,11 @@ class display(cvisual.display_kernel):
 # CMD  + 1-button mouse = CTRL and CMD, left button
 
     def _report_mouse_state(self, evt, defx=20, defy=20): # wx gives x,y relative to upper left corner
+
         x, y = defx, defy
         if evt != None:
             x, y = evt.GetPosition()
-        #print ("Mouse state -> ", x, y)
+
         if self._lastx is None:
             self._lastx = x
             self._lasty = y
@@ -926,6 +976,7 @@ class display(cvisual.display_kernel):
             else:
                 # cursor is based on (0,0) of the window; our (x,y) is based on (0,0) of the 3D display
                 self._cursorx, self._cursory = (int(self._x)+x, int(self._y)+y)
+            print ("Capture Mouse!")
             self._canvas.CaptureMouse()
             self._captured = True
         elif self._captured and not (spinning or zooming):
@@ -933,6 +984,7 @@ class display(cvisual.display_kernel):
             self._lastx = x = self._cursorx
             self._lasty = y = self._cursory
             set_cursor(self.canvas, self.cursor_state)
+            print ("Release Mouse!")
             self._canvas.ReleaseMouse()          
             self._captured = False
         
@@ -974,10 +1026,21 @@ class display(cvisual.display_kernel):
 ##                left = 0
 
 #        if (spinning or zooming) and (x == self._lastx) and (y == self._lasty): return
-        
+
+        # CM: whenever there is an auto_movement, do not call report_mouse_state as it 
+        # could interfer with camera methods that also call the "report_mouse_state"
+        # from the display class 
+        #print ("Mouse state -> x=", x, ", y=", y) #, ", cmd=", cmd, ", left=", left, ", right=", right, ", middle=", middle, ", shift=", shift, ", ctrl=", ctrl, ", alt=", alt)
+        if self._auto_movement == True:
+            self._mt.resetMouse()
+            return 
+
         self.report_mouse_state([left, right, middle],
                 self._lastx, self._lasty, x, y,
                 [shift, ctrl, alt, cmd])
+
+
+
         # For some reason, handling spin/zoom in terms of movements away
         # from a fixed cursor position fails on the Mac. As you drag the
         # mouse, repeated move mouse events mostly give the fixed cursor position.
@@ -1276,6 +1339,7 @@ def _Interact():
             #
             while d.mouse.events:
                 event = d.mouse.getevent()
+                print("zob")
                 #
                 # Depending on event type.. forward to event handlers
                 #

@@ -24,13 +24,10 @@ import pytz
 import datetime
 import time
 
-import sys
+#import sys
 from random import *
 
-#from vpython import *
 import numpy as np
-#import scipy.special as sp
-from pynput.mouse import Button, Controller
 from visual import *
 
 #import spice
@@ -39,12 +36,7 @@ from location import *
 from planetsdata import *
 from camera import *
 
-mouse = mouseTracker()
 locationInfo = Timeloc() 
-mouse = Controller()
-print "Mouse position", mouse.position
-
-#UNINITIALIZED = -600
 
 # CLASS SOLARSYSTEM -----------------------------------------------------------
 class solarSystem:
@@ -55,92 +47,7 @@ class solarSystem:
 	SCENE_WIDTH = 1920
 	SCENE_HEIGHT = 1080
 	bodies = []
-	"""
-	def oneTimeCameraZoom(self, forward = True):
-		# for camera zoom motion, both right and left mouse buttons must be held down
-		left, right, middle = True, True, False
-		shift, ctrl, alt, cmd = False, False, False, False
-		x, y = 499, 499
-		lastx, lasty = 500, 500
-		if not forward:
-			x, y = 500, 500
-			lastx, lasty = 499, 499
-		self.Scene.report_mouse_state([left, right, middle],
-		lastx, lasty, x, y,
-		[shift, ctrl, alt, cmd])
 
-	def oneTimeCameraRotation(self):
-		# for camera rotation motion, the right mouse button must be held down
-		# y stays constant
-
-		left, right, middle = False, True, False
-		shift, ctrl, alt, cmd = False, False, False, False
-		x, y = 500, 500
-		lastx, lasty = 499, 500
-
-		self.Scene.report_mouse_state([left, right, middle],
-		lastx, lasty, x, y,
-		[shift, ctrl, alt, cmd])
-
-	def cameraCombo(self):
-		# for camera combo motion, we alternate rotation and zoom 
-		# for zoom both right and left mouse buttons must be held down
-		for i in range(100):
-			self.oneTimeCameraRotation()
-			self.oneTimeCameraZoom(forward=False)
-			sleep(1e-2)
-
-	def cameraZoom(self):
-		# for camera zoom motion, both right and left mouse buttons must be held down
-		left, right, middle = True, True, False
-		shift, ctrl, alt, cmd = False, False, False, False
-		x, y = 500, 500
-		lastx, lasty = 499, 499
-
-		for i in range(100):
-			self.Scene.report_mouse_state([left, right, middle],
-			lastx, lasty, x, y,
-			[shift, ctrl, alt, cmd])
-			lastx = x
-			lasty = y
-			x -= 1
-			y -= 1
-			sleep(1e-2)
-
-
-	def cameraPan(self):
-		# for camera vertical motion, the right mouse button must be held down
-		# x stays constant
-		left, right, middle = False, True, False
-		shift, ctrl, alt, cmd = False, False, False, False
-		x, y = 500, 500
-		lastx, lasty = 500, 499
-
-		for i in range(100):
-			self.Scene.report_mouse_state([left, right, middle],
-			lastx, lasty, x, y,
-			[shift, ctrl, alt, cmd])
-			lasty = y
-			y -= 1
-			sleep(1e-2)
-
-	def cameraRotation(self):
-		# for camera rotation motion, the right mouse button must be held down
-		# y stays constant
-
-		left, right, middle = False, True, False
-		shift, ctrl, alt, cmd = False, False, False, False
-		x, y = 500, 500
-		lastx, lasty = 499, 500
-
-		for i in range(100):
-			self.Scene.report_mouse_state([left, right, middle],
-			lastx, lasty, x, y,
-			[shift, ctrl, alt, cmd])
-			lastx = x
-			x -= 1
-			sleep(1e-2)
-	"""
 	def __init__(self):
 		self.todayUTCdatetime = locationInfo.getUTCDateTime()
 		self.Name = "Sun"
@@ -158,7 +65,7 @@ class solarSystem:
 		self.currentPOVselection = "SUN"
 		self.Scene = display(title = 'Solar System', width = self.SCENE_WIDTH, height =self.SCENE_HEIGHT, range=3, center = (0,0,0))
 		self.MT = self.Scene.getMouseTracker()
-		self.MT.SetMouseStateReporter(self.Scene)
+		#self.MT.SetMouseStateReporter(self.Scene)
 		self.camera = camera(self.Scene)
 		self.Scene.lights = []
 		self.Scene.forward = vector(2,0,-1) #(0,0,-1)
@@ -239,6 +146,13 @@ class solarSystem:
 
 		#self.Scene.scale = self.Scene.scale * 10
 
+	def introZoomIn(self):
+		self._set_autoMovement(True)
+		self.camera.cameraSet(velocity=20)
+		self._set_autoMovement(False)
+
+	def _set_autoMovement(self, is_movement):
+		self.Scene._set_autoMovement(is_movement)
 
 	def toggleSize(self, realisticSize):
 		x = SCALE_NORMALIZED if realisticSize == True else SCALE_OVERSIZED
@@ -286,7 +200,6 @@ class solarSystem:
 			self.ShowFeatures = (self.ShowFeatures & ~type)
 			if 	self.currentPOVselection != "SUN" and self.currentPOV.BodyType == type:
 				# reset SUN as current POV when the currobject should not longer be visible
-				#print "POUET!"
 				return 1
 		return 0
 
@@ -304,14 +217,14 @@ class solarSystem:
 		refDirections = [vector(size,0,0), vector(0,size,0), vector(0,0,size/4)]
 		relsize = 2 * (self.BodyRadius/self.CorrectionSize)
 		relDirections = [vector(relsize,0,0), vector(0,relsize,0), vector(0,0,relsize)]
-		refText = ["x (C. Aries)","y","z"]
+		refText = ["FP Aries","y","z"]
 		relText = ["x","y","z"]
 		refOpRad = [[1.0, 200],[0.5, 50],[0.5,50]]
 		pos = vector(position)
 		for i in range (3): # Each direction
-			#self.RefAxis[i] = curve( frame = None, color = color.red, pos= [ pos, pos+refDirections[i]], visible=False, emissive=True, radius=3)
+			self.RefAxis[i] = curve( frame = None, color = color.red, pos= [ pos, pos+refDirections[i]], visible=False, emissive=True, radius=3)
 			
-			self.RefAxis[i] = cylinder(pos=pos, axis=refDirections[i], color=color.white, emissive=True, opacity=refOpRad[i][0], radius=refOpRad[i][1]) 
+			#self.RefAxis[i] = cylinder(pos=pos, axis=refDirections[i], color=color.white, emissive=True, opacity=refOpRad[i][0], radius=refOpRad[i][1]) 
 
 			self.RefAxisLabel[i] = label( frame = None, color = color.white,  text = refText[i],
 										pos = pos+refDirections[i], opacity = 0, box = False, visible=False )
@@ -401,29 +314,20 @@ class solarSystem:
 			if body.BodyType in [SPACECRAFT, OUTERPLANET, INNERPLANET, ASTEROID, COMET, \
 								 SATELLITE, DWARFPLANET, PHA, BIG_ASTEROID, TRANS_NEPT]:
 				body.toggleSize(realisticSize)
-
-				if body.Name == "pluto":
-					print "Pluto is ", body.Origin.visible
-			#	if body.BodyShape.visible == True:
 				if body.Origin.visible == True:
 					body.Trail.visible = orbitTrace
 					if body.isMoon == True:
-						if body.sizeType == SCALE_NORMALIZED: # apply label on/off when moon in real size
-							value = labelVisible
-						else:	# otherwise do not show label
-							value = False
+						# apply label on/off when moon in real size, otherwise do not show label
+						value = labelVisible if body.sizeType == SCALE_NORMALIZED else  False
 					else:
 						value = labelVisible
 
 					for i in range(len(body.Labels)):
 						body.Labels[i].visible = value
 				else:
-					#print body.Name, " is not visible" 
 					pass
 			else: # belts / rings
 				if body.BodyShape.visible == True and animationInProgress == True:
-					#for i in range(len(body.BodyShape)):
-					#	body.BodyShape[i].visible = False
 					body.BodyShape.visible = False
 					for i in range(len(body.Labels)):
 						body.Labels[i].visible = False
@@ -436,7 +340,6 @@ class solarSystem:
 			self.Scene.ambient = color.nightshade #color.black
 			self.sunLight.visible = True
 			self.BodyShape.material = materials.emissive
-			#self.BodyShape.material = materials.texture(data=materials.loadTGA("./img/sun"), mapping="spherical", interpolate=False)
 
 		setRefTo = True if self.ShowFeatures & REFERENTIAL != 0 else False
 
@@ -573,10 +476,6 @@ class makeEcliptic:
 
 	def refresh(self):
 		self.Origin.visible = True if self.SolarSystem.ShowFeatures & ECLIPTIC_PLANE != 0 else False
-#		if self.SolarSystem.ShowFeatures & ECLIPTIC_PLANE != 0:
-#			self.Origin.visible = True
-#		else:
-#			self.Origin.visible = False
 
 
 # CLASS MAKEBELT --------------------------------------------------------------
@@ -623,10 +522,6 @@ class makeBelt:
 			if self.BodyShape.visible == False:
 				self.BodyShape.visible = True
 			labelVisible = True if self.SolarSystem.ShowFeatures & LABELS != 0 else False
-#			if self.SolarSystem.ShowFeatures & LABELS != 0:
-#				labelVisible = True
-#			else:
-#				labelVisible = False
 
 			for i in range(len(self.Labels)):
 				self.Labels[i].visible = labelVisible
@@ -815,10 +710,8 @@ class makeBody:
 		else:
 			return
 
-		#angle = deg2rad(self.AxialTilt)
 		self.TiltAngle = deg2rad(self.AxialTilt) # +self.Inclination) # in the ecliptic coordinates system
-		#angle = deg2rad(45) #self.Inclination) # in the ecliptic coordinates system
-		#angle = 0
+
 		cosv = cos(self.TiltAngle)
 		sinv = sin(self.TiltAngle)
 
@@ -841,9 +734,8 @@ class makeBody:
 		# add label
 		self.Labels.append(label(pos=(self.Position[X_COOR]+self.Foci[X_COOR],self.Position[Y_COOR]+self.Foci[Y_COOR],self.Position[Z_COOR]+self.Foci[Z_COOR]), text=self.Name, xoffset=20, yoffset=12, space=0, height=10, color=color, border=6, box=false, font='sans'))
 
+		# hide body if not required
 		if (self.SolarSystem.ShowFeatures & bodyType) == 0:
-#			self.BodyShape.visible = False
-			#print "Planet ", self.Name, " is invisible"
 			self.Origin.visible = False
 			self.Labels[0].visible = False
 
@@ -1076,12 +968,15 @@ class makeBody:
 		return pi/180
 
 	def draw(self):
-		print "Rendering orbit for ", self.Name
+		#print "Rendering orbit for ", self.Name
 		self.Trail.visible = False
 		rad_E = deg2rad(self.E)
 		increment = self.getIncrement()
+#		print("draw: X = ", self.a * (cos(rad_E) - self.e), "Y =", self.a * sqrt(1 - self.e**2) * sin(rad_E))
 
 		for E in np.arange(increment, 2*pi+increment, increment):
+#		for E in np.arange(0, 2*pi, increment):
+#		for E in np.arange(0, 2*pi+increment, increment):
 			self.setPolarCoordinates(E+rad_E)
 			# from R and Nu, calculate 3D coordinates and update current position
 			self.updatePosition(trace=True) #E*180/pi)
@@ -1897,6 +1792,7 @@ class comet(makeBody):
 		makeBody.__init__(self, system, key, color, COMET, COMET, SMALLBODY_SZ_CORRECTION, system)
 
 	def makeShape(self):
+		self.Origin.pos = vector(self.Position[X_COOR],self.Position[Y_COOR],self.Position[Z_COOR])
 		self.BodyShape = ellipsoid(	frame=self.Origin, pos=(0,0,0),
 									length=(self.radiusToShow * randint(10, 20)/10)/self.SizeCorrection[self.sizeType],
 									height=(self.radiusToShow * randint(10, 20)/10)/self.SizeCorrection[self.sizeType],
@@ -1910,7 +1806,7 @@ class comet(makeBody):
 
 	def initRotation(self):
 		self.RotAngle = pi/6
-		self.RotAxis = (1,1,1)
+		self.RotAxis = (0,1,1)
 
 	def setRotation(self):
 		#self.updateAxis()
@@ -1991,7 +1887,7 @@ class pha(makeBody):
 
 	def initRotation(self):
 		self.RotAngle = pi/6
-		self.RotAxis = (1,1,1)
+		self.RotAxis = (0,1,1)
 
 	def setRotation(self):
 		#self.updateAxis()
@@ -2010,6 +1906,7 @@ class smallAsteroid(makeBody):
 		makeBody.__init__(self, system, key, color, SMALL_ASTEROID, SMALL_ASTEROID, SMALLBODY_SZ_CORRECTION, system)
 
 	def makeShape(self):
+		self.Origin.pos = vector(self.Position[X_COOR],self.Position[Y_COOR],self.Position[Z_COOR])
 		self.BodyShape = ellipsoid(	frame=self.Origin, pos=(0,0,0),
 									length=(self.radiusToShow * randint(10, 20)/10)/self.SizeCorrection[self.sizeType],
 									height=(self.radiusToShow * randint(10, 20)/10)/self.SizeCorrection[self.sizeType],
@@ -2061,6 +1958,7 @@ class transNeptunian(makeBody):
 		makeBody.__init__(self, system, key, color, TRANS_NEPT, TRANS_NEPT, SMALLBODY_SZ_CORRECTION, system)
 
 	def makeShape(self):
+		self.Origin.pos = vector(self.Position[X_COOR],self.Position[Y_COOR],self.Position[Z_COOR])
 		self.BodyShape = ellipsoid(	frame=self.Origin, pos=(0,0,0),
 									length=(self.radiusToShow * randint(10, 20)/10)/self.SizeCorrection[self.sizeType],
 									height=(self.radiusToShow * randint(10, 20)/10)/self.SizeCorrection[self.sizeType],
@@ -2080,7 +1978,7 @@ class transNeptunian(makeBody):
 
 	def initRotation(self):
 		self.RotAngle = pi/6
-		self.RotAxis = (1,1,1)
+		self.RotAxis = (0,1,1)
 
 	def setRotation(self):
 		self.Origin.pos = vector(self.Position[X_COOR],self.Position[Y_COOR],self.Position[Z_COOR])
@@ -2477,7 +2375,7 @@ def to_timestamp(a_date):
 def from_timestamp(timestamp):
     return datetime.datetime.fromtimestamp(timestamp, pytz.UTC)
 
-
+"""
 class flyingCamera():
 	def __init__(self, system):
 		self.MT = system.MT
@@ -2538,3 +2436,4 @@ def testMouseOK():
 		mouse.move(-3, -delta)
 		mouse.release(Button.right)
 		mouse.move(3, delta)
+"""

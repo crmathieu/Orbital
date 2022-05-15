@@ -29,7 +29,7 @@ import threading
 #from concurrent.futures import ThreadPoolExecutor, ProcessPoolExecutor, as_completed
 
 from numberfmt import *
-import urllib2
+import urllib2, urllib
 import httplib
 from video import * #VideoRecorder
 #import re
@@ -66,13 +66,13 @@ SLDS_Y = LSTB_Y + 40
 STRT_Y = SLDS_Y
 PAU_Y = STRT_Y + 40
 JPL_Y = PAU_Y + 40
-DET_Y = CHK_L14 + 70
 ANI_Y = JPL_Y + 100
+DET_Y = CHK_L14 + 120 #70
 
 INFO1_Y = DET_Y + 20
-INFO1_V = INFO1_Y + 75
+#INFO1_V = INFO1_Y + 75
 
-JPL_CLOSE_APPROACH_Y = INFO1_V+30
+#JPL_CLOSE_APPROACH_Y = INFO1_V+30
 
 TOTAL_Y = INFO1_Y+180
 TOTAL_X = 500
@@ -98,6 +98,8 @@ JPL_LISTCTRL_Y = MAIN_HEADING_Y + 25
 
 JPL_LIST_SZ = TOTAL_Y-160
 JPL_BRW_Y = JPL_LISTCTRL_Y + JPL_LIST_SZ + 15
+
+JPL_SEARCH_Y = JPL_BRW_Y + 20
 
 # ----------------------------------------------------------------------
 # The nasa API key used for all access to the JPL small objects database
@@ -212,14 +214,13 @@ class POVpanel(AbstractUI):
 		self.rbox.SetFont(self.RegFont)
 		self.rbox.Bind(wx.EVT_RADIOBOX,self.OnRadioBox)
 
-		self.cb = wx.CheckBox(self, label="Show Local Referential", pos=(200, POV_Y+580))
-
+		self.cb = wx.CheckBox(self, label="Show Local Referential", pos=(200, POV_FOCUS_Y+40)) #   POV_Y+560))
 		self.cb.SetValue(False)
 		self.cb.Bind(wx.EVT_CHECKBOX,self.OnLocalRef)
 
-		self.Title = wx.StaticText(self, label="", pos=(200, POV_FOCUS_Y+60), size=(TOTAL_X-210, TOTAL_Y -240))# -160))
+		self.Title = wx.StaticText(self, label="", pos=(200, POV_FOCUS_Y+80), size=(TOTAL_X-210, TOTAL_Y -240))# -160))
 		self.Title.SetFont(self.BoldFont)
-		self.Info = wx.StaticText(self, label="", pos=(200, POV_FOCUS_Y+80), size=(TOTAL_X-210, TOTAL_Y -240)) #-160))
+		self.Info = wx.StaticText(self, label="", pos=(200, POV_FOCUS_Y+100), size=(TOTAL_X-210, TOTAL_Y -240)) #-160))
 		self.Info.SetFont(wx.Font(10, wx.MODERN, wx.NORMAL, wx.NORMAL)) #self.RegFont)
 
 		self.Info.Wrap(self.GetSize().width)
@@ -228,7 +229,7 @@ class POVpanel(AbstractUI):
 		self.Hide()
 
 	def OnLocalRef(self, e):
-		print "currentPOV:",self.SolarSystem.currentPOVselection
+		print ("currentPOV:",self.SolarSystem.currentPOVselection)
 		self.setLocalRef()
 
 	def setLocalRef(self):
@@ -360,6 +361,7 @@ class JPLpanel(AbstractUI):
 
 	def InitVariables(self):
 		self.ca_deltaT = 0 # close approach deltaT
+		self.searchHost = "https://ssd-api.jpl.nasa.gov/sbdb.api?des="
 		self.Hide()
 
 	def InitUI(self):
@@ -395,9 +397,16 @@ class JPLpanel(AbstractUI):
 		self.legend.SetFont(self.RegFont)
 		self.legend.Wrap(230)
 
+		self.search = wx.TextCtrl(self, value="", pos=(20, JPL_SEARCH_Y), size=(200, 25), style=wx.TE_PROCESS_ENTER)
+		self.search.Bind(wx.EVT_TEXT_ENTER, self.onSearch)
+		
 		self.SetSize((TOTAL_X, TOTAL_Y))
 		self.Centre()
 
+	def onSearch(self, e):
+		print "ENTER"+self.search.GetValue()
+		self.searchJPL(self.search.GetValue())
+		
 	def OnNext(self, e):
 		self.oneDay(1, "", self.nextUrl) #NASA_API_V1_FEED_TODAY_HOST, self.nextUrl)
 
@@ -503,7 +512,7 @@ class JPLpanel(AbstractUI):
 			u'name': u'(2021 YB)'
 		}
 		"""
-	def callJPL(self, host, url):
+	def doCall2JPL(self, host, url):
 		import ssl
 		url = url+"&start_date="+self.fetchDateStr
 		try:
@@ -553,17 +562,39 @@ class JPLpanel(AbstractUI):
 		self.next.Enable()
 		self.prev.Enable()
 
+	def doCall2JPLsearch(self, host, target):
+		print host+target+"\n"
+		try:
+			opener = urllib2.build_opener()
+			opener.addheaders = [('User-Agent', 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_12_2) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/55.0.2883.95 Safari/537.36')]
+			response = opener.open(host+target)
+
+		except urllib2.HTTPError as err:
+			print "Exception...\n\nError: " + str(err.code)
+			raise
+
+		rawResp = response.read()
+		self.jsonResp = json.loads(rawResp)
+		print self.jsonResp
+
 
 	def fetchJPL(self, host, url):
 		# start a new thread to retrieve the list of NEOs from JPL
-		jplThread = threading.Thread(target=self.callJPL, name="JPLrequest", args=[host, url] )
+		jplThread = threading.Thread(target=self.doCall2JPL, name="JPLrequest", args=[host, url] )
 		jplThread.start()
 
 		# disable buttons to lock date (button will be unlocked by the callJPL thread)
 		self.next.Disable()
 		self.prev.Disable()
 	
-	
+	def searchJPL(self, url):
+		# start a new thread to retrieve the list of NEOs from JPL
+		jplThread = threading.Thread(target=self.doCall2JPLsearch, name="JPLsearch", args=[self.searchHost, urllib.quote(url)] )
+		jplThread.start()
+
+		# add code here
+
+
 	def OnListClick(self, e):
 		# load orbital elements
 		id = self.loadBodyInfo(e.m_itemIndex)
@@ -1019,6 +1050,14 @@ class orbitalCtrlPanel(AbstractUI):
 		self.Recorder = wx.Button(self, label=u'\u25a0', pos=(440, ANI_Y), size=(35, 35))
 		self.Recorder.Bind(wx.EVT_BUTTON, self.OnRecord)
 
+		self.AutoRotation = wx.CheckBox(self, label="Auto-Rotation in Animation", pos=(200-30, DET_Y-40))
+		self.AutoRotation.SetValue(False)
+		self.AutoRotation.Bind(wx.EVT_CHECKBOX,self.OnAutoAnimationClick)
+
+		#
+		# current object details
+		#
+
 		self.InfoTitle = wx.StaticText(self, label="", pos=(20, DET_Y))
 		self.InfoTitle.SetFont(wx.Font(10, wx.SWISS, wx.NORMAL, wx.BOLD))
 
@@ -1040,6 +1079,11 @@ class orbitalCtrlPanel(AbstractUI):
 		self.Centre()
 
 		#self.setDeltaT()
+
+	def OnAutoAnimationClick(self, e):
+		# enable / disable mouse tracking based on auto animation status
+		self.SolarSystem._set_autoMovement(self.AutoRotation.GetValue())
+		wx.Event.Skip(e, True)
 
 	def setCameraPOV(self, body):
 		self.SolarSystem.currentPOV = body
@@ -1114,6 +1158,7 @@ class orbitalCtrlPanel(AbstractUI):
 			self.ObjDistance.SetLabel("{:<12}{:>10.4f}".format("DTE (AU)", float(self.distance)))
 
 
+	# deltaTick is used for earth realtime rotation update, when enabled
 	def deltaTtick(self, timeinsec):
 		# make sure to convert timeinsec as a fraction of day
 		#print self.SolarSystem.DaysIncrement, "+", float(timeinsec)/86400, "for", timeinsec 
@@ -1392,8 +1437,11 @@ class orbitalCtrlPanel(AbstractUI):
 
 	def OneTimeIncrement(self):
 		self.DeltaT += self.TimeIncrement
+		# if auto movement is required, execute it
+		if self.AutoRotation.GetValue() == True:
+#			self.SolarSystem.camera.cameraTest(frame=1)
+			self.SolarSystem.camera.oneTickCameraCombination(zoom=True, zoom_forward=True)
 		self.updateSolarSystem()
-		self.SolarSystem.camera.cameraTest(frame=1)
 		sleep(1e-4)
 
 
@@ -1413,6 +1461,11 @@ class orbitalCtrlPanel(AbstractUI):
 		self.StepByStep = False
 		if self.AnimationInProgress == True:
 			self.AnimationInProgress = False
+			# at the end of animation, disable autoMovement to enable 
+			# mouse tracking from display._mouse_tracker method  
+			self.SolarSystem._set_autoMovement(False) ####
+			self.AutoRotation.SetValue(False)
+
 			self.Animate.SetLabel(">")
 			if self.RecorderOn == True and self.VideoRecorder != None:
 				stopRecording(self.VideoRecorder)
@@ -1438,9 +1491,23 @@ class orbitalCtrlPanel(AbstractUI):
 		"""
 		#self.setDeltaT()
 
+		# When the autoRotation checkbox is true, enable autoMovement to disable 
+		# mouse tracking from display._mouse_tracker method  
+		if self.AutoRotation.GetValue() == True:
+			self.set_autoMovement(True)
+
+		# start a new thread to retrieve the list of NEOs from JPL
+		#animateThread = threading.Thread(target=self.doAnimation, name="doAnimation", args=[] )
+		#animateThread.start()
+		self.doAnimation()
+		# loop was here
+
+		#self.Recorder.SetColor() ####
+	def doAnimation(self):
 		# set mechanic to determine the # of frame per seconds in Animation (if recorder is ON)
 		sec = time.gmtime(time.time()).tm_sec
 		framerate = 0
+
 		while self.AnimationInProgress:
 #			sleep(1e-2)
 			#sleep(1e-3)
@@ -1468,7 +1535,12 @@ class orbitalCtrlPanel(AbstractUI):
 		# as soon as we exit animation, restore "play" sign
 		self.Animate.SetLabel(">")
 
-		#self.Recorder.SetColor() ####
+
+	# this method calls the display class _set_autoMovement to enable or disable
+	# mouse tracking, depending on whether we have or not an auto movement in progress
+	def set_autoMovement(self, is_movement):
+		self.SolarSystem.Scene._set_autoMovement(is_movement)
+
 
 
 # CLASS WIDGETSpanel ----------------------------------------------------------

@@ -46,12 +46,9 @@ ZOOM_OUT = 2
 
 class camera:
 
-
-	
-
 	def __init__(self, display):
 		self.canvas = display
-
+		
 	def oneTickCameraZoom(self, forward = True):
 		# for camera zoom motion, both right and left mouse buttons must be held down
 		left, right, middle = True, True, False
@@ -79,6 +76,7 @@ class camera:
 		[shift, ctrl, alt, cmd])
 
 	def oneTickCameraRotationWithDirection(self, direction = ROT_HOR|ROT_LEFT|ROT_VER|ROT_DWN):
+		# The default rotation path is: from RIGHT -> LEFT and UP -> DOWN
 		# for camera rotation motion, the right mouse button must be held down
 		# y stays constant
 		x, y, lastx, lasty = 500,500,500,500
@@ -90,7 +88,7 @@ class camera:
 			else: 
 				x = 495
 
-		# allow for vertical travelling from current position to ecliptic
+		# allow for vertical traveling from current position to ecliptic
 		# forward[2] represents the z coordinate of the camera vector. Originally,
 		# the camera points down using vector (2,0,-1). 
 		if (direction & ROT_VER) and (self.canvas.forward[2] < 0):
@@ -98,13 +96,12 @@ class camera:
 				lasty = 499
 			else: 
 				y = 499
-		print (x, "---", y)
 		self.canvas.report_mouse_state([left, right, middle],
 		lastx, lasty, x, y,
 		[shift, ctrl, alt, cmd])
-		print ("F=", self.canvas.forward)
+		#print ("F=", self.canvas.forward)
 
-	def cameraCombo(self, length=10):
+	def cameraComboXX(self, length=10):
 		# for camera combo motion, we alternate rotation and zoom 
 		# for zoom both right and left mouse buttons must be held down
         # default is 10 seconds
@@ -114,14 +111,23 @@ class camera:
 			sleep(1e-2)
 
 
-	def cameraTest(self, frame=100):
-		# for camera combo motion, we alternate rotation and zoom 
+	def oneTickCameraCombination(self, zoom=True, zoom_forward=True, rot_direction = ROT_HOR|ROT_RIGHT|ROT_VER|ROT_DWN):
+		# for camera combination motion, we alternate rotation and zoom 
+		# for zoom both right and left mouse buttons must be held down
+        # default is 10 seconds
+		self.oneTickCameraRotationWithDirection(rot_direction)
+		if zoom and self.canvas.forward[2] < 0:
+			self.oneTickCameraZoom(zoom_forward)
+
+	def cameraCombination2(self, frame=100, rot_direction = ROT_HOR|ROT_LEFT|ROT_VER|ROT_DWN, zoom=True, zoom_forward=True ):
+		# for camera combination motion, we alternate rotation and zoom 
 		# for zoom both right and left mouse buttons must be held down
         # default is 10 seconds
 		for i in range(frame):
-			self.oneTickCameraRotationWithDirection()
-			self.oneTickCameraZoom(forward=True)
-			sleep(1e-4)
+			self.oneTickCameraRotationWithDirection(rot_direction)
+			if zoom:
+				self.oneTickCameraZoom(zoom_forward)
+			sleep(1e-2)
 
 	def cameraZoom2(self, rate_func = linear):
 		# for camera zoom motion, both right and left mouse buttons must be held down

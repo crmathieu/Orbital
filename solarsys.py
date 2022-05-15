@@ -123,14 +123,12 @@ def main():
 	cw.povBox.setCurrentBodyFocusManually(earth, 2)
 	cw.Show()
 
-	solSystem.camera.cameraSet(velocity=20)
-
+	solSystem.introZoomIn()
+	
 	#solSystem.camera.cameraZoom(10)
 
 	while True:
 		sleep(2)
-		#solSystem.camera.cameraCombo()
-		#solSystem.cameraRotation()
 		earth.updateStillPosition(cw.orbitalBox, 2)
 
 
