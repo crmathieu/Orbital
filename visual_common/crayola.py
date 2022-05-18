@@ -23,7 +23,9 @@ magenta = (1,0,1)
 magentish = (0.5, 0, 0.5)
 dirtyYellow = (0.5,0.5,0)
 orange = (1,0.6,0)
-nightshade = (0.12, 0.12, 0.12)
+#nightshade = (0.12, 0.12, 0.12)
+nightshade = (0.05, 0.05, 0.05)
+
 
 
 def gray(luminance):

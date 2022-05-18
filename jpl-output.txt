@@ -256,3 +256,30 @@ https://api.nasa.gov/neo/rest/v1/neo/3542519?api_key=DEMO_KEY
                 ],
                 "is_sentry_object":false
             },{"links":{"self":"http://www.neowsapp.com/rest/v1/neo/2469445?api_key=KTTV4ZQFuTywtkoi3gA59Qdlk5H2V1ry6UdYL0xU"},"id":"2469445","neo_reference_id":"2469445","name":"469445 (2002 LT24)","nasa_jpl_url":"http://ssd.jpl.nasa.gov/sbdb.cgi?sstr=2469445","absolute_magnitude_h":22.1,"estimated_diameter":{"kilometers":{"estimated_diameter_min":0.1010543415,"estimated_diameter_max":0.2259643771},"meters":{"estimated_diameter_min":101.054341542,"estimated_diameter_max":225.9643771094},"miles":{"estimated_diameter_min":0.0627922373,"estimated_diameter_max":0.140407711},"feet":{"estimated_diameter_min":331.5431259047,"estimated_diameter_max":741.3529669956}},"is_potentially_hazardous_asteroid":true,"close_approach_data":[{"close_approach_date":"2019-06-05","close_approach_date_full":"2019-Jun-05 00:19","epoch_date_close_approach":1559693940000,"relative_velocity":{"kilometers_per_second":"23.7156824638","kilometers_per_hour":"85376.4568697948","miles_per_hour":"53049.6101033456"},"miss_distance":{"astronomical":"0.398889711","lunar":"155.168097579","kilometers":"59673051.13051557","miles":"37079114.591112066"},"orbiting_body":"Earth"}],"is_sentry_object":false},{"links":{"self":"http://www.neowsapp.com/rest/v1/neo/3774689?api_key=KTTV4ZQFuTywtkoi3gA59Qdlk5H2V1ry6UdYL0xU"},"id":"3774689","neo_reference_id":"3774689","name":"(2017 KG3)","nasa_jpl_url":"http://ssd.jpl.nasa.gov/sbdb.cgi?sstr=3774689","absolute_magnitude_h":24.7,"estimated_diameter":{"kilometers":{"estimated_diameter_min":0.0305179233,"estimated_diameter_max":0.0682401509},"meters":{"estimated_diameter_min":30.5179232594,"estimated_diameter_max":68.2401509401},"miles":{"estimated_diameter_min":0.0189629525,"estimated_diameter_max":0.0424024508},"feet":{"estimated_diameter_min":100.1244233463,"estimated_diameter_max":223.8850168104}},"is_potentially_hazardous_asteroid":false,"close_approach_data":[{"close_approach_date":"2019-06-05","close_approach_date_full":"2019-Jun-05 11:31","epoch_date_close_approach":1559734260000,"relative_velocity":{"kilometers_per_second":"10.5269030221","kilometers_per_hour":"37896.8508794509","miles_per_hour":"23547.6293700677"},"miss_distance":{"astronomical":"0.3560888643","lunar":"138.5185682127","kilometers":"53270135.629999041","miles":"33100527.3886311258"},"orbiting_body":"Earth"}],"is_sentry_object":false}]}}
+
+
+@@@ DETAILS 
+
+{   'epochJD': 2459200.5, 
+    'Tp_Time_of_perihelion_passage_JD': 2459084.8460793924, 
+    'radius': 0.01162010315, 
+    'orbit_class': 'N/A', 
+    'iau_name': u'(2021 HG1)', 
+    'W_argument_of_perihelion': 128.0391570670204, 
+    'earth_moid': 2367446142.8333516, 
+    'material': 0, 
+    'IN_orbital_inclination': 10.55008524773179, 
+    'epoch_date_close_approach': 1619253060.0, 
+    'N_mean_motion': 1.100407495720809, 
+    'jpl_designation': u'54138714', 
+    'QR_perihelion': 97465789238.46713, 
+    'EC_e': 0.2988249793581346, 
+    'name': u'(2021 HG1)', 
+    'longitude_of_perihelion': 337.7899045829097, 
+    'OM_longitude_of_ascendingnode': 209.7507475158893, 
+    'absolute_mag': 27.039, 
+    'mass': 0.0, 
+    'axial_tilt': 0.0, 
+    'MA_mean_anomaly': 127.2664411463328, 
+    'PR_revolution': 327.1515337726651
+}

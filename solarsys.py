@@ -20,8 +20,12 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 
 """
+""" main module  """
+
 #from scipy.sparse.csgraph import _validation
 #from celestial import orbit3D, planetsdata as pd
+from celestial.rate_func import *	
+
 from celestial.orbit3D import *
 import celestial.planetsdata as pd
 from celestial.controls import *
@@ -32,88 +36,100 @@ def main():
 	# determine where this program runs 
 	#locationInfo = location()
 	
-	solarsystem = solarSystem()
+
+	solSystem = solarSystem()
 	# set what is displayed by default
-	bodySet = pd.INNERPLANET|pd.OUTERPLANET|pd.ORBITS|pd.SATELLITE|pd.KUIPER_BELT|pd.ASTEROID_BELT|pd.JTROJANS|pd.LABELS
-	solarsystem.setDefaultFeatures(bodySet) #pd.INNERPLANET|pd.OUTERPLANET|pd.ORBITS|pd.SATELLITE|pd.KUIPER_BELT|pd.ASTEROID_BELT|pd.JTROJANS|pd.LABELS|pd.CELESTIAL_SPHERE)
-#	solarsystem.setDefaultFeatures(pd.INNERPLANET|pd.OUTERPLANET|pd.ORBITS|pd.SATELLITE|pd.KUIPER_BELT|pd.ASTEROID_BELT|pd.JTROJANS|pd.LABELS|pd.CELESTIAL_SPHERE)
-#	solarsystem.setDefaultFeatures(pd.INNERPLANET|pd.OUTERPLANET|pd.ORBITS)
+	bodySet = pd.INNERPLANET|pd.OUTERPLANET|pd.ORBITS|pd.SATELLITE|pd.LABELS
+	solSystem.setDefaultFeatures(bodySet) #pd.INNERPLANET|pd.OUTERPLANET|pd.ORBITS|pd.SATELLITE|pd.KUIPER_BELT|pd.ASTEROID_BELT|pd.JTROJANS|pd.LABELS|pd.CELESTIAL_SPHERE)
+#	solSystem.setDefaultFeatures(pd.INNERPLANET|pd.OUTERPLANET|pd.ORBITS|pd.SATELLITE|pd.KUIPER_BELT|pd.ASTEROID_BELT|pd.JTROJANS|pd.LABELS|pd.CELESTIAL_SPHERE)
+#	solSystem.setDefaultFeatures(pd.INNERPLANET|pd.OUTERPLANET|pd.ORBITS)
 
-	solarsystem.addTo(makeEcliptic(solarsystem, color.cyan, 0.4))
-	solarsystem.addTo(planet(solarsystem, 'mercury', color.green, pd.INNERPLANET, pd.INNERPLANET, pd.PLANET_SZ_CORRECTION))
-	solarsystem.addTo(planet(solarsystem, 'venus', color.yellow, pd.INNERPLANET, pd.INNERPLANET, pd.PLANET_SZ_CORRECTION))
+	solSystem.addTo(makeEcliptic(solSystem, color.cyan, 0.4))
+	solSystem.addTo(planet(solSystem, 'mercury', color.green, pd.INNERPLANET, pd.INNERPLANET, pd.PLANET_SZ_CORRECTION))
+	solSystem.addTo(planet(solSystem, 'venus', color.yellow, pd.INNERPLANET, pd.INNERPLANET, pd.PLANET_SZ_CORRECTION))
 
-	earth = makeEarth(solarsystem, color.cyan, pd.INNERPLANET, pd.INNERPLANET, pd.PLANET_SZ_CORRECTION)
-	solarsystem.addTo(earth)
+	earth = makeEarth(solSystem, color.cyan, pd.INNERPLANET, pd.INNERPLANET, pd.PLANET_SZ_CORRECTION)
+	solSystem.addTo(earth)
 
-	mars = planet(solarsystem, 'mars', color.red, pd.INNERPLANET, pd.INNERPLANET, pd.PLANET_SZ_CORRECTION)
-	solarsystem.addTo(mars)
+	mars = planet(solSystem, 'mars', color.red, pd.INNERPLANET, pd.INNERPLANET, pd.PLANET_SZ_CORRECTION)
+	solSystem.addTo(mars)
 	
-	solarsystem.addTo(planet(solarsystem, 'jupiter', color.magenta, pd.OUTERPLANET, GASGIANT, pd.PLANET_SZ_CORRECTION))
-	solarsystem.addTo(planet(solarsystem, 'saturn', color.cyan, pd.OUTERPLANET, GASGIANT, pd.PLANET_SZ_CORRECTION))
-	solarsystem.addTo(planet(solarsystem, 'uranus', color.yellow, pd.OUTERPLANET, GASGIANT, pd.PLANET_SZ_CORRECTION))
-	solarsystem.addTo(planet(solarsystem, 'neptune', color.orange, pd.OUTERPLANET, GASGIANT, pd.PLANET_SZ_CORRECTION))
+	solSystem.addTo(planet(solSystem, 'jupiter', color.magenta, pd.OUTERPLANET, pd.GASGIANT, pd.PLANET_SZ_CORRECTION))
+	solSystem.addTo(planet(solSystem, 'saturn', color.cyan, pd.OUTERPLANET, pd.GASGIANT, pd.PLANET_SZ_CORRECTION))
+	solSystem.addTo(planet(solSystem, 'uranus', color.yellow, pd.OUTERPLANET, pd.GASGIANT, pd.PLANET_SZ_CORRECTION))
+	solSystem.addTo(planet(solSystem, 'neptune', color.orange, pd.OUTERPLANET, pd.GASGIANT, pd.PLANET_SZ_CORRECTION))
 
-	pluto = planet(solarsystem, 'pluto', color.green, DWARFPLANET, DWARFPLANET, pd.DWARFPLANET_SZ_CORRECTION) #pd.OUTERPLANET, DWARFPLANET)
-	solarsystem.addTo(pluto)
+	pluto = planet(solSystem, 'pluto', color.green, pd.DWARFPLANET, pd.DWARFPLANET, pd.DWARFPLANET_SZ_CORRECTION) #pd.OUTERPLANET, DWARFPLANET)
+	solSystem.addTo(pluto)
 
-#	solarsystem.setRings(solarsystem, "saturn") #, [((0.8,0.8,0.8), 0.9), ((0.5,0.5,0.5), 0.2)]) 
-#	solarsystem.setRings(solarsystem, "uranus") #, [((0.1,0.1,0.8), 0.1), ((0.2,0.2,0.7), 0.3)])
+#	solSystem.setRings(solSystem, "saturn") #, [((0.8,0.8,0.8), 0.9), ((0.5,0.5,0.5), 0.2)]) 
+#	solSystem.setRings(solSystem, "uranus") #, [((0.1,0.1,0.8), 0.1), ((0.2,0.2,0.7), 0.3)])
 
 	# generate DWARF planets
-	solarsystem.addTo(dwarfPlanet(solarsystem, 'eris', color.yellow))
-	solarsystem.addTo(dwarfPlanet(solarsystem, 'makemake', color.magenta))
-	solarsystem.addTo(dwarfPlanet(solarsystem, 'sedna', color.orange))
-	solarsystem.addTo(dwarfPlanet(solarsystem, 'haumea', color.white))
+	solSystem.addTo(dwarfPlanet(solSystem, 'eris', color.yellow))
+	solSystem.addTo(dwarfPlanet(solSystem, 'makemake', color.magenta))
+	solSystem.addTo(dwarfPlanet(solSystem, 'sedna', color.orange))
+	solSystem.addTo(dwarfPlanet(solSystem, 'haumea', color.white))
 
 	# generate pd.SATELLITEs
-	solarsystem.addTo(satellite(solarsystem, 'moon', color.white, earth))
-	solarsystem.addTo(satellite(solarsystem, 'phobos', color.red, mars))
-	solarsystem.addTo(satellite(solarsystem, 'deimos', color.white, mars))
-	solarsystem.addTo(satellite(solarsystem, 'charon', color.white, pluto))
+	solSystem.addTo(satellite(solSystem, 'moon', color.white, earth))
+	solSystem.addTo(satellite(solSystem, 'phobos', color.red, mars))
+	solSystem.addTo(satellite(solSystem, 'deimos', color.white, mars))
+	solSystem.addTo(satellite(solSystem, 'charon', color.white, pluto))
 
 	# generate Belts
-	solarsystem.addTo(makeBelt(solarsystem, 'kuiper', 'Kuiper Belt', pd.KUIPER_BELT, color.cyan, 2, 4))
-	solarsystem.addTo(makeBelt(solarsystem, 'asteroid', 'Asteroid Belt', pd.ASTEROID_BELT, color.white, 2, 2))
-	solarsystem.addTo(makeBelt(solarsystem, 'inneroort', 'Inner Oort Cloud', pd.INNER_OORT_CLOUD, color.white, 2, 5))
+	solSystem.addTo(makeBelt(solSystem, 'kuiper', 'Kuiper Belt', pd.KUIPER_BELT, color.cyan, 2, 4))
+	solSystem.addTo(makeBelt(solSystem, 'asteroid', 'Asteroid Belt', pd.ASTEROID_BELT, color.white, 2, 2))
+	solSystem.addTo(makeBelt(solSystem, 'inneroort', 'Inner Oort Cloud', pd.INNER_OORT_CLOUD, color.white, 2, 5))
 
-	solarsystem.addJTrojans(makeJtrojan(solarsystem, 'jupiterTrojan', 'Jupiter Trojans', pd.JTROJANS, color.green, 2, 5, 'jupiter'))
+	solSystem.addJTrojans(makeJtrojan(solSystem, 'jupiterTrojan', 'Jupiter Trojans', pd.JTROJANS, color.green, 2, 5, 'jupiter'))
 
 	MAX_OBJECTS = 1000
 
-	"""
-	loadBodies(solarsystem, PHA, "data/200m+PHA_orbital_elements.txt.json", MAX_OBJECTS)
-	loadBodies(solarsystem, BIG_ASTEROID,"data/200km+asteroids_orbital_elements.txt.json", MAX_OBJECTS)
-	loadBodies(solarsystem, COMET, "data/200m+comets_orbital_elements.txt.json", MAX_OBJECTS)
-	loadBodies(solarsystem, TRANS_NEPT, "data/transNeptunian_objects.txt.json", MAX_OBJECTS)
-	loadBodies(solarsystem, SPACECRAFT, "data/spacecrafts_orbital_elements.txt.json", MAX_OBJECTS)
-	"""
-
-	#loadBodies(solarsystem, pd.SATELLITE, "pd.SATELLITEs.txt", MAX_OBJECTS)
-
-	solarsystem.drawAllBodiesTrajectory()
-	#solarsystem.updateCameraPOV(earth)
-	#print solarsystem.currentPOV.Name
+	# !!!!!!!!!!!!!!!!!!!!!!!!!! test
+#	solSystem.drawAllBodiesTrajectory()
 	
-	glbRefresh(solarsystem, False)
+	loadBodies(solSystem, PHA, "data/200m+PHA_orbital_elements.txt.json", MAX_OBJECTS)
+	loadBodies(solSystem, BIG_ASTEROID,"data/200km+asteroids_orbital_elements.txt.json", MAX_OBJECTS)
+	loadBodies(solSystem, COMET, "data/200m+comets_orbital_elements.txt.json", MAX_OBJECTS)
+	loadBodies(solSystem, TRANS_NEPT, "data/transNeptunian_objects.txt.json", MAX_OBJECTS)
+
+	loadBodies(solSystem, SPACECRAFT, "data/spacecrafts_orbital_elements.txt.json", MAX_OBJECTS)
+	
+	# !!!!!!!!!!!!!!!!!!!!!!!!!! test
+	solSystem.drawAllBodiesTrajectory()
+
+	#loadBodies(solSystem, pd.SATELLITE, "pd.SATELLITEs.txt", MAX_OBJECTS)
+
+	# TEST TEST, should be uncommented!!!!!!!!!!!!
+	#solSystem.drawAllBodiesTrajectory()
+
+
+	#solSystem.updateCameraPOV(earth)
+	#print solSystem.currentPOV.Name
+	
+	glbRefresh(solSystem, False)
 
 	# Start control window
 	print wx.version()
 	#print julian(1, 1, 2000)
 
 
-	#flyingC = flyingCamera(solarsystem)
+	#flyingC = flyingCamera(solSystem)
 	#flyingC.MT.OnFakeLeftMouseDown()
 
 	ex = wx.App(False)
-	cw = controlWindow(solarsystem)
+	cw = controlWindow(solSystem)
 	cw.povBox.setCurrentBodyFocusManually(earth, 2)
 	cw.Show()
 
+	solSystem.introZoomIn()
+	
+	#solSystem.camera.cameraZoom(10)
 
 	while True:
 		sleep(2)
-		earth.updateStillPosition(2)
+		earth.updateStillPosition(cw.orbitalBox, 2)
 
 
 if __name__ == '__main__' :

@@ -166,7 +166,7 @@ Frame_IntervalsXX = {
 	TI_TWELVE_HOURS : { "value": 720, "label": "12", "unit": "h"}
 }
 
-Frame_Intervals = { # values are always in seconds...
+Frame_Intervals = { # incr values are always expressed in (fraction of a) day...
 	1: { "incr": TI_ONE_SECOND,  "value": 1, 		"label": "1", 	"unit": "s"},
 	2: { "incr": TI_10_SECONDS,  "value": 10, 		"label": "10", 	"unit": "s"},
 	3: { "incr": TI_30_SECONDS,  "value": 30, 		"label": "30", 	"unit": "s"},
@@ -191,8 +191,9 @@ SCALE_NORMALIZED = 1
 
 # size corrections...
 #SMALLBODY_SZ_CORRECTION = 1e-6/(DIST_FACTOR*5) #(default)
-SMALLBODY_SZ_CORRECTION = 0.3e-5/(DIST_FACTOR * 5) #(default)
+SMALLBODY_SZ_CORRECTION = 5e-5/(DIST_FACTOR * 5) #(default)
 
+SUN_SZ_CORRECTION = 1e-2/(DIST_FACTOR * 20)
 PLANET_SZ_CORRECTION = 1/(DIST_FACTOR * 5)
 SATELLITE_SZ_CORRECTION = 1/(DIST_FACTOR * 5)
 HYPERBOLIC_SZ_CORRECTION = 1/(DIST_FACTOR * 5)
@@ -202,7 +203,7 @@ DWARFPLANET_SZ_CORRECTION = 1e-2/(DIST_FACTOR * 5)
 # adjustment factor
 #Adjustment_cte = 1.85
 ADJUSTMENT_FACTOR_PLANETS = 0 # 1.95
-ADJUSTMENT_FACTOR = 1.72 #1.80
+ADJUSTMENT_FACTOR = 0 #1.72 #1.80
 
 from visual import color
 
@@ -520,7 +521,7 @@ objects_data = {
 		"RA_2": -0.641,
 		"kep_elt":{'a' : 1.00000018, 'ar': -3e-08, 'EC_e' : 0.01673163, 'er':-3.661e-05, 'i' :-0.00054346, 'ir':-0.01337178, 'L' :100.46691572, 'Lr':35999.3730633, 'W' :102.93005885, 'Wr':0.3179526, 'N' :-5.11260389, 'Nr':-0.24123856, 'b' :0.0, 'c' :0.0, 's':0.0, 'f' :0.0},
 		#"kep_elt_1":{'a' : 1.00000261, 'ar': 0.00000562, 'EC_e' : 0.01671123, 'er':-0.00004392, 'i' :-0.00001531, 'ir':-0.01294668, 'L' :100.46457166, 'Lr':35999.37244981, 'W' :102.93768193, 'Wr':0.32327364, 'N' :0.0, 'Nr':0.0, 'b' :0.0, 'c' :0.0, 's':0.0, 'f' :0.0},
-		"tga_name": "EarthClouds"
+		"tga_name": "highres-earth-8192x4096-clouds" #"EarthClouds"
 		},
 
 	"pluto" : {
