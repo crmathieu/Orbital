@@ -386,12 +386,16 @@ class JPLpanel(AbstractUI):
 		self.prev.Bind(wx.EVT_BUTTON, self.OnPrev)
 		self.prev.Hide()
 
+		# type of body search call (BROAD using the sstr endpoint, or DETAILED using the des endpoint)
+		self.SRCH_BROAD = 1
+		self.SRCH_DETAILED = 2
+
 		self.ListIndex = 0
 		self.list = wx.ListCtrl(self, pos=(20, JPL_LISTCTRL_Y), size=(440, JPL_LIST_SZ-50), style = wx.LC_REPORT|wx.BORDER_SUNKEN|wx.LC_HRULES)
 		self.list.InsertColumn(0, 'Name', width = 145)
 		self.list.InsertColumn(1, 'PHA', wx.LIST_FORMAT_CENTER, width = 45)
 		self.list.InsertColumn(2, 'SPK-ID', wx.LIST_FORMAT_CENTER, width = 70)
-		self.list.InsertColumn(3, 'Miss Distance ', wx.LIST_FORMAT_RIGHT, width = 180)
+		self.list.InsertColumn(3, 'Miss Distance ', wx.LIST_FORMAT_RIGHT, width = 175)
 		self.Bind(wx.EVT_LIST_ITEM_ACTIVATED, self.OnNEOListClick, self.list)
 
 		# list of NEOs explainer text 
@@ -412,15 +416,17 @@ class JPLpanel(AbstractUI):
 		self.searchList = wx.ListCtrl(self, pos=(20, JPL_BRW_Y+30), size=(440, 90), style = wx.LC_REPORT|wx.BORDER_SUNKEN|wx.LC_HRULES)
 		self.searchList.InsertColumn(0, 'Name', width = 120)
 		self.searchList.InsertColumn(1, 'Search Name', wx.LIST_FORMAT_CENTER, width = 120)
+		self.searchList.InsertColumn(2, 'SPK-ID', wx.LIST_FORMAT_CENTER, width = 195)
 		self.Bind(wx.EVT_LIST_ITEM_ACTIVATED, self.OnSearchListClick, self.searchList)
 
 		self.SetSize((TOTAL_X, TOTAL_Y))
 		self.Centre()
+	
 
 	def onSearch(self, e):
 		print ("ENTER"+self.search.GetValue())
 		self.searchList.DeleteAllItems()
-		self.searchByName(self.searchHostsstr, self.search.GetValue())
+		self.searchByName(self.searchHostsstr, self.search.GetValue(), type=self.SRCH_BROAD)
 		
 	def OnNext(self, e):
 		self.oneDay(1, "", self.nextUrl) #NASA_API_V1_FEED_TODAY_HOST, self.nextUrl)
@@ -444,58 +450,6 @@ class JPLpanel(AbstractUI):
 		self.next.Show()
 		self.prev.Show()
 		self.legend.SetLabel("To display orbit details, double click on desired row")
-
-	def doFetchByDayFromCacheXX(self):
-		"""
-		import ssl
-		url = url+"&start_date="+self.fetchDateStr
-		try:
-
-			print host
-			print url
-			
-			req = urllib2.Request(host+url, headers={ 'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_12_2) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/55.0.2883.95 Safari/537.36' })
-			gcontext = ssl._create_unverified_context()
-			response = urllib2.urlopen(req, context=gcontext)
-
-		except urllib2.HTTPError as err:
-			print ("Exception...\n\nError: " + str(err.code))
-			raise
-
-		self.BodiesSPK_ID = []
-		rawResp = response.read()
-		self.jsonResp = json.loads(rawResp)
-		"""
-		 
-		# use if "prev" not in "links"  
-		self.nextUrl = self.jsonResp["links"]["next"] if "next" in self.jsonResp["links"] else ""
-		self.prevUrl = self.jsonResp["links"]["prev"] if "prev" in self.jsonResp["links"] else ""
-		self.selfUrl = self.jsonResp["links"]["self"] if "self" in self.jsonResp["links"] else ""
-
-		if self.ListIndex != 0:
-			self.list.DeleteAllItems()
-
-		self.ListIndex = 0
-		if self.jsonResp["element_count"] > 0:
-			today = self.jsonResp["near_earth_objects"][self.fetchDateStr]
-			for entry in today:
-				if entry["close_approach_data"][0]["orbiting_body"].upper() == 'EARTH':
-					self.list.InsertStringItem(self.ListIndex, entry["name"])
-					if entry["is_potentially_hazardous_asteroid"] == True:
-							ch = "Y"
-					else:
-							ch = "N"
-					self.list.SetStringItem(self.ListIndex, 1, ch)
-					self.list.SetStringItem(self.ListIndex, 2, entry["neo_reference_id"])
-					self.list.SetStringItem(self.ListIndex, 3, str(round(float(entry["close_approach_data"][0]["miss_distance"]["lunar"]) * 100)/100)  +
-											" LD | " + str(round(float(entry["close_approach_data"][0]["miss_distance"]["astronomical"]) * 100)/100) + " AU ")
-					# record the spk-id corresponding to this row
-					self.BodiesSPK_ID.append(entry["neo_reference_id"])
-					self.ListIndex += 1
-		
-		# enable buttons to unlock date
-		self.next.Enable()
-		self.prev.Enable()
 
 	def doFetchByDay(self, host, url):
 		import ssl
@@ -564,7 +518,32 @@ class JPLpanel(AbstractUI):
 		self.prev.Disable()
 
 
-	def doFetchByName(self, host, target):
+	def OnNEOListClick(self, e):
+		# load orbital elements
+		id = self.loadBodyInfoFromDaily(e.m_itemIndex)
+		if id > 0:
+			# switch to main panel to display orbit
+			self.nb.SetSelection(PANEL_MAIN)
+			
+			# If slide show in progress, stop it, and reset body List
+			self.parentFrame.orbitalBox.stopSlideSHow()
+			self.parentFrame.orbitalBox.resetBodyList()
+
+			# make sure to reset the date using the selected object close encounter date time (provided as UTC)
+			self.parentFrame.orbitalBox.resetDateFromBodyId(id)
+			self.parentFrame.orbitalBox.refreshDate()
+
+			self.parentFrame.orbitalBox.setCurrentBodyFromId(id)
+			if self.SolarSystem.currentPOVselection == "curobj":
+				self.SolarSystem.currentPOV = self.parentFrame.orbitalBox.currentBody
+				self.parentFrame.orbitalBox.updateCameraPOV()
+			toggle = False
+			if self.SolarSystem.isRealsize():
+				toggle = True
+			self.parentFrame.orbitalBox.currentBody.toggleSize(toggle)
+
+
+	def doFetchByName(self, host, target, type):
 		#print (host+target+"\n")
 		multiple = False
 		try:
@@ -582,27 +561,44 @@ class JPLpanel(AbstractUI):
 				print ("Exception...\n\nError: " + str(err.code))
 				raise
 
-		self.jsonResp = json.loads(rawResp)
+		self.jsonBNResp = json.loads(rawResp)
 		print (rawResp)
 
 		# check if there are multiple results or not
-		if multiple:
+		if type == self.SRCH_BROAD:
 
 			if self.searchListIndex != 0:
 				self.searchList.DeleteAllItems()
 				self.searchListIndex = 0
 
-			# load searchList with results
-			for entry in self.jsonResp["list"]:
-				self.searchList.InsertStringItem(self.searchListIndex, entry["name"])
-				self.searchList.SetStringItem(self.searchListIndex, 1, entry["pdes"])
-				self.searchListIndex += 1
-			return
+			if multiple:
 
-		# otherwise load body and draw its orbit
+				# load searchList with results
+				for entry in self.jsonBNResp["list"]:
+					self.searchList.InsertStringItem(self.searchListIndex, entry["name"])
+					self.searchList.SetStringItem(self.searchListIndex, 1, entry["pdes"])
+					self.searchList.SetStringItem(self.searchListIndex, 2, "")
+					self.searchListIndex += 1
+				return 0
+
+			# we have a unique result, hence insert it in the list
+			entry = self.jsonBNResp
+			if "object" not in entry:
+				self.search.SetValue(self.search.GetValue() + " <no result>")
+				return -1
+
+			self.searchList.InsertStringItem(self.searchListIndex, entry["object"]["fullname"])
+			self.searchList.SetStringItem(self.searchListIndex, 1, entry["object"]["des"])
+			self.searchList.SetStringItem(self.searchListIndex, 2, entry["object"]["spkid"])
+			self.searchListIndex += 1
+			return 0
+
+		# for "DETAILDED" search, load body and draw its orbit
 		id = self.loadBodyInfoFromSearch()
 		if id > 0:
-			self.parentFrame.orbitalBox.refreshDate()
+			#self.parentFrame.orbitalBox.refreshDate()
+			# switch to main panel to display orbit
+			self.nb.SetSelection(PANEL_MAIN)
 
 			# If slide show in progress, stop it, and reset body List
 			self.parentFrame.orbitalBox.stopSlideSHow()
@@ -619,44 +615,25 @@ class JPLpanel(AbstractUI):
 				toggle = True
 			self.parentFrame.orbitalBox.currentBody.toggleSize(toggle)
 
-	
-	def searchByName(self, host, url):
+		return id
+
+	def searchByName(self, hostt, url, type):
 		# start a new thread to retrieve a particular body from JPL. The
 		#jplThread = threading.Thread(target=self.doFetchByName, name="SearchByName", args=[host, urllib.quote(url)] )
 		#jplThread.start()
 
 		# add code here
-		self.doFetchByName(host, urllib.quote(url))
+		if type == self.SRCH_DETAILED:
+			host = self.searchHostdes
+		else:
+			host = self.searchHostsstr
+		self.doFetchByName(host, urllib.quote(url), type)
 
 	def OnSearchListClick(self, e):
 		pdes = self.searchList.GetItem(itemId=e.m_itemIndex, col=1).GetText()
 		#print("searching -> "+self.searchHostdes+pdes)
-		self.searchByName(self.searchHostdes, pdes)
+		self.searchByName(self.searchHostdes, pdes, type = self.SRCH_DETAILED)
 
-
-	def OnNEOListClick(self, e):
-		# load orbital elements
-		id = self.loadBodyInfoFromDaily(e.m_itemIndex)
-		
-		# switch to main panel to display orbit
-		self.nb.SetSelection(PANEL_MAIN)
-		
-		# If slide show in progress, stop it, and reset body List
-		self.parentFrame.orbitalBox.stopSlideSHow()
-		self.parentFrame.orbitalBox.resetBodyList()
-
-		# make sure to reset the date using the selected object close encounter date time (provided as UTC)
-		self.parentFrame.orbitalBox.resetDateFromBodyId(id)
-		self.parentFrame.orbitalBox.refreshDate()
-
-		self.parentFrame.orbitalBox.setCurrentBodyFromId(id)
-		if self.SolarSystem.currentPOVselection == "curobj":
-			self.SolarSystem.currentPOV = self.parentFrame.orbitalBox.currentBody
-			self.parentFrame.orbitalBox.updateCameraPOV()
-		toggle = False
-		if self.SolarSystem.isRealsize():
-			toggle = True
-		self.parentFrame.orbitalBox.currentBody.toggleSize(toggle)
 
 	# attempt to use SPICE functions to obtain orbital elements
 	def GetOcltx(self, objectId, timeincrement):
@@ -696,7 +673,7 @@ class JPLpanel(AbstractUI):
 		#utc_close_approach = datetime.datetime.fromtimestamp(2459600.5)
 		#print ("FROM_TIMESTAMP = ", utc_close_approach)
 		
-		entry = self.jsonResp
+		entry = self.jsonBNResp
 		if "object" not in entry:
 			return -1
 
@@ -758,6 +735,10 @@ class JPLpanel(AbstractUI):
 		return spkid
 
 	def loadBodyInfoFromDaily(self, index):
+
+		if "near_earth_objects" not in self.jsonResp:
+			return -1
+
 		entry = self.jsonResp["near_earth_objects"][self.fetchDateStr][index]
 		print entry
 
@@ -765,19 +746,20 @@ class JPLpanel(AbstractUI):
 		if entry["neo_reference_id"] in objects_data:
 			return entry["neo_reference_id"]
 
-		# grab details link
-		#entry = self.fetchDetails(entry["links"]["self"])
+		# grab utc timestamp of encounter time and date (value is in ms, hence divide by 1000 to get the value in seconds)
 		utc_timestamp = entry["close_approach_data"][0]["epoch_date_close_approach"]*0.001
 		
-#		utc_close_approach = datetime.datetime.utcfromtimestamp(utc_timestamp)
-		utc_close_approach = datetime.datetime.fromtimestamp(utc_timestamp) #, tz=orbit3D.locationInfo.getPytzValue())
+		# make a datetime off of that timestamp 
+		utc_close_approach = datetime.datetime.fromtimestamp(utc_timestamp)
+
 		print "*******************"
 		print "FROM_TIMESTAMP = ", utc_close_approach, ", WITH TZ info=", datetime.datetime.fromtimestamp(utc_timestamp, tz=orbit3D.locationInfo.getPytzValue())
 		print "*******************"
+
 		# utc_close_approach is a naive datetime object
 		print "LOADBODY_INFO utc_close_approach= ", utc_close_approach, "UTC from timestamp=", utc_timestamp
 
-		# otherwise add data to dictionary
+		# Add data to dictionary
 		objects_data[entry["neo_reference_id"]] = {
 			"material": 0,
 			# epoch_date_close_approach comes as the number of milliseconds in unix TT
@@ -804,155 +786,17 @@ class JPLpanel(AbstractUI):
 			"axial_tilt": 0.0,
 			"utcstr": utc_close_approach.strftime('%Y-%m-%d %H:%M:%S'),
 			"utc_dt": utc_close_approach,
-#			"local": orbit3D.datetime_from_utc_to_local(utc_close_approach)
-#			"local": datetime.datetime.fromtimestamp(utc_timestamp) #, utc_close_approach.TZ)
 			"local_dt": orbit3D.timestamp_utc_to_local(utc_timestamp)
 		}
+
 		print "UTC time of approach   =========>", objects_data[entry["neo_reference_id"]]["utc_dt"]
 		print "Local time of approach --------->", objects_data[entry["neo_reference_id"]]["local_dt"]
-		"""
-		{'orbital_data': 
-			{'last_observation_date': '2021-05-25', 
-			 'equinox': 'J2000', 
-			 'first_observation_date': '2021-05-18', 
-			 'orbit_uncertainty': '8', 
-			 'aphelion_distance': '3.366832672811661', 
-			 'data_arc_in_days': 7, 
-			 'orbit_class': {
-			 					'orbit_class_type': 'APO', 
-			 					'orbit_class_description': 'Near-Earth asteroid orbits which cross the Earths orbit similar to that of 1862 Apollo', 
-			 					'orbit_class_range': 'a (semi-major axis) > 1.0 AU; q (perihelion) < 1.017 AU'
-			 				}, 
-			 'mean_anomaly': '350.1777410030417', 
-			 'orbital_period': '1161.694290418128', 
-			 'ascending_node_longitude': '65.36895860260729', 
-			 'orbit_id': '6', 
-			 'inclination': '9.045387641087999', 
-			 'observations_used': 28, 
-			 'epoch_osculation': '2459354.5', 
-			 'mean_motion': '.3098922005293023', 
-			 'jupiter_tisserand_invariant': '3.464', 
-			 'orbit_determination_date': '2021-05-25 09:49:07', 
-			 'perihelion_time': '2459386.195728321596', 
-			 'eccentricity': '.5567752354409493', 
-			 'perihelion_argument': '211.3061357765496', 
-			 'minimum_orbit_intersection': '.00110192', 
-			 'semi_major_axis': '2.162696705448312', 
-			 'perihelion_distance': '.9585607380849626'
-			}, 
-		'links': {
-			'self': 'http://www.neowsapp.com/rest/v1/neo/54146674?api_key=KTTV4ZQFuTywtkoi3gA59Qdlk5H2V1ry6UdYL0xU'
-		}, 
-		'nasa_jpl_url': 'http://ssd.jpl.nasa.gov/sbdb.cgi?sstr=54146674', 
-		'absolute_magnitude_h': 26.119, 
-		'estimated_diameter': {
-			'feet': {
-				'estimated_diameter_max': 116.4729378467, 
-				'estimated_diameter_min': 52.0882813128
-			}, 
-			'miles': {
-				'estimated_diameter_max': 0.022059261, 
-				'estimated_diameter_min': 0.0098652014
-			}, 
-			'meters': {
-				'estimated_diameter_max': 35.5009503196, 
-				'estimated_diameter_min': 15.8765076361
-			}, 
-			'kilometers': {
-				'estimated_diameter_max': 0.0355009503, 
-				'estimated_diameter_min': 0.0158765076
-			}
-		}, 
-		'close_approach_data': [{
-								'epoch_date_close_approach': 1622077320000L, 
-								'orbiting_body': 'Earth', 
-								'close_approach_date': '2021-05-27', 
-								'relative_velocity': {
-									'kilometers_per_second': '11.1194145219', 
-									'miles_per_hour': '24873.0183439614', 
-									'kilometers_per_hour': u'40029.8922787165'
-								},
-								'miss_distance': {
-									'astronomical': '0.0040865681', 
-									'miles': '379870.2315093886', 
-									'lunar': '1.5896749909', 
-									'kilometers': '611341.883369947'
-								}, 
-								'close_approach_date_full': '2021-May-27 01:02'
-								}], 
-		'neo_reference_id': '54146674', 
-		'is_potentially_hazardous_asteroid': False, 
-		'is_sentry_object': False, 
-		'id': '54146674', 
-		'name': '(2021 KP)'
-	}
-		"""
-
-		"""
-		{
-		'epochJD': 2459352.5, 
-		'Tp_Time_of_perihelion_passage_JD': 2459406.6742558605, 
-		'radius': 0.0084763715, 
-		'orbit_class': 'N/A', 
-		'iau_name': u'(2021 KW)', 
-		'W_argument_of_perihelion': 221.3606034753813, 
-		'earth_moid': 559452653.0018396, 
-		'local': datetime(2021, 5, 22, 8, 21), 
-		'material': 0, 
-		'utc': '2021-05-22 15:21:00', 
-		'IN_orbital_inclination': 0.3739940530040262, 
-		'epoch_date_close_approach': datetime(2021, 5, 22, 15, 21), 
-		'N_mean_motion': 0.46579168692434, 
-		'jpl_designation': u'54146681', 
-		'QR_perihelion': 110379200877.4296, 
-		'EC_e': 0.5523345202621396, 
-		'name': u'(2021 KW)', 
-		'longitude_of_perihelion': 317.9484100244705, 
-		'OM_longitude_of_ascendingnode': 96.58780654908915, 
-		'absolute_mag': 27.724, 
-		'mass': 0.0, 
-		'axial_tilt': 0.0, 
-		'MA_mean_anomaly':334.7660819748012, 
-		'PR_revolution': 772.8776835351206
-		}
-		"""
 
 		# convert UTC to local time
 		utcNewdate = objects_data[entry["neo_reference_id"]]["utc_dt"]
-
-		# for animation sake, calculate the dayIncrement
-		
-		#utcNewdate = objects_data[entry["neo_reference_id"]]["utc"]
-
-		# /////////////////////////////////
-		if False:
-			self.SolarSystem.utcTimeInCurrentDay = (utcNewdate).hour * TI_ONE_HOUR + \
-												(utcNewdate).minute * TI_ONE_MINUTE + \
-												(utcNewdate).second * TI_ONE_SECOND
-			self.SolarSystem.utcDaysIncrement = (utcNewdate.day - self.SolarSystem.utcTodayDate.day) + self.SolarSystem.utcTimeInCurrentDay
-			print "UTC time in current day=", self.SolarSystem.utcTimeInCurrentDay
-			print "UTC days increment=", self.SolarSystem.utcDaysIncrement
-		# /////////////////////////////////
-
-
 		LocNewdate = objects_data[entry["neo_reference_id"]]["local_dt"]
 
-		if False:
-			self.SolarSystem.TimeInCurrentDay = (LocNewdate).hour * TI_ONE_HOUR + \
-												(LocNewdate).minute * TI_ONE_MINUTE + \
-												(LocNewdate).second * TI_ONE_SECOND
-	#		self.SolarSystem.DaysIncrement = (LocNewdate.day - self.SolarSystem.todayDate.tm_mday) + self.SolarSystem.TimeInCurrentDay
-			self.SolarSystem.DaysIncrement = (LocNewdate.day - self.SolarSystem.todayDate.day) + self.SolarSystem.TimeInCurrentDay
-
-			print "LOCAL time in current day=", self.SolarSystem.TimeInCurrentDay
-			print "LOCAL days increment=", self.SolarSystem.DaysIncrement
-
-			print objects_data[entry["neo_reference_id"]]
-
 		# print time of closest approach on this date
-		#utc = datetime.utcfromtimestamp(objects_data[entry["neo_reference_id"]]["epoch_date_close_approach"])
-		#print "Local Time of approach: ", orbit3D.datetime_from_utc_to_local(utc_close_approach).strftime('%Y-%m-%d %H:%M:%S')
- 		#print "Local Time of approach: ", datetime.datetime.fromtimestamp(utc_timestamp)
  		print ">>> Local Time of approach: ", objects_data[entry["neo_reference_id"]]["local_dt"]
 
 		# CLose approach objects are considered as PHAs
