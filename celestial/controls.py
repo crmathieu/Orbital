@@ -158,9 +158,9 @@ class AbstractUI(wx.Panel):
 		self.checkboxList[type] = cb
 
 
-# CLASS controlWindow ---------------------------------------------------------
+# CLASS orbitalControl ---------------------------------------------------------
 # This is the GUI entry point
-class controlWindow(wx.Frame):
+class orbitalControl(wx.Frame):
 
 	def __init__(self, solarsystem):
 		newHeight = INFO1_Y+300 # +220
@@ -186,10 +186,10 @@ class controlWindow(wx.Frame):
 		#self.getLocationFromIPaddress()
 
 		# if we want flyOver animation
-		#self.orbitalBox.SetAnimationCallback(orbit3D.flyover_approach)
-
+		#if self.AutoRotation.GetValue() == True:
+		#	self.orbitalBox.SetAnimationCallback(self.SolarSystem.camera.oneTickCameraCombination, (zoom=True, zoom_forward=True))
+			#self.SolarSystem.camera.oneTickCameraCombination(zoom=True, zoom_forward=True)
 		self.orbitalBox.Show()
-
 
 
 # CLASS POVpanel --------------------------------------------------------------
@@ -426,7 +426,7 @@ class JPLpanel(AbstractUI):
 	def onSearch(self, e):
 		print ("ENTER"+self.search.GetValue())
 		self.searchList.DeleteAllItems()
-		self.searchByName(self.searchHostsstr, self.search.GetValue(), type=self.SRCH_BROAD)
+		self.searchByName(self.searchHostsstr, self.search.GetValue(), searchtype=self.SRCH_BROAD)
 		
 	def OnNext(self, e):
 		self.oneDay(1, "", self.nextUrl) #NASA_API_V1_FEED_TODAY_HOST, self.nextUrl)
@@ -617,22 +617,24 @@ class JPLpanel(AbstractUI):
 
 		return id
 
-	def searchByName(self, hostt, url, type):
-		# start a new thread to retrieve a particular body from JPL. The
-		#jplThread = threading.Thread(target=self.doFetchByName, name="SearchByName", args=[host, urllib.quote(url)] )
-		#jplThread.start()
+	def searchByName(self, hostt, url, searchtype):
 
 		# add code here
-		if type == self.SRCH_DETAILED:
+		if searchtype == self.SRCH_DETAILED:
 			host = self.searchHostdes
 		else:
 			host = self.searchHostsstr
-		self.doFetchByName(host, urllib.quote(url), type)
+
+		# start a new thread to retrieve a particular body from JPL. The
+		#jplThread = threading.Thread(target=self.doFetchByName, name="SearchByName", args=[host, urllib.quote(url), searchtype] )
+		#jplThread.start()
+
+		self.doFetchByName(host, urllib.quote(url), searchtype)
 
 	def OnSearchListClick(self, e):
 		pdes = self.searchList.GetItem(itemId=e.m_itemIndex, col=1).GetText()
 		#print("searching -> "+self.searchHostdes+pdes)
-		self.searchByName(self.searchHostdes, pdes, type = self.SRCH_DETAILED)
+		self.searchByName(self.searchHostdes, pdes, searchtype = self.SRCH_DETAILED)
 
 
 	# attempt to use SPICE functions to obtain orbital elements
@@ -1397,9 +1399,9 @@ class orbitalCtrlPanel(AbstractUI):
 		sleep(1e-4)
 
 
-	def SetAnimationCallback(self, callbackFunc):
+	def SetAnimationCallback(self, callbackFunc, args):
 		self.DisableAnimationCallback = True
-		self.AnimationCallback = callbackFunc
+		self.AnimationCallback = callbackFunc(args)
 		self.DisableAnimationCallback = False
 
 	def OnAnimateTest(self, e):

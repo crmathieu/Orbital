@@ -12,6 +12,7 @@ try:
     from wx import glcanvas
 except ImportError:
     print("\n\nUnable to import glcanvas\n\n")
+    
 import os as _os
 import sys as _sys
 import time as _time
@@ -595,7 +596,7 @@ class display(cvisual.display_kernel):
 
     # CM: returns the mouse tracker, if needed
     def getMouseTracker(self):
-	    return self._mt
+        return self._mt
 
     def select(self):
         cvisual.display_kernel.set_selected(self)
@@ -891,11 +892,13 @@ class display(cvisual.display_kernel):
         self._OnMiddleMouseDown(evt)
         
     def _OnLeftMouseDown(self, evt):
+        print("Mouse down")
         self._mt.leftDown()
         self._report_mouse_state(evt)
         evt.Skip() # to permit setting focus
 
     def _OnLeftMouseUp(self, evt):
+        print("Mouse up")
         self._mt.leftUp()
         self._report_mouse_state(evt)
 

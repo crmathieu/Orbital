@@ -32,35 +32,37 @@ from celestial.controls import *
 
 #from controls import *
 
-def main():
+def bootSolarSystem():
 	# determine where this program runs 
 	#locationInfo = location()
 	
 
-	solSystem = solarSystem()
+	solSystem = makeSolarSystem()
+
 	# set what is displayed by default
 	bodySet = pd.INNERPLANET|pd.OUTERPLANET|pd.ORBITS|pd.SATELLITE|pd.LABELS
 	solSystem.setDefaultFeatures(bodySet) #pd.INNERPLANET|pd.OUTERPLANET|pd.ORBITS|pd.SATELLITE|pd.KUIPER_BELT|pd.ASTEROID_BELT|pd.JTROJANS|pd.LABELS|pd.CELESTIAL_SPHERE)
 #	solSystem.setDefaultFeatures(pd.INNERPLANET|pd.OUTERPLANET|pd.ORBITS|pd.SATELLITE|pd.KUIPER_BELT|pd.ASTEROID_BELT|pd.JTROJANS|pd.LABELS|pd.CELESTIAL_SPHERE)
 #	solSystem.setDefaultFeatures(pd.INNERPLANET|pd.OUTERPLANET|pd.ORBITS)
 
-	solSystem.addTo(makeEcliptic(solSystem, color.cyan, 0.4))
-	solSystem.addTo(planet(solSystem, 'mercury', color.green, pd.INNERPLANET, pd.INNERPLANET, pd.PLANET_SZ_CORRECTION))
-	solSystem.addTo(planet(solSystem, 'venus', color.yellow, pd.INNERPLANET, pd.INNERPLANET, pd.PLANET_SZ_CORRECTION))
-
+	# make bodyies we have satellites for
 	earth = makeEarth(solSystem, color.cyan, pd.INNERPLANET, pd.INNERPLANET, pd.PLANET_SZ_CORRECTION)
 	solSystem.addTo(earth)
 
 	mars = planet(solSystem, 'mars', color.red, pd.INNERPLANET, pd.INNERPLANET, pd.PLANET_SZ_CORRECTION)
 	solSystem.addTo(mars)
-	
+
+	pluto = planet(solSystem, 'pluto', color.green, pd.DWARFPLANET, pd.DWARFPLANET, pd.DWARFPLANET_SZ_CORRECTION) #pd.OUTERPLANET, DWARFPLANET)
+	solSystem.addTo(pluto)
+
+
+	solSystem.addTo(makeEcliptic(solSystem, color.cyan, 0.4))
+	solSystem.addTo(planet(solSystem, 'mercury', color.green, pd.INNERPLANET, pd.INNERPLANET, pd.PLANET_SZ_CORRECTION))
+	solSystem.addTo(planet(solSystem, 'venus', color.yellow, pd.INNERPLANET, pd.INNERPLANET, pd.PLANET_SZ_CORRECTION))
 	solSystem.addTo(planet(solSystem, 'jupiter', color.magenta, pd.OUTERPLANET, pd.GASGIANT, pd.PLANET_SZ_CORRECTION))
 	solSystem.addTo(planet(solSystem, 'saturn', color.cyan, pd.OUTERPLANET, pd.GASGIANT, pd.PLANET_SZ_CORRECTION))
 	solSystem.addTo(planet(solSystem, 'uranus', color.yellow, pd.OUTERPLANET, pd.GASGIANT, pd.PLANET_SZ_CORRECTION))
 	solSystem.addTo(planet(solSystem, 'neptune', color.orange, pd.OUTERPLANET, pd.GASGIANT, pd.PLANET_SZ_CORRECTION))
-
-	pluto = planet(solSystem, 'pluto', color.green, pd.DWARFPLANET, pd.DWARFPLANET, pd.DWARFPLANET_SZ_CORRECTION) #pd.OUTERPLANET, DWARFPLANET)
-	solSystem.addTo(pluto)
 
 #	solSystem.setRings(solSystem, "saturn") #, [((0.8,0.8,0.8), 0.9), ((0.5,0.5,0.5), 0.2)]) 
 #	solSystem.setRings(solSystem, "uranus") #, [((0.1,0.1,0.8), 0.1), ((0.2,0.2,0.7), 0.3)])
@@ -93,44 +95,31 @@ def main():
 	loadBodies(solSystem, BIG_ASTEROID,"data/200km+asteroids_orbital_elements.txt.json", MAX_OBJECTS)
 	loadBodies(solSystem, COMET, "data/200m+comets_orbital_elements.txt.json", MAX_OBJECTS)
 	loadBodies(solSystem, TRANS_NEPT, "data/transNeptunian_objects.txt.json", MAX_OBJECTS)
-
 	loadBodies(solSystem, SPACECRAFT, "data/spacecrafts_orbital_elements.txt.json", MAX_OBJECTS)
-	
-	# !!!!!!!!!!!!!!!!!!!!!!!!!! test
+
 	solSystem.drawAllBodiesTrajectory()
-
-	#loadBodies(solSystem, pd.SATELLITE, "pd.SATELLITEs.txt", MAX_OBJECTS)
-
-	# TEST TEST, should be uncommented!!!!!!!!!!!!
-	#solSystem.drawAllBodiesTrajectory()
-
-
-	#solSystem.updateCameraPOV(earth)
-	#print solSystem.currentPOV.Name
-	
 	glbRefresh(solSystem, False)
 
 	# Start control window
-	print wx.version()
+	print (wx.version())
 	#print julian(1, 1, 2000)
 
 
-	#flyingC = flyingCamera(solSystem)
-	#flyingC.MT.OnFakeLeftMouseDown()
-
+	# start wxPython application
 	ex = wx.App(False)
-	cw = controlWindow(solSystem)
-	cw.povBox.setCurrentBodyFocusManually(earth, 2)
-	cw.Show()
+	oc = orbitalControl(solSystem)
+	oc.povBox.setCurrentBodyFocusManually(earth, 2)
+	oc.Show()
 
-	solSystem.introZoomIn()
-	
+	solSystem.introZoomIn(38)
+	#ex.MainLoop()
+
 	#solSystem.camera.cameraZoom(10)
 
 	while True:
 		sleep(2)
-		earth.updateStillPosition(cw.orbitalBox, 2)
+	#	earth.updateStillPosition(cw.orbitalBox, 2)
 
 
 if __name__ == '__main__' :
-	main()
+	bootSolarSystem()

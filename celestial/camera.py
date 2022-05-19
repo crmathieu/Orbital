@@ -46,8 +46,10 @@ ZOOM_OUT = 2
 
 class camera:
 
+
 	def __init__(self, display):
 		self.canvas = display
+		self.MAX_ZOOM_VELOCITY = 50
 		
 	def oneTickCameraZoom(self, forward = True):
 		# for camera zoom motion, both right and left mouse buttons must be held down
@@ -147,8 +149,8 @@ class camera:
 			sleep(1e-2)
 
 	def cameraSet(self, velocity):
-		if velocity > 35:
-			velocity = 35
+		if velocity > self.MAX_ZOOM_VELOCITY:
+			velocity = self.MAX_ZOOM_VELOCITY
 		elif velocity < 0:
 			velocity = 1
 		self.cameraZoom(duration=1, velocity=velocity)

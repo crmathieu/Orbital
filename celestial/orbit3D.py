@@ -39,7 +39,7 @@ from camera import *
 locationInfo = Timeloc() 
 
 # CLASS SOLARSYSTEM -----------------------------------------------------------
-class solarSystem:
+class makeSolarSystem:
 
 	INNER_RING_COEF = 1.3
 	OUTER_RING_COEF = 1.9
@@ -146,9 +146,9 @@ class solarSystem:
 
 		#self.Scene.scale = self.Scene.scale * 10
 
-	def introZoomIn(self):
+	def introZoomIn(self, velocity):
 		self._set_autoMovement(True)
-		self.camera.cameraSet(velocity=20)
+		self.camera.cameraSet(velocity)
 		self._set_autoMovement(False)
 
 	def _set_autoMovement(self, is_movement):
