@@ -1505,7 +1505,6 @@ class WIDGETSpanel(AbstractUI):
 		self.ca_deltaT = 0
 		self.Earth = self.SolarSystem.EarthRef
 		self.checkboxList = {}
-
 		#self.drawEquator()
 		#self.drawTimeZone()
 
@@ -1545,44 +1544,40 @@ class WIDGETSpanel(AbstractUI):
 		#self.ValidateDate.Bind(wx.EVT_BUTTON, self.OnValidateDate)
 
 
-		self.createCheckBox(self, "Equator", INNERPLANET, 20, CHK_L1)
-		self.createCheckBox(self, "Time Zones", OUTERPLANET, 20, CHK_L2)
-		self.createCheckBox(self, "Referential", REFERENTIAL, 20, CHK_L3)
+		self.eqcb = wx.CheckBox(self, label="Equator", pos=(200, CHK_L1)) #   POV_Y+560))
+		self.eqcb.SetValue(False)
+		self.eqcb.Bind(wx.EVT_CHECKBOX,self.OnDrawEquator)
 
-		#self.createBodyList(200, LSTB_Y)
+		self.eqpcb = wx.CheckBox(self, label="Equatorial Plane", pos=(200, CHK_L2)) #   POV_Y+560))
+		self.eqpcb.SetValue(False)
+		self.eqpcb.Bind(wx.EVT_CHECKBOX,self.OnDrawEquatorialPlane)
 
-		cbtn = wx.Button(self, label='Refresh', pos=(20, CHK_L14))
-		cbtn.Bind(wx.EVT_BUTTON, self.OnRefresh)
+		self.tzcb = wx.CheckBox(self, label="Time Zones", pos=(200, CHK_L3)) #   POV_Y+560))
+		self.tzcb.SetValue(False)
+		self.tzcb.Bind(wx.EVT_CHECKBOX,self.OnDrawTimeZones)
 
-	def OnRefresh(self, e):
-		pass
+	def OnDrawEquator(self, e):
+		self.Earth.showEquator(self.eqcb.GetValue())
 
-	def OnRadioBox(self, e):
-		index = self.rbox.GetSelection()
+	def OnDrawEquatorialPlane(self, e):
+		self.Earth.showEquatorialPlane(self.eqpcb.GetValue())
 
-		self.SolarSystem.currentPOVselection = {0: "curobj", 1: "sun", 2:"earth", 3:"mercury", 4:"venus",
-												5: "mars", 6:"jupiter", 7:"saturn", 8:"uranus", 9:"neptune",
-												10:"pluto", 11:"sedna", 12:"makemake", 13:"haumea", 14:"eris", 15:"charon", 16: "phobos", 17:"deimos", 18:"moon"}[index]
-		{0:	self.setCurrentBodyFocus, 1: self.setSunFocus,
-		 2: self.setPlanetFocus, 3: self.setPlanetFocus,
-		 4: self.setPlanetFocus, 5: self.setPlanetFocus,
-		 6: self.setPlanetFocus, 7: self.setPlanetFocus,
-		 8: self.setPlanetFocus, 9: self.setPlanetFocus,
-		 10: self.setPlanetFocus, 11: self.setPlanetFocus,
-		 12: self.setPlanetFocus, 13: self.setPlanetFocus,
-		 14: self.setPlanetFocus, 15: self.setPlanetFocus,
-		 16: self.setPlanetFocus, 17: self.setPlanetFocus,
-		 18: self.setPlanetFocus }[index]()
+	def OnDrawTimeZones(self, e):
+		self.Earth.showTimeZones(self.tzcb.GetValue())
 
-		self.setLocalRef()
+	def setEquatorXX(self):
+		self.eq = cylinder(frame=self.Origin, pos=(0,0,0), color=color.cyan, radius=self.BodyShape.radius*1.004, length=self.BodyShape.radius*0.003)
+		self.eq.rotate(angle=(pi/2), axis=self.YdirectionUnit, origine=(0,0,0))
 
-	def drawEquator(self):
-		print "draw equator..."
-		#self.eq = cylinder(frame=self.Earth.Origin, pos=(0,0,0), color=color.blue, radius=self.Earth.BodyShape.radius*1.003, length=self.Earth.BodyShape.radius*0.003)
-		self.eq = cylinder(frame=self.Earth.Origin, pos=(0,0,0), color=color.cyan, radius=self.Earth.BodyShape.radius*1.004, length=self.Earth.BodyShape.radius*0.003)
-		self.eq.rotate(angle=(pi/2), axis=self.Earth.YdirectionUnit, origine=(0,0,0))
+	def setEquatorialPlaneXX(self):
+		side = 0.5*AU*DIST_FACTOR
+		self.equPlane = cylinder(frame=self.Origin, pos=vector(0,0,0), radius=side/2, color=self.Color, length=5, opacity=self.Opacity, axis=(0,0,1), material=materials.emissive, visible=False)
+		self.equPlane.rotate(angle=self.TiltAngle, axis=self.XdirectionUnit, origine=(0,0,0))
 
-	def drawTimeZone(self):
-		for i in np.arange(0, pi, deg2rad(15)):
-			TZ = cylinder(frame=self.Earth.Origin, pos=(0,0,0), color=color.blue, radius=self.Earth.BodyShape.radius*1.003, length=self.Earth.BodyShape.radius*0.003)
-			TZ.rotate(angle=(i), axis=self.Earth.ZdirectionUnit, origine=(0,0,0))
+	def showEquatorialPlaneXX(self):
+		self.equPlane.visible = True
+
+	def hideEquatorialPlaneXX(self):
+		self.equPlane.visible = False
+
+

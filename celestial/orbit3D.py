@@ -222,7 +222,7 @@ class makeSolarSystem:
 		refOpRad = [[1.0, 200],[0.5, 50],[0.5,50]]
 		pos = vector(position)
 		for i in range (3): # Each direction
-			self.RefAxis[i] = curve( frame = None, color = color.red, pos= [ pos, pos+refDirections[i]], visible=False, emissive=True, radius=3)
+			self.RefAxis[i] = curve( frame = None, color = color.white, pos= [ pos, pos+refDirections[i]], material=materials.emissive, visible=False, radius=300)
 			
 			#self.RefAxis[i] = cylinder(pos=pos, axis=refDirections[i], color=color.white, emissive=True, opacity=refOpRad[i][0], radius=refOpRad[i][1]) 
 
@@ -412,7 +412,7 @@ class makeEcliptic:
 		self.Lines = []
 		self.BodyType = ECLIPTIC_PLANE
 		# bogus bodyShape
-		self.BodyShape = curve(pos=(0, 0, 0), size=1, color=(color[0]*0.5, color[1]*0.5, color[2]*0.5))
+		#self.BodyShape = curve(pos=(0, 0, 0), size=1, color=(color[0]*0.5, color[1]*0.5, color[2]*0.5))
 		self.Origin = frame()
 		self.Labels.append(label(pos=(250*AU*DIST_FACTOR, 250*AU*DIST_FACTOR, 0), text=self.Name, xoffset=20, yoffset=12, space=0, height=10, border=6, box=false, font='sans', visible = False))
 
@@ -426,20 +426,31 @@ class makeEcliptic:
 	def draw(self):
 		pass
 
-	def drawXX(self):
-		self.Origin = frame()
+	def draw(self):
+		#self.Origin = frame()
 
 #		self.BodyShape = cylinder(frame=self.Origin, pos=vector(0,0,0), radius=250*AU*DIST_FACTOR, color=self.Color, length=10, opacity=self.Opacity, axis=(0,0,1))
 #		self.BodyShape = box(frame=self.Origin, pos=vector(0,0,0), length=250*AU*DIST_FACTOR, width=10, height=250*AU*DIST_FACTOR, color=self.Color, opacity=self.Opacity, axis=(1,0,0))
 		side = 250*AU*DIST_FACTOR
-		side = 0.5*AU*DIST_FACTOR
+		#side = 0.5*AU*DIST_FACTOR
 		earth = self.SolarSystem.getBodyFromName('earth')
 
 ##		self.BodyShape = box(frame=self.Origin, pos=vector(0,0,0), length=side, width=10, height=side, color=self.Color, opacity=self.Opacity, axis=(1,0,0))
 #		self.BodyShape = box(frame=self.SolarSystem.getBodyFromName('earth').Origin, pos=vector(earth.Position[0],earth.Position[1], 0), length=side, width=10, height=side, color=self.Color, opacity=self.Opacity, axis=(1,0,0))
-		self.BodyShape = box(frame=self.SolarSystem.getBodyFromName('earth').Origin, pos=vector(0, 0, 0), length=side, width=10, height=side, color=color.yellow, opacity=self.Opacity, axis=(1,0,0))
+		
+		
+		self.BodyShape = box(frame=self.Origin, pos=vector(0, 0, 0), length=side, width=5, height=side, material=materials.emissive, color=self.Color, opacity=0.1) #, axis=(0, 0, 1), opacity=0.8) #opacity=self.Opacity)
+		
+		#self.BodyShape = cylinder(frame=earth.Origin, pos=vector(0,0,0), radius=side/2, color=self.Color, length=10, opacity=self.Opacity, axis=(0,0,1), material=materials.emissive)
+		#self.BodyShape.rotate(angle=earth.TiltAngle, axis=earth.XdirectionUnit, origine=(0,0,0))
+
+		#self.cucu = box(frame=self.Origin, pos=vector(0, 0, 0), length=side*3, width=10, height=side*3, color=color.yellow)
+		#self.cucu = cylinder(frame=self.Origin, pos=vector(0,0,0), radius=250*AU*DIST_FACTOR, color=self.Color, length=10, opacity=self.Opacity, axis=(0,0,1))
+		#self.cucu = cylinder(frame=self.Origin, pos=vector(0,0,0), radius=250*AU*DIST_FACTOR, color=color.red, length=10, opacity=0.2, axis=(0,0,1))
+
 
 		#self.BodyShape.rotate(angle=(-self.SolarSystem.getBodyFromName('earth').TiltAngle), axis=self.SolarSystem.getBodyFromName('earth').ZdirectionUnit, origine=(0,0,0))
+		return
 
 		position = earth.Position
 		position[2] = 0 # make sure the z coordinate is for the ecliptic, not the earth's one
@@ -1227,9 +1238,37 @@ class makeEarth(planet):
 	def __init__(self, system, color, type, sizeCorrectionType, defaultSizeCorrection):
 		# corrective angle (earth only)
 		self.Gamma = 0
+		self.Opacity = 0.1
 
 		planet.__init__(self, system, "earth", color, type, sizeCorrectionType, defaultSizeCorrection)
+		self.setEquatorialPlane()
+		self.setEquator()
+		self.setTimeZones()
 
+	def setEquator(self):
+		self.eq = cylinder(frame=self.Origin, pos=(0,0,0), color=color.cyan, radius=self.BodyShape.radius*1.004, material=materials.emissive, length=self.BodyShape.radius*0.003, visible=False)
+		self.eq.rotate(angle=(pi/2), axis=self.YdirectionUnit, origine=(0,0,0))
+
+	def setEquatorialPlane(self):
+		side = 0.5*AU*DIST_FACTOR
+		self.equPlane = cylinder(frame=self.Origin, pos=vector(0,0,0), radius=side/2, color=self.Color, length=5, opacity=self.Opacity, axis=(0,0,1), material=materials.emissive, visible=False)
+		self.equPlane.rotate(angle=self.TiltAngle, axis=self.XdirectionUnit, origine=(0,0,0))
+
+	def setTimeZones(self):
+		self.TZ = frame()
+		for i in np.arange(0, pi, deg2rad(15)):
+			tz = cylinder(frame=self.TZ, pos=(0,0,0), color=color.cyan, radius=self.BodyShape.radius*1.003, length=self.BodyShape.radius*0.003)
+			tz.rotate(angle=(i), axis=self.ZdirectionUnit, origine=(0,0,0))
+		self.TZ.visible = True
+
+	def showEquatorialPlane(self, value):
+		self.equPlane.visible = value
+
+	def showEquator(self, value):
+		self.eq.visible = value
+
+	def showTimeZones(self, value):
+		self.TZ.visible = value
 
 	def initRotation(self):
 

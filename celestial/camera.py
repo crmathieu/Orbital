@@ -112,7 +112,6 @@ class camera:
 			self.oneTickCameraZoom(forward=True)
 			sleep(1e-2)
 
-
 	def oneTickCameraCombination(self, zoom=True, zoom_forward=True, rot_direction = ROT_HOR|ROT_RIGHT|ROT_VER|ROT_DWN):
 		# for camera combination motion, we alternate rotation and zoom 
 		# for zoom both right and left mouse buttons must be held down
