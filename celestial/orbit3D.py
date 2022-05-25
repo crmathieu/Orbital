@@ -1246,36 +1246,43 @@ class makeEarth(planet):
 		# corrective angle (earth only)
 		self.Gamma = 0
 		self.Opacity = 0.4
+		self.Eq = None
 
 		planet.__init__(self, system, "earth", ccolor, type, sizeCorrectionType, defaultSizeCorrection)
 
-		#self.setEquatorialPlane()
-		#self.setEquator()
-		#self.setTimeZones()
-		self.Eq = makeEquator(self)
-		#print color.orange
-		self.EqPlane = makeEquatorialPlane(self, color.orange, opacity=self.Opacity)
-		self.TZ = makeTimezones(self)
-		self.Lats = makeLatitudes(self)
+		# initialize widgets while in neutral position
+		self.initWidgets()
+
+	def initWidgets(self):
+		
+		self.Widgets = makeEarthWidgets(self)
+
+		self.Eq = makeEquator(self.Widgets)
+		self.EqPlane = makeEquatorialPlane(self.Widgets, color.orange, opacity=self.Opacity)
+		self.TZ = makeTimezones(self.Widgets)
+		self.Lats = makeLatitudes(self.Widgets)
+		# align with planet tilt
+		self.Widgets.Origin.rotate(angle=(self.TiltAngle), axis=self.XdirectionUnit) #, origin=(0,0,0))
+
+	def setWidgetsRotation(self):
+		ti = self.SolarSystem.getTimeIncrement()
+		RotAngle = (2*pi/self.Rotation)*ti
+		# if polar axis inverted, reverse rotational direction
+		if self.ZdirectionUnit[2] < 0:
+			RotAngle *= -1
+
+		#self.updateAxis()
+		self.Widgets.Origin.rotate(angle=RotAngle, axis=self.RotAxis, origin=self.Widgets.Origin.pos) #(self.Position[X_COOR]+self.Foci[X_COOR],self.Position[Y_COOR]+self.Foci[Y_COOR],self.Position[Z_COOR]+self.Foci[Z_COOR]))
+
 
 	def animate(self, timeIncrement):
 		velocity, distance = planet.animate(self, timeIncrement)
-		self.Eq.updateNodesPosition()
-		self.Eq.refreshNodes()		
+		if self.Eq != None:
+			self.Widgets.Origin.pos = self.Origin.pos
+			self.setWidgetsRotation()
+			self.Eq.updateNodesPosition()
+			self.Eq.refreshNodes()		
 		return velocity, distance
-
-	def setEquatorialPlaneXX(self):
-		side = 0.5*AU*DIST_FACTOR
-		self.equPlane = cylinder(frame=self.Origin, pos=vector(0,0,0), radius=side/2, color=color.orange, length=5, opacity=self.Opacity, axis=(0,0,1), material=materials.emissive, visible=False)
-		self.equPlane.rotate(angle=self.TiltAngle, axis=self.XdirectionUnit, origin=(0,0,0))
-
-	def setTimeZonesXX(self):
-		self.tz = []
-		k = 0		
-		for i in np.arange(0, pi, deg2rad(15)):
-			self.tz.append(cylinder(frame=self.Origin, pos=(0,0,0), color=color.cyan, radius=self.BodyShape.radius*1.003, length=self.BodyShape.radius*0.003, visible=False))
-			self.tz[k].rotate(angle=(i), axis=self.ZdirectionUnit, origin=(0,0,0))
-			k += 1
 
 	def showEquatorialPlane(self, value):
 		self.EqPlane.display(value)
@@ -1289,13 +1296,15 @@ class makeEarth(planet):
 	def showLongitudes(self, value):
 		self.TZ.display(value)
 
+	# overrides the default initRotation in makeBody superclass
 	def initRotation(self):
 
 		# texture alignment correction coefficient. This is to take 
 		# into account the initial mapping of texture on sphere
 		TEXTURE_POSITIONING_CORRECTION = 2*pi/5 #pi/12
 
-		# we need to rotate around X axis by pi/2 to properly align the planet's texture
+		# we need to rotate around X axis by pi/2 to properly align the planet's texture,
+		# and also, we need to take into account planet tilt around X axis 
 		self.BodyShape.rotate(angle=(pi/2+self.TiltAngle), axis=self.XdirectionUnit, origin=(0,0,0))
 
 		# then further rotation will apply to Z axis

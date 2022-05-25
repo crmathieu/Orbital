@@ -1576,6 +1576,13 @@ class WIDGETSpanel(AbstractUI):
 		self.lrcb.SetValue(False)
 		self.lrcb.Bind(wx.EVT_CHECKBOX,self.OnLocalRef)
 
+		self.hpcb = wx.CheckBox(self, label="Hide Planet", pos=(50, CHK_L7)) #   POV_Y+560))
+		self.hpcb.SetValue(False)
+		self.hpcb.Bind(wx.EVT_CHECKBOX,self.OnHidePlanet)
+
+	def OnHidePlanet(self, e):
+		self.Earth.Origin.visible = not self.hpcb.GetValue()
+
 	def OnDrawEquator(self, e):
 		self.Earth.showEquator(self.eqcb.GetValue())
 
