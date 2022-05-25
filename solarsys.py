@@ -55,8 +55,14 @@ def bootSolarSystem():
 	pluto = planet(solSystem, 'pluto', color.green, pd.DWARFPLANET, pd.DWARFPLANET, pd.DWARFPLANET_SZ_CORRECTION) #pd.OUTERPLANET, DWARFPLANET)
 	solSystem.addTo(pluto)
 
+	# generate pd.SATELLITEs
+	#solSystem.addTo(satellite(solSystem, 'moon', color.white, earth))
+	solSystem.addTo(satellite(solSystem, 'phobos', color.red, mars))
+	solSystem.addTo(satellite(solSystem, 'deimos', color.white, mars))
+	solSystem.addTo(satellite(solSystem, 'charon', color.white, pluto))
 
 	solSystem.addTo(makeEcliptic(solSystem, color.cyan, 0.4))
+
 	solSystem.addTo(planet(solSystem, 'mercury', color.green, pd.INNERPLANET, pd.INNERPLANET, pd.PLANET_SZ_CORRECTION))
 	solSystem.addTo(planet(solSystem, 'venus', color.yellow, pd.INNERPLANET, pd.INNERPLANET, pd.PLANET_SZ_CORRECTION))
 	solSystem.addTo(planet(solSystem, 'jupiter', color.magenta, pd.OUTERPLANET, pd.GASGIANT, pd.PLANET_SZ_CORRECTION))
@@ -73,11 +79,6 @@ def bootSolarSystem():
 	solSystem.addTo(dwarfPlanet(solSystem, 'sedna', color.orange))
 	solSystem.addTo(dwarfPlanet(solSystem, 'haumea', color.white))
 
-	# generate pd.SATELLITEs
-	solSystem.addTo(satellite(solSystem, 'moon', color.white, earth))
-	solSystem.addTo(satellite(solSystem, 'phobos', color.red, mars))
-	solSystem.addTo(satellite(solSystem, 'deimos', color.white, mars))
-	solSystem.addTo(satellite(solSystem, 'charon', color.white, pluto))
 
 	# generate Belts
 	solSystem.addTo(makeBelt(solSystem, 'kuiper', 'Kuiper Belt', pd.KUIPER_BELT, color.cyan, 2, 4))
@@ -108,7 +109,7 @@ def bootSolarSystem():
 	# start wxPython application
 	ex = wx.App(False)
 	oc = orbitalControl(solSystem)
-	oc.povBox.setCurrentBodyFocusManually(earth, 2)
+	oc.povTab.setCurrentBodyFocusManually(earth, 2)
 	oc.Show()
 
 	solSystem.introZoomIn(38)

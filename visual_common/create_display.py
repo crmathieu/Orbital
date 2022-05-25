@@ -892,13 +892,13 @@ class display(cvisual.display_kernel):
         self._OnMiddleMouseDown(evt)
         
     def _OnLeftMouseDown(self, evt):
-        print("Mouse down")
+        #print("Mouse down")
         self._mt.leftDown()
         self._report_mouse_state(evt)
         evt.Skip() # to permit setting focus
 
     def _OnLeftMouseUp(self, evt):
-        print("Mouse up")
+        #print("Mouse up")
         self._mt.leftUp()
         self._report_mouse_state(evt)
 
@@ -979,7 +979,7 @@ class display(cvisual.display_kernel):
             else:
                 # cursor is based on (0,0) of the window; our (x,y) is based on (0,0) of the 3D display
                 self._cursorx, self._cursory = (int(self._x)+x, int(self._y)+y)
-            print ("Capture Mouse!")
+            #print ("Capture Mouse!")
             self._canvas.CaptureMouse()
             self._captured = True
         elif self._captured and not (spinning or zooming):
@@ -987,7 +987,7 @@ class display(cvisual.display_kernel):
             self._lastx = x = self._cursorx
             self._lasty = y = self._cursory
             set_cursor(self.canvas, self.cursor_state)
-            print ("Release Mouse!")
+            #print ("Release Mouse!")
             self._canvas.ReleaseMouse()          
             self._captured = False
         

@@ -183,11 +183,11 @@ class makeSolarSystem:
 
 	def setRotation(self):
 		self.RotAngle = abs((2*pi/self.Rotation)*self.TimeIncrement)
-		self.BodyShape.rotate(angle=self.RotAngle, axis=self.RotAxis, origine=(0,0,0))
+		self.BodyShape.rotate(angle=self.RotAngle, axis=self.RotAxis, origin=(0,0,0))
 
 	def initRotation(self):
 		# this is necessary to align the planet's texture properly
-		self.BodyShape.rotate(angle=pi/2+self.TiltAngle, axis=self.XdirectionUnit, origine=(0,0,0))
+		self.BodyShape.rotate(angle=pi/2+self.TiltAngle, axis=self.XdirectionUnit, origin=(0,0,0))
 		self.RotAxis = self.ZdirectionUnit
 
 	def isFeatured(self, type):
@@ -327,10 +327,11 @@ class makeSolarSystem:
 				else:
 					pass
 			else: # belts / rings
-				if body.BodyShape.visible == True and animationInProgress == True:
-					body.BodyShape.visible = False
-					for i in range(len(body.Labels)):
-						body.Labels[i].visible = False
+				if body.BodyType != ECLIPTIC_PLANE:
+					if body.BodyShape.visible == True and animationInProgress == True:
+						body.BodyShape.visible = False
+						for i in range(len(body.Labels)):
+							body.Labels[i].visible = False
 
 		if self.ShowFeatures & LIT_SCENE != 0:
 			self.Scene.ambient = color.white
@@ -416,40 +417,44 @@ class makeEcliptic:
 		self.Origin = frame()
 		self.Labels.append(label(pos=(250*AU*DIST_FACTOR, 250*AU*DIST_FACTOR, 0), text=self.Name, xoffset=20, yoffset=12, space=0, height=10, border=6, box=false, font='sans', visible = False))
 
-	def getIncrement(self):
+	def toggleSize(self, realisticSize):
+		pass
+
+	def getIncrementXX(self):
 		# provide 1 degree increment in radians
 		return pi/180
 
 	def rotate(self):
 		pass 
 
-	def draw(self):
+	def drawXX(self):
 		pass
 
 	def draw(self):
+		#print ("Drawing ecliptic")
 		#self.Origin = frame()
 
 #		self.BodyShape = cylinder(frame=self.Origin, pos=vector(0,0,0), radius=250*AU*DIST_FACTOR, color=self.Color, length=10, opacity=self.Opacity, axis=(0,0,1))
 #		self.BodyShape = box(frame=self.Origin, pos=vector(0,0,0), length=250*AU*DIST_FACTOR, width=10, height=250*AU*DIST_FACTOR, color=self.Color, opacity=self.Opacity, axis=(1,0,0))
 		side = 250*AU*DIST_FACTOR
 		#side = 0.5*AU*DIST_FACTOR
-		earth = self.SolarSystem.getBodyFromName('earth')
+		#earth = self.SolarSystem.getBodyFromName('earth')
 
 ##		self.BodyShape = box(frame=self.Origin, pos=vector(0,0,0), length=side, width=10, height=side, color=self.Color, opacity=self.Opacity, axis=(1,0,0))
 #		self.BodyShape = box(frame=self.SolarSystem.getBodyFromName('earth').Origin, pos=vector(earth.Position[0],earth.Position[1], 0), length=side, width=10, height=side, color=self.Color, opacity=self.Opacity, axis=(1,0,0))
 		
 		
-		self.BodyShape = box(frame=self.Origin, pos=vector(0, 0, 0), length=side, width=5, height=side, material=materials.emissive, color=self.Color, opacity=0.1) #, axis=(0, 0, 1), opacity=0.8) #opacity=self.Opacity)
-		
+		self.BodyShape = box(frame=self.Origin, pos=vector(0, 0, 0), length=side, width=0.0001, height=side, material=materials.emissive, color=self.Color, opacity=0.1) #, axis=(0, 0, 1), opacity=0.8) #opacity=self.Opacity)
+		self.Origin.visible = False
 		#self.BodyShape = cylinder(frame=earth.Origin, pos=vector(0,0,0), radius=side/2, color=self.Color, length=10, opacity=self.Opacity, axis=(0,0,1), material=materials.emissive)
-		#self.BodyShape.rotate(angle=earth.TiltAngle, axis=earth.XdirectionUnit, origine=(0,0,0))
+		#self.BodyShape.rotate(angle=earth.TiltAngle, axis=earth.XdirectionUnit, origin=(0,0,0))
 
 		#self.cucu = box(frame=self.Origin, pos=vector(0, 0, 0), length=side*3, width=10, height=side*3, color=color.yellow)
 		#self.cucu = cylinder(frame=self.Origin, pos=vector(0,0,0), radius=250*AU*DIST_FACTOR, color=self.Color, length=10, opacity=self.Opacity, axis=(0,0,1))
 		#self.cucu = cylinder(frame=self.Origin, pos=vector(0,0,0), radius=250*AU*DIST_FACTOR, color=color.red, length=10, opacity=0.2, axis=(0,0,1))
 
 
-		#self.BodyShape.rotate(angle=(-self.SolarSystem.getBodyFromName('earth').TiltAngle), axis=self.SolarSystem.getBodyFromName('earth').ZdirectionUnit, origine=(0,0,0))
+		#self.BodyShape.rotate(angle=(-self.SolarSystem.getBodyFromName('earth').TiltAngle), axis=self.SolarSystem.getBodyFromName('earth').ZdirectionUnit, origin=(0,0,0))
 		return
 
 		position = earth.Position
@@ -486,7 +491,8 @@ class makeEcliptic:
 		"""
 
 	def refresh(self):
-		self.Origin.visible = True if self.SolarSystem.ShowFeatures & ECLIPTIC_PLANE != 0 else False
+		#print("Refresh Ecliptic")
+		self.Origin.visible = True if (self.SolarSystem.ShowFeatures & ECLIPTIC_PLANE) != 0 else False
 
 
 # CLASS MAKEBELT --------------------------------------------------------------
@@ -608,6 +614,7 @@ class makeBody:
 		self.SatelliteOf = satelliteof
 		self.isMoon = False
 		self.RealisticCorrectionSize = RealisticCorrectionSize
+		self.sizeCorrectionType = sizeCorrectionType
 
 		self.Foci = vector(satelliteof.Position[X_COOR], satelliteof.Position[Y_COOR], satelliteof.Position[Z_COOR])
 
@@ -647,7 +654,6 @@ class makeBody:
 		self.Rings 					= []
 		self.nRings 				= 0
 
-		self.sizeCorrectionType = sizeCorrectionType
 
 		self.Rotation = objects_data[key]["rotation"] if "rotation" in objects_data[key] else 0
 		self.RotAngle = 0
@@ -991,7 +997,7 @@ class makeBody:
 			self.setPolarCoordinates(E+rad_E)
 			# from R and Nu, calculate 3D coordinates and update current position
 			self.updatePosition(trace=True) #E*180/pi)
-			rate(5000)
+			rate(5000) # ??
 
 #		if self.BodyShape.visible:
 		if self.Origin.visible:
@@ -1014,7 +1020,7 @@ class makeBody:
 	def initRotation(self):
 		TEXTURE_POSITIONING_CORRECTION = pi/12
 		# we need to rotate around X axis by pi/2 to properly align the planet's texture
-		self.Origin.rotate(angle=(pi/2+self.TiltAngle), axis=self.XdirectionUnit, origine=(self.Position[X_COOR]+self.Foci[X_COOR],self.Position[Y_COOR]+self.Foci[Y_COOR],self.Position[Z_COOR]+self.Foci[Z_COOR]))
+		self.Origin.rotate(angle=(pi/2+self.TiltAngle), axis=self.XdirectionUnit, origin=(self.Position[X_COOR]+self.Foci[X_COOR],self.Position[Y_COOR]+self.Foci[Y_COOR],self.Position[Z_COOR]+self.Foci[Z_COOR]))
 
 		# then further rotation will apply to Z axis
 		self.RotAxis = self.ZdirectionUnit
@@ -1023,7 +1029,7 @@ class makeBody:
 		if "RA_1" in objects_data[self.ObjectIndex]:
 			T = daysSinceJ2000UTC()/36525. # T is in centuries
 			self.RA = objects_data[self.ObjectIndex]["RA_1"] + objects_data[self.ObjectIndex]["RA_2"] * T
-			self.Origin.rotate(angle=deg2rad(self.RA), axis=self.ZdirectionUnit, origine=(self.Position[X_COOR]+self.Foci[X_COOR],self.Position[Y_COOR]+self.Foci[Y_COOR],self.Position[Z_COOR]+self.Foci[Z_COOR]))
+			self.Origin.rotate(angle=deg2rad(self.RA), axis=self.ZdirectionUnit, origin=(self.Position[X_COOR]+self.Foci[X_COOR],self.Position[Y_COOR]+self.Foci[Y_COOR],self.Position[Z_COOR]+self.Foci[Z_COOR]))
 		#else:
 		#	print "No RA for " +self.Name
 
@@ -1037,7 +1043,7 @@ class makeBody:
 			self.RotAngle *= -1
 
 		self.updateAxis()
-		self.Origin.rotate(angle=self.RotAngle, axis=self.RotAxis, origine=(self.Position[X_COOR]+self.Foci[X_COOR],self.Position[Y_COOR]+self.Foci[Y_COOR],self.Position[Z_COOR]+self.Foci[Z_COOR]))
+		self.Origin.rotate(angle=self.RotAngle, axis=self.RotAxis, origin=(self.Position[X_COOR]+self.Foci[X_COOR],self.Position[Y_COOR]+self.Foci[Y_COOR],self.Position[Z_COOR]+self.Foci[Z_COOR]))
 
 	def updatePosition(self, trace = True):
 		self.setCartesianCoordinates()
@@ -1233,42 +1239,55 @@ class planet(makeBody):
 ADJUSTMENT_COEFFICIENT = 0.5
 
 # CLASS MAKEEARTH -------------------------------------------------------------
+from widgets import *
 class makeEarth(planet):
-	
-	def __init__(self, system, color, type, sizeCorrectionType, defaultSizeCorrection):
+
+	def __init__(self, system, ccolor, type, sizeCorrectionType, defaultSizeCorrection):
 		# corrective angle (earth only)
 		self.Gamma = 0
-		self.Opacity = 0.1
+		self.Opacity = 0.4
 
-		planet.__init__(self, system, "earth", color, type, sizeCorrectionType, defaultSizeCorrection)
-		self.setEquatorialPlane()
-		self.setEquator()
-		self.setTimeZones()
+		planet.__init__(self, system, "earth", ccolor, type, sizeCorrectionType, defaultSizeCorrection)
 
-	def setEquator(self):
-		self.eq = cylinder(frame=self.Origin, pos=(0,0,0), color=color.cyan, radius=self.BodyShape.radius*1.004, material=materials.emissive, length=self.BodyShape.radius*0.003, visible=False)
-		self.eq.rotate(angle=(pi/2), axis=self.YdirectionUnit, origine=(0,0,0))
+		#self.setEquatorialPlane()
+		#self.setEquator()
+		#self.setTimeZones()
+		self.Eq = makeEquator(self)
+		#print color.orange
+		self.EqPlane = makeEquatorialPlane(self, color.orange, opacity=self.Opacity)
+		self.TZ = makeTimezones(self)
+		self.Lats = makeLatitudes(self)
 
-	def setEquatorialPlane(self):
+	def animate(self, timeIncrement):
+		velocity, distance = planet.animate(self, timeIncrement)
+		self.Eq.updateNodesPosition()
+		self.Eq.refreshNodes()		
+		return velocity, distance
+
+	def setEquatorialPlaneXX(self):
 		side = 0.5*AU*DIST_FACTOR
-		self.equPlane = cylinder(frame=self.Origin, pos=vector(0,0,0), radius=side/2, color=self.Color, length=5, opacity=self.Opacity, axis=(0,0,1), material=materials.emissive, visible=False)
-		self.equPlane.rotate(angle=self.TiltAngle, axis=self.XdirectionUnit, origine=(0,0,0))
+		self.equPlane = cylinder(frame=self.Origin, pos=vector(0,0,0), radius=side/2, color=color.orange, length=5, opacity=self.Opacity, axis=(0,0,1), material=materials.emissive, visible=False)
+		self.equPlane.rotate(angle=self.TiltAngle, axis=self.XdirectionUnit, origin=(0,0,0))
 
-	def setTimeZones(self):
-		self.TZ = frame()
+	def setTimeZonesXX(self):
+		self.tz = []
+		k = 0		
 		for i in np.arange(0, pi, deg2rad(15)):
-			tz = cylinder(frame=self.TZ, pos=(0,0,0), color=color.cyan, radius=self.BodyShape.radius*1.003, length=self.BodyShape.radius*0.003)
-			tz.rotate(angle=(i), axis=self.ZdirectionUnit, origine=(0,0,0))
-		self.TZ.visible = True
+			self.tz.append(cylinder(frame=self.Origin, pos=(0,0,0), color=color.cyan, radius=self.BodyShape.radius*1.003, length=self.BodyShape.radius*0.003, visible=False))
+			self.tz[k].rotate(angle=(i), axis=self.ZdirectionUnit, origin=(0,0,0))
+			k += 1
 
 	def showEquatorialPlane(self, value):
-		self.equPlane.visible = value
+		self.EqPlane.display(value)
 
 	def showEquator(self, value):
-		self.eq.visible = value
+		self.Eq.display(value)
 
-	def showTimeZones(self, value):
-		self.TZ.visible = value
+	def showLatitudes(self, value):
+		self.Lats.display(value)
+
+	def showLongitudes(self, value):
+		self.TZ.display(value)
 
 	def initRotation(self):
 
@@ -1277,7 +1296,7 @@ class makeEarth(planet):
 		TEXTURE_POSITIONING_CORRECTION = 2*pi/5 #pi/12
 
 		# we need to rotate around X axis by pi/2 to properly align the planet's texture
-		self.BodyShape.rotate(angle=(pi/2+self.TiltAngle), axis=self.XdirectionUnit, origine=(0,0,0))
+		self.BodyShape.rotate(angle=(pi/2+self.TiltAngle), axis=self.XdirectionUnit, origin=(0,0,0))
 
 		# then further rotation will apply to Z axis
 		self.RotAxis = self.ZdirectionUnit
@@ -1294,7 +1313,7 @@ class makeEarth(planet):
 
 		# deduct correction due to initial position of texture on earth sphere, then rotate texture to make it match current time
 		self.LocalInitialAngle =  self.Gamma - TEXTURE_POSITIONING_CORRECTION
-		self.BodyShape.rotate(angle=(self.LocalInitialAngle), axis=self.RotAxis, origine=(0,0,0))
+		self.BodyShape.rotate(angle=(self.LocalInitialAngle), axis=self.RotAxis, origin=(0,0,0))
 		
 		"""
 		# calculate current RA, to position the obliquity properly:
@@ -1302,7 +1321,7 @@ class makeEarth(planet):
 			print "BURP!!!!!!!!!!!!!!!!!"
 			T = daysSinceJ2000UTC()/36525. # T is in centuries
 			self.RA = objects_data[self.ObjectIndex]["RA_1"] + objects_data[self.ObjectIndex]["RA_2"] * T
-		#	self.BodyShape.rotate(angle=deg2rad(self.RA), axis=self.ZdirectionUnit, origine=(self.Position[X_COOR]+self.Foci[X_COOR],self.Position[Y_COOR]+self.Foci[Y_COOR],self.Position[Z_COOR]+self.Foci[Z_COOR]))
+		#	self.BodyShape.rotate(angle=deg2rad(self.RA), axis=self.ZdirectionUnit, origin=(self.Position[X_COOR]+self.Foci[X_COOR],self.Position[Y_COOR]+self.Foci[Y_COOR],self.Position[Z_COOR]+self.Foci[Z_COOR]))
 		#else:
 		#	print "No RA for " +self.Name
 		"""
@@ -1336,7 +1355,7 @@ class makeEarth(planet):
 					 		   + self.iDelta 
 
 		# rotate for the difference between updated angle and its formal value
-		self.BodyShape.rotate(angle=(newLocalInitialAngle - self.Gamma), axis=self.RotAxis, origine=(0,0,0))
+		self.BodyShape.rotate(angle=(newLocalInitialAngle - self.Gamma), axis=self.RotAxis, origin=(0,0,0))
 		print "rotating by ", newLocalInitialAngle - self.Gamma, " degree"
 
 		# update angle with its updated value
@@ -1680,7 +1699,7 @@ class genericSpacecraft(makeBody):
 		self.RotAxis = (5, 5, -5)
 		
 	def setRotation(self):
-		self.Origin.rotate(angle=self.RotAngle, axis=self.RotAxis, origine=(10*self.length, 10*self.length, 0)) #-sin(alpha), cos(alpha)))
+		self.Origin.rotate(angle=self.RotAngle, axis=self.RotAxis, origin=(10*self.length, 10*self.length, 0)) #-sin(alpha), cos(alpha)))
 
 	def makeAxis(self, size, position):
 		return
@@ -1850,7 +1869,7 @@ class comet(makeBody):
 	def setRotation(self):
 		#self.updateAxis()
 		self.Origin.pos = vector(self.Position[X_COOR],self.Position[Y_COOR],self.Position[Z_COOR])
-		self.BodyShape.rotate(angle=self.RotAngle, axis=self.RotAxis, origine=(0,0,0)) #-sin(alpha), cos(alpha)))
+		self.BodyShape.rotate(angle=self.RotAngle, axis=self.RotAxis, origin=(0,0,0)) #-sin(alpha), cos(alpha)))
 
 	def makeAxis(self, size, position):
 		return
@@ -1886,7 +1905,7 @@ class asteroid(makeBody):
 
 	def setRotation(self):
 		self.Origin = vector(self.Position[X_COOR],self.Position[Y_COOR],self.Position[Z_COOR])
-		self.BodyShape.rotate(angle=self.RotAngle, axis=self.RotAxis, origine=(0,0,0)) #-sin(alpha), cos(alpha)))
+		self.BodyShape.rotate(angle=self.RotAngle, axis=self.RotAxis, origin=(0,0,0)) #-sin(alpha), cos(alpha)))
 
 	def makeAxis(self, size, position):
 		return
@@ -1931,7 +1950,7 @@ class pha(makeBody):
 	def setRotation(self):
 		#self.updateAxis()
 		self.Origin.pos = vector(self.Position[X_COOR],self.Position[Y_COOR],self.Position[Z_COOR])
-		self.BodyShape.rotate(angle=self.RotAngle, axis=self.RotAxis, origine=(0,0,0)) #-sin(alpha), cos(alpha)))
+		self.BodyShape.rotate(angle=self.RotAngle, axis=self.RotAxis, origin=(0,0,0)) #-sin(alpha), cos(alpha)))
 
 	def makeAxis(self, size, position):
 		return
@@ -1969,7 +1988,7 @@ class smallAsteroid(makeBody):
 
 	def setRotation(self):
 		self.Origin.pos= vector(self.Position[X_COOR],self.Position[Y_COOR],self.Position[Z_COOR])
-		self.BodyShape.rotate(angle=self.RotAngle, axis=self.RotAxis, origine=(0,0,0)) #-sin(alpha), cos(alpha)))
+		self.BodyShape.rotate(angle=self.RotAngle, axis=self.RotAxis, origin=(0,0,0)) #-sin(alpha), cos(alpha)))
 
 	def makeAxis(self, size, position):
 		return
@@ -2021,7 +2040,7 @@ class transNeptunian(makeBody):
 
 	def setRotation(self):
 		self.Origin.pos = vector(self.Position[X_COOR],self.Position[Y_COOR],self.Position[Z_COOR])
-		self.BodyShape.rotate(angle=self.RotAngle, axis=self.RotAxis, origine=(0,0,0)) #-sin(alpha), cos(alpha)))
+		self.BodyShape.rotate(angle=self.RotAngle, axis=self.RotAxis, origin=(0,0,0)) #-sin(alpha), cos(alpha)))
 
 	def makeAxis(self, size, position):
 		return
