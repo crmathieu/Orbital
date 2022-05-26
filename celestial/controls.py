@@ -1058,9 +1058,12 @@ class orbitalCtrlPanel(AbstractUI):
 
 		#self.SolarSystem.Scene.forward = (0, 0, -1)
 		# For a planet, Foci(x, y, z) is (0,0,0). For a moon, Foci represents the position of the planet the moon orbits around
-		self.SolarSystem.Scene.center = (self.SolarSystem.currentPOV.Position[X_COOR]+self.SolarSystem.currentPOV.Foci[X_COOR],
-										 self.SolarSystem.currentPOV.Position[Y_COOR]+self.SolarSystem.currentPOV.Foci[Y_COOR],
-										 self.SolarSystem.currentPOV.Position[Z_COOR]+self.SolarSystem.currentPOV.Foci[Z_COOR])
+		surfaceRadius = (1.1 * self.SolarSystem.currentPOV.BodyShape.radius) if self.SolarSystem.SurfaceView == True else 0
+		self.SolarSystem.Scene.center = (
+			self.SolarSystem.currentPOV.Position[X_COOR]+self.SolarSystem.currentPOV.Foci[X_COOR]+surfaceRadius,
+			self.SolarSystem.currentPOV.Position[Y_COOR]+self.SolarSystem.currentPOV.Foci[Y_COOR],
+			self.SolarSystem.currentPOV.Position[Z_COOR]+self.SolarSystem.currentPOV.Foci[Z_COOR]
+		)
 
 	def updateSolarSystem(self):
 		self.refreshDate()
@@ -1068,7 +1071,7 @@ class orbitalCtrlPanel(AbstractUI):
 		for body in self.SolarSystem.bodies:
 			if body.BodyType in [SPACECRAFT, OUTERPLANET, INNERPLANET, SATELLITE, ASTEROID, \
 								 COMET, DWARFPLANET, PHA, BIG_ASTEROID, TRANS_NEPT]:
-				if body.Origin.visible == True:
+				if body.Origin.visible == True or body.Name.upper() == "EARTH":
 					velocity, distance = body.animate(self.DeltaT)
 					if self.SolarSystem.currentPOV != None:
 						if body.JPL_designation == self.SolarSystem.currentPOV.JPL_designation:
@@ -1077,6 +1080,7 @@ class orbitalCtrlPanel(AbstractUI):
 					if body.BodyType == self.Source or body.Details == True:
 						self.velocity = velocity
 						self.distance = distance
+
 			#else:
 			#	print("UNKNOWN BODYTYPE:", body.BodyType)
 
@@ -1580,23 +1584,32 @@ class WIDGETSpanel(AbstractUI):
 		self.hpcb.SetValue(False)
 		self.hpcb.Bind(wx.EVT_CHECKBOX,self.OnHidePlanet)
 
+		self.flcb = wx.CheckBox(self, label="Center to surface", pos=(50, CHK_L8)) #   POV_Y+560))
+		self.flcb.SetValue(False)
+		self.flcb.Bind(wx.EVT_CHECKBOX,self.OnCenterToSurface)
+
+	def OnCenterToSurface(self, e):
+		# focus on surface rather than center
+		self.SolarSystem.SurfaceView = self.flcb.GetValue()
+		self.parentFrame.orbitalTab.updateCameraPOV()
+
 	def OnHidePlanet(self, e):
 		self.Earth.Origin.visible = not self.hpcb.GetValue()
 
 	def OnDrawEquator(self, e):
-		self.Earth.showEquator(self.eqcb.GetValue())
+		self.Earth.PlanetWidgets.showEquator(self.eqcb.GetValue())
 
 	def OnShowNodes(self, e):
-		self.Earth.Eq.showNodes(self.ncb.GetValue())
+		self.Earth.PlanetWidgets.showNodes(self.ncb.GetValue())
 
 	def OnDrawEquatorialPlane(self, e):
-		self.Earth.showEquatorialPlane(self.eqpcb.GetValue())
+		self.Earth.PlanetWidgets.showEquatorialPlane(self.eqpcb.GetValue())
 
 	def OnDrawLongitudeLines(self, e):
-		self.Earth.showLongitudes(self.tzcb.GetValue())
+		self.Earth.PlanetWidgets.showLongitudes(self.tzcb.GetValue())
 
 	def OnDrawLatitudeLines(self, e):
-		self.Earth.showLatitudes(self.latcb.GetValue())
+		self.Earth.PlanetWidgets.showLatitudes(self.latcb.GetValue())
 
 	def OnLocalRef(self, e):
 		self.parentFrame.povTab.cb.SetValue(self.lrcb.GetValue())

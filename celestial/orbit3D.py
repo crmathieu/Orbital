@@ -50,6 +50,7 @@ class makeSolarSystem:
 
 	def __init__(self):
 		self.todayUTCdatetime = locationInfo.getUTCDateTime()
+		self.SurfaceView = False
 		self.Name = "Sun"
 		self.JPL_designation = "SUN"
 		self.nameIndex = {}
@@ -1246,55 +1247,19 @@ class makeEarth(planet):
 		# corrective angle (earth only)
 		self.Gamma = 0
 		self.Opacity = 0.4
-		self.Eq = None
 
 		planet.__init__(self, system, "earth", ccolor, type, sizeCorrectionType, defaultSizeCorrection)
 
-		# initialize widgets while in neutral position
-		self.initWidgets()
-
-	def initWidgets(self):
-		
-		self.Widgets = makeEarthWidgets(self)
-
-		self.Eq = makeEquator(self.Widgets)
-		self.EqPlane = makeEquatorialPlane(self.Widgets, color.orange, opacity=self.Opacity)
-		self.TZ = makeTimezones(self.Widgets)
-		self.Lats = makeLatitudes(self.Widgets)
-		# align with planet tilt
-		self.Widgets.Origin.rotate(angle=(self.TiltAngle), axis=self.XdirectionUnit) #, origin=(0,0,0))
-
-	def setWidgetsRotation(self):
-		ti = self.SolarSystem.getTimeIncrement()
-		RotAngle = (2*pi/self.Rotation)*ti
-		# if polar axis inverted, reverse rotational direction
-		if self.ZdirectionUnit[2] < 0:
-			RotAngle *= -1
-
-		#self.updateAxis()
-		self.Widgets.Origin.rotate(angle=RotAngle, axis=self.RotAxis, origin=self.Widgets.Origin.pos) #(self.Position[X_COOR]+self.Foci[X_COOR],self.Position[Y_COOR]+self.Foci[Y_COOR],self.Position[Z_COOR]+self.Foci[Z_COOR]))
+		# Create widgets
+		self.PlanetWidgets = makePlanetWidgets(self)
 
 
 	def animate(self, timeIncrement):
+		# add widgets animation to default planet animation
 		velocity, distance = planet.animate(self, timeIncrement)
-		if self.Eq != None:
-			self.Widgets.Origin.pos = self.Origin.pos
-			self.setWidgetsRotation()
-			self.Eq.updateNodesPosition()
-			self.Eq.refreshNodes()		
+		self.PlanetWidgets.animate()
 		return velocity, distance
 
-	def showEquatorialPlane(self, value):
-		self.EqPlane.display(value)
-
-	def showEquator(self, value):
-		self.Eq.display(value)
-
-	def showLatitudes(self, value):
-		self.Lats.display(value)
-
-	def showLongitudes(self, value):
-		self.TZ.display(value)
 
 	# overrides the default initRotation in makeBody superclass
 	def initRotation(self):
