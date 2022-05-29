@@ -25,6 +25,7 @@ import orbit3D
 from planetsdata import *
 from visual import *
 import threading
+import pytz
 
 #from concurrent.futures import ThreadPoolExecutor, ProcessPoolExecutor, as_completed
 
@@ -759,6 +760,7 @@ class JPLpanel(AbstractUI):
 		
 		# make a datetime off of that timestamp 
 		utc_close_approach = datetime.datetime.fromtimestamp(utc_timestamp)
+		utc_close_approach = utc_close_approach.replace(tzinfo=pytz.utc)
 
 		print "*******************"
 		print "FROM_TIMESTAMP = ", utc_close_approach, ", WITH TZ info=", datetime.datetime.fromtimestamp(utc_timestamp, tz=orbit3D.locationInfo.getPytzValue())
@@ -1095,6 +1097,7 @@ class orbitalCtrlPanel(AbstractUI):
 		# make new utc date using spinner for mm/dd/yyyy and utctime for hh:mm:ss 
 		new_utcDatetime = datetime.datetime(self.dateYSpin.GetValue(), self.dateMSpin.GetValue(), self.dateDSpin.GetValue(), int(utctime[0]), int(utctime[1]), int(utctime[2]))
 		#print "Resetting UTC datetime to -> ", new_utcDatetime
+		new_utcDatetime = new_utcDatetime.replace(tzinfo=pytz.utc)
 
 		# from that utc datetime, calculate local datetime
 		new_localDatetime = orbit3D.utc_to_local(new_utcDatetime)
@@ -1102,6 +1105,7 @@ class orbitalCtrlPanel(AbstractUI):
 
 		# calculate the time difference between current "today's Date" with new selected date
 		diff = new_utcDatetime - self.todayUTCdatetime
+		
 
 		# ... and convert the difference in days (as a float value)
 		self.DeltaT = diff.total_seconds()/86400.0

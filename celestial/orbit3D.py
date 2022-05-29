@@ -22,7 +22,7 @@ SOFTWARE.
 """
 import pytz
 import datetime
-import time
+#import time
 
 #import sys
 from random import *
@@ -1188,7 +1188,7 @@ class planet(makeBody):
 			curRadius = ring["radius"] / self.SizeCorrection[self.sizeType]
 			thickness = 100e3 / self.SizeCorrection[self.sizeType]
 			width = ring["width"] / self.SizeCorrection[self.sizeType]
-			print self.Name, "ring radius=", curRadius
+			#print self.Name, "ring radius=", curRadius
 			self.Rings.insert(self.nRings, self.makeRingElt(curRadius, width, thickness, ring["color"]))
 			self.nRings += 1
 
@@ -1280,10 +1280,41 @@ class makeEarth(planet):
 		print "Initial angle for earth referential Y is ", self.iDelta, " rd"
 
 		# Calculate the local initial angle between the normal to the sun and our location
+		alpha = deg2rad(locationInfo.Time2degree(locationInfo.AbsoluteTimeToDateline * 3600))
+		omega = alpha - TEXTURE_POSITIONING_CORRECTION
+
+		self.Gamma = pi/2 + deg2rad(locationInfo.solarT) - omega
+					 #+ deg2rad(locationInfo.Time2degree(locationInfo.AbsoluteTimeToDateline * 3600)) \
+					 #+ self.iDelta 
+		self.LocalInitialAngle = self.Gamma# + self.iDelta
+		#self.LocalInitialAngle = 0
+		self.BodyShape.rotate(angle=(self.LocalInitialAngle), axis=self.RotAxis, origin=(0,0,0))
+
+		# deduct correction due to initial position of texture on earth sphere, then rotate texture to make it match current time
+#		self.LocalInitialAngle =  self.Gamma - TEXTURE_POSITIONING_CORRECTION
+#		self.BodyShape.rotate(angle=(self.LocalInitialAngle), axis=self.RotAxis, origin=(0,0,0))
+
+	def initRotationXX(self):
+
+		# texture alignment correction coefficient. This is to take 
+		# into account the initial mapping of texture on sphere
+		TEXTURE_POSITIONING_CORRECTION = 2*pi/5 #pi/12
+
+		# we need to rotate around X axis by pi/2 to properly align the planet's texture,
+		# and also, we need to take into account planet tilt around X axis 
+		self.BodyShape.rotate(angle=(pi/2+self.TiltAngle), axis=self.XdirectionUnit, origin=(0,0,0))
+
+		# then further rotation will apply to Z axis
+		self.RotAxis = self.ZdirectionUnit
+
+		# calculate initial angle between body and solar referential x axis
+		self.iDelta = atan2(self.Position[Y_COOR], self.Position[X_COOR])
+		print "Initial angle for earth referential Y is ", self.iDelta, " rd"
+
+		# Calculate the local initial angle between the normal to the sun and our location
 		self.Gamma = deg2rad(locationInfo.solarT) \
 					 + deg2rad(locationInfo.Time2degree(locationInfo.RelativeTimeToDateline)) \
 					 + self.iDelta 
-
 
 		# deduct correction due to initial position of texture on earth sphere, then rotate texture to make it match current time
 		self.LocalInitialAngle =  self.Gamma - TEXTURE_POSITIONING_CORRECTION
@@ -2347,7 +2378,7 @@ def utc_to_localXX():
 
 def timestamp_utc_to_local(utcTimeStamp):
 	# add offset from utc to local. West of UTC, offset is negative
-	localTimeStamp = utcTimeStamp + locationInfo.UTCoffsetInSeconds
+	localTimeStamp = utcTimeStamp + locationInfo.timezoneInSec # UTCoffsetInSeconds
 	return datetime.datetime.fromtimestamp(localTimeStamp, locationInfo.getPytzValue())
 
 # Convert date/time from UTC to local date/time

@@ -23,6 +23,43 @@ class makePlanetWidgets():
         # align with planet tilt
         self.Origin.rotate(angle=(self.Planet.TiltAngle), axis=self.Planet.XdirectionUnit) #, origin=(0,0,0))
 
+        # align longitude to greenwich when the planet is Earth
+        if self.Planet.Name.upper() == "EARTH":
+            # add equivalent texture rotation to map current time
+            self.Origin.rotate(angle=(self.Planet.LocalInitialAngle), axis=self.Planet.RotAxis) #, origin=(0,0,0))
+            print "LOCAL initial Angle =", self.Planet.LocalInitialAngle
+            # adjust local time with daylight saving info to calculate how much 
+            # we have to rotate our frame to match greenwitch as meridian zero 
+            if False:
+                delta = -1
+                if locationInfo.longitude < 0:
+                    delta = 12 - (locationInfo.RelativeTimeToDateline/3600 + 1 if bool(locationInfo.localdatetime.dst()) else 0)
+                else:
+                    delta = (locationInfo.RelativeTimeToDateline/3600 + 1 if bool(locationInfo.localdatetime.dst()) else 0)
+
+                # convert hours in degres (an hour is 15 degres)
+                print ("delta LONG ROT={0}".format(delta))
+                self.Origin.rotate(angle=(deg2rad(-delta*15)), axis=self.Planet.ZdirectionUnit)
+
+            # align GMT: the initial position of the GMT meridian on the texture is 6 hours
+            # off its normal position. Ajusting by 6 hours x 15 degres = 90 degres
+            self.Origin.rotate(angle=(deg2rad(6*15)), axis=self.Planet.ZdirectionUnit)
+            """
+            delta = self.Planet.iDelta/15 # initial angle between orbital curve tg and x axis
+            if locationInfo.longitude < 0:
+                delta = delta + 12 - locationInfo.AbsoluteTimeToDateline
+            else:
+                delta = delta + locationInfo.AbsoluteTimeToDateline
+            print "DELTA ..........................", delta, "hours,", delta*15, "degrees"
+            #delta = locationInfo.AbsoluteTimeToDateline + locationInfo.angTime * locationInfo.longitudeSign
+            #delta = locationInfo.angTime * locationInfo.longitudeSign
+            print "time to date line .... ", locationInfo.AbsoluteTimeToDateline
+            print "time to UTC .......... ", locationInfo.angTime
+            print ("delta LONG ROT={0}".format(delta))
+            #self.Origin.rotate(angle=(deg2rad(-delta*15)), axis=self.Planet.ZdirectionUnit)
+            self.Origin.rotate(angle=(deg2rad(delta*15)), axis=self.Planet.ZdirectionUnit)
+            """
+
     def updateWidgetsRotation(self):
         ti = self.Planet.SolarSystem.getTimeIncrement()
         RotAngle = (2*pi/self.Planet.Rotation)*ti
@@ -147,14 +184,15 @@ class makeEquatorialPlane():
 
 
 class makeLongitude():
-    def __init__(self, widgets, longitudeAngle):
+    def __init__(self, widgets, colr, longitudeAngle):
         self.longAngle = longitudeAngle
         self.Origin = widgets.Origin
 
         self.Planet = widgets.Planet
-        self.Trail = curve(frame=self.Origin, color=color.cyan, visible=False)
+        #Radius = 25 if longitudeAngle == 0 else 0
+        self.Trail = curve(frame=self.Origin, color=colr, visible=False,  material=materials.emissive, radius=(25 if longitudeAngle == 0 else 0))
         self.Position = np.matrix([[0],[0],[0]], np.float64)
-        self.Color = color.cyan
+        self.Color = colr #color.cyan
         self.draw()
 
     def display(self, trueFalse):
@@ -195,10 +233,11 @@ class makeLongitudes():
             tz.display(trueFalse)
 
     def draw(self):
+        colr = color.red
         for i in np.arange(0, pi, deg2rad(10)):
             # build TZ by longitude circles
-            self.Lons.append(makeLongitude(self.Widgets, i))
-
+            self.Lons.append(makeLongitude(self.Widgets, colr, i))
+            colr = self.Color
 
 class doLatitude():
     def __init__(self, widgets, latitudeAngle):
