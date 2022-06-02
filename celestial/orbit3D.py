@@ -1266,7 +1266,7 @@ class makeEarth(planet):
 
 		# texture alignment correction coefficient. This is to take 
 		# into account the initial mapping of texture on sphere
-		TEXTURE_POSITIONING_CORRECTION = 2*pi/5 #pi/12
+		self.Alpha = TEXTURE_POSITIONING_CORRECTION = 2*pi/5 #pi/12
 
 		# we need to rotate around X axis by pi/2 to properly align the planet's texture,
 		# and also, we need to take into account planet tilt around X axis 
@@ -1275,18 +1275,73 @@ class makeEarth(planet):
 		# then further rotation will apply to Z axis
 		self.RotAxis = self.ZdirectionUnit
 
-		# calculate initial angle between body and solar referential x axis
-		self.iDelta = atan2(self.Position[Y_COOR], self.Position[X_COOR])
-		print "Initial angle for earth referential Y is ", self.iDelta, " rd"
+		# calculate initial angle (theta) between sun-earth 
+		# axis and solar referential x axis tan(theta) = Y/X
+
+		self.Theta = atan2(self.Position[Y_COOR], self.Position[X_COOR])
+		print "Initial angle between earth and Ecliptic referential Y is ", self.Theta, " rd (", self.Theta * (180/pi), "degrees)"
+
+		# calculate angle between location and the dateline
+		self.Beta =  deg2rad(locationInfo.Time2degree(locationInfo.TimeToWESTdateline))
+#		self.Beta =  deg2rad(locationInfo.Time2degree(locationInfo.TimeToEASTdateline))
+		self.Omega = self.Beta - self.Alpha
+
+		# calculate rotation necessary to position thexture properly for this local time
+		self.Psi = self.Theta + deg2rad(locationInfo.getSolarTime()) - self.Omega
+
+		print "Alpha .............  ", self.Alpha
+		print "Theta .............  ", self.Theta
+		print "Beta ..............  ", self.Beta
+		print "Omega .............  ", self.Omega
+		print "Psi ...............  ", self.Psi
+
+		if False:
+			# Calculate the local initial angle between the normal to the sun and our location
+			alpha = deg2rad(locationInfo.Time2degree(locationInfo.TimeToWESTdateline)) # * 3600))
+			omega = alpha - TEXTURE_POSITIONING_CORRECTION
+
+			self.Gamma = pi/2 + deg2rad(locationInfo.solarT) - omega
+						#+ deg2rad(locationInfo.Time2degree(locationInfo.TimeToWESTdateline * 3600)) \
+						#+ self.iDelta 
+			self.LocalInitialAngle = self.Gamma# + self.Theta
+			#self.LocalInitialAngle = 0
+
+		self.BodyShape.rotate(angle=(self.Psi), axis=self.RotAxis, origin=(0,0,0))
+
+		# deduct correction due to initial position of texture on earth sphere, then rotate texture to make it match current time
+#		self.LocalInitialAngle =  self.Gamma - TEXTURE_POSITIONING_CORRECTION
+#		self.BodyShape.rotate(angle=(self.LocalInitialAngle), axis=self.RotAxis, origin=(0,0,0))
+
+
+	def initRotationSAVE(self):
+
+		# texture alignment correction coefficient. This is to take 
+		# into account the initial mapping of texture on sphere
+		self.alpha = TEXTURE_POSITIONING_CORRECTION = 2*pi/5 #pi/12
+
+		# we need to rotate around X axis by pi/2 to properly align the planet's texture,
+		# and also, we need to take into account planet tilt around X axis 
+		self.BodyShape.rotate(angle=(pi/2+self.TiltAngle), axis=self.XdirectionUnit, origin=(0,0,0))
+
+		# then further rotation will apply to Z axis
+		self.RotAxis = self.ZdirectionUnit
+
+		# calculate initial angle (theta) between sun-earth 
+		# axis and solar referential x axis tan(theta) = Y/X
+
+		self.Theta = atan2(self.Position[Y_COOR], self.Position[X_COOR])
+		print "Initial angle between earth and Ecliptic referential Y is ", self.Theta, " rd (", self.Theta* pi, "degrees)"
+
+		# calculate angle between location and the dateline
 
 		# Calculate the local initial angle between the normal to the sun and our location
-		alpha = deg2rad(locationInfo.Time2degree(locationInfo.AbsoluteTimeToDateline * 3600))
+		alpha = deg2rad(locationInfo.Time2degree(locationInfo.TimeToWESTdateline)) # * 3600))
 		omega = alpha - TEXTURE_POSITIONING_CORRECTION
 
 		self.Gamma = pi/2 + deg2rad(locationInfo.solarT) - omega
-					 #+ deg2rad(locationInfo.Time2degree(locationInfo.AbsoluteTimeToDateline * 3600)) \
+					 #+ deg2rad(locationInfo.Time2degree(locationInfo.TimeToWESTdateline * 3600)) \
 					 #+ self.iDelta 
-		self.LocalInitialAngle = self.Gamma# + self.iDelta
+		self.LocalInitialAngle = self.Gamma# + self.Theta
 		#self.LocalInitialAngle = 0
 		self.BodyShape.rotate(angle=(self.LocalInitialAngle), axis=self.RotAxis, origin=(0,0,0))
 
@@ -1308,13 +1363,13 @@ class makeEarth(planet):
 		self.RotAxis = self.ZdirectionUnit
 
 		# calculate initial angle between body and solar referential x axis
-		self.iDelta = atan2(self.Position[Y_COOR], self.Position[X_COOR])
-		print "Initial angle for earth referential Y is ", self.iDelta, " rd"
+		self.Theta = atan2(self.Position[Y_COOR], self.Position[X_COOR])
+		print "Initial angle for earth referential Y is ", self.Theta, " rd"
 
 		# Calculate the local initial angle between the normal to the sun and our location
 		self.Gamma = deg2rad(locationInfo.solarT) \
-					 + deg2rad(locationInfo.Time2degree(locationInfo.RelativeTimeToDateline)) \
-					 + self.iDelta 
+					 + deg2rad(locationInfo.Time2degree(locationInfo.TimeToEASTdateline)) \
+					 + self.Theta 
 
 		# deduct correction due to initial position of texture on earth sphere, then rotate texture to make it match current time
 		self.LocalInitialAngle =  self.Gamma - TEXTURE_POSITIONING_CORRECTION
@@ -1352,12 +1407,12 @@ class makeEarth(planet):
 	def incrementRotation(self):
 		# recalculate the angle of the texture on sphere based on updated time 
 		#newLocalInitialAngle = deg2rad(locationInfo.solarT) \
-		#					   - deg2rad(locationInfo.Time2degree(locationInfo.RelativeTimeToDateline)) \
-		#					   - self.iDelta 
+		#					   - deg2rad(locationInfo.Time2degree(locationInfo.TimeToEASTdateline)) \
+		#					   - self.Theta 
 
 		newLocalInitialAngle = deg2rad(locationInfo.solarT) \
-							   + deg2rad(locationInfo.Time2degree(locationInfo.RelativeTimeToDateline)) \
-					 		   + self.iDelta 
+							   + deg2rad(locationInfo.Time2degree(locationInfo.TimeToEASTdateline)) \
+					 		   + self.Theta 
 
 		# rotate for the difference between updated angle and its formal value
 		self.BodyShape.rotate(angle=(newLocalInitialAngle - self.Gamma), axis=self.RotAxis, origin=(0,0,0))
@@ -2368,6 +2423,22 @@ def daysSinceEpochJDfromUnixTimeStamp(UnixTimeStamp):
 #    offset = datetime.datetime.fromtimestamp(now_timestamp) - datetime.datetime.utcfromtimestamp(now_timestamp)
 #    return utc_datetime + offset
 
+
+def utc_to_local_fromTimestamp(utcTimeStamp):
+	# given a UTC timestamp, figure out local datetime
+	utc	= datetime.datetime.fromtimestamp(utcTimeStamp)
+	utc = utc.replace(tzinfo=pytz.utc)
+	# deduct local time ...
+	return utc.astimezone(pytz.timezone(locationInfo.timezoneStr))
+
+
+# Convert date/time from UTC to local date/time
+def utc_to_local_fromDatetime(utc_datetime):
+	
+	return utc_datetime + locationInfo.longitudeSign * datetime.timedelta(seconds=locationInfo.TimeToUtcInSec())
+	#return utc_datetime - datetime.timedelta(seconds=locationInfo.TimeToUtcInSec())
+
+
 # Convert date/time from UTC to local date/time
 def utc_to_localXX():
 	UTC_datetime = datetime.datetime.utcnow()
@@ -2376,43 +2447,7 @@ def utc_to_localXX():
 	print "local datetime from utc", local_datetime_converted
 	return local_datetime_converted
 
-def timestamp_utc_to_local(utcTimeStamp):
-	# add offset from utc to local. West of UTC, offset is negative
-	localTimeStamp = utcTimeStamp + locationInfo.timezoneInSec # UTCoffsetInSeconds
-	return datetime.datetime.fromtimestamp(localTimeStamp, locationInfo.getPytzValue())
-
-# Convert date/time from UTC to local date/time
-def utc_to_local(utc_datetime):
-	#UTC_datetime = datetime.datetime.utcnow()
-	
-	return utc_datetime - datetime.timedelta(seconds=locationInfo.RelativeTimeToUtcInSec())
-
-
-	utc_datetime_timestamp = utc_datetime.timestamp() #float(utc_datetime.strftime("%S"))
-
-	# add offset
-	local_datetime_timestamp = utc_datetime_timestamp + locationInfo.RelativeTimeToUtcInSec()
-#	utc_datetime_timestamp = datetime.datetime.timestamp(utc_datetime) #float(utc_datetime.strftime("%S"))
-	return datetime.datetime.fromtimestamp(local_datetime_timestamp)
-
-def local_to_utcXX(local_datetime): ##################### working on it
-	# add utc delta to local time.
-	return local_datetime + datetime.timedelta(seconds=locationInfo.RelativeTimeToUtcInSec())
-
-	#local_datetime = datetime.datetime.now()
-	#local_datetime_timestamp = local_datetime.timestamp()
-	#return datetime.datetime.utcfromtimestamp(local_datetime_timestamp)
-
-# takes a naive local datetime and returns a timezone aware local datetime and the UTC datetime
-def local_to_UTCXX(local_naivedatetime):
-
-	local_time = pytz.timezone(locationInfo.getTZ())
-	local_awaredatetime = local_time.localize(local_naivedatetime, is_dst=None)
-	utc_datetime = local_awaredatetime.astimezone(pytz.utc)
-	print "Naive local=", local_naivedatetime, "Aware local", local_awaredatetime, "UTC=", utc_datetime
-	return utc_datetime, local_awaredatetime
-
-def UTC_to_local(utc_naivedatetime):
+def UTC_to_localXX(utc_naivedatetime):
 	utc_time = pytz.utc #timezone(locationInfo.getTZ())
 	utc_datetime = utc_time.localize(utc_naivedatetime, is_dst=None)
 	local_datetime = utc_datetime.astimezone(pytz.timezone(locationInfo.getTZ()))
@@ -2420,7 +2455,7 @@ def UTC_to_local(utc_naivedatetime):
 	return local_datetime, utc_datetime
 
 
-def to_timestamp(a_date):
+def to_timestampXX(a_date):
 
     if a_date.tzinfo:
     	pass
@@ -2435,68 +2470,6 @@ def to_timestamp(a_date):
     return int(diff.total_seconds())
 
 
-def from_timestamp(timestamp):
+def from_timestampXX(timestamp):
     return datetime.datetime.fromtimestamp(timestamp, pytz.UTC)
 
-"""
-class flyingCamera():
-	def __init__(self, system):
-		self.MT = system.MT
-	
-_n = 0
-_delta = 6
-_incr = 35
-
-def flyover_approach():
-	#	return
-	#	while True:
-	global _n 
-	global _delta
-	global _incr
-	_n = _n+1
-
-	if _n > 13:
-		_delta -= 1
-		if _delta <= 0:
-			_delta = 0
-		
-	if _n > 50:
-		_incr -= 1
-		if _incr <= 1:
-			_incr = 1
-			#return
-
-	mouse.press(Button.right)
-	mouse.press(Button.left)
-	mouse.move(0, -_incr)
-	mouse.release(Button.right)
-	mouse.release(Button.left)
-	mouse.move(0, +_incr)
-	sleep(0.01)
-	mouse.press(Button.right)
-	mouse.move(-3, -_delta)
-	mouse.release(Button.right)
-	mouse.move(3, _delta)
-
-def testMouseOK():
-	
-	n = 0
-	delta = 0
-	while True:
-		n = n+1
-		if n > 100:
-			delta = 0
-		else:
-			delta = 1
-		mouse.press(Button.right)
-		mouse.press(Button.left)
-		mouse.move(0, -1)
-		mouse.release(Button.right)
-		mouse.release(Button.left)
-		mouse.move(0, +1)
-		sleep(0.01)
-		mouse.press(Button.right)
-		mouse.move(-3, -delta)
-		mouse.release(Button.right)
-		mouse.move(3, delta)
-"""
