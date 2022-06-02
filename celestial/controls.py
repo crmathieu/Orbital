@@ -31,7 +31,7 @@ import pytz
 
 from numberfmt import *
 import urllib2, urllib
-import httplib
+#import httplib
 from video import * #VideoRecorder
 #import re
 import json
@@ -539,6 +539,7 @@ class NEOpanel(AbstractUI):
 		# load orbital elements
 		id = self.loadBodyInfoFromDaily(e.m_itemIndex)
 		if id > 0:
+			
 			# switch to main panel to display orbit
 			self.nb.SetSelection(PANEL_MAIN)
 			
@@ -558,6 +559,7 @@ class NEOpanel(AbstractUI):
 			if self.SolarSystem.isRealsize():
 				toggle = True
 			self.parentFrame.orbitalTab.currentBody.toggleSize(toggle)
+
 
 
 	def doFetchByName(self, host, target, type):
@@ -834,6 +836,10 @@ class NEOpanel(AbstractUI):
 		# update timeStamps
 		self.parentFrame.orbitalTab.updateTimeStamps(LocNewdate, utcNewdate)
 
+		# update widgets references
+		self.parentFrame.widgetsTab.Earth.adjustEarthTexture(LocNewdate)
+		self.parentFrame.widgetsTab.Earth.PlanetWidgets.alignWidgetsReferences()
+
 
 		# we return the index of the object in array of cosmic bodies
 		# (to access the data, retrieve objects_data[index])
@@ -872,7 +878,7 @@ class ORBITALCtrlPanel(AbstractUI):
 	def resetDateFromBodyId(self, id):
 		diff =  objects_data[id]["utc_dt"] - self.todayUTCdatetime
 		self.DeltaT = diff.total_seconds()/86400.0
-		print "RESET DELTA_T=",self.DeltaT
+		print "ResetDateFromBodyId: DELTA from right now (in days) =", self.DeltaT
 		self.updateSolarSystem()
 		return
 
@@ -1083,6 +1089,28 @@ class ORBITALCtrlPanel(AbstractUI):
 
 		#self.SolarSystem.Scene.forward = (0, 0, -1)
 		# For a planet, Foci(x, y, z) is (0,0,0). For a moon, Foci represents the position of the planet the moon orbits around
+		####surfaceRadius = (1.1 * self.SolarSystem.currentPOV.BodyShape.radius) if self.SolarSystem.SurfaceView == True else 0
+		surfaceRadius = 0.0
+		if self.SolarSystem.SurfaceView == True:
+			surfaceRadius = (1.3 * self.SolarSystem.currentPOV.BodyShape.radius)
+		print "surfaceRadius = ", surfaceRadius
+
+		self.SolarSystem.Scene.center = (
+			self.SolarSystem.currentPOV.Position[X_COOR]+self.SolarSystem.currentPOV.Foci[X_COOR]+surfaceRadius * self.SolarSystem.SurfaceDirection[0],
+			self.SolarSystem.currentPOV.Position[Y_COOR]+self.SolarSystem.currentPOV.Foci[Y_COOR]+surfaceRadius * self.SolarSystem.SurfaceDirection[1],
+			self.SolarSystem.currentPOV.Position[Z_COOR]+self.SolarSystem.currentPOV.Foci[Z_COOR]+surfaceRadius * self.SolarSystem.SurfaceDirection[2]
+		)
+
+	def updateCameraPOV_SAVE(self):
+
+		# the following values will do the following
+		# (0,-1,-1): freezes rotation and looks down towards the left
+		# (0,-1, 1): freezes rotation and looks up towards the left
+		# (0, 1, 1): freezes rotation and looks up towards the right
+		# (0, 1,-1): freezes rotation and looks down towards the right
+
+		#self.SolarSystem.Scene.forward = (0, 0, -1)
+		# For a planet, Foci(x, y, z) is (0,0,0). For a moon, Foci represents the position of the planet the moon orbits around
 		surfaceRadius = (1.1 * self.SolarSystem.currentPOV.BodyShape.radius) if self.SolarSystem.SurfaceView == True else 0
 		self.SolarSystem.Scene.center = (
 			self.SolarSystem.currentPOV.Position[X_COOR]+self.SolarSystem.currentPOV.Foci[X_COOR]+surfaceRadius,
@@ -1132,8 +1160,7 @@ class ORBITALCtrlPanel(AbstractUI):
 
 		# ... and convert the difference in days (as a float value)
 		self.DeltaT = diff.total_seconds()/86400.0
-
-		#print "DELTA_T=",self.DeltaT
+		print "OnValidateDate: DELTA from right now (in days) =", self.DeltaT
 
 		# update planet positions accordingly
 		self.updateSolarSystem()
@@ -1157,6 +1184,8 @@ class ORBITALCtrlPanel(AbstractUI):
 		#print self.SolarSystem.DaysIncrement, "+", float(timeinsec)/86400, "for", timeinsec 
 		#self.SolarSystem.DaysIncrement += float(timeinsec)/86400
 		self.DeltaT += float(timeinsec)/86400
+		print "deltaTtick: DELTA from right now (in days) =", self.DeltaT
+
 		#print self.SolarSystem.DaysIncrement
 
 	def refreshDate(self):
@@ -1172,6 +1201,7 @@ class ORBITALCtrlPanel(AbstractUI):
 
 		self.setVelocityLabel()
 		self.setDistanceLabel()
+		print ("refresh Date")
 
 	def updateTimeDisplay(self, utcDatetime, localDatetime):
 		self.setLocalDateTimeLabel(localDatetime)
@@ -1553,6 +1583,7 @@ class WIDGETSpanel(AbstractUI):
 
 		self.BoldFont = wx.Font(10, wx.SWISS, wx.NORMAL, wx.BOLD)
 		self.RegFont = wx.Font(10, wx.SWISS, wx.NORMAL, wx.NORMAL)
+		self.SurfaceDirection = [0,0,0]
 
 		heading = wx.StaticText(self, label='Earth Widgets', pos=(20, MAIN_HEADING_Y))
 		heading.SetFont(self.BoldFont)
@@ -1560,6 +1591,10 @@ class WIDGETSpanel(AbstractUI):
 		self.eqcb = wx.CheckBox(self, label="Equator", pos=(50, CHK_L1)) #   POV_Y+560))
 		self.eqcb.SetValue(False)
 		self.eqcb.Bind(wx.EVT_CHECKBOX,self.OnDrawEquator)
+
+		self.trcb = wx.CheckBox(self, label="Tropics", pos=(200, CHK_L1)) #   POV_Y+560))
+		self.trcb.SetValue(False)
+		self.trcb.Bind(wx.EVT_CHECKBOX,self.OnDrawTropics)
 
 		self.eqpcb = wx.CheckBox(self, label="Equatorial Plane", pos=(50, CHK_L2)) #   POV_Y+560))
 		self.eqpcb.SetValue(False)
@@ -1589,9 +1624,84 @@ class WIDGETSpanel(AbstractUI):
 		self.flcb.SetValue(False)
 		self.flcb.Bind(wx.EVT_CHECKBOX,self.OnCenterToSurface)
 
+		self.flscb = wx.CheckBox(self, label="S", pos=(200, CHK_L8))
+		self.flscb.SetValue(False)
+		self.flscb.Bind(wx.EVT_CHECKBOX,self.OnCenterToSurfaceSouth)
+
+		self.flncb = wx.CheckBox(self, label="N", pos=(250, CHK_L8))
+		self.flncb.SetValue(False)
+		self.flncb.Bind(wx.EVT_CHECKBOX,self.OnCenterToSurfaceNorth)
+
+		self.flwcb = wx.CheckBox(self, label="W", pos=(300, CHK_L8)) 
+		self.flwcb.SetValue(False)
+		self.flwcb.Bind(wx.EVT_CHECKBOX,self.OnCenterToSurfaceWest)
+
+		self.flecb = wx.CheckBox(self, label="E", pos=(350, CHK_L8)) 
+		self.flecb.SetValue(False)
+		self.flecb.Bind(wx.EVT_CHECKBOX,self.OnCenterToSurfaceEast)
+
+		self.fldarkcb = wx.CheckBox(self, label="D", pos=(400, CHK_L8)) 
+		self.fldarkcb.SetValue(False)
+		self.fldarkcb.Bind(wx.EVT_CHECKBOX,self.OnCenterToSurfaceDark)
+
+		self.flbrightcb = wx.CheckBox(self, label="B", pos=(450, CHK_L8)) 
+		self.flbrightcb.SetValue(False)
+		self.flbrightcb.Bind(wx.EVT_CHECKBOX,self.OnCenterToSurfaceBright)
+
+	def OnCenterToSurfaceSouth(self, e):
+		# focus on surface rather than center
+		if self.flscb.GetValue() == True:
+			self.SolarSystem.SurfaceDirection[2] = -1
+		else:
+			self.SolarSystem.SurfaceDirection[2] = 0
+		self.parentFrame.orbitalTab.updateCameraPOV()
+
+	def OnCenterToSurfaceNorth(self, e):
+		# focus on surface rather than center
+		if self.flncb.GetValue() == True:
+			self.SolarSystem.SurfaceDirection[2] = 1
+		else:
+			self.SolarSystem.SurfaceDirection[2] = 0
+		self.parentFrame.orbitalTab.updateCameraPOV()
+
+	def OnCenterToSurfaceEast(self, e):
+		# focus on surface rather than center
+		if self.flecb.GetValue() == True:
+			self.SolarSystem.SurfaceDirection[0] = 1
+		else:
+			self.SolarSystem.SurfaceDirection[0] = 0
+		self.parentFrame.orbitalTab.updateCameraPOV()
+
+	def OnCenterToSurfaceWest(self, e):
+		# focus on surface rather than center
+		if self.flwcb.GetValue() == True:
+			self.SolarSystem.SurfaceDirection[0] = -1
+		else:
+			self.SolarSystem.SurfaceDirection[0] = 0
+		self.parentFrame.orbitalTab.updateCameraPOV()
+
+	def OnCenterToSurfaceBright(self, e):
+		# focus on surface rather than center
+		if self.flbrightcb.GetValue() == True:
+			self.SolarSystem.SurfaceDirection[1] = 1
+		else:
+			self.SolarSystem.SurfaceDirection[0] = 0
+		self.parentFrame.orbitalTab.updateCameraPOV()
+
+	def OnCenterToSurfaceDark(self, e):
+		# focus on surface rather than center
+		if self.fldarkcb.GetValue() == True:
+			self.SolarSystem.SurfaceDirection[1] = -1
+		else:
+			self.SolarSystem.SurfaceDirection[0] = 0
+		self.parentFrame.orbitalTab.updateCameraPOV()
+
 	def OnCenterToSurface(self, e):
 		# focus on surface rather than center
 		self.SolarSystem.SurfaceView = self.flcb.GetValue()
+		#self.SolarSystem.SurfaceDirection[0] = 0		
+		#self.SolarSystem.SurfaceDirection[1] = 0		
+		#self.SolarSystem.SurfaceDirection[2] = -1		
 		self.parentFrame.orbitalTab.updateCameraPOV()
 
 	def OnHidePlanet(self, e):
@@ -1599,6 +1709,9 @@ class WIDGETSpanel(AbstractUI):
 
 	def OnDrawEquator(self, e):
 		self.Earth.PlanetWidgets.showEquator(self.eqcb.GetValue())
+
+	def OnDrawTropics(self, e):
+		self.Earth.PlanetWidgets.showTropics(self.trcb.GetValue())
 
 	def OnShowNodes(self, e):
 		self.Earth.PlanetWidgets.showNodes(self.ncb.GetValue())

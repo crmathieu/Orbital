@@ -9,6 +9,7 @@ import math
 import pytz
 import datetime as dt
 import time
+from orbit3D import deg2rad
 
 """
 TimeLoc - time management
@@ -77,10 +78,42 @@ TZ_HONO = 7
 class Timeloc:
 
 	def __init__(self):
-		index = TZ_HONO
+		index = -1 #TZ_HONO
 		self.getLocationInfoFromIPaddress(index)
 		self.InitLocalTimezoneData()
 		self.InitGeometryData()
+		self.Psi = 0.0
+
+	def adjustEarthTexture(self, body, localDatetime):
+		if localDatetime == None:
+			localDatetime = self.localdatetime
+
+		Alpha = TEXTURE_POSITIONING_CORRECTION = 2*math.pi/5 #pi/12
+		Theta = math.atan2(body.Position[1], body.Position[0])
+		print "adjustEarthTexture: Initial angle between earth and Ecliptic referential Y is ", Theta, " rd (", Theta * (180/math.pi), "degrees)"
+
+		# calculate angle between location and the dateline
+		Beta =  deg2rad(self.Time2degree(self.TimeToWESTdateline))
+#		self.Beta =  deg2rad(locationInfo.Time2degree(locationInfo.TimeToEASTdateline))
+		Omega = Beta - Alpha
+
+		# calculate rotation necessary to position thexture properly for this local time
+		Psi = Theta + deg2rad(self.computeSolarTime(localDatetime)) - Omega
+
+		print "adjust "+body.Name+": Alpha .............  ", Alpha
+		print "adjust "+body.Name+": Theta .............  ", Theta
+		print "adjust "+body.Name+": Beta ..............  ", Beta
+		print "adjust "+body.Name+": Omega .............  ", Omega
+		print "adjust "+body.Name+": Psi ...............  ", Psi
+
+		#if self.Psi != None:
+		#	body.BodyShape.rotate(angle=(-self.Psi), axis=body.RotAxis, origin=(0,0,0))
+
+		body.BodyShape.rotate(angle=(-self.Psi), axis=body.RotAxis, origin=(0,0,0))
+		body.BodyShape.rotate(angle=(Psi), axis=body.RotAxis, origin=(0,0,0))
+		self.Psi = Psi
+		return Psi
+
 
 	def getLocationInfoFromIPaddress(self, tzindex):
 		
@@ -218,6 +251,11 @@ class Timeloc:
 	def initSolarTime(self):
 		# to set solar time, we need a struct of type time.struct_time, hence we pass time.localtime()
 		self.solarT = self.setSolarTime(self.datetime_to_StructTime(self.localdatetime), self.longitude)
+
+	def computeSolarTime(self, localdatetime):
+		# calculate a solar time for a given date time. we need a struct of type time.struct_time, 
+		# hence we pass time.localtime()
+		return self.setSolarTime(self.datetime_to_StructTime(localdatetime), self.longitude)
 
 	def setSolarTime(self, localtime, longitude):
 

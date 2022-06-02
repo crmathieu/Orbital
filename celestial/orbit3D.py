@@ -51,6 +51,7 @@ class makeSolarSystem:
 	def __init__(self):
 		self.todayUTCdatetime = locationInfo.getUTCDateTime()
 		self.SurfaceView = False
+		self.SurfaceDirection = [0,0,0]
 		self.Name = "Sun"
 		self.JPL_designation = "SUN"
 		self.nameIndex = {}
@@ -225,8 +226,6 @@ class makeSolarSystem:
 		for i in range (3): # Each direction
 			self.RefAxis[i] = curve( frame = None, color = color.white, pos= [ pos, pos+refDirections[i]], material=materials.emissive, visible=False, radius=300)
 			
-			#self.RefAxis[i] = cylinder(pos=pos, axis=refDirections[i], color=color.white, emissive=True, opacity=refOpRad[i][0], radius=refOpRad[i][1]) 
-
 			self.RefAxisLabel[i] = label( frame = None, color = color.white,  text = refText[i],
 										pos = pos+refDirections[i], opacity = 0, box = False, visible=False )
 			A = np.matrix([[relDirections[i][0]],[relDirections[i][1]],[relDirections[i][2]]], np.float64)
@@ -680,12 +679,19 @@ class makeBody:
 		self.Position = np.matrix([[0],[0],[0]], np.float64)
 
 		if satelliteof.Name == "Sun":
-			# 180 rotation so that vernal equinox points towards left
+			# 180 rotation so that vernal equinox points towards left.
+			# There might be another way to achieve this by reversing planets tilt by
+			# using a -tilt angle, but the ecliptic referential will still be reversed (-x, -y)
 			self.Rotation_VernalEquinox = np.matrix([
 				[-1,	 0, 	0],
 				[ 0,	-1,		0],
 				[ 0,	 0,		1]]
 			)
+#			self.Rotation_VernalEquinox = np.matrix([
+#				[ 1,	 0, 	0],
+#				[ 0,	 1,		0],
+#				[ 0,	 0,		1]]
+#			)
 		else:
 			# for satellite rotate 90 back
 			self.Rotation_VernalEquinox = np.matrix([  ###############################
@@ -1247,6 +1253,7 @@ class makeEarth(planet):
 		# corrective angle (earth only)
 		self.Gamma = 0
 		self.Opacity = 0.4
+		self.Psi = 0.0
 
 		planet.__init__(self, system, "earth", ccolor, type, sizeCorrectionType, defaultSizeCorrection)
 
@@ -1261,12 +1268,15 @@ class makeEarth(planet):
 		return velocity, distance
 
 
+	def adjustEarthTexture(self, localDatetime):
+		self.Psi = locationInfo.adjustEarthTexture(self, localDatetime)
+
 	# overrides the default initRotation in makeBody superclass
 	def initRotation(self):
 
 		# texture alignment correction coefficient. This is to take 
 		# into account the initial mapping of texture on sphere
-		self.Alpha = TEXTURE_POSITIONING_CORRECTION = 2*pi/5 #pi/12
+		#self.Alpha = TEXTURE_POSITIONING_CORRECTION = 2*pi/5 #pi/12
 
 		# we need to rotate around X axis by pi/2 to properly align the planet's texture,
 		# and also, we need to take into account planet tilt around X axis 
@@ -1277,6 +1287,9 @@ class makeEarth(planet):
 
 		# calculate initial angle (theta) between sun-earth 
 		# axis and solar referential x axis tan(theta) = Y/X
+
+		self.Psi = locationInfo.adjustEarthTexture(self, None)
+		return
 
 		self.Theta = atan2(self.Position[Y_COOR], self.Position[X_COOR])
 		print "Initial angle between earth and Ecliptic referential Y is ", self.Theta, " rd (", self.Theta * (180/pi), "degrees)"
