@@ -20,7 +20,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 
 """
-
+# Body types
 INNERPLANET = 0x01
 OUTERPLANET = 0x02
 DWARFPLANET = 0x04
@@ -79,6 +79,7 @@ TYPE_COMET = 4
 TYPE_TRANS_N = 5
 TYPE_SATELLITE = 6
 
+EARTH_NAME = "EARTH"
 
 AU = 149597870691
 DEFAULT_RADIUS = 2.0
@@ -546,6 +547,8 @@ objects_data = {
 		"kep_elt":{'a' : 39.48686035, 'ar': 0.00449751, 'EC_e' : 0.24885238, 'er':6.016e-05, 'i' :17.1410426, 'ir':5.01e-06, 'L' :238.96535011, 'Lr':145.18042903, 'W' :224.09702598, 'Wr':-0.00968827, 'N' :110.30167986, 'Nr':-0.00809981, 'b' :-0.01262724, 'c' :0.0, 's':0.0, 'f' :0.0},
 		#"kep_elt_1":{'a' : 39.48211675, 'ar':-0.00031596, 'EC_e' : 0.24882730, 'er':0.00005170, 'i' :17.14001206, 'ir':0.00004818, 'L' :238.92903833, 'Lr':145.20780515, 'W' :224.06891629, 'Wr':-0.04062942, 'N' :110.30393684, 'Nr':-0.01183482, 'b' :0.0, 'c' :0.0, 's':0.0, 'f' :0.0},
 		"tga_name": "Pluto"
+#		"tga_name": "highres-earth-8192x4096-clouds" #"EarthClouds"
+
 		},
 
 	"eris" : {

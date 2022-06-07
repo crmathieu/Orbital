@@ -17,6 +17,12 @@ TimeLoc - time management
 """
 tzTest = [
     {
+        "tzname": "Africa/Abidjan",
+        "lat": 51.4934,
+        "long": 0.0098,
+        "name": "Greenwich"
+    },
+    {
         "tzname": "Africa/Cairo",
         "lat": 30.0444,
         "long": 31.2357,
@@ -63,60 +69,67 @@ tzTest = [
         "lat": 19.8968,
         "long": -155.5828,
         "name": "Honolulu"
-    }
+    },
+	{
+        "tzname": "America/New_York",
+        "lat": 28.3922,
+        "long": -80.6077,
+        "name": "Cape Canaveral"
+    },
+ 	{
+        "tzname": "America/Guyana",
+        "lat": 5.1611,
+        "long": -52.6493,
+        "name": "Kourou Space Port"
+    },
+ 	{
+        "tzname": "Asia/Oral",
+        "lat": 45.6232,
+        "long": 63.3140,
+        "name": "Baikonur"
+    },
 
 ]
-TZ_CAIRO = 0
-TZ_PARIS = 1
-TZ_COUVE = 2
-TZ_ICE = 3
-TZ_HONG = 4
-TZ_AUSTRA = 5
-TZ_CHILI = 6
-TZ_HONO = 7
+TZ_UTC = 0
+TZ_CAIRO = 1
+TZ_PARIS = 2
+TZ_COUVE = 3
+TZ_ICE = 4
+TZ_HONG = 5
+TZ_AUSTRA = 6
+TZ_CHILI = 7
+TZ_HONO = 8
+TZ_CAPE = 9
+TZ_KOUR = 10
+TZ_BAIK = 11
 
 class Timeloc:
 
-	def __init__(self):
-		index = -1 #TZ_HONO
+	def __init__(self, index = -1):
+		#index = TZ_COUVE
 		self.getLocationInfoFromIPaddress(index)
 		self.InitLocalTimezoneData()
 		self.InitGeometryData()
-		self.Psi = 0.0
+		#self.Psi = 0.0
 
-	def adjustEarthTexture(self, body, localDatetime):
-		if localDatetime == None:
-			localDatetime = self.localdatetime
+	def getLocationInfo(self, tzindex = -1):
+		if tzindex >= 0:
+			if tzindex > len(tzTest):
+				return {}
 
-		Alpha = TEXTURE_POSITIONING_CORRECTION = 2*math.pi/5 #pi/12
-		Theta = math.atan2(body.Position[1], body.Position[0])
-		print "adjustEarthTexture: Initial angle between earth and Ecliptic referential Y is ", Theta, " rd (", Theta * (180/math.pi), "degrees)"
+			return {
+				"lat": tzTest[tzindex]["lat"],
+				"long": tzTest[tzindex]["long"],
+				"timezone": tzTest[tzindex]["tzname"]
+			}
 
-		# calculate angle between location and the dateline
-		Beta =  deg2rad(self.Time2degree(self.TimeToWESTdateline))
-#		self.Beta =  deg2rad(locationInfo.Time2degree(locationInfo.TimeToEASTdateline))
-		Omega = Beta - Alpha
-
-		# calculate rotation necessary to position thexture properly for this local time
-		Psi = Theta + deg2rad(self.computeSolarTime(localDatetime)) - Omega
-
-		print "adjust "+body.Name+": Alpha .............  ", Alpha
-		print "adjust "+body.Name+": Theta .............  ", Theta
-		print "adjust "+body.Name+": Beta ..............  ", Beta
-		print "adjust "+body.Name+": Omega .............  ", Omega
-		print "adjust "+body.Name+": Psi ...............  ", Psi
-
-		#if self.Psi != None:
-		#	body.BodyShape.rotate(angle=(-self.Psi), axis=body.RotAxis, origin=(0,0,0))
-
-		body.BodyShape.rotate(angle=(-self.Psi), axis=body.RotAxis, origin=(0,0,0))
-		body.BodyShape.rotate(angle=(Psi), axis=body.RotAxis, origin=(0,0,0))
-		self.Psi = Psi
-		return Psi
-
+		return {
+			"lat": self.latitude,
+			"long": self.longitude,
+			"timezone": self.timezoneStr
+		}
 
 	def getLocationInfoFromIPaddress(self, tzindex):
-		
 		if tzindex >= 0:
 			k = tzindex
 			self.latitude 		= tzTest[k]["lat"]
@@ -251,6 +264,11 @@ class Timeloc:
 	def initSolarTime(self):
 		# to set solar time, we need a struct of type time.struct_time, hence we pass time.localtime()
 		self.solarT = self.setSolarTime(self.datetime_to_StructTime(self.localdatetime), self.longitude)
+
+	def computeUTCSolarTime(self, UTCdatetime):
+		# calculate a solar time for a given date time. we need a struct of type time.struct_time, 
+		# hence we pass time.localtime()
+		return self.setSolarTime(self.datetime_to_StructTime(UTCdatetime), 0)
 
 	def computeSolarTime(self, localdatetime):
 		# calculate a solar time for a given date time. we need a struct of type time.struct_time, 

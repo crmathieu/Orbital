@@ -66,10 +66,12 @@ class makeSolarSystem:
 		self.LocalRef = False
 		self.currentPOVselection = "SUN"
 		self.Scene = display(title = 'Solar System', width = self.SCENE_WIDTH, height =self.SCENE_HEIGHT, range=3, center = (0,0,0))
+
 		self.MT = self.Scene.getMouseTracker()
 		#self.MT.SetMouseStateReporter(self.Scene)
 		self.camera = camera(self.Scene)
 		self.Scene.lights = []
+		
 		self.Scene.forward = vector(2,0,-1) #(0,0,-1)
 		self.Scene.fov = math.pi/3
 		self.Scene.userspin = True
@@ -267,7 +269,7 @@ class makeSolarSystem:
 		self.bodies.append(body)
 		i = len(self.bodies) - 1
 		self.nameIndex[body.JPL_designation] = i
-		if body.JPL_designation == 'earth':
+		if body.JPL_designation.upper() == EARTH_NAME:
 			self.EarthRef = body
 		return i # this is the index of the added body in the collection
 
@@ -311,8 +313,11 @@ class makeSolarSystem:
 		self.toggleSize(realisticSize)
 
 		for body in self.bodies:
+
 			if body.BodyType in [SPACECRAFT, OUTERPLANET, INNERPLANET, ASTEROID, COMET, \
 								 SATELLITE, DWARFPLANET, PHA, BIG_ASTEROID, TRANS_NEPT]:
+				
+				body.Origin.visible = True if self.ShowFeatures & body.BodyType != 0 else False ################################
 				body.toggleSize(realisticSize)
 				if body.Origin.visible == True:
 					body.Trail.visible = orbitTrace
@@ -325,18 +330,21 @@ class makeSolarSystem:
 					for i in range(len(body.Labels)):
 						body.Labels[i].visible = value
 				else:
-					pass
+					pass #body.Origin.visible = bodyVisible
+
 			else: # belts / rings
 				if body.BodyType != ECLIPTIC_PLANE:
 					if body.BodyShape.visible == True and animationInProgress == True:
 						body.BodyShape.visible = False
 						for i in range(len(body.Labels)):
 							body.Labels[i].visible = False
+		
 
 		if self.ShowFeatures & LIT_SCENE != 0:
 			self.Scene.ambient = color.white
 			self.sunLight.visible = False
 			self.BodyShape.material = materials.texture(data=materials.loadTGA("./img/sun"), mapping="spherical", interpolate=False)
+			self.BodyShape.opacity = 1.0
 		else:
 			self.Scene.ambient = color.nightshade #color.black
 			self.sunLight.visible = True
@@ -617,6 +625,8 @@ class makeBody:
 		self.sizeCorrectionType = sizeCorrectionType
 
 		self.Foci = vector(satelliteof.Position[X_COOR], satelliteof.Position[Y_COOR], satelliteof.Position[Z_COOR])
+		
+		#key = key.upper()
 
 		self.ObjectIndex = key
 		self.SolarSystem 			= system
@@ -631,6 +641,7 @@ class makeBody:
 		self.BodyShape 				= None
 		
 		self.Origin 				= frame()
+		self.Origin.visible			= False
 
 		self.Revolution 			= objects_data[key]["PR_revolution"]
 		self.Perihelion 			= objects_data[key]["QR_perihelion"]	# body perhelion
@@ -1025,7 +1036,7 @@ class makeBody:
 
 	# default initRotation behavior
 	def initRotation(self):
-		TEXTURE_POSITIONING_CORRECTION = pi/12
+	#	TEXTURE_POSITIONING_CORRECTION = pi/12
 		# we need to rotate around X axis by pi/2 to properly align the planet's texture
 		self.Origin.rotate(angle=(pi/2+self.TiltAngle), axis=self.XdirectionUnit, origin=(self.Position[X_COOR]+self.Foci[X_COOR],self.Position[Y_COOR]+self.Foci[Y_COOR],self.Position[Z_COOR]+self.Foci[Z_COOR]))
 
@@ -1123,7 +1134,7 @@ class makeBody:
 			return
 
 		if 	self.BodyType & self.SolarSystem.ShowFeatures != 0 or \
-			self.Name.lower() == 'earth' or \
+			self.Name.upper() == EARTH_NAME or \
 			self.Details == True:
 			if self.Origin.visible == False:
 				self.show()
@@ -1157,6 +1168,7 @@ class planet(makeBody):
 	
 	def __init__(self, system, key, color, ptype, sizeCorrectionType, defaultSizeCorrection):
 		makeBody.__init__(self, system, key, color, ptype, sizeCorrectionType, defaultSizeCorrection, system)
+		#self.BodyShape.visible = False
 		self.setRings()
 
 	def updateStillPosition(self, timeinsec):
@@ -1250,33 +1262,111 @@ from widgets import *
 class makeEarth(planet):
 
 	def __init__(self, system, ccolor, type, sizeCorrectionType, defaultSizeCorrection):
-		# corrective angle (earth only)
-		self.Gamma = 0
 		self.Opacity = 0.4
-		self.Psi = 0.0
+		self.NumberOfSiderealDaysPerYear = 366.25
 
+		# The angle we need to initially rotate the 
+		# earth texture to make it match the solar time
+		self.Psi = 0.0
+		self.PlanetWidgets = None
+
+		# When a "validate date" is set, a sidereal rotation 
+		# correction is required to compensate for the earth
+		# rotation around the sun between the old and new dates 		
+		self.SiderealCorrectionAngle = 0.0  
+
+		# texture alignment correction coefficient. This is to take 
+		# into account the way vpython applies texture on a sphere 
+		self.Alpha = deg2rad(80) # 2*math.pi/5 #pi/12
+	
 		planet.__init__(self, system, "earth", ccolor, type, sizeCorrectionType, defaultSizeCorrection)
 
-		# Create widgets
+		# Create widgets. This must be done after initializing earth. This will correctly
+		# position the widgets with the earth current apparence
 		self.PlanetWidgets = makePlanetWidgets(self)
 
 
 	def animate(self, timeIncrement):
-		# add widgets animation to default planet animation
+		# default planet animation
 		velocity, distance = planet.animate(self, timeIncrement)
+
+		# and animate widgets as well
 		self.PlanetWidgets.animate()
 		return velocity, distance
 
 
-	def adjustEarthTexture(self, localDatetime):
-		self.Psi = locationInfo.adjustEarthTexture(self, localDatetime)
+	def setTextureFromSolarTime(self, localDatetime):
+		# Called when a full update is required for the texture position, 
+		# mainly due to a change in date, but also in time (ie when loading a CA body)
 
-	# overrides the default initRotation in makeBody superclass
+		# This will position the Earth texture to match the solar time
+		# to better understand what is being calculated in this method, 
+		# see the document "data/texture-positioning.png"
+
+		if localDatetime == None:
+			localDatetime = locationInfo.localdatetime
+
+		# calculate initial angle (theta) between sun-earth 
+		# axis and solar referential x axis tan(theta) = Y/X
+
+		Theta = math.atan2(self.Position[1], self.Position[0])
+		#print "setTextureFromSolarTime: Initial angle between earth and Ecliptic referential Y is ", Theta, " rd (", Theta * (180/math.pi), "degrees)"
+
+		# calculate angle between location and the dateline
+		Beta =  deg2rad(locationInfo.Time2degree(locationInfo.TimeToWESTdateline))
+		Omega = Beta - self.Alpha
+
+		# calculate rotation necessary to position texture properly for this local time
+		Psi = Theta + deg2rad(locationInfo.computeSolarTime(localDatetime)) - Omega
+
+		if False:
+			print "adjust "+self.Name+": Alpha .............  ", self.Alpha
+			print "adjust "+self.Name+": Theta .............  ", Theta
+			print "adjust "+self.Name+": Beta ..............  ", Beta
+			print "adjust "+self.Name+": Omega .............  ", Omega
+			print "adjust "+self.Name+": Psi ...............  ", Psi
+
+		if self.SiderealCorrectionAngle != 0.0:
+			# there has been a previous manual reset of the UTC date which has resulted in a sidereal 
+			# correction. We need to undo it prior to reposition the texture for the new date
+			self.BodyShape.rotate(angle=(-self.SiderealCorrectionAngle), axis=self.RotAxis, origin=(0,0,0))
+			self.SiderealCorrectionAngle = 0.0
+
+		# Reverse the previous texture initial angle 
+		#self.BodyShape.rotate(angle=(-self.Psi), axis=self.RotAxis, origin=(0,0,0))
+		# ...and apply the new one
+		self.BodyShape.rotate(angle=(Psi-self.Psi), axis=self.RotAxis, origin=(0,0,0))
+		self.Psi = Psi
+
+		# also reflect the same reset amount with the widgets, if they already exist
+		if self.PlanetWidgets != None:
+			self.PlanetWidgets.resetWidgetsRefFromSolarTime()
+
+#	def	resetEarthTextureFromNewDate(self, fl_diff_in_days):
+	def	updateSiderealAngleFromNewDate(self, fl_diff_in_days):
+		# Called when only a sidereal angle correction is needed, this happens 
+		# when dates change, but the time remains (ie when updating UTC date wheels)
+		print "Calculating Earth texture reset"
+		if self.SiderealCorrectionAngle != 0.0:
+			# there has been a previous manual reset of the UTC date -or- a reset due to a close 
+			# approach body's date-of-approach which has resulted in a sidereal correction. 
+			# We need to undo it prior to reposition the texture for the new date
+			print "Removing previous sidereal angle correction of", rad2deg(self.SiderealCorrectionAngle), "degres"
+			self.BodyShape.rotate(angle=(-self.SiderealCorrectionAngle), axis=self.RotAxis, origin=(0,0,0))
+
+		# reset the new sidereal correction angle			
+		self.SiderealCorrectionAngle = (2 * pi / self.NumberOfSiderealDaysPerYear)* fl_diff_in_days
+		print "Injecting sidereal angle correction of", rad2deg(self.SiderealCorrectionAngle), "degres"
+		self.BodyShape.rotate(angle=(self.SiderealCorrectionAngle), axis=self.RotAxis, origin=(0,0,0))
+
+		# also reflect the same reset amount with the widgets
+		self.PlanetWidgets.resetWidgetsReferencesFromNewDate() #fl_diff_in_days)
+
+
+	# Called by the class __init__ methods. This overrides the default 
+	# initRotation method provided in the makeBody superclass. This is 
+	# where we initially position the earth texture
 	def initRotation(self):
-
-		# texture alignment correction coefficient. This is to take 
-		# into account the initial mapping of texture on sphere
-		#self.Alpha = TEXTURE_POSITIONING_CORRECTION = 2*pi/5 #pi/12
 
 		# we need to rotate around X axis by pi/2 to properly align the planet's texture,
 		# and also, we need to take into account planet tilt around X axis 
@@ -1285,45 +1375,9 @@ class makeEarth(planet):
 		# then further rotation will apply to Z axis
 		self.RotAxis = self.ZdirectionUnit
 
-		# calculate initial angle (theta) between sun-earth 
-		# axis and solar referential x axis tan(theta) = Y/X
-
-		self.Psi = locationInfo.adjustEarthTexture(self, None)
+		# adjust earth texture based on solar time
+		self.setTextureFromSolarTime(None)
 		return
-
-		self.Theta = atan2(self.Position[Y_COOR], self.Position[X_COOR])
-		print "Initial angle between earth and Ecliptic referential Y is ", self.Theta, " rd (", self.Theta * (180/pi), "degrees)"
-
-		# calculate angle between location and the dateline
-		self.Beta =  deg2rad(locationInfo.Time2degree(locationInfo.TimeToWESTdateline))
-#		self.Beta =  deg2rad(locationInfo.Time2degree(locationInfo.TimeToEASTdateline))
-		self.Omega = self.Beta - self.Alpha
-
-		# calculate rotation necessary to position thexture properly for this local time
-		self.Psi = self.Theta + deg2rad(locationInfo.getSolarTime()) - self.Omega
-
-		print "Alpha .............  ", self.Alpha
-		print "Theta .............  ", self.Theta
-		print "Beta ..............  ", self.Beta
-		print "Omega .............  ", self.Omega
-		print "Psi ...............  ", self.Psi
-
-		if False:
-			# Calculate the local initial angle between the normal to the sun and our location
-			alpha = deg2rad(locationInfo.Time2degree(locationInfo.TimeToWESTdateline)) # * 3600))
-			omega = alpha - TEXTURE_POSITIONING_CORRECTION
-
-			self.Gamma = pi/2 + deg2rad(locationInfo.solarT) - omega
-						#+ deg2rad(locationInfo.Time2degree(locationInfo.TimeToWESTdateline * 3600)) \
-						#+ self.iDelta 
-			self.LocalInitialAngle = self.Gamma# + self.Theta
-			#self.LocalInitialAngle = 0
-
-		self.BodyShape.rotate(angle=(self.Psi), axis=self.RotAxis, origin=(0,0,0))
-
-		# deduct correction due to initial position of texture on earth sphere, then rotate texture to make it match current time
-#		self.LocalInitialAngle =  self.Gamma - TEXTURE_POSITIONING_CORRECTION
-#		self.BodyShape.rotate(angle=(self.LocalInitialAngle), axis=self.RotAxis, origin=(0,0,0))
 
 
 	def initRotationSAVE(self):

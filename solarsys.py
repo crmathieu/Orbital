@@ -40,7 +40,7 @@ def bootSolarSystem():
 	solSystem = makeSolarSystem()
 
 	# set what is displayed by default
-	bodySet = pd.INNERPLANET|pd.OUTERPLANET|pd.ORBITS|pd.SATELLITE|pd.LABELS
+	bodySet = pd.INNERPLANET|pd.ORBITS|pd.SATELLITE|pd.LABELS|pd.OUTERPLANET
 	solSystem.setDefaultFeatures(bodySet) #pd.INNERPLANET|pd.OUTERPLANET|pd.ORBITS|pd.SATELLITE|pd.KUIPER_BELT|pd.ASTEROID_BELT|pd.JTROJANS|pd.LABELS|pd.CELESTIAL_SPHERE)
 #	solSystem.setDefaultFeatures(pd.INNERPLANET|pd.OUTERPLANET|pd.ORBITS|pd.SATELLITE|pd.KUIPER_BELT|pd.ASTEROID_BELT|pd.JTROJANS|pd.LABELS|pd.CELESTIAL_SPHERE)
 #	solSystem.setDefaultFeatures(pd.INNERPLANET|pd.OUTERPLANET|pd.ORBITS)
@@ -49,17 +49,18 @@ def bootSolarSystem():
 	earth = makeEarth(solSystem, color.cyan, pd.INNERPLANET, pd.INNERPLANET, pd.PLANET_SZ_CORRECTION)
 	solSystem.addTo(earth)
 
-	mars = planet(solSystem, 'mars', color.red, pd.INNERPLANET, pd.INNERPLANET, pd.PLANET_SZ_CORRECTION)
-	solSystem.addTo(mars)
-
 	pluto = planet(solSystem, 'pluto', color.green, pd.DWARFPLANET, pd.DWARFPLANET, pd.DWARFPLANET_SZ_CORRECTION) #pd.OUTERPLANET, DWARFPLANET)
 	solSystem.addTo(pluto)
 
-	# generate pd.SATELLITEs
+	mars = planet(solSystem, 'mars', color.red, pd.INNERPLANET, pd.INNERPLANET, pd.PLANET_SZ_CORRECTION)
+	solSystem.addTo(mars)
+
+	
+	# generate pd.SATELLITE
+	#solSystem.addTo(satellite(solSystem, 'charon', color.white, pluto))
 	#solSystem.addTo(satellite(solSystem, 'moon', color.white, earth))
 	solSystem.addTo(satellite(solSystem, 'phobos', color.red, mars))
 	solSystem.addTo(satellite(solSystem, 'deimos', color.white, mars))
-	solSystem.addTo(satellite(solSystem, 'charon', color.white, pluto))
 
 	solSystem.addTo(makeEcliptic(solSystem, color.cyan, 0.4))
 
@@ -70,6 +71,7 @@ def bootSolarSystem():
 	solSystem.addTo(planet(solSystem, 'uranus', color.yellow, pd.OUTERPLANET, pd.GASGIANT, pd.PLANET_SZ_CORRECTION))
 	solSystem.addTo(planet(solSystem, 'neptune', color.orange, pd.OUTERPLANET, pd.GASGIANT, pd.PLANET_SZ_CORRECTION))
 
+	
 #	solSystem.setRings(solSystem, "saturn") #, [((0.8,0.8,0.8), 0.9), ((0.5,0.5,0.5), 0.2)]) 
 #	solSystem.setRings(solSystem, "uranus") #, [((0.1,0.1,0.8), 0.1), ((0.2,0.2,0.7), 0.3)])
 
@@ -98,7 +100,12 @@ def bootSolarSystem():
 	loadBodies(solSystem, TRANS_NEPT, "data/transNeptunian_objects.txt.json", MAX_OBJECTS)
 	loadBodies(solSystem, SPACECRAFT, "data/spacecrafts_orbital_elements.txt.json", MAX_OBJECTS)
 
+
+	print "Calculating bodies trajectories ..."
 	solSystem.drawAllBodiesTrajectory()
+	print "FINISHED ..."
+
+
 	glbRefresh(solSystem, False)
 
 	# Start control window
@@ -113,6 +120,7 @@ def bootSolarSystem():
 	db.Show()
 
 	solSystem.introZoomIn(38)
+
 	#ex.MainLoop()
 
 	#solSystem.camera.cameraZoom(10)

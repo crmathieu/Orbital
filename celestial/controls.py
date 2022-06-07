@@ -276,7 +276,10 @@ class POIpanel(AbstractUI):
 		if self.SolarSystem.currentPOVselection != 'curobj':
 			print "CurrentPOV", self.SolarSystem.currentPOVselection
 
-			if (Body.SolarSystem.ShowFeatures & Body.BodyType) == 0:
+			# if object was hidden due to its body type, make body type
+			# visible unless it's earth which always stays visible
+			if (Body.SolarSystem.ShowFeatures & Body.BodyType) == 0 \
+				and Body.Name.upper() != "EARTH":
 				#print "MAKING OBJECT VISIBLE"
 				# if the body is not visible, Make it so
 				#print "Making "+Body.Name+" visible! bodyType = "+str(Body.BodyType)
@@ -761,7 +764,7 @@ class NEOpanel(AbstractUI):
 			return -1
 
 		entry = self.jsonResp["near_earth_objects"][self.fetchDateStr][index]
-		print entry
+		#print entry
 
 		# if the key already exists, the object has already been loaded, simply return its spk-id
 		if entry["neo_reference_id"] in objects_data:
@@ -820,8 +823,8 @@ class NEOpanel(AbstractUI):
 		#print "Local time of approach --------->", objects_data[entry["neo_reference_id"]]["local_dt"]
 
 		# convert UTC to local time
-		utcNewdate = objects_data[entry["neo_reference_id"]]["utc_dt"]
-		LocNewdate = objects_data[entry["neo_reference_id"]]["local_dt"]
+		utcNewdatetime = objects_data[entry["neo_reference_id"]]["utc_dt"]
+		LocNewdatetime = objects_data[entry["neo_reference_id"]]["local_dt"]
 
 		# print time of closest approach on this date
  		print ">>> Local Time of approach: ", objects_data[entry["neo_reference_id"]]["local_dt"]
@@ -830,16 +833,14 @@ class NEOpanel(AbstractUI):
 		body = orbit3D.pha(self.SolarSystem, entry["neo_reference_id"], orbit3D.getColor())
 		self.SolarSystem.addTo(body)
 
-		print "UTC time of approach   =========>", utcNewdate
-		print "Local time of approach --------->", LocNewdate
+		print "UTC time of approach   =========>", utcNewdatetime
+		print "Local time of approach --------->", LocNewdatetime
 
 		# update timeStamps
-		self.parentFrame.orbitalTab.updateTimeStamps(LocNewdate, utcNewdate)
+		self.parentFrame.orbitalTab.updateTimeStamps(LocNewdatetime, utcNewdatetime)
 
-		# update widgets references
-		self.parentFrame.widgetsTab.Earth.adjustEarthTexture(LocNewdate)
-		self.parentFrame.widgetsTab.Earth.PlanetWidgets.alignWidgetsReferences()
-
+		# update texture and widgets references
+		self.parentFrame.widgetsTab.Earth.setTextureFromSolarTime(LocNewdatetime)
 
 		# we return the index of the object in array of cosmic bodies
 		# (to access the data, retrieve objects_data[index])
@@ -1093,7 +1094,7 @@ class ORBITALCtrlPanel(AbstractUI):
 		surfaceRadius = 0.0
 		if self.SolarSystem.SurfaceView == True:
 			surfaceRadius = (1.3 * self.SolarSystem.currentPOV.BodyShape.radius)
-		print "surfaceRadius = ", surfaceRadius
+		#print "surfaceRadius = ", surfaceRadius
 
 		self.SolarSystem.Scene.center = (
 			self.SolarSystem.currentPOV.Position[X_COOR]+self.SolarSystem.currentPOV.Foci[X_COOR]+surfaceRadius * self.SolarSystem.SurfaceDirection[0],
@@ -1163,9 +1164,11 @@ class ORBITALCtrlPanel(AbstractUI):
 		print "OnValidateDate: DELTA from right now (in days) =", self.DeltaT
 
 		# update planet positions accordingly
+		# (adjust earth rotation by (2*pi/365.25 )* DeltaT)
+		self.parentFrame.widgetsTab.Earth.updateSiderealAngleFromNewDate(self.DeltaT)
 		self.updateSolarSystem()
 		self.disableBeltsForAnimation()
-		self.refreshDate()
+		#self.refreshDate()
 
 
 	def setVelocityLabel(self):
@@ -1201,7 +1204,7 @@ class ORBITALCtrlPanel(AbstractUI):
 
 		self.setVelocityLabel()
 		self.setDistanceLabel()
-		print ("refresh Date")
+		#print ("refresh Date")
 
 	def updateTimeDisplay(self, utcDatetime, localDatetime):
 		self.setLocalDateTimeLabel(localDatetime)
@@ -1604,9 +1607,13 @@ class WIDGETSpanel(AbstractUI):
 		self.ncb.SetValue(False)
 		self.ncb.Bind(wx.EVT_CHECKBOX,self.OnShowNodes)
 
-		self.tzcb = wx.CheckBox(self, label="Longitude lines", pos=(50, CHK_L4)) #   POV_Y+560))
+		self.mrcb = wx.CheckBox(self, label="Longitude lines", pos=(50, CHK_L4)) #   POV_Y+560))
+		self.mrcb.SetValue(False)
+		self.mrcb.Bind(wx.EVT_CHECKBOX,self.OnDrawLongitudeLines)
+
+		self.tzcb = wx.CheckBox(self, label="Time zones", pos=(200, CHK_L4)) #   POV_Y+560))
 		self.tzcb.SetValue(False)
-		self.tzcb.Bind(wx.EVT_CHECKBOX,self.OnDrawLongitudeLines)
+		self.tzcb.Bind(wx.EVT_CHECKBOX,self.OnDrawTZLines)
 
 		self.latcb = wx.CheckBox(self, label="Latitude lines", pos=(50, CHK_L5)) #   POV_Y+560))
 		self.latcb.SetValue(False)
@@ -1647,6 +1654,14 @@ class WIDGETSpanel(AbstractUI):
 		self.flbrightcb = wx.CheckBox(self, label="B", pos=(450, CHK_L8)) 
 		self.flbrightcb.SetValue(False)
 		self.flbrightcb.Bind(wx.EVT_CHECKBOX,self.OnCenterToSurfaceBright)
+
+		self.cpcb = wx.CheckBox(self, label="Center to Cape Canaveral", pos=(50, CHK_L9)) #   POV_Y+560))
+		self.cpcb.SetValue(False)
+		self.cpcb.Bind(wx.EVT_CHECKBOX,self.OnCenterToCape)
+
+	def OnCenterToCape(self, e):
+		# focus on surface rather than center
+		pass
 
 	def OnCenterToSurfaceSouth(self, e):
 		# focus on surface rather than center
@@ -1720,7 +1735,10 @@ class WIDGETSpanel(AbstractUI):
 		self.Earth.PlanetWidgets.showEquatorialPlane(self.eqpcb.GetValue())
 
 	def OnDrawLongitudeLines(self, e):
-		self.Earth.PlanetWidgets.showLongitudes(self.tzcb.GetValue())
+		self.Earth.PlanetWidgets.showLongitudes(self.mrcb.GetValue())
+
+	def OnDrawTZLines(self, e):
+		self.Earth.PlanetWidgets.showTimezones(self.tzcb.GetValue())
 
 	def OnDrawLatitudeLines(self, e):
 		self.Earth.PlanetWidgets.showLatitudes(self.latcb.GetValue())
