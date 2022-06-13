@@ -80,13 +80,25 @@ tzTest = [
         "tzname": "America/Guyana",
         "lat": 5.1611,
         "long": -52.6493,
-        "name": "Kourou Space Port"
+        "name": "Kourou Spaceport"
     },
  	{
         "tzname": "Asia/Oral",
         "lat": 45.6232,
         "long": 63.3140,
-        "name": "Baikonur"
+        "name": "Baikonur Cosmodrome"
+    },
+	{
+        "tzname": "Asia/Chungking",
+        "lat": 19.614492,
+        "long": 110.951133,
+        "name": "Wenchang Spaceport"
+    },
+	{
+        "tzname": "Asia/Kolkata",
+        "lat": 8.5241,
+        "long": 76.9366,
+        "name": "Thiruvananthapuram Spaceport"
     },
 
 ]
@@ -102,6 +114,8 @@ TZ_HONO = 8
 TZ_CAPE = 9
 TZ_KOUR = 10
 TZ_BAIK = 11
+TZ_CHINA = 12
+TZ_INDIA = 13
 
 class Timeloc:
 

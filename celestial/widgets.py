@@ -14,6 +14,19 @@ class makePlanetWidgets():
         self.SiderealCorrectionAngle = 0.0
 
         self.initWidgets()
+        #self.fullReset()
+
+    def fullResetXX(self):
+        self.Origin = None
+        self.Origin = frame()
+        self.Origin.pos = self.Planet.Origin.pos
+        self.Eq = self.eqPlane = self.Lons = self.Lats = self.Loc = None
+        self.Psi = 0.0
+        self.NumberOfSiderealDaysPerYear = 0.0
+        self.SiderealCorrectionAngle = 0.0
+
+        self.NumberOfSiderealDaysPerYear = self.Planet.NumberOfSiderealDaysPerYear
+        self.initWidgets()
 
 
     def resetWidgetsRefFromSolarTime(self):
@@ -48,10 +61,11 @@ class makePlanetWidgets():
         self.Lons = makeLongitudes(self)
         self.Lats = makeLatitudes(self)
         self.tz = makeTimezones(self)
-        self.capc = makeEarthLocation(self, TZ_BAIK)
+        self.Loc = makeEarthLocation(self, TZ_PARIS)
 
         # align with planet tilt
-        self.Origin.rotate(angle=(self.Planet.TiltAngle), axis=self.Planet.XdirectionUnit) #, origin=(0,0,0))
+####        self.Origin.rotate(angle=(self.Planet.TiltAngle), axis=self.Planet.XdirectionUnit) #, origin=(0,0,0))
+        self.Origin.rotate(angle=(-self.Planet.TiltAngle), axis=self.Planet.XdirectionUnit) #, origin=(0,0,0))
 
         # align longitude to greenwich when the planet is Earth
         if self.Planet.Name.upper() == "EARTH":
@@ -124,7 +138,7 @@ class makeEarthLocation():
 
         #self.Location = curve(frame=self.Origin, color=self.Color, visible=False, radius=25, material=materials.emissive)
         self.Location = sphere(frame=self.Origin, pos=(0,0,0), np=32, radius=20, material = materials.emissive, make_trail=false, color=self.Color, visible=True) 
-        self.Position = np.matrix([[0],[0],[0]], np.float64)
+        #self.Position = np.matrix([[0],[0],[0]], np.float64)
 
         # obtain location info. Earthloc is a tuple (lat, long, timezone)
         earthLoc = locationInfo.getLocationInfo(tz_index)
@@ -147,6 +161,7 @@ class makeEarthLocation():
         self.Location.pos[X_COOR] = eqPlane * cos(deg2rad(eloc["long"])+pi)
         self.Location.pos[Y_COOR] = eqPlane * sin(deg2rad(eloc["long"])+pi)
         self.Location.pos[Z_COOR] = radius * sin(deg2rad(eloc["lat"]))
+        print "SET POsition for location at ", self.Location.pos
 
     def updatePositionXXX(self):
         self.Node.pos[X_COOR] = self.ascending * self.Planet.radiusToShow/self.Planet.SizeCorrection[self.Planet.sizeType] + self.Planet.Position[X_COOR]
@@ -247,7 +262,8 @@ class makeEquatorialPlane():
 
         side = 0.5*AU*DIST_FACTOR
         self.eqPlane = box(pos=self.Planet.Position, length=side, width=0.0001, height=side, material=materials.emissive, visible=False, color=self.Color, opacity=0.1) #, axis=(0, 0, 1), opacity=0.8) #opacity=self.Opacity)
-        self.eqPlane.rotate(angle=(self.Planet.TiltAngle), axis=self.Planet.XdirectionUnit) #, origin=(0,0,0))
+####        self.eqPlane.rotate(angle=(self.Planet.TiltAngle), axis=self.Planet.XdirectionUnit) #, origin=(0,0,0))
+        self.eqPlane.rotate(angle=(-self.Planet.TiltAngle), axis=self.Planet.XdirectionUnit) #, origin=(0,0,0))
 
 
     def updateEquatorialPlanePosition(self):

@@ -861,6 +861,7 @@ class ORBITALCtrlPanel(AbstractUI):
 		self.BaseTimeIncrement = INITIAL_TIMEINCR
 		self.TimeIncrementKey = INITIAL_INCREMENT_KEY
 		self.AnimLoop = 0
+		self.surfaceRadius = 0.0  # used for surface focus
 		self.todayUTCdatetime = orbit3D.locationInfo.getUTCDateTime()
 
 #		self.DaysIncrement = 0 # number of days from today - used for animation into future or past (detalT < 0)
@@ -990,7 +991,9 @@ class ORBITALCtrlPanel(AbstractUI):
 		self.createCheckBox(self, "Asteroids Belt", ASTEROID_BELT, 20, CHK_L5)
 		self.createCheckBox(self, "Jupiter Trojans", JTROJANS, 20, CHK_L6)
 		self.createCheckBox(self, "Kuiper Belt", KUIPER_BELT, 20, CHK_L7)
-		self.createCheckBox(self, "Inner Oort Cloud", INNER_OORT_CLOUD, 20, CHK_L8)
+		#self.createCheckBox(self, "Inner Oort Cloud", INNER_OORT_CLOUD, 20, CHK_L8)
+		self.createCheckBox(self, "Celestial Sphere", CELESTIAL_SPHERE, 20, CHK_L8)
+		
 		self.createCheckBox(self, "Ecliptic", ECLIPTIC_PLANE, 20, CHK_L9)
 		self.createCheckBox(self, "Labels", LABELS, 20, CHK_L10)
 		self.createCheckBox(self, "Lit Scene", LIT_SCENE, 20, CHK_L11)
@@ -1080,7 +1083,7 @@ class ORBITALCtrlPanel(AbstractUI):
 	def setCameraPOV(self, body):
 		self.SolarSystem.currentPOV = body
 
-	def updateCameraPOV(self):
+	def updateCameraPOV_ADV(self):
 
 		# the following values will do the following
 		# (0,-1,-1): freezes rotation and looks down towards the left
@@ -1102,7 +1105,15 @@ class ORBITALCtrlPanel(AbstractUI):
 			self.SolarSystem.currentPOV.Position[Z_COOR]+self.SolarSystem.currentPOV.Foci[Z_COOR]+surfaceRadius * self.SolarSystem.SurfaceDirection[2]
 		)
 
-	def updateCameraPOV_SAVE(self):
+	def updateCameraPOV(self, loc = None):
+
+		focus = vector(0,0,0)
+
+		if loc != None:
+			focus = loc.Location.pos
+			self.surfaceRadius = 0.0 
+			print "CameraPOV: focus=", focus
+			print "currentPOV coordinates", self.SolarSystem.currentPOV.Position
 
 		# the following values will do the following
 		# (0,-1,-1): freezes rotation and looks down towards the left
@@ -1111,12 +1122,14 @@ class ORBITALCtrlPanel(AbstractUI):
 		# (0, 1,-1): freezes rotation and looks down towards the right
 
 		#self.SolarSystem.Scene.forward = (0, 0, -1)
-		# For a planet, Foci(x, y, z) is (0,0,0). For a moon, Foci represents the position of the planet the moon orbits around
-		surfaceRadius = (1.1 * self.SolarSystem.currentPOV.BodyShape.radius) if self.SolarSystem.SurfaceView == True else 0
+		# For a planet, Foci(x, y, z) is (0,0,0). For a moon, Foci represents the 
+		# position of the planet the moon orbits around in the ecliptic referential
+
+		######self.surfaceRadius = (1.1 * self.SolarSystem.currentPOV.BodyShape.radius) if self.SolarSystem.SurfaceView == True else 0
 		self.SolarSystem.Scene.center = (
-			self.SolarSystem.currentPOV.Position[X_COOR]+self.SolarSystem.currentPOV.Foci[X_COOR]+surfaceRadius,
-			self.SolarSystem.currentPOV.Position[Y_COOR]+self.SolarSystem.currentPOV.Foci[Y_COOR],
-			self.SolarSystem.currentPOV.Position[Z_COOR]+self.SolarSystem.currentPOV.Foci[Z_COOR]
+			self.SolarSystem.currentPOV.Position[X_COOR] + self.SolarSystem.currentPOV.Foci[X_COOR] + focus[X_COOR] + self.surfaceRadius,
+			self.SolarSystem.currentPOV.Position[Y_COOR] + self.SolarSystem.currentPOV.Foci[Y_COOR] + focus[Y_COOR],
+			self.SolarSystem.currentPOV.Position[Z_COOR] + self.SolarSystem.currentPOV.Foci[Z_COOR] + focus[Z_COOR]
 		)
 
 	def updateSolarSystem(self):
@@ -1214,7 +1227,7 @@ class ORBITALCtrlPanel(AbstractUI):
 		self.checkboxList[JTROJANS].SetValue(False)
 		self.checkboxList[ASTEROID_BELT].SetValue(False)
 		self.checkboxList[KUIPER_BELT].SetValue(False)
-		self.checkboxList[INNER_OORT_CLOUD].SetValue(False)
+		#self.checkboxList[INNER_OORT_CLOUD].SetValue(False)
 		self.SolarSystem.setFeature(JTROJANS|ASTEROID_BELT|KUIPER_BELT|INNER_OORT_CLOUD, False)
 		#self.SolarSystem.ShowFeatures = (self.SolarSystem.ShowFeatures & ~(JTROJANS|ASTEROID_BELT|KUIPER_BELT|INNER_OORT_CLOUD))
 		orbit3D.glbRefresh(self.SolarSystem, self.AnimationInProgress)
@@ -1224,7 +1237,7 @@ class ORBITALCtrlPanel(AbstractUI):
 		JupiterBody = self.SolarSystem.getBodyFromName(objects_data[curTrojans.PlanetName]['jpl_designation'])
 		# if Jupiter coordinates haven't changed since this Trojans were generated, don't do anything
 		if JupiterBody.Position[X_COOR] == curTrojans.JupiterX and JupiterBody.Position[Y_COOR] == curTrojans.JupiterY:
-		   return
+			return
 
 		# otherwise, generate a new set of Trojans corresponding to Jupiter's new location
 		self.SolarSystem.addJTrojans(orbit3D.makeJtrojan(self.SolarSystem, 'jupiterTrojan', 'Jupiter Trojans', JTROJANS, color.green, 2, 5, 'jupiter'))
@@ -1631,6 +1644,7 @@ class WIDGETSpanel(AbstractUI):
 		self.flcb.SetValue(False)
 		self.flcb.Bind(wx.EVT_CHECKBOX,self.OnCenterToSurface)
 
+		"""
 		self.flscb = wx.CheckBox(self, label="S", pos=(200, CHK_L8))
 		self.flscb.SetValue(False)
 		self.flscb.Bind(wx.EVT_CHECKBOX,self.OnCenterToSurfaceSouth)
@@ -1654,14 +1668,20 @@ class WIDGETSpanel(AbstractUI):
 		self.flbrightcb = wx.CheckBox(self, label="B", pos=(450, CHK_L8)) 
 		self.flbrightcb.SetValue(False)
 		self.flbrightcb.Bind(wx.EVT_CHECKBOX,self.OnCenterToSurfaceBright)
-
+		"""
+		
 		self.cpcb = wx.CheckBox(self, label="Center to Cape Canaveral", pos=(50, CHK_L9)) #   POV_Y+560))
 		self.cpcb.SetValue(False)
-		self.cpcb.Bind(wx.EVT_CHECKBOX,self.OnCenterToCape)
+		self.cpcb.Bind(wx.EVT_CHECKBOX,self.OnCenterToLocation)
 
-	def OnCenterToCape(self, e):
+	def OnCenterToLocation(self, e):
 		# focus on surface rather than center
-		pass
+		# grab the current location
+		loc = None
+		if self.cpcb.GetValue() == True:
+			loc = self.Earth.PlanetWidgets.loc
+			
+		self.parentFrame.orbitalTab.updateCameraPOV(loc)
 
 	def OnCenterToSurfaceSouth(self, e):
 		# focus on surface rather than center
@@ -1714,6 +1734,8 @@ class WIDGETSpanel(AbstractUI):
 	def OnCenterToSurface(self, e):
 		# focus on surface rather than center
 		self.SolarSystem.SurfaceView = self.flcb.GetValue()
+		self.parentFrame.orbitalTab.surfaceRadius = (1.1 * self.SolarSystem.currentPOV.BodyShape.radius) if self.SolarSystem.SurfaceView == True else 0
+
 		#self.SolarSystem.SurfaceDirection[0] = 0		
 		#self.SolarSystem.SurfaceDirection[1] = 0		
 		#self.SolarSystem.SurfaceDirection[2] = -1		

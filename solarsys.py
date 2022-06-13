@@ -104,7 +104,8 @@ def bootSolarSystem():
 	print "Calculating bodies trajectories ..."
 	solSystem.drawAllBodiesTrajectory()
 	print "FINISHED ..."
-
+	
+	#solSystem.makeCelestialSphere()
 
 	glbRefresh(solSystem, False)
 
