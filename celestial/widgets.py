@@ -23,7 +23,6 @@ class makePlanetWidgets():
             self.Origin.rotate(angle=(-self.SiderealCorrectionAngle), axis=self.Planet.RotAxis) #, origin=(0,0,0))
             self.SiderealCorrectionAngle = 0.0
 
-        #self.Origin.rotate(angle=(-self.Psi), axis=self.Planet.RotAxis) #, origin=(0,0,0))
         print "Planet.Psi ....... ", self.Planet.Psi
         print "widgets.Psi ...... ", self.Psi
         self.Origin.rotate(angle=(self.Planet.Psi-self.Psi), axis=self.Planet.RotAxis) #, origin=(0,0,0))
@@ -39,7 +38,6 @@ class makePlanetWidgets():
             self.Origin.rotate(angle=(-self.SiderealCorrectionAngle), axis=self.Planet.RotAxis) #, origin=(0,0,0))
             self.SiderealCorrectionAngle = 0.0
 
-        #self.Origin.rotate(angle=(-self.Psi), axis=self.Planet.RotAxis) #, origin=(0,0,0))
         self.Origin.rotate(angle=(self.Planet.Psi-self.Psi), axis=self.Planet.RotAxis) #, origin=(0,0,0))
         
         # Psi is the initial rotation to apply on the sphere texture to match the solar Time
