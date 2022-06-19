@@ -15,7 +15,24 @@ from orbit3D import deg2rad
 TimeLoc - time management
 
 """
-tzTest = [
+
+TZ_UTC = 0
+TZ_CAIRO = 1
+TZ_PARIS = 2
+TZ_COUVE = 3
+TZ_ICE = 4
+TZ_HONG = 5
+TZ_AUSTRA = 6
+TZ_CHILI = 7
+TZ_HONO = 8
+TZ_CAPE = 9
+TZ_KOUR = 10
+TZ_BAIK = 11
+TZ_CHINA = 12
+TZ_INDIA = 13
+
+class Timeloc:
+	tzEarthLocations = [
     {
         "tzname": "Africa/Abidjan",
         "lat": 51.4934,
@@ -98,27 +115,34 @@ tzTest = [
         "tzname": "Asia/Kolkata",
         "lat": 8.5241,
         "long": 76.9366,
-        "name": "Thiruvananthapuram Spaceport"
+        "name": "Thiruvananthapuram IND Spaceport"
+    },
+	{
+        "tzname": "America/Los_Angeles",
+        "lat": 34.7420,
+        "long": -120.5724,
+        "name": "Vandenberg Air Force Base"
+    },
+	{
+        "tzname": "Pacific/Auckland",
+        "lat": -39.0806,
+        "long": 177.8749,
+        "name": "Mahia NZL Spaceport"
+    },
+	{
+        "tzname": "Japan",
+        "lat": 30.3999984,
+        "long": 130.968662792,
+        "name": "Tanegashima JPN Spaceport"
+    },
+	{
+        "tzname": "Asia/Shanghai",
+        "lat": 27.8945,
+        "long": 102.2631,
+        "name": "Xichang CHN Spaceport"
     },
 
 ]
-TZ_UTC = 0
-TZ_CAIRO = 1
-TZ_PARIS = 2
-TZ_COUVE = 3
-TZ_ICE = 4
-TZ_HONG = 5
-TZ_AUSTRA = 6
-TZ_CHILI = 7
-TZ_HONO = 8
-TZ_CAPE = 9
-TZ_KOUR = 10
-TZ_BAIK = 11
-TZ_CHINA = 12
-TZ_INDIA = 13
-
-class Timeloc:
-
 	def __init__(self, index = -1):
 		#index = TZ_COUVE
 		self.getLocationInfoFromIPaddress(index)
@@ -128,28 +152,30 @@ class Timeloc:
 
 	def getLocationInfo(self, tzindex = -1):
 		if tzindex >= 0:
-			if tzindex > len(tzTest):
+			if tzindex > len(self.tzEarthLocations):
 				return {}
 
 			return {
-				"lat": tzTest[tzindex]["lat"],
-				"long": tzTest[tzindex]["long"],
-				"timezone": tzTest[tzindex]["tzname"]
+				"lat": self.tzEarthLocations[tzindex]["lat"],
+				"long": self.tzEarthLocations[tzindex]["long"],
+				"timezone": self.tzEarthLocations[tzindex]["tzname"],
+				"name": self.tzEarthLocations[tzindex]["name"]
 			}
 
 		return {
 			"lat": self.latitude,
 			"long": self.longitude,
-			"timezone": self.timezoneStr
+			"timezone": self.timezoneStr,
+			"name": self.city
 		}
 
 	def getLocationInfoFromIPaddress(self, tzindex):
 		if tzindex >= 0:
 			k = tzindex
-			self.latitude 		= tzTest[k]["lat"]
-			self.longitude 		= tzTest[k]["long"]
-			self.timezoneStr	= tzTest[k]["tzname"]
-			self.city 			= tzTest[k]["name"]
+			self.latitude 		= self.tzEarthLocations[k]["lat"]
+			self.longitude 		= self.tzEarthLocations[k]["long"]
+			self.timezoneStr	= self.tzEarthLocations[k]["tzname"]
+			self.city 			= self.tzEarthLocations[k]["name"]
 			#print ("Time Zone for {0}".format(self.city))
 			self.utcTZ 		= pytz.timezone('UTC')
 			self.localTZ 	= pytz.timezone(self.timezoneStr)

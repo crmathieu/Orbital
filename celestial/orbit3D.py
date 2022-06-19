@@ -1028,7 +1028,7 @@ class makeBody:
 #		for E in np.arange(0, 2*pi+increment, increment):
 			self.setPolarCoordinates(E+rad_E)
 			# from R and Nu, calculate 3D coordinates and update current position
-			self.updatePosition(trace=True) #E*180/pi)
+			self.drawSegment(trace = True) #E*180/pi)
 			rate(5000) # ??
 
 #		if self.BodyShape.visible:
@@ -1078,7 +1078,7 @@ class makeBody:
 		self.updateAxis()
 		self.Origin.rotate(angle=self.RotAngle, axis=self.RotAxis, origin=(self.Position[X_COOR]+self.Foci[X_COOR],self.Position[Y_COOR]+self.Foci[Y_COOR],self.Position[Z_COOR]+self.Foci[Z_COOR]))
 
-	def updatePosition(self, trace = True):
+	def drawSegment(self, trace = True):
 		self.setCartesianCoordinates()
 		self.Origin.pos = vector(self.Position[X_COOR]+self.Foci[X_COOR],self.Position[Y_COOR]+self.Foci[Y_COOR],self.Position[Z_COOR]+self.Foci[Z_COOR])
 		if trace:
@@ -1289,7 +1289,7 @@ class makeEarth(planet):
 		planet.__init__(self, system, "earth", ccolor, type, sizeCorrectionType, defaultSizeCorrection)
 
 		# Create widgets. This must be done after initializing earth. This will correctly
-		# position the widgets with the earth current apparence
+		# position the widgets with the earth current appearence
 		self.PlanetWidgets = makePlanetWidgets(self)
 
 
@@ -1298,7 +1298,7 @@ class makeEarth(planet):
 		velocity, distance = planet.animate(self, timeIncrement)
 
 		# and animate widgets as well
-		self.PlanetWidgets.animate()
+		self.PlanetWidgets.animate(timeIncrement)
 		return velocity, distance
 
 	def resetTexture(self):
@@ -1664,7 +1664,7 @@ class satellite(makeBody):
 		for E in np.arange(increment, 2*pi+increment, increment):
 			self.setPolarCoordinates(E+rad_E)
 			# from R and Nu, calculate 3D coordinates and update current position
-			self.updatePosition(trace=false) #E*180/pi, False)
+			self.drawSegment(trace = False) #E*180/pi, False)
 			
 			rate(5000) # ?!
 
@@ -1714,7 +1714,7 @@ class hyperbolic(makeBody):
 		for E in np.arange(increment, 2*pi+increment, increment):
 			self.setPolarCoordinates(E+rad_E)
 			# from R and Nu, calculate 3D coordinates and update current position
-			self.updatePosition(trace=False) #E*180/pi, False)
+			self.drawSegment(trace = False) #E*180/pi, False)
 			
 			rate(5000) #?!
 

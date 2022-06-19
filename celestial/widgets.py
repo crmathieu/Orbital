@@ -12,24 +12,50 @@ class makePlanetWidgets():
         self.Psi = 0.0
         self.NumberOfSiderealDaysPerYear = 0.0
         self.SiderealCorrectionAngle = 0.0
-
-        self.initWidgets()
-        #self.fullReset()
-
-    def fullResetXX(self):
-        self.Origin = None
-        self.Origin = frame()
-        self.Origin.pos = self.Planet.Origin.pos
-        self.Eq = self.eqPlane = self.Lons = self.Lats = self.Loc = None
-        self.Psi = 0.0
-        self.NumberOfSiderealDaysPerYear = 0.0
-        self.SiderealCorrectionAngle = 0.0
-
-        self.NumberOfSiderealDaysPerYear = self.Planet.NumberOfSiderealDaysPerYear
+        self.Loc = []
         self.initWidgets()
 
 
     def resetWidgetsRefFromSolarTime(self):
+
+        print "RESET WIDGET FROM SOLAR-TIME"
+        if self.SiderealCorrectionAngle != 0.0:
+            self.Origin.rotate(angle=(-self.SiderealCorrectionAngle), axis=self.Planet.RotAxis) #, origin=(0,0,0))
+            """
+            # do the same with all locations (for now only the Cape)
+            cosv = cos(-self.SiderealCorrectionAngle)
+            sinv = sin(-self.SiderealCorrectionAngle)
+            Rz = np.matrix([
+                [cosv,  sinv,       0],
+                [-sinv,  cosv,       0],
+                [0,	      0,        1]]
+            )
+            #self.Loc[self.currentLocation].Position = Rz * self.Loc[self.currentLocation].Position
+            """
+            self.SiderealCorrectionAngle = 0.0
+
+        #self.Origin.rotate(angle=(-self.Psi), axis=self.Planet.RotAxis) #, origin=(0,0,0))
+        print "Planet.Psi ....... ", self.Planet.Psi
+        print "widgets.Psi ...... ", self.Psi
+        self.Origin.rotate(angle=(self.Planet.Psi-self.Psi), axis=self.Planet.RotAxis) #, origin=(0,0,0))
+
+        """
+        # do the same with all locations (for now only the Cape)
+        cosv = cos(self.Planet.Psi-self.Psi)
+        sinv = sin(self.Planet.Psi-self.Psi)
+        Rz = np.matrix([
+                [cosv,  sinv,       0],
+                [-sinv,  cosv,       0],
+                [0,	      0,        1]])
+
+        #self.Loc[self.currentLocation].Position = Rz * self.Loc[self.currentLocation].Position
+        """
+
+        # Psi is the initial rotation to apply on the sphere texture to match the solar Time
+        self.Psi = self.Planet.Psi
+        print "resetWidgetsRefFromSolarTime: Psi =", self.Psi
+
+    def resetWidgetsRefFromSolarTime_SAVE(self):
 
         if self.SiderealCorrectionAngle != 0.0:
             self.Origin.rotate(angle=(-self.SiderealCorrectionAngle), axis=self.Planet.RotAxis) #, origin=(0,0,0))
@@ -44,14 +70,35 @@ class makePlanetWidgets():
 
 
     def resetWidgetsReferencesFromNewDate(self): #, fl_diff_in_days):
+        print "RESET WIDGETS REF"
         if self.SiderealCorrectionAngle != 0.0:
             # there has been a previous manual reset of the UTC date which has resulted in a sidereal 
             # correction. We need to undo it prior to reposition the texture for the new date
             self.Origin.rotate(angle=(-self.SiderealCorrectionAngle), axis=self.Planet.RotAxis)
-
+            """
+            # do the same with all locations (for now only the Cape)
+            cosv = cos(-self.SiderealCorrectionAngle)
+            sinv = sin(-self.SiderealCorrectionAngle)
+            Rz = np.matrix([
+                [cosv,  sinv,       0],
+                [-sinv,  cosv,       0],
+                [0,	      0,        1]]
+            )
+            #self.Loc[self.currentLocation].Position = Rz * self.Loc[self.currentLocation].Position
+            """
         self.SiderealCorrectionAngle = self.Planet.SiderealCorrectionAngle #(2 * pi / self.NumberOfSiderealDaysPerYear) * fl_diff_in_days
         self.Origin.rotate(angle=(self.SiderealCorrectionAngle), axis=self.Planet.RotAxis) #, origin=(0,0,0))
+        """
+        # do the same with all locations (for now only the Cape)
+        cosv = cos(self.SiderealCorrectionAngle)
+        sinv = sin(self.SiderealCorrectionAngle)
+        Rz = np.matrix([
+                [cosv,  sinv,       0],
+                [-sinv,  cosv,       0],
+                [0,	      0,        1]])
 
+        #self.Loc[self.currentLocation].Position = Rz * self.Loc[self.currentLocation].Position
+        """
 
     def initWidgets(self):
         self.NumberOfSiderealDaysPerYear = self.Planet.NumberOfSiderealDaysPerYear
@@ -61,26 +108,94 @@ class makePlanetWidgets():
         self.Lons = makeLongitudes(self)
         self.Lats = makeLatitudes(self)
         self.tz = makeTimezones(self)
-        self.Loc = makeEarthLocation(self, TZ_PARIS)
+        self.Loc = []
+        self.currentLocation = -1
 
-        # align with planet tilt
-####        self.Origin.rotate(angle=(self.Planet.TiltAngle), axis=self.Planet.XdirectionUnit) #, origin=(0,0,0))
+#        self.Loc = makeEarthLocation(self, TZ_CAPE)
+        self.makeLocation(TZ_CAPE)
+#        self.makeMultipleLocations(TZ_CAPE)
+         
+
+        """
+        print "---------> BEFORE", self.Loc[self.currentLocation].Position
+        zob = sphere(frame=self.Origin, pos=(100,100,100), radius=100)
+        print ""
+        print "ZOB LOCAL = ", zob.pos
+        print "zob absolute=", self.Origin.frame_to_world(zob.pos)
+        print ""
+        """
+
+        # align widgets origin with planet tilt
         self.Origin.rotate(angle=(-self.Planet.TiltAngle), axis=self.Planet.XdirectionUnit) #, origin=(0,0,0))
+
+        """
+        # do the same with all locations (for now only the Cape)
+        cosv = cos(-self.Planet.TiltAngle)
+        sinv = sin(-self.Planet.TiltAngle)
+        Rx = np.matrix([
+            [1,		0,	      0],
+            [0,		cosv,   sinv],
+            [0,		-sinv,  cosv]]
+        )
+        #self.Loc[self.currentLocation].Position = Rx * self.Loc[self.currentLocation].Position
+        """
 
         # align longitude to greenwich when the planet is Earth
         if self.Planet.Name.upper() == "EARTH":
 
             # adjust widgets positions in relation with earth texture at current time
             self.resetWidgetsRefFromSolarTime()
-
+             
             # align GMT: the initial position of the GMT meridian on the texture is 6 hours
             # off its normal position. Ajusting by 6 hours x 15 degres = 90 degres
             self.Origin.rotate(angle=(deg2rad(6*15)), axis=self.Planet.RotAxis) #ZdirectionUnit)
+            
+            # init position in ecliptic referential
+            if self.currentLocation >= 0:
+                self.Loc[self.currentLocation].convertGeoToEcliptic()
 
 
-    def updateWidgetsRotation(self):
+            """
+            print "---------> MIDDLE", self.Loc[self.currentLocation].Position
+
+            # do the same with all locations (for now only the Cape)
+            
+            cosv = cos(deg2rad(6*15))
+            sinv = sin(deg2rad(6*15))
+            Rz = np.matrix([
+                [cosv,   sinv,       0],
+                [-sinv,  cosv,       0],
+                [0,	      0,        1]]
+            )
+            
+           # self.Loc[self.currentLocation].Position = Rz * self.Loc[self.currentLocation].Position 
+            
+            print "---------> AFTER", self.Loc[self.currentLocation].Position
+            zob = self.Loc[self.currentLocation].GeoLoc
+            world = self.Origin.frame_to_world(zob.pos)
+            print ""
+            print ">>>>> LOCAL = ", zob.pos
+            print ">>>>> absolute=", world
+            print ""
+            self.Loc[self.currentLocation].Position = world
+            #zob2 = sphere(pos=world, radius=100, color=color.blue)
+            """
+
+    def makeMultipleLocations(self, defaultLoc):
+        self.currentLocation = defaultLoc
+        for i in np.arange(0, len(locationInfo.tzEarthLocations), 1):
+            self.Loc.append(makeEarthLocation(self, i))
+
+    def makeLocation(self, locIndex):
+        self.currentLocation = 0
+        self.Loc.append(makeEarthLocation(self, locIndex))
+
+    def updateWidgetsFrameRotation(self, timeIncrement):
+        #print "XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX"
+        # here we rotate the widgets by the same amount the earth texture is rotated
         ti = self.Planet.SolarSystem.getTimeIncrement()
         RotAngle = (2*pi/self.Planet.Rotation)*ti
+        #RotAngle = (2*pi/self.Planet.Rotation)*timeIncrement
         # if polar axis inverted, reverse rotational direction
         if self.Planet.ZdirectionUnit[2] < 0:
             RotAngle *= -1
@@ -89,17 +204,21 @@ class makePlanetWidgets():
         self.Origin.rotate(angle=RotAngle, axis=self.Planet.RotAxis, origin=self.Origin.pos) #(self.Position[X_COOR]+self.Foci[X_COOR],self.Position[Y_COOR]+self.Foci[Y_COOR],self.Position[Z_COOR]+self.Foci[Z_COOR]))
 
 
-    def updateWidgetsPosition(self):
+    def updateWidgetsFramePosition(self):
         self.Origin.pos = self.Planet.Origin.pos
 
+    def updateCurrentLocationEcliptic(self):
+        if self.currentLocation >= 0: 
+            #print "updating GEO=", self.Loc[self.currentLocation].GeoLoc.pos
+            self.Loc[self.currentLocation].convertGeoToEcliptic()
 
-    def animate(self):
-        self.updateWidgetsPosition()
-        self.updateWidgetsRotation()
+    def animate(self, timeIncrement):
+        self.updateWidgetsFramePosition()
+        self.updateWidgetsFrameRotation(timeIncrement)
         self.Eq.updateNodesPosition()
-        #self.Eq.refreshNodes()	
+        self.updateCurrentLocationEcliptic()
         self.EqPlane.updateEquatorialPlanePosition()	
-
+        #print self.Loc[self.currentLocation].GeoLoc.pos
 
     def showEquatorialPlane(self, value):
         self.EqPlane.display(value)
@@ -136,32 +255,50 @@ class makeEarthLocation():
         self.Planet = widgets.Planet
         self.Color = color.red
 
-        #self.Location = curve(frame=self.Origin, color=self.Color, visible=False, radius=25, material=materials.emissive)
-        self.Location = sphere(frame=self.Origin, pos=(0,0,0), np=32, radius=20, material = materials.emissive, make_trail=false, color=self.Color, visible=True) 
-        #self.Position = np.matrix([[0],[0],[0]], np.float64)
-
+        self.GeoLoc = sphere(frame=self.Origin, pos=(0,0,0), np=32, radius=20, material = materials.emissive, make_trail=false, color=self.Color, visible=True) 
+        self.Origin.axis.visible = True
         # obtain location info. Earthloc is a tuple (lat, long, timezone)
         earthLoc = locationInfo.getLocationInfo(tz_index)
-        if earthLoc == {}:
-            print  "Could not make Earth Location"
-            return
+        if earthLoc != {}:
+            print earthLoc
+            self.Name = earthLoc["name"]
+            self.setPosition(earthLoc)
 
-        self.setPosition(earthLoc)
+            #self.updatePosition()
+        else:
+            self.Name = "None"
 
-        #self.updatePosition()
-
-    def setPosition(self, eloc):
+    def setPosition(self, locInfo):
+        # set the Geo position
         radius = (self.Planet.radiusToShow/self.Planet.SizeCorrection[self.Planet.sizeType])
         # calculate distance from z-axis to latitude line
-        eqPlane = radius * cos(deg2rad(eloc["lat"]))
+        eqPlane = radius * cos(deg2rad(locInfo["lat"]))
 
         # deduct (x,y) from eqPlane. Note, we need to extend the longitude 
         # value by 180 degrees to take into account the way the earth texture
         # was applied on the sphere
-        self.Location.pos[X_COOR] = eqPlane * cos(deg2rad(eloc["long"])+pi)
-        self.Location.pos[Y_COOR] = eqPlane * sin(deg2rad(eloc["long"])+pi)
-        self.Location.pos[Z_COOR] = radius * sin(deg2rad(eloc["lat"]))
-        print "SET POsition for location at ", self.Location.pos
+        self.GeoLoc.pos[X_COOR] = eqPlane * cos(deg2rad(locInfo["long"])+pi)
+        self.GeoLoc.pos[Y_COOR] = eqPlane * sin(deg2rad(locInfo["long"])+pi)
+        self.GeoLoc.pos[Z_COOR] = radius * sin(deg2rad(locInfo["lat"]))
+        #print "SET Position for location ", self.Name, "at ", self.GeoLoc.pos
+
+        # init position in ecliptic referential
+        #self.convertGeoToEcliptic()
+
+        #  zob = sphere(frame=self.Origin, pos=self.GeoLoc.pos, radius=100)
+
+    def convertGeoToEcliptic(self):
+        # init position in ecliptic referential
+        self.Position = self.Origin.frame_to_world(self.GeoLoc.pos)
+        #print "ECLIPTIC = ", self.Position
+
+    def getEcliptic(self):
+        # return ecliptic coordinates
+        return self.Position
+
+    def getGeo(self):
+        # return ecliptic coordinates
+        return self.GeoLoc.pos
 
     def updatePositionXXX(self):
         self.Node.pos[X_COOR] = self.ascending * self.Planet.radiusToShow/self.Planet.SizeCorrection[self.Planet.sizeType] + self.Planet.Position[X_COOR]
@@ -170,7 +307,7 @@ class makeEarthLocation():
 
 
     def display(self, trueFalse):
-        self.Location.visible = trueFalse
+        self.GeoLoc.visible = trueFalse
 
 
 class makeNode():
@@ -224,7 +361,14 @@ class makeEquator():
         increment = pi/180
         for E in np.arange(0, 2*pi+increment, increment):
             # build Equator line using angular segments of increments degres
-            self.updatePosition(E)
+            self.drawSegment(E)
+
+
+    def drawSegment(self, E, trace = True):
+        self.setCartesianCoordinates(E)
+
+        # add angular portion of equator
+        self.Trail.append(pos= vector(self.Position[X_COOR],self.Position[Y_COOR],self.Position[Z_COOR]), color=(self.Color[0]*0.6, self.Color[1]*0.6, self.Color[2]*0.6))
 
 
     def setCartesianCoordinates(self, angleIncr):
@@ -233,13 +377,6 @@ class makeEquator():
         self.Position[X_COOR] = radius * cos(angleIncr) 
         self.Position[Y_COOR] = radius * sin(angleIncr)
         self.Position[Z_COOR] = 0
-
-
-    def updatePosition(self, E, trace = True):
-        self.setCartesianCoordinates(E)
-
-        # add angular portion of equator
-        self.Trail.append(pos= vector(self.Position[X_COOR],self.Position[Y_COOR],self.Position[Z_COOR]), color=(self.Color[0]*0.6, self.Color[1]*0.6, self.Color[2]*0.6))
 
 
     def showNodes(self, trueFalse):
@@ -261,7 +398,7 @@ class makeEquatorialPlane():
         self.Color = color 
 
         side = 0.5*AU*DIST_FACTOR
-        self.eqPlane = box(pos=self.Planet.Position, length=side, width=0.0001, height=side, material=materials.emissive, visible=False, color=self.Color, opacity=0.1) #, axis=(0, 0, 1), opacity=0.8) #opacity=self.Opacity)
+        self.eqPlane = box(pos=self.Planet.Position, length=side, width=0.0001, height=side, material=materials.emissive, visible=False, color=self.Color, opacity=0.9) #, axis=(0, 0, 1), opacity=0.8) #opacity=self.Opacity)
 ####        self.eqPlane.rotate(angle=(self.Planet.TiltAngle), axis=self.Planet.XdirectionUnit) #, origin=(0,0,0))
         self.eqPlane.rotate(angle=(-self.Planet.TiltAngle), axis=self.Planet.XdirectionUnit) #, origin=(0,0,0))
 
@@ -298,7 +435,7 @@ class doMeridian():
         increment = pi/180
         for E in np.arange(0, 2*pi+increment, increment):
             # build longitude using angular segments of increments degres
-            self.updatePosition(E)
+            self.drawSegment(E)
 
 
     def setCartesianCoordinates(self, angleIncr):
@@ -309,7 +446,7 @@ class doMeridian():
         self.Position[Z_COOR] = radius * sin(angleIncr)
 
 
-    def updatePosition(self, E, trace = True):
+    def drawSegment(self, E, trace = True):
         self.setCartesianCoordinates(E)
         newpos = vector(self.Position[X_COOR],self.Position[Y_COOR],self.Position[Z_COOR])
 
@@ -324,9 +461,11 @@ class makeMeridians():
         self.Color = colr
         self.Meridians = []
 
+
     def display(self, trueFalse):
         for mrd in self.Meridians:
             mrd.display(trueFalse)
+
 
     def draw(self, angle, origColr):
         colr = origColr #color.red
@@ -334,6 +473,7 @@ class makeMeridians():
             # build Meridians by longitude circles
             self.Meridians.append(doMeridian(self.Widgets, colr, i))
             colr = self.Color
+
 
 class makeLongitudes(makeMeridians):
         
@@ -408,7 +548,7 @@ class doLatitude():
         increment = pi/180
         for E in np.arange(0, 2*pi+increment, increment):
             # build latitude level using angular segments of E increments degres
-            self.updatePosition(E)
+            self.drawSegment(E)
 
 
     def setCartesianCoordinates(self, angleIncr):
@@ -420,7 +560,7 @@ class doLatitude():
         self.Position[Z_COOR] = radius * sin(self.latAngle)
 
 
-    def updatePosition(self, E):
+    def drawSegment(self, E):
         self.setCartesianCoordinates(E)
         newpos = vector(self.Position[X_COOR],self.Position[Y_COOR],self.Position[Z_COOR])
 
