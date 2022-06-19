@@ -1106,23 +1106,24 @@ class ORBITALCtrlPanel(AbstractUI):
 		)
 
 	def updateCameraPOV(self, loc = None):
+		if self.SolarSystem.currentPOV == None:
+			return
 
-		if self.SolarSystem.currentPOV != None and self.SolarSystem.currentPOV.Name.upper() == "EARTH":
-
-			earthLoc = None
+		if self.SolarSystem.currentPOV.Name.upper() == "EARTH":
+			earthLocPos = None
 			w = self.Earth.PlanetWidgets
 			if loc == None:
 				if w.currentLocation >= 0:
 					#w = self.Earth.PlanetWidgets.Loc[w.currentLocation]
-					earthLoc = w.Loc[w.currentLocation].getEcliptic()
+					earthLocPos = w.Loc[w.currentLocation].getEcliptic()
 			else:
-				earthLoc = loc.getEcliptic()
+				earthLocPos = loc.getEcliptic()
 
-			if earthLoc != None:
+			if earthLocPos != None:
 				self.SolarSystem.Scene.center = (
-					earthLoc[X_COOR],
-					earthLoc[Y_COOR],
-					earthLoc[Z_COOR]
+					earthLocPos[X_COOR],
+					earthLocPos[Y_COOR],
+					earthLocPos[Z_COOR]
 				)
 
 		else:
@@ -1132,7 +1133,7 @@ class ORBITALCtrlPanel(AbstractUI):
 			# (0, 1, 1): freezes rotation and looks up towards the right
 			# (0, 1,-1): freezes rotation and looks down towards the right
 
-			#self.SolarSystem.Scene.forward = (0, 0, -1)
+			# self.SolarSystem.Scene.forward = (0, 0, -1)
 			# For a planet, Foci(x, y, z) is (0,0,0). For a moon, Foci represents the 
 			# position of the planet the moon orbits around in the ecliptic referential
 
@@ -1143,104 +1144,7 @@ class ORBITALCtrlPanel(AbstractUI):
 				self.SolarSystem.currentPOV.Position[Z_COOR] + self.SolarSystem.currentPOV.Foci[Z_COOR]
 			)
 			
-
-	def updateCameraPOV_SAVE(self, loc = None):
-
-#		focus = vector(0,0,0)
-#		if loc != None:
-#			self.earthLoc = loc.getEcliptic()
-		earthLoc = None
-		w = self.Earth.PlanetWidgets
-		if loc == None:
-			if w.currentLocation >= 0:
-				#w = self.Earth.PlanetWidgets.Loc[w.currentLocation]
-				earthLoc = w.Loc[w.currentLocation].getEcliptic()
-		else:
-			earthLoc = loc.getEcliptic()
-
-		if earthLoc != None:
-			self.SolarSystem.Scene.center = (
-				earthLoc[X_COOR],
-				earthLoc[Y_COOR],
-				earthLoc[Z_COOR]
-			)
-			#self.zob = sphere(pos=self.SolarSystem.Scene.center, np=32, radius=100, material = materials.emissive, make_trail=false, color=color.green, visible=True) 
-			#print "SPHERE coordinates", self.SolarSystem.Scene.center
-
-		else:
-			# the following values will do the following
-			# (0,-1,-1): freezes rotation and looks down towards the left
-			# (0,-1, 1): freezes rotation and looks up towards the left
-			# (0, 1, 1): freezes rotation and looks up towards the right
-			# (0, 1,-1): freezes rotation and looks down towards the right
-
-			#self.SolarSystem.Scene.forward = (0, 0, -1)
-			# For a planet, Foci(x, y, z) is (0,0,0). For a moon, Foci represents the 
-			# position of the planet the moon orbits around in the ecliptic referential
-
-			######self.surfaceRadius = (1.1 * self.SolarSystem.currentPOV.BodyShape.radius) if self.SolarSystem.SurfaceView == True else 0
-			self.SolarSystem.Scene.center = (
-				self.SolarSystem.currentPOV.Position[X_COOR] + self.SolarSystem.currentPOV.Foci[X_COOR],
-				self.SolarSystem.currentPOV.Position[Y_COOR] + self.SolarSystem.currentPOV.Foci[Y_COOR],
-				self.SolarSystem.currentPOV.Position[Z_COOR] + self.SolarSystem.currentPOV.Foci[Z_COOR]
-			)
-			#print "No POI"
-
-	def updateCameraPOV2(self, loc = None):
-
-		focus = vector(0,0,0)
-		if loc != None:
-			#focus = vector(loc.Position[0], loc.Position[1], loc.Position[2])
-			#focus =  np.matrix([[loc.Position[0]],[loc.Position[1]],[loc.Position[2]]], np.float64)
-			#focus = loc.Position
-			focus = loc.GeoLoc.pos
-			self.earthLoc = loc.GeoLoc.pos
-
-			#np.matrix([[self.GeoLoc.pos[X_COOR]], [self.GeoLoc.pos[Y_COOR]], [self.GeoLoc.pos[Z_COOR]]], np.float64)			
-
-			self.surfaceRadius = 0.0 
-			"""
-			print(focus)
-			print "CameraPOV for", loc.Name,", focus=", focus
-			print "Foci:", self.SolarSystem.currentPOV.Foci
-			print "Earth coordinates", self.SolarSystem.EarthRef.Position
-		
-			cosv = cos(self.SolarSystem.EarthRef.TiltAngle)
-			sinv = sin(self.SolarSystem.EarthRef.TiltAngle)
-			Ry = np.matrix([
-                [cosv,   0,    -sinv],
-                [0,      1,       0],
-                [sinv,	 0,    cosv]]
-            )
-			"""
-			#focus = Ry * focus
-
-			self.SolarSystem.Scene.center = (
-				focus[X_COOR] + self.surfaceRadius,
-				focus[Y_COOR],
-				focus[Z_COOR]
-			)
-			self.zob = sphere(pos=self.SolarSystem.Scene.center, np=32, radius=100, material = materials.emissive, make_trail=false, color=color.green, visible=True) 
-			print "SPHERE coordinates", self.SolarSystem.Scene.center
-
-		else:
-			# the following values will do the following
-			# (0,-1,-1): freezes rotation and looks down towards the left
-			# (0,-1, 1): freezes rotation and looks up towards the left
-			# (0, 1, 1): freezes rotation and looks up towards the right
-			# (0, 1,-1): freezes rotation and looks down towards the right
-
-			#self.SolarSystem.Scene.forward = (0, 0, -1)
-			# For a planet, Foci(x, y, z) is (0,0,0). For a moon, Foci represents the 
-			# position of the planet the moon orbits around in the ecliptic referential
-
-			######self.surfaceRadius = (1.1 * self.SolarSystem.currentPOV.BodyShape.radius) if self.SolarSystem.SurfaceView == True else 0
-			self.SolarSystem.Scene.center = (
-				self.SolarSystem.currentPOV.Position[X_COOR] + self.SolarSystem.currentPOV.Foci[X_COOR] + focus[X_COOR] + self.surfaceRadius,
-				self.SolarSystem.currentPOV.Position[Y_COOR] + self.SolarSystem.currentPOV.Foci[Y_COOR] + focus[Y_COOR],
-				self.SolarSystem.currentPOV.Position[Z_COOR] + self.SolarSystem.currentPOV.Foci[Z_COOR] + focus[Z_COOR]
-			)
-		
+	
 
 	def updateSolarSystem(self):
 		self.refreshDate()
