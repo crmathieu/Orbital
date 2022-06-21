@@ -173,15 +173,14 @@ class makeSolarSystem:
 		#file = "./img/star-map-normalized-4096x2048-reversed.tga"
 		file = "./img/constellations_stars_to_MAG_21_RA_DEC_8192x4096_MONO-trimmed-deep-reversed.tga"
 		if os.path.isfile(file):
+			# adjust celestial Sphere position
 			self.CelestialSphereOrigin = frame(pos=vector(0,0,0))
 			self.UniversRadius = CELESTIAL_RADIUS * AU * DIST_FACTOR
 			self.Universe = sphere(frame=self.CelestialSphereOrigin, pos=vector(0,0,0), visible = False, radius=self.UniversRadius, color=color.white, opacity=0.5)
 			self.Universe.material = materials.texture(data=materials.loadTGA(file), mapping="spherical", interpolate=False)
-			self.Universe.rotate(angle=(pi/2+deg2rad(5)), axis=self.XdirectionUnit, origin=(0,0,0))
-#			self.Universe.rotate(angle=deg2rad(-20), axis=self.YdirectionUnit, origin=(0,0,0))
-			self.Universe.rotate(angle=deg2rad(-30), axis=self.YdirectionUnit, origin=(0,0,0))
-#			self.Universe.rotate(angle=deg2rad(60), axis=self.RotAxis, origin=(0,0,0))
-			self.Universe.rotate(angle=deg2rad(-88), axis=self.RotAxis, origin=(0,0,0))
+			self.Universe.rotate(angle=(pi/2+deg2rad(5)), 	axis=self.XdirectionUnit, origin=(0,0,0))
+			self.Universe.rotate(angle=deg2rad(-30), 		axis=self.YdirectionUnit, origin=(0,0,0))
+			self.Universe.rotate(angle=deg2rad(-88), 		axis=self.RotAxis, 		  origin=(0,0,0))
 
 		else:
 			print ("Could not find "+file)
