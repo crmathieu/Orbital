@@ -35,6 +35,7 @@ from visual import *
 from location import *
 from planetsdata import *
 from camera import *
+from objects import simpleArrow
 
 locationInfo = Timeloc() 
 
@@ -165,7 +166,7 @@ class makeSolarSystem:
 
 	def makeCelestialSphere(self): # Unused
 		import os.path
-		print "CELESTIAL SPHERE"
+		#print "CELESTIAL SPHERE"
 		CELESTIAL_RADIUS = 2000 #10000
 		#file = "./img/stars_const.tga"
 		#file = "./img/starmap.tga"
@@ -176,9 +177,11 @@ class makeSolarSystem:
 			self.UniversRadius = CELESTIAL_RADIUS * AU * DIST_FACTOR
 			self.Universe = sphere(frame=self.CelestialSphereOrigin, pos=vector(0,0,0), visible = False, radius=self.UniversRadius, color=color.white, opacity=0.5)
 			self.Universe.material = materials.texture(data=materials.loadTGA(file), mapping="spherical", interpolate=False)
-			self.Universe.rotate(angle=pi/2, axis=self.XdirectionUnit, origin=(0,0,0))
-			self.Universe.rotate(angle=deg2rad(-20), axis=self.YdirectionUnit, origin=(0,0,0))
-			self.Universe.rotate(angle=deg2rad(60), axis=self.RotAxis, origin=(0,0,0))
+			self.Universe.rotate(angle=(pi/2+deg2rad(5)), axis=self.XdirectionUnit, origin=(0,0,0))
+#			self.Universe.rotate(angle=deg2rad(-20), axis=self.YdirectionUnit, origin=(0,0,0))
+			self.Universe.rotate(angle=deg2rad(-30), axis=self.YdirectionUnit, origin=(0,0,0))
+#			self.Universe.rotate(angle=deg2rad(60), axis=self.RotAxis, origin=(0,0,0))
+			self.Universe.rotate(angle=deg2rad(-88), axis=self.RotAxis, origin=(0,0,0))
 
 		else:
 			print ("Could not find "+file)
@@ -223,29 +226,36 @@ class makeSolarSystem:
 
 	def makeSolarReferential(self, size, position):
 #		refDirections = [vector(size,0,0), vector(0,size,0), vector(0,0,size/4)]
-		refDirections = [-vector(4 * size,0,0), -vector(0,size,0), vector(0,0,size/4)]
+		refDirections = [-vector(size,0,0), -vector(0,size,0), vector(0,0,size/4)]
 		relsize = 2 * (self.BodyRadius/self.CorrectionSize)
 		relDirections = [vector(relsize,0,0), vector(0,relsize,0), vector(0,0,relsize)]
-		refText = ["FP Aries","y","z"]
+		refText = ["X","Y","K"]
 		relText = ["x","y","z"]
 		refOpRad = [[1.0, 200],[0.5, 50],[0.5,50]]
 		pos = vector(position)
 		for i in range (3): # Each direction
-			self.RefAxis[i] = curve( frame = None, color = color.white, pos= [ pos, pos+refDirections[i]], material=materials.emissive, visible=False, radius=300)
+
+#			self.RefAxis[i] = simpleArrow(color.white, 300, pos, axisp = refDirections[i])
+			self.RefAxis[i] = simpleArrow(color.white, 0, pos, axisp = refDirections[i])
+			#self.RefAxis[i] = curve( frame = None, color = color.white, pos= [ pos, pos+refDirections[i]], material=materials.emissive, visible=False, radius=300)
 			
 			self.RefAxisLabel[i] = label( frame = None, color = color.white,  text = refText[i],
-										pos = pos+refDirections[i]*1.03, opacity = 0, box = False, visible=False )
+										pos = pos+refDirections[i]*1.04, opacity = 0, box = True, visible=False )
+
 			A = np.matrix([[relDirections[i][0]],[relDirections[i][1]],[relDirections[i][2]]], np.float64)
 			relDirections[i] = self.Rotation_Obliquity * A
 
-			self.Axis[i] = curve( frame = None, color = color.white, pos= [ pos, pos+relDirections[i]], visible=False)
-			self.AxisLabel[i] = label( frame = None, color = color.white,  text = relText[i],
-										pos = pos+relDirections[i], opacity = 0, box = False, visible=False )
+			#self.Axis[i] = curve( frame = None, color = color.white, pos= [ pos, pos+relDirections[i]], visible=False)
+			self.Axis[i] = simpleArrow(color.white, 0, pos, axisp = relDirections[i])
 
+			self.AxisLabel[i] = label( frame = None, color = color.white,  text = relText[i],
+										pos = pos+relDirections[i]*1.04, opacity = 0, box = False, visible=False )
+
+		# calculate magnitude of each vector ...
 		ZdirectionVec = self.Axis[2].pos[1]-self.Axis[2].pos[0]
 		YdirectionVec = self.Axis[1].pos[1]-self.Axis[1].pos[0]
 		XdirectionVec = self.Axis[0].pos[1]-self.Axis[0].pos[0]
-
+		# ... and its corresponding unit vector
 		self.ZdirectionUnit = ZdirectionVec/mag(ZdirectionVec)
 		self.YdirectionUnit = YdirectionVec/mag(YdirectionVec)
 		self.XdirectionUnit = XdirectionVec/mag(XdirectionVec)
@@ -370,9 +380,12 @@ class makeSolarSystem:
 
 	def setAxisVisibility(self, setRefTo, setRelTo):
 		for i in range(3):
-			self.Axis[i].visible = setRelTo
+			#self.Axis[i].visible = setRelTo
+			self.Axis[i].display(setRelTo)
+
 			self.AxisLabel[i].visible = setRelTo
-			self.RefAxis[i].visible = setRefTo
+#			self.RefAxis[i].visible = setRefTo
+			self.RefAxis[i].display(setRefTo) 
 			self.RefAxisLabel[i].visible = setRefTo
 
 	def makeRingsCirclesXX(self, system, bodyName, density = 1):  # change default values during instantiation
@@ -547,7 +560,7 @@ class makeBelt:
 			heightToEcliptic = {0: 0, 1:1, 2:-1}[randint(0,2)] * randint(0, int(round(MAX, 6)*1.e6))/1.e6
 			self.BodyShape.append(pos=(RandomRadius * cos(i), RandomRadius * sin(i), heightToEcliptic))
 
-		self.Labels.append(label(pos=(self.RadiusMaxAU * AU * DIST_FACTOR * cos(i), self.RadiusMaxAU * AU * DIST_FACTOR * sin(i), 0), text=self.Name, xoffset=20, yoffset=12, space=0, height=10, border=6, box=false, font='sans', visible = False))
+		self.Labels.append(label(pos=(self.RadiusMaxAU * AU * DIST_FACTOR * cos(i), self.RadiusMaxAU * AU * DIST_FACTOR * sin(i), 0), text=self.Name, xoffset=20, yoffset=12, space=0, height=10, border=6, box=False, font='sans', visible = False))
 
 	def refresh(self):
 		if self.SolarSystem.ShowFeatures & self.BodyType != 0:
@@ -808,9 +821,11 @@ class makeBody:
 			A = np.matrix([[self.directions[i][0]],[self.directions[i][1]],[self.directions[i][2]]], np.float64)
 			self.directions[i] = self.Rotation_Obliquity * A
 
-			self.Axis[i] = curve( frame = None, color = color.white, pos= [ pos, pos+self.directions[i]], visible=False)
+#			self.Axis[i] = curve( frame = None, color = color.white, pos= [ pos, pos+self.directions[i]], visible=False)
+			self.Axis[i] = simpleArrow(color.white, 0, pos, axisp = self.directions[i])
+			
 			self.AxisLabel[i] = label( frame = None, color = color.white,  text = texts[i],
-										pos = pos+self.directions[i], opacity = 0, box = False, visible=False )
+										pos = pos+self.directions[i]*1.07, opacity = 0, box = False, visible=False )
 
 		ZdirectionVec = self.Axis[2].pos[1]-self.Axis[2].pos[0]
 		YdirectionVec = self.Axis[1].pos[1]-self.Axis[1].pos[0]
@@ -819,12 +834,13 @@ class makeBody:
 		self.ZdirectionUnit = ZdirectionVec/mag(ZdirectionVec)
 		self.YdirectionUnit = YdirectionVec/mag(YdirectionVec)
 		self.XdirectionUnit = XdirectionVec/mag(XdirectionVec)
-		
+
 	def updateAxis(self):
 		pos = vector(self.Position[X_COOR]+self.Foci[X_COOR],self.Position[Y_COOR]+self.Foci[Y_COOR],self.Position[Z_COOR]+self.Foci[Z_COOR])
 		for i in range (3): # Each direction
-			self.Axis[i].pos = [ pos, pos+self.directions[i]]
-			self.AxisLabel[i].pos = pos+self.directions[i]
+			self.Axis[i].setPosition(pos, pos+self.directions[i])
+			#self.Axis[i].pos = [ pos, pos+self.directions[i]]
+			self.AxisLabel[i].pos = pos+self.directions[i]*1.07
 
 	def getRealisticSizeCorrection(self):
 		return self.RealisticCorrectionSize
@@ -938,6 +954,8 @@ class makeBody:
 	# including pluto. This won't work for Asteroid, Comets or Dwarf planets
 
 	def setOrbitalEltFromApproximatePlanetPositioning(self, elts, timeincrement):
+		Adjustment = 0.5
+
 	#def setOrbitalFromKeplerianElements(self, elts, timeincrement):
 		# get number of days since J2000 epoch and obtain the fraction of century
 		# (the rate adjustment is given as a rate per century)
@@ -947,9 +965,10 @@ class makeBody:
         # These formulas use 'days' based on days since 1/Jan/2000 12:00 UTC ("J2000.0"), 
         # instead of 0/Jan/2000 0:00 UTC ("day value"). Correct by subtracting 1.5 days...
 
-		T = (days-0.35)/36525. # T is in centuries
-		#T = days/36525. # T is in centuries
-#		T = (days-1.5)/36525. # T is in centuries
+		T = (days - Adjustment)/36525. # T is in centuries (previous)
+
+#		T = days/36525. # T is in centuries
+# 		T = (days-1.5)/36525. # T is in centuries
 
 		self.a = (elts["a"] + (elts["ar"] * T)) * AU
 		self.e = elts["EC_e"] + (elts["er"] * T)
@@ -1132,7 +1151,8 @@ class makeBody:
 
 	def setAxisVisibility(self, setTo):
 		for i in range(3):
-			self.Axis[i].visible = setTo
+#			self.Axis[i].visible = setTo
+			self.Axis[i].display(setTo)
 			self.AxisLabel[i].visible = setTo
 
 	def refresh(self):
@@ -1292,6 +1312,29 @@ class makeEarth(planet):
 		# position the widgets with the earth current appearence
 		self.PlanetWidgets = makePlanetWidgets(self)
 
+	def makeLocalAxis(self, size, position):
+		self.directions = [vector(2*size,0,0), vector(0,2*size,0), vector(0,0,2*size)]
+		texts = ["Vernal Eq.","y","z"]
+		pos = vector(position)
+		ve = 0.2
+		for i in range (3): # Each direction
+			A = np.matrix([[self.directions[i][0]],[self.directions[i][1]],[self.directions[i][2]]], np.float64)
+			self.directions[i] = self.Rotation_Obliquity * A
+
+#			self.Axis[i] = curve( frame = None, color = color.white, pos= [ pos, pos+self.directions[i]], visible=False)
+			self.Axis[i] = simpleArrow(color.white, 0, pos, axisp = self.directions[i])
+			
+			self.AxisLabel[i] = label( frame = None, color = color.white,  text = texts[i],
+										pos = pos+self.directions[i]*(1.07+ve), opacity = 0, box = False, visible=False )
+			ve = 0
+
+		ZdirectionVec = self.Axis[2].pos[1]-self.Axis[2].pos[0]
+		YdirectionVec = self.Axis[1].pos[1]-self.Axis[1].pos[0]
+		XdirectionVec = self.Axis[0].pos[1]-self.Axis[0].pos[0]
+
+		self.ZdirectionUnit = ZdirectionVec/mag(ZdirectionVec)
+		self.YdirectionUnit = YdirectionVec/mag(YdirectionVec)
+		self.XdirectionUnit = XdirectionVec/mag(XdirectionVec)
 
 	def animate(self, timeIncrement):
 		# default planet animation
@@ -1579,7 +1622,7 @@ class makeEarth(planet):
 	def setOrbitalEltFromApproximatePlanetPositioning(self, elts, timeincrement):
 		# get number of days since J2000 epoch and obtain the fraction of century
 		# (the rate adjustment is given as a rate per century)
-		
+		Adjustment = 0.35
 		days = daysSinceJ2000UTC() + timeincrement #- ADJUSTMENT_FACTOR_PLANETS # - 1.43
 #		days = daysSinceJ2000UTC() + timeincrement # - 1.43
 		
@@ -1590,7 +1633,7 @@ class makeEarth(planet):
 
 		#T = (days-1.5)/36525. # T is in Julian centuries since J2000.0
 		#T = (days)/36525. # T is in centuries
-		T = (days - 0.35)/36525. # T is in centuries
+		T = (days - Adjustment)/36525. # T is in centuries
 
 
 		self.a = (elts["a"] + (elts["ar"] * T)) * AU

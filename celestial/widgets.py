@@ -1,5 +1,6 @@
 from orbit3D import *
 from visual import *
+from objects import circle
 
 class makePlanetWidgets():
 
@@ -65,8 +66,9 @@ class makePlanetWidgets():
         self.tz = makeTimezones(self)
         self.Loc = []
         self.currentLocation = -1
+        self.defaultLocation = -1
         #self.makeLocation(TZ_CAPE)
-        self.makeMultipleLocations(TZ_CHINA)
+        #self.makeMultipleLocations(TZ_CAPE)
          
         # align widgets origin with planet tilt
         self.Origin.rotate(angle=(-self.Planet.TiltAngle), axis=self.Planet.XdirectionUnit) #, origin=(0,0,0))
@@ -82,17 +84,20 @@ class makePlanetWidgets():
             self.Origin.rotate(angle=(deg2rad(6*15)), axis=self.Planet.RotAxis) #ZdirectionUnit)
             
             # init position in ecliptic referential
+            #self.updateCurrentLocationEcliptic()
             if self.currentLocation >= 0:
                 self.Loc[self.currentLocation].updateEclipticPosition()
 
 
     def makeMultipleLocations(self, defaultLoc):
-        self.currentLocation = defaultLoc
+        self.defaultLocation = defaultLoc
+        #self.currentLocation = defaultLoc
         for i in np.arange(0, len(locationInfo.tzEarthLocations), 1):
             self.Loc.append(makeEarthLocation(self, i))
 
     def makeLocation(self, locIndex):
-        self.currentLocation = 0
+        self.defaultLocation = 0
+        #self.currentLocation = 0
         self.Loc.append(makeEarthLocation(self, locIndex))
 
     def updateWidgetsFrameRotation(self, timeIncrement):
@@ -157,7 +162,11 @@ class makeEarthLocation():
         self.Color = color.red
         self.EclipticPosition = vector(0,0,0)
 
-        self.GeoLoc = sphere(frame=self.Origin, pos=(0,0,0), np=32, radius=20, material = materials.emissive, make_trail=false, color=self.Color, visible=True) 
+        #self.GeoLoc = sphere(frame=self.Origin, pos=(0,0,0), np=32, radius=2, material = materials.emissive, make_trail=false, color=self.Color, visible=True) 
+        self.GeoLoc = cylinder(frame=self.Origin, pos=vector(0,0,0), radius=10, color=self.Color, material = materials.emissive, opacity=1.0, axis=(0,0,1))
+
+
+        #self.GeoLoc = circle(color=self.Color, radius=10, pos=(0,0,0), normalAxis=(0,0,1), context=self.Origin)        
         self.Origin.axis.visible = True
 
         # obtain location info. Earthloc is a tuple (lat, long, timezone)
@@ -166,6 +175,9 @@ class makeEarthLocation():
             print earthLoc
             self.Name = earthLoc["name"]
             self.setPosition(earthLoc)
+            self.setGradient()
+            self.setOrientation(self.Grad)
+
         else:
             self.Name = "None"
 
@@ -187,7 +199,7 @@ class makeEarthLocation():
         # init position in ecliptic referential
         self.EclipticPosition = self.Origin.frame_to_world(self.GeoLoc.pos)
 
-    def getEcliptic(self):
+    def getEclipticPosition(self):
         # return ecliptic coordinates
         return self.EclipticPosition
 
@@ -197,6 +209,24 @@ class makeEarthLocation():
 
     def display(self, trueFalse):
         self.GeoLoc.visible = trueFalse
+
+    def setGradient(self):
+        # the equation of the earth surface is S: (x-xcenter)^2 + (y-ycenter)^2 + (z-zcenter)^2 = R^2
+        # DS/Dx = 2(x-xcenter) 
+        # DS/Dy = 2(y-ycenter)  
+        # DS/Dz = 2(z-zcenter)
+        # the normal vector in our location is given by [xloc+DS/Dx(loc)]
+        self.updateEclipticPosition()
+        self.GradientX = 2*(self.EclipticPosition[X_COOR]-self.Origin.pos[X_COOR])
+        self.GradientY = 2*(self.EclipticPosition[Y_COOR]-self.Origin.pos[Y_COOR])
+        self.GradientZ = 2*(self.EclipticPosition[Z_COOR]-self.Origin.pos[Z_COOR])
+        self.Grad = vector(self.GradientX, self.GradientY, self.GradientZ)
+        
+        self.NormalVec = simpleArrow(color.white, 0, self.GeoLoc.pos, axisp = (self.Grad/10), context = self.Origin)
+        self.NormalVec.display(True)
+
+    def setOrientation(self, axis):
+        self.GeoLoc.axis = axis * (1 / mag(axis))
 
 
 class makeNode():

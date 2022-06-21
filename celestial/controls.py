@@ -242,6 +242,7 @@ class POIpanel(AbstractUI):
 
 
 	def setBodyFocus(self, Body):
+		print "setting body:", Body.Name
 		# display planet Info
 		if Body.Mass == 0:
 			mass = "???"
@@ -297,6 +298,7 @@ class POIpanel(AbstractUI):
 
 		self.SolarSystem.currentPOV = Body
 		self.SolarSystem.currentPOVselection = Body.JPL_designation
+		print "currentPOV selection is:", self.SolarSystem.currentPOVselection
 		self.parentFrame.orbitalTab.updateCameraPOV()
 
 	def setPlanetFocus(self):
@@ -1106,7 +1108,11 @@ class ORBITALCtrlPanel(AbstractUI):
 		)
 
 	def updateCameraPOV(self, loc = None):
+		if loc != None:
+			print "Location is", loc.Name
+
 		if self.SolarSystem.currentPOV == None:
+			print "no curent object"
 			return
 
 		if self.SolarSystem.currentPOV.Name.upper() == "EARTH":
@@ -1115,34 +1121,39 @@ class ORBITALCtrlPanel(AbstractUI):
 			if loc == None:
 				if w.currentLocation >= 0:
 					#w = self.Earth.PlanetWidgets.Loc[w.currentLocation]
-					earthLocPos = w.Loc[w.currentLocation].getEcliptic()
+					earthLocPos = w.Loc[w.currentLocation].getEclipticPosition()
 			else:
-				earthLocPos = loc.getEcliptic()
+				loc.updateEclipticPosition()
+				earthLocPos = loc.getEclipticPosition()
+				print "reading ecliptic from loc", loc.getEclipticPosition()
 
 			if earthLocPos != None:
+				#print "centering on loc", earthLocPos.Name
 				self.SolarSystem.Scene.center = (
 					earthLocPos[X_COOR],
 					earthLocPos[Y_COOR],
 					earthLocPos[Z_COOR]
 				)
+				return
+		#else:
+		
+		# the following values will do the following
+		# (0,-1,-1): freezes rotation and looks down towards the left
+		# (0,-1, 1): freezes rotation and looks up towards the left
+		# (0, 1, 1): freezes rotation and looks up towards the right
+		# (0, 1,-1): freezes rotation and looks down towards the right
 
-		else:
-			# the following values will do the following
-			# (0,-1,-1): freezes rotation and looks down towards the left
-			# (0,-1, 1): freezes rotation and looks up towards the left
-			# (0, 1, 1): freezes rotation and looks up towards the right
-			# (0, 1,-1): freezes rotation and looks down towards the right
+		# self.SolarSystem.Scene.forward = (0, 0, -1)
+		# For a planet, Foci(x, y, z) is (0,0,0). For a moon, Foci represents the 
+		# position of the planet the moon orbits around in the ecliptic referential
 
-			# self.SolarSystem.Scene.forward = (0, 0, -1)
-			# For a planet, Foci(x, y, z) is (0,0,0). For a moon, Foci represents the 
-			# position of the planet the moon orbits around in the ecliptic referential
-
-			######self.surfaceRadius = (1.1 * self.SolarSystem.currentPOV.BodyShape.radius) if self.SolarSystem.SurfaceView == True else 0
-			self.SolarSystem.Scene.center = (
-				self.SolarSystem.currentPOV.Position[X_COOR] + self.SolarSystem.currentPOV.Foci[X_COOR],
-				self.SolarSystem.currentPOV.Position[Y_COOR] + self.SolarSystem.currentPOV.Foci[Y_COOR],
-				self.SolarSystem.currentPOV.Position[Z_COOR] + self.SolarSystem.currentPOV.Foci[Z_COOR]
-			)
+		######self.surfaceRadius = (1.1 * self.SolarSystem.currentPOV.BodyShape.radius) if self.SolarSystem.SurfaceView == True else 0
+		
+		self.SolarSystem.Scene.center = (
+			self.SolarSystem.currentPOV.Position[X_COOR] + self.SolarSystem.currentPOV.Foci[X_COOR],
+			self.SolarSystem.currentPOV.Position[Y_COOR] + self.SolarSystem.currentPOV.Foci[Y_COOR],
+			self.SolarSystem.currentPOV.Position[Z_COOR] + self.SolarSystem.currentPOV.Foci[Z_COOR]
+		)
 			
 	
 
@@ -1692,8 +1703,11 @@ class WIDGETSpanel(AbstractUI):
 		# focus on current location
 		loc = None
 		if self.cpcb.GetValue() == True:
+			self.Earth.PlanetWidgets.currentLocation = self.Earth.PlanetWidgets.defaultLocation
 			loc = self.Earth.PlanetWidgets.Loc[self.Earth.PlanetWidgets.currentLocation]
-			
+		else:
+			self.Earth.PlanetWidgets.currentLocation = -1
+
 		self.parentFrame.orbitalTab.updateCameraPOV(loc)
 
 	def OnCenterToSurfaceSouth(self, e):

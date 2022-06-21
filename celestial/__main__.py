@@ -91,17 +91,17 @@ def bootSolarSystem():
 
 	# !!!!!!!!!!!!!!!!!!!!!!!!!! test
 #	solSystem.drawAllBodiesTrajectory()
-	
+	print "LOADING bodies orbital elements and trajectories ..."
 	loadBodies(solSystem, PHA, "data/200m+PHA_orbital_elements.txt.json", MAX_OBJECTS)
 	loadBodies(solSystem, BIG_ASTEROID,"data/200km+asteroids_orbital_elements.txt.json", MAX_OBJECTS)
 	loadBodies(solSystem, COMET, "data/200m+comets_orbital_elements.txt.json", MAX_OBJECTS)
 	loadBodies(solSystem, TRANS_NEPT, "data/transNeptunian_objects.txt.json", MAX_OBJECTS)
 	loadBodies(solSystem, SPACECRAFT, "data/spacecrafts_orbital_elements.txt.json", MAX_OBJECTS)
-
-
-	print "Calculating bodies trajectories ..."
-	solSystem.drawAllBodiesTrajectory()
 	print "FINISHED ..."
+
+
+	
+	solSystem.drawAllBodiesTrajectory()
 	
 	#solSystem.makeCelestialSphere()
 
