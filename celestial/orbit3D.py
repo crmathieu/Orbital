@@ -471,7 +471,7 @@ class makeEcliptic:
 #		self.BodyShape = box(frame=self.SolarSystem.getBodyFromName('earth').Origin, pos=vector(earth.Position[0],earth.Position[1], 0), length=side, width=10, height=side, color=self.Color, opacity=self.Opacity, axis=(1,0,0))
 		
 		
-		self.BodyShape = box(frame=self.Origin, pos=vector(0, 0, 0), length=side, width=0.0001, height=side, material=materials.emissive, color=self.Color, opacity=0.1) #, axis=(0, 0, 1), opacity=0.8) #opacity=self.Opacity)
+		self.BodyShape = box(frame=self.Origin, pos=vector(0, 0, 0), length=side, width=0.0001, height=side, material=materials.emissive, color=self.Color, opacity=1.0) #, axis=(0, 0, 1), opacity=0.8) #opacity=self.Opacity)
 		self.Origin.visible = False
 		#self.BodyShape = cylinder(frame=earth.Origin, pos=vector(0,0,0), radius=side/2, color=self.Color, length=10, opacity=self.Opacity, axis=(0,0,1), material=materials.emissive)
 		#self.BodyShape.rotate(angle=earth.TiltAngle, axis=earth.XdirectionUnit, origin=(0,0,0))
@@ -703,7 +703,12 @@ class makeBody:
 		self.Acceleration = vector(0,0,0)
 		self.directions = [vector(0,0,0),vector(0,0,0),vector(0,0,0)]
 		self.Interval = 0
-		self.SizeCorrection = [1] * 2
+########		self.SizeCorrection = [1] * 2
+
+		sizeCorrection = { SPACECRAFT: 1, INNERPLANET: 1200, SATELLITE:1400, GASGIANT: 3500, DWARFPLANET: 100, ASTEROID:1, COMET:0.02, SMALL_ASTEROID: 0.1, BIG_ASTEROID:0.1, PHA: 0.007, TRANS_NEPT: 0.001}[sizeCorrectionType]
+		self.SizeCorrection = {	SCALE_OVERSIZED: getSigmoid(self.Perihelion, sizeCorrection), 
+								SCALE_NORMALIZED: self.RealisticCorrectionSize} #self.getRealisticSizeCorrection()
+
 		self.sizeType = SCALE_OVERSIZED
 
 		self.Position = np.matrix([[0],[0],[0]], np.float64)
@@ -747,11 +752,11 @@ class makeBody:
 		self.setCartesianCoordinates()
 
 		#sizeCorrection = { INNERPLANET: 1200, SATELLITE:1400, GASGIANT: 1900, DWARFPLANET: 100, ASTEROID:1, COMET:0.02, SMALL_ASTEROID: 0.1, BIG_ASTEROID:0.1, PHA: 0.0013, TRANS_NEPT: 0.001}[sizeCorrectionType]
-		sizeCorrection = { SPACECRAFT: 1, INNERPLANET: 1200, SATELLITE:1400, GASGIANT: 3500, DWARFPLANET: 100, ASTEROID:1, COMET:0.02, SMALL_ASTEROID: 0.1, BIG_ASTEROID:0.1, PHA: 0.0013, TRANS_NEPT: 0.001}[sizeCorrectionType]
+#####		sizeCorrection = { SPACECRAFT: 1, INNERPLANET: 1200, SATELLITE:1400, GASGIANT: 3500, DWARFPLANET: 100, ASTEROID:1, COMET:0.02, SMALL_ASTEROID: 0.1, BIG_ASTEROID:0.1, PHA: 0.0013, TRANS_NEPT: 0.001}[sizeCorrectionType]
 		self.shape = { SPACECRAFT: "cylinder", INNERPLANET: "sphere", OUTERPLANET: "sphere", SATELLITE: "sphere", DWARFPLANET: "sphere", ASTEROID:"cube", COMET:"cone", SMALL_ASTEROID:"cube", BIG_ASTEROID:"sphere", PHA:"cube", TRANS_NEPT: "cube"}[bodyType]
 
-		self.SizeCorrection[0] = getSigmoid(self.Perihelion, sizeCorrection)
-		self.SizeCorrection[1] = self.RealisticCorrectionSize #self.getRealisticSizeCorrection()
+####		self.SizeCorrection[0] = getSigmoid(self.Perihelion, sizeCorrection)
+####		self.SizeCorrection[1] = self.RealisticCorrectionSize #self.getRealisticSizeCorrection()
 
 		self.RingThickness = self.RING_BASE_THICKNESS / self.SizeCorrection[self.sizeType]
 
@@ -767,6 +772,7 @@ class makeBody:
 			self.Trail = curve(color=(self.Color[0]*0.6, self.Color[1]*0.6, self.Color[2]*0.6))
 			self.Trail.append(pos=self.Origin.pos)
 		else:
+			print "Failed to draw body", self.Name
 			return
 
 		self.TiltAngle = deg2rad(self.AxialTilt) # +self.Inclination) # in the ecliptic coordinates system
@@ -800,7 +806,7 @@ class makeBody:
 			self.Origin.visible = False
 			self.Labels[0].visible = False
 
-		self.makeLocalAxis(self.radiusToShow/self.SizeCorrection[self.sizeType], self.Position) #(self.Position[X_COOR],self.Position[Y_COOR],self.Position[Z_COOR]))
+		self.makeLocalRef(self.radiusToShow/self.SizeCorrection[self.sizeType], self.Position) #(self.Position[X_COOR],self.Position[Y_COOR],self.Position[Z_COOR]))
 		self.setAspect(key)
 		self.initRotation()
 
@@ -812,7 +818,8 @@ class makeBody:
 		self.Origin.pos=(self.Position[X_COOR]+self.Foci[X_COOR],self.Position[Y_COOR]+self.Foci[Y_COOR],self.Position[Z_COOR]+self.Foci[Z_COOR])
 		self.BodyShape = sphere(frame=self.Origin, pos=(0,0,0), np=64, radius=self.radiusToShow/self.SizeCorrection[self.sizeType], make_trail=false)
 
-	def makeLocalAxis(self, size, position):
+	def makeLocalRef(self, size, position):
+
 		self.directions = [vector(2*size,0,0), vector(0,2*size,0), vector(0,0,2*size)]
 		texts = ["x","y","z"]
 		pos = vector(position)
@@ -1311,11 +1318,35 @@ class makeEarth(planet):
 		# position the widgets with the earth current appearence
 		self.PlanetWidgets = makePlanetWidgets(self)
 
-	def makeLocalAxis(self, size, position):
+	def makeLocalRef(self, size, position):
+		self.makeECIref(size, position)
+
+	def makeECIref(self, size, position):
+		# This is the ECI referential (the "Earth-centered inertial" is fixed to the stars, in other words, 
+		# it doesn't rotate with the earth). ECI coordinate frames have their origins at the center of mass of Earth 
+		# and are fixed with respect to the stars. "I" in "ECI" stands for inertial (i.e. "not accelerating"), in 
+		# contrast to the "Earth-centered - Earth-fixed" (ECEF) frames, which remains fixed with respect to 
+		# Earth's surface in its rotation, and then rotates with respect to stars.
+		#
+		# For objects in space, the equations of motion that describe orbital motion are simpler in a non-rotating 
+		# frame such as ECI. The ECI frame is also useful for specifying the direction toward celestial objects:
+		#
+		# To represent the positions and velocities of terrestrial objects, it is convenient to use ECEF coordinates 
+		# or latitude, longitude, and altitude.
+		#
+		# In a nutshell: 
+    	#		ECI: inertial, not rotating, with respect to the stars; useful to describe motion of 
+		# 		celestial bodies and spacecraft.
+		#
+    	#		ECEF: not inertial, accelerated, rotating w.r.t stars; useful to describe motion of 
+		# 		objects on Earth surface.
+
 		self.directions = [vector(2*size,0,0), vector(0,2*size,0), vector(0,0,2*size)]
 		texts = ["Vernal Eq.","y","z"]
 		pos = vector(position)
 		ve = 0.2
+
+
 		for i in range (3): # Each direction
 			A = np.matrix([[self.directions[i][0]],[self.directions[i][1]],[self.directions[i][2]]], np.float64)
 			self.directions[i] = self.Rotation_Obliquity * A
@@ -1776,6 +1807,12 @@ class genericSpacecraft(makeBody):
 		self.ENGINE_HEIGHT = 0.0
 		self.ENGINE_TOP_XCOOR = 0.0
 		self.COPV_RADIUS = 0.0
+		"""
+		print "SPACECRAFT is", key
+		print "Spacecraft:Init: label=", self.Labels[0].pos, "origin=", self.Origin.pos
+		print "*** FINISHED init genericSpacecraft ***"
+		print ""
+		"""
 
 	def animate(self, timeIncrement):
 		#makeBody.animate(self, timeIncrement)
@@ -1804,11 +1841,14 @@ class genericSpacecraft(makeBody):
 
 		# update foci position
 		self.Foci = self.SatelliteOf.Position
+		#print "ANIMATING-1 ", self.Name, "Origin=",self.Origin.pos, "Foci =",self.Foci
 
 		self.Origin.pos = vector(self.Position[X_COOR]+self.Foci[X_COOR],self.Position[Y_COOR]+self.Foci[Y_COOR],self.Position[Z_COOR]+self.Foci[Z_COOR])
-		
-		self.Labels[0].pos = vector(self.Position[X_COOR]+self.Foci[X_COOR],self.Position[Y_COOR]+self.Foci[Y_COOR],self.Position[Z_COOR]+self.Foci[Z_COOR])
+		self.Labels[0].pos = self.Origin.pos
+		#print "ANIMATING-2 ", self.Name, "Origin=",self.Origin.pos, "Foci =",self.Foci
+#		self.Labels[0].pos = vector(self.Position[X_COOR]+self.Foci[X_COOR],self.Position[Y_COOR]+self.Foci[Y_COOR],self.Position[Z_COOR]+self.Foci[Z_COOR])
 		self.setRotation()
+		#print "ANIMATING-3 ", self.Name, "Origin=",self.Origin.pos, "Foci =",self.Foci
 
 		return self.getCurrentVelocity(), self.getCurrentDistanceFromEarth()
 
@@ -1856,7 +1896,8 @@ class genericSpacecraft(makeBody):
 		nozzle.frame = self.BodyShape
 		"""
 		self.Origin.pos = self.Position[X_COOR]+self.Foci[X_COOR],self.Position[Y_COOR]+self.Foci[Y_COOR],self.Position[Z_COOR]+self.Foci[Z_COOR]
-		
+		#print "GenericSpacecraft: MakeShape: self.Origin.pos=", self.Origin.pos
+
 	def makeEngine(self):
 		# create engine
 		print "engine=", self.engine
@@ -1953,13 +1994,16 @@ class genericSpacecraft(makeBody):
 				color=color.grey)
 
 	def initRotation(self):
-		self.RotAngle = pi/200
+		self.RotAngle = pi/400
 		self.RotAxis = (5, 5, -5)
 		
 	def setRotation(self):
-		self.Origin.rotate(angle=self.RotAngle, axis=self.RotAxis, origin=(10*self.length, 10*self.length, 0)) #-sin(alpha), cos(alpha)))
+		# I used to set the rotation using the origin parameter, but the end result would send the
+		# spacecraft off its trajectory. So I took it off. FYI, down bellow was the call
+		# self.Origin.rotate(angle=self.RotAngle, axis=self.RotAxis, origin=(0,0,0)) #origin=(10*self.length, 10*self.length, 0)) #-sin(alpha), cos(alpha)))
+		self.Origin.rotate(angle=self.RotAngle, axis=self.RotAxis) 
 
-	def makeLocalAxis(self, size, position):
+	def makeLocalRef(self, size, position):
 		return
 
 	def setAxisVisibility(self, setTo):
@@ -1972,19 +2016,27 @@ class starman(makeBody):
 		print "starman: CALLED FOR KEY=", key
 		makeBody.__init__(self, system, key, color, SPACECRAFT, SPACECRAFT, SMALLBODY_SZ_CORRECTION, system)
 
+		print "*** FINISHED init starman ***"
+		print ""
+
 	def makeShape(self):
 		#print "====================making FUSELAGE\n"
 		genericSpacecraft.makeShape(self)
+		print "Starman: MakeShape-A: self.Origin.pos=", self.Origin.pos
 		
 		#print "--------------------------now making ROADSTER\n"
 
 		# create tesla
 		roadster = self.makeTesla()
+		print "Starman: MakeShape-B: self.Origin.pos=", self.Origin.pos
+
 		roadster.frame = self.Origin
 
 		# place roadster on the top of stage-2
 		roadster.pos = (self.FWD_TANK_CENTER_XCOOR+(self.FWD_TANK_RADIUS)*1.14, self.carlength/2, -self.carwidth/2)
 		roadster.axis = (-0.3, 1, 0)
+
+		print "Starman: MakeShape-C: self.Origin.pos=", self.Origin.pos
 
 	def makeTesla(self):
 		roadster = frame()
@@ -2121,7 +2173,8 @@ class comet(makeBody):
 
 
 	def initRotation(self):
-		self.RotAngle = pi/6
+#		self.RotAngle = pi/6
+		self.RotAngle = pi/512
 		self.RotAxis = (0,1,1)
 
 	def setRotation(self):
@@ -2129,7 +2182,7 @@ class comet(makeBody):
 		self.Origin.pos = vector(self.Position[X_COOR],self.Position[Y_COOR],self.Position[Z_COOR])
 		self.BodyShape.rotate(angle=self.RotAngle, axis=self.RotAxis, origin=(0,0,0)) #-sin(alpha), cos(alpha)))
 
-	def makeLocalAxis(self, size, position):
+	def makeLocalRef(self, size, position):
 		return
 
 	def setAxisVisibility(self, setTo):
@@ -2142,7 +2195,8 @@ class comet(makeBody):
 		else:
 			self.sizeType = x
 
-		asteroidRandom = [(randint(10, 20)/10, randint(10, 20)/10, randint(10, 20)/10), (1,1,1)]
+		asteroidRandom = {SCALE_OVERSIZED: (randint(10, 20)/10, randint(10, 20)/10, randint(10, 20)/10), SCALE_NORMALIZED: (1,1,1)}
+
 		self.BodyShape.length = self.radiusToShow * asteroidRandom[self.sizeType][0] / self.SizeCorrection[self.sizeType]
 		self.BodyShape.height = self.radiusToShow * asteroidRandom[self.sizeType][1] / self.SizeCorrection[self.sizeType]
 		self.BodyShape.width  = self.radiusToShow * asteroidRandom[self.sizeType][2] / self.SizeCorrection[self.sizeType]
@@ -2158,14 +2212,14 @@ class asteroid(makeBody):
 		makeBody.__init__(self, system, key, color, BIG_ASTEROID, BIG_ASTEROID, ASTEROID_SZ_CORRECTION, system)
 
 	def initRotation(self):
-		self.RotAngle = pi/6
+		self.RotAngle = pi/512
 		self.RotAxis = (1,1,1)
 
 	def setRotation(self):
-		self.Origin = vector(self.Position[X_COOR],self.Position[Y_COOR],self.Position[Z_COOR])
+		self.Origin.pos = vector(self.Position[X_COOR],self.Position[Y_COOR],self.Position[Z_COOR]) ### !!!!!
 		self.BodyShape.rotate(angle=self.RotAngle, axis=self.RotAxis, origin=(0,0,0)) #-sin(alpha), cos(alpha)))
 
-	def makeLocalAxis(self, size, position):
+	def makeLocalRef(self, size, position):
 		return
 
 	def setAxisVisibility(self, setTo):
@@ -2196,13 +2250,14 @@ class pha(makeBody):
 			self.sizeType = x
 
 		#asteroidRandom = [(randint(10, 20)/10, randint(10, 20)/10, randint(10, 20)/10), (1,1,1)]
-		asteroidRandom = [(1.5, 2, 1), (1.5, 2, 1)]
+		asteroidRandom = {SCALE_OVERSIZED: (1.5, 2, 1), SCALE_NORMALIZED: (1.5/3.95, 2/3.95, 1/3.95)}
+
 		self.BodyShape.length = self.radiusToShow * asteroidRandom[self.sizeType][0] / self.SizeCorrection[self.sizeType]
 		self.BodyShape.height = self.radiusToShow * asteroidRandom[self.sizeType][1] / self.SizeCorrection[self.sizeType]
 		self.BodyShape.width  = self.radiusToShow * asteroidRandom[self.sizeType][2] / self.SizeCorrection[self.sizeType]
 
 	def initRotation(self):
-		self.RotAngle = pi/6
+		self.RotAngle = pi/64
 		self.RotAxis = (0,1,1)
 
 	def setRotation(self):
@@ -2210,7 +2265,7 @@ class pha(makeBody):
 		self.Origin.pos = vector(self.Position[X_COOR],self.Position[Y_COOR],self.Position[Z_COOR])
 		self.BodyShape.rotate(angle=self.RotAngle, axis=self.RotAxis, origin=(0,0,0)) #-sin(alpha), cos(alpha)))
 
-	def makeLocalAxis(self, size, position):
+	def makeLocalRef(self, size, position):
 		return
 
 	def setAxisVisibility(self, setTo):
@@ -2235,20 +2290,21 @@ class smallAsteroid(makeBody):
 		else:
 			self.sizeType = x
 
-		asteroidRandom = [(randint(10, 20)/10, randint(10, 20)/10, randint(10, 20)/10), (1,1,1)]
+		asteroidRandom = {SCALE_OVERSIZED: (randint(10, 20)/10, randint(10, 20)/10, randint(10, 20)/10), SCALE_NORMALIZED: (1,1,1)}
 		self.BodyShape.length = self.radiusToShow * asteroidRandom[self.sizeType][0] / self.SizeCorrection[self.sizeType]
 		self.BodyShape.height = self.radiusToShow * asteroidRandom[self.sizeType][1] / self.SizeCorrection[self.sizeType]
 		self.BodyShape.width  = self.radiusToShow * asteroidRandom[self.sizeType][2] / self.SizeCorrection[self.sizeType]
 
 	def initRotation(self):
-		self.RotAngle = pi/6
+#		self.RotAngle = pi/6
+		self.RotAngle = pi/512
 		self.RotAxis = (1,1,1)
 
 	def setRotation(self):
 		self.Origin.pos= vector(self.Position[X_COOR],self.Position[Y_COOR],self.Position[Z_COOR])
 		self.BodyShape.rotate(angle=self.RotAngle, axis=self.RotAxis, origin=(0,0,0)) #-sin(alpha), cos(alpha)))
 
-	def makeLocalAxis(self, size, position):
+	def makeLocalRef(self, size, position):
 		return
 
 	def setAxisVisibility(self, setTo):
@@ -2293,14 +2349,15 @@ class transNeptunian(makeBody):
 		self.BodyShape.width  = self.radiusToShow * asteroidRandom[self.sizeType][2] / self.SizeCorrection[self.sizeType]
 
 	def initRotation(self):
-		self.RotAngle = pi/6
+#		self.RotAngle = pi/6
+		self.RotAngle = pi/512
 		self.RotAxis = (0,1,1)
 
 	def setRotation(self):
 		self.Origin.pos = vector(self.Position[X_COOR],self.Position[Y_COOR],self.Position[Z_COOR])
 		self.BodyShape.rotate(angle=self.RotAngle, axis=self.RotAxis, origin=(0,0,0)) #-sin(alpha), cos(alpha)))
 
-	def makeLocalAxis(self, size, position):
+	def makeLocalRef(self, size, position):
 		return
 
 	def setAxisVisibility(self, setTo):

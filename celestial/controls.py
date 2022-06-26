@@ -161,14 +161,14 @@ class DashBoard(wx.Frame):
 
 		# create subpanels to be used with tabs
 		self.orbitalTab = ORBITALCtrlPanel(self, self.Notebook, solarsystem)
-		self.neoTab = NEOpanel(self, self.Notebook, solarsystem)
-		self.poiTab = POIpanel(self, self.Notebook, solarsystem)
+		self.searchTab = SEARCHpanel(self, self.Notebook, solarsystem)
+		self.focusTab = FOCUSpanel(self, self.Notebook, solarsystem)
 		self.widgetsTab = WIDGETSpanel(self, self.Notebook, solarsystem)
 
 		# Bind subpanels to tabs and name them.
 		self.Notebook.AddPage(self.orbitalTab, "Main")
-		self.Notebook.AddPage(self.poiTab, "POI")
-		self.Notebook.AddPage(self.neoTab, "NEO")
+		self.Notebook.AddPage(self.focusTab, "Focus")
+		self.Notebook.AddPage(self.searchTab, "Search")
 		self.Notebook.AddPage(self.widgetsTab, "Widgets")
 		#self.getLocationFromIPaddress()
 
@@ -179,9 +179,9 @@ class DashBoard(wx.Frame):
 		self.orbitalTab.Show()
 
 
-# CLASS POIpanel --------------------------------------------------------------
+# CLASS FOCUSpanel ------------------------------------------------------------
 # Point of Interest Tab
-class POIpanel(AbstractUI):
+class FOCUSpanel(AbstractUI):
 
 	def InitVariables(self):
 		self.ca_deltaT = 0
@@ -297,7 +297,7 @@ class POIpanel(AbstractUI):
 			#	print "OBJECT ALREADY VISIBLE"
 
 		self.SolarSystem.currentPOV = Body
-		self.SolarSystem.currentPOVselection = Body.JPL_designation
+		#### self.SolarSystem.currentPOVselection = Body.JPL_designation
 		print "currentPOV selection is:", self.SolarSystem.currentPOVselection
 		self.parentFrame.orbitalTab.updateCameraPOV()
 
@@ -350,9 +350,9 @@ class POIpanel(AbstractUI):
 
 
 
-# CLASS NEOpanel --------------------------------------------------------------
+# CLASS SEARCHpanel --------------------------------------------------------------
 # Near Earth Objects tab
-class NEOpanel(AbstractUI):
+class SEARCHpanel(AbstractUI):
 
 	def InitVariables(self):
 		self.ca_deltaT = 0 # close approach deltaT
@@ -905,10 +905,14 @@ class ORBITALCtrlPanel(AbstractUI):
 			jpl_designation = self.listjplid[index]
 			self.setCurrentBodyFromId(jpl_designation)
 			if self.SolarSystem.currentPOVselection == "curobj":
+				print ""
+				print "CHANGING CURRENT OBJECT"
+				print ""
 				self.SolarSystem.currentPOV = self.currentBody
-				self.parentFrame.poiTab.setBodyFocus(self.currentBody)
+				self.parentFrame.focusTab.setBodyFocus(self.currentBody)
 				self.updateCameraPOV()
-
+			else:
+				print "OnSELECT: currentPOV is", self.SolarSystem.currentPOV.Name, "current POV selection type is", self.SolarSystem.currentPOVselection
 
 	def setCurrentBody(self, body):
 		if self.currentBody != None:
@@ -924,7 +928,10 @@ class ORBITALCtrlPanel(AbstractUI):
 
 		self.currentBody = self.SolarSystem.getBodyFromName(id)
 		self.currentBody.Details = True
+		#print "Current body SET-1 with ", self.currentBody.Name, "Origin=",self.currentBody.Origin.pos
+		#print ""
 		self.showObjectDetails(self.currentBody)
+		#print "Current body SET-2 with ", self.currentBody.Name, "Origin=",self.currentBody.Origin.pos
 
 	def updateTimeStamps(self, ldt, utcdt):
 		self.setLocalDateTimeLabel(ldt)
@@ -1148,12 +1155,18 @@ class ORBITALCtrlPanel(AbstractUI):
 		# position of the planet the moon orbits around in the ecliptic referential
 
 		######self.surfaceRadius = (1.1 * self.SolarSystem.currentPOV.BodyShape.radius) if self.SolarSystem.SurfaceView == True else 0
-		
+		#print "UPDATING Scene Center with POV origin"
 		self.SolarSystem.Scene.center = (
 			self.SolarSystem.currentPOV.Position[X_COOR] + self.SolarSystem.currentPOV.Foci[X_COOR],
 			self.SolarSystem.currentPOV.Position[Y_COOR] + self.SolarSystem.currentPOV.Foci[Y_COOR],
 			self.SolarSystem.currentPOV.Position[Z_COOR] + self.SolarSystem.currentPOV.Foci[Z_COOR]
 		)
+		#print "----------"
+		#print "updateCameraPOV: position:",self.SolarSystem.currentPOV.Position
+		##print "label coordinates:",self.SolarSystem.currentPOV.Labels[0].pos
+		#print "updateCameraPOV: label=", self.SolarSystem.currentPOV.Labels[0].pos, "origin=", self.SolarSystem.currentPOV.Origin.pos
+		#print "----------"
+
 			
 	
 
@@ -1334,17 +1347,17 @@ class ORBITALCtrlPanel(AbstractUI):
 		for type, cbox in self.checkboxList.iteritems():
 			reset = self.SolarSystem.setFeature(type, cbox.GetValue())
 			if reset == True:
-				self.parentFrame.poiTab.setSunFocus()
+				self.parentFrame.focusTab.setSunFocus()
 
 			#if self.SolarSystem.currentPOV != None and self.SolarSystem.currentPOV.BodyType == type:
-			#		self.parentFrame.poiTab.resetPOV()
+			#		self.parentFrame.focusTab.resetPOV()
 			"""
 		for type, cbox in self.checkboxList.iteritems():
 			if cbox.GetValue() == True:
 				self.SolarSystem.ShowFeatures |= type
 			else:
 				if self.SolarSystem.currentPOV != None and self.SolarSystem.currentPOV.BodyType == type:
-					self.parentFrame.poiTab.resetPOV()
+					self.parentFrame.focusTab.resetPOV()
 				self.SolarSystem.ShowFeatures = (self.SolarSystem.ShowFeatures & ~type)
 			"""
 
@@ -1424,7 +1437,7 @@ class ORBITALCtrlPanel(AbstractUI):
 	def OnSlideShow(self, e):
 		if self.SolarSystem.currentPOVselection == 'curobj':
 			#print "currPOVselection = curobj - Reset to SUN"
-			self.parentFrame.poiTab.resetPOV()
+			self.parentFrame.focusTab.resetPOV()
 
 		if self.stopSlideSHow() == True:
 			# slideshow was stop and reset. Exit
@@ -1793,7 +1806,7 @@ class WIDGETSpanel(AbstractUI):
 		self.Earth.PlanetWidgets.showLatitudes(self.latcb.GetValue())
 
 	def OnLocalRef(self, e):
-		self.parentFrame.poiTab.cb.SetValue(self.lrcb.GetValue())
+		self.parentFrame.focusTab.cb.SetValue(self.lrcb.GetValue())
 		self.SolarSystem.setFeature(LOCAL_REFERENTIAL, self.lrcb.GetValue())
 		orbit3D.glbRefresh(self.SolarSystem, self.parentFrame.orbitalTab.AnimationInProgress)
 

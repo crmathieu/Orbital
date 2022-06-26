@@ -115,7 +115,7 @@ def bootSolarSystem():
 	# start wxPython application
 	ex = wx.App(False)
 	db = DashBoard(solSystem)
-	db.poiTab.setCurrentBodyFocusManually(earth, 2)
+	db.focusTab.setCurrentBodyFocusManually(earth, 2)
 	db.Show()
 
 	solSystem.introZoomIn(38)

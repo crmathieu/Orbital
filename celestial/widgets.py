@@ -5,10 +5,10 @@ from objects import circle
 class makePlanetWidgets():
 
     def __init__(self, planet):
-        self.Origin = frame()
-        self.Origin.pos = planet.Origin.pos
+
         self.Planet = planet
         self.visible = True
+        self.makeECEFref()
         self.Eq = self.eqPlane = self.Lons = self.Lats = None
         self.Psi = 0.0
         self.NumberOfSiderealDaysPerYear = 0.0
@@ -16,17 +16,38 @@ class makePlanetWidgets():
         self.Loc = []
         self.initWidgets()
 
+    def makeECEFref(self):
+        # this is the ECEF referential or GeoCentric referential 
+        # The "Earth-centered, Earth-fixed coordinate system": fixed to the earth (moves with its rotation)
+        # is a cartesian spatial reference system that represents locations in the vicinity of the 
+        # Earth (including its surface, interior, atmosphere, and surrounding outer space) as X, Y, and Z 
+        # measurements from its center of mass.[1][2] Its most common use is in tracking the orbits of 
+        # satellites and in satellite navigation systems for measuring locations on the surface of the 
+        # Earth, but it is also used in applications such as tracking crustal motion.
+        # 
+        # The distance from a given point of interest to the center of Earth is called the geocentric 
+        # distance, R = (X2 + Y2 + Z2)0.5, which is a generalization of the geocentric radius, R0, not 
+        # restricted to points on the reference ellipsoid surface. The geocentric altitude is a type of 
+        # altitude defined as the difference between the two aforementioned quantities: h'= R-R0  
+        # it is not to be confused for the geodetic altitude.
+        #
+        # Conversions between ECEF and geodetic coordinates (latitude and longitude) are discussed at 
+        # geographic coordinate conversion. 
+
+        self.ECEF = frame()     
+        self.ECEF.pos = self.Planet.Origin.pos
+
 
     def resetWidgetsRefFromSolarTime(self):
 
         print "RESET WIDGET FROM SOLAR-TIME"
         if self.SiderealCorrectionAngle != 0.0:
-            self.Origin.rotate(angle=(-self.SiderealCorrectionAngle), axis=self.Planet.RotAxis) #, origin=(0,0,0))
+            self.ECEF.rotate(angle=(-self.SiderealCorrectionAngle), axis=self.Planet.RotAxis) #, origin=(0,0,0))
             self.SiderealCorrectionAngle = 0.0
 
         print "Planet.Psi ....... ", self.Planet.Psi
         print "widgets.Psi ...... ", self.Psi
-        self.Origin.rotate(angle=(self.Planet.Psi-self.Psi), axis=self.Planet.RotAxis) #, origin=(0,0,0))
+        self.ECEF.rotate(angle=(self.Planet.Psi-self.Psi), axis=self.Planet.RotAxis) #, origin=(0,0,0))
 
 
         # Psi is the initial rotation to apply on the sphere texture to match the solar Time
@@ -36,10 +57,10 @@ class makePlanetWidgets():
     def resetWidgetsRefFromSolarTime_SAVE(self):
 
         if self.SiderealCorrectionAngle != 0.0:
-            self.Origin.rotate(angle=(-self.SiderealCorrectionAngle), axis=self.Planet.RotAxis) #, origin=(0,0,0))
+            self.ECEF.rotate(angle=(-self.SiderealCorrectionAngle), axis=self.Planet.RotAxis) #, origin=(0,0,0))
             self.SiderealCorrectionAngle = 0.0
 
-        self.Origin.rotate(angle=(self.Planet.Psi-self.Psi), axis=self.Planet.RotAxis) #, origin=(0,0,0))
+        self.ECEF.rotate(angle=(self.Planet.Psi-self.Psi), axis=self.Planet.RotAxis) #, origin=(0,0,0))
         
         # Psi is the initial rotation to apply on the sphere texture to match the solar Time
         self.Psi = self.Planet.Psi
@@ -51,10 +72,10 @@ class makePlanetWidgets():
         if self.SiderealCorrectionAngle != 0.0:
             # there has been a previous manual reset of the UTC date which has resulted in a sidereal 
             # correction. We need to undo it prior to reposition the texture for the new date
-            self.Origin.rotate(angle=(-self.SiderealCorrectionAngle), axis=self.Planet.RotAxis)
+            self.ECEF.rotate(angle=(-self.SiderealCorrectionAngle), axis=self.Planet.RotAxis)
 
         self.SiderealCorrectionAngle = self.Planet.SiderealCorrectionAngle #(2 * pi / self.NumberOfSiderealDaysPerYear) * fl_diff_in_days
-        self.Origin.rotate(angle=(self.SiderealCorrectionAngle), axis=self.Planet.RotAxis) #, origin=(0,0,0))
+        self.ECEF.rotate(angle=(self.SiderealCorrectionAngle), axis=self.Planet.RotAxis) #, origin=(0,0,0))
 
     def initWidgets(self):
         self.NumberOfSiderealDaysPerYear = self.Planet.NumberOfSiderealDaysPerYear
@@ -71,7 +92,7 @@ class makePlanetWidgets():
         #self.makeMultipleLocations(TZ_CAPE)
          
         # align widgets origin with planet tilt
-        self.Origin.rotate(angle=(-self.Planet.TiltAngle), axis=self.Planet.XdirectionUnit) #, origin=(0,0,0))
+        self.ECEF.rotate(angle=(-self.Planet.TiltAngle), axis=self.Planet.XdirectionUnit) #, origin=(0,0,0))
 
         # align longitude to greenwich when the planet is Earth
         if self.Planet.Name.upper() == "EARTH":
@@ -81,7 +102,7 @@ class makePlanetWidgets():
              
             # align GMT: the initial position of the GMT meridian on the texture is 6 hours
             # off its normal position. Ajusting by 6 hours x 15 degres = 90 degres
-            self.Origin.rotate(angle=(deg2rad(6*15)), axis=self.Planet.RotAxis) #ZdirectionUnit)
+            self.ECEF.rotate(angle=(deg2rad(6*15)), axis=self.Planet.RotAxis) #ZdirectionUnit)
             
             # init position in ecliptic referential
             #self.updateCurrentLocationEcliptic()
@@ -110,11 +131,11 @@ class makePlanetWidgets():
             RotAngle *= -1
 
         # follow planet rotation
-        self.Origin.rotate(angle=RotAngle, axis=self.Planet.RotAxis, origin=self.Origin.pos) #(self.Position[X_COOR]+self.Foci[X_COOR],self.Position[Y_COOR]+self.Foci[Y_COOR],self.Position[Z_COOR]+self.Foci[Z_COOR]))
+        self.ECEF.rotate(angle=RotAngle, axis=self.Planet.RotAxis, origin=self.ECEF.pos) #(self.Position[X_COOR]+self.Foci[X_COOR],self.Position[Y_COOR]+self.Foci[Y_COOR],self.Position[Z_COOR]+self.Foci[Z_COOR]))
 
 
     def updateWidgetsFramePosition(self):
-        self.Origin.pos = self.Planet.Origin.pos
+        self.ECEF.pos = self.Planet.Origin.pos
 
     def updateCurrentLocationEcliptic(self):
         if self.currentLocation >= 0: 
@@ -157,7 +178,7 @@ class makePlanetWidgets():
 
 class makeEarthLocation():
     def __init__(self, widgets, tz_index):
-        self.Origin = widgets.Origin
+        self.Origin = widgets.ECEF
         self.Planet = widgets.Planet
         self.Color = color.red
         self.EclipticPosition = vector(0,0,0)
@@ -231,7 +252,7 @@ class makeEarthLocation():
 
 class makeNode():
     def __init__(self, widgets, colr, ascending = true):
-        #self.Origin = widgets.Origin
+        #self.Origin = widgets.ECEF
         self.Planet = widgets.Planet
         self.Color = colr
         self.ascending = -1 if ascending else 1
@@ -258,7 +279,7 @@ class makeNode():
 class makeEquator():
 
     def __init__(self, widgets): #planet):
-        self.Origin = widgets.Origin
+        self.Origin = widgets.ECEF
         self.Planet = widgets.Planet
         self.Color = color.red
 
@@ -335,7 +356,7 @@ class doMeridian():
 
     def __init__(self, widgets, colr, longitudeAngle):
         self.longAngle = longitudeAngle
-        self.Origin = widgets.Origin
+        self.Origin = widgets.ECEF
 
         self.Planet = widgets.Planet
         #Radius = 25 if longitudeAngle == 0 else 0
@@ -373,7 +394,7 @@ class doMeridian():
 
 class makeMeridians():
     def __init__(self, widgets, colr):
-        self.Origin = widgets.Origin
+        self.Origin = widgets.ECEF
         self.Widgets = widgets
         self.Origin.visible = True
         self.Color = colr
@@ -412,7 +433,7 @@ class doLatitude():
 
     def __init__(self, widgets, latitudeAngle, colr, thickness=0):
         self.latAngle = latitudeAngle
-        self.Origin = widgets.Origin
+        self.Origin = widgets.ECEF
         self.Color = colr
 
         self.Planet = widgets.Planet
@@ -452,7 +473,7 @@ class doLatitude():
 class makeLatitudes():
         
     def __init__(self, widgets):
-        self.Origin = widgets.Origin
+        self.Origin = widgets.ECEF
         self.Widgets = widgets
         self.lats = []
         self.Color = color.cyan
@@ -473,7 +494,7 @@ class makeLatitudes():
 class makeTropics():
         
     def __init__(self, widgets):
-        self.Origin = widgets.Origin
+        self.Origin = widgets.ECEF
         self.Widgets = widgets
         self.Tropics = []
         self.Color = color.cyan
