@@ -3,9 +3,9 @@ from visual import *
 
 class simpleArrow:
 
-    def __init__(self, color, radius, start, axisp, context = None):
+    def __init__(self, color, radius, dtype, start, axisp, context = None):
         #self.Origin = frame() if context == None else context
-        self.Radius = radius if radius > 0 else 30
+        self.Radius = radius if radius > 0 else dtype
         self.Color = color
         self.pos = [start, start+axisp]
         self.Trail  = curve(frame=context, pos= [ start, start + axisp], material=materials.emissive, color=self.Color, radius=radius,   visible=False)
@@ -26,16 +26,33 @@ class circle:
         self.Origin = frame() if context == None else context
         self.Radius = radius if radius > 0 else 30
         self.Color = color
-        self.pos = pos
+        self.pos = vector(pos)
+        #self.Position = vector(pos)
 
-        self.Ring = ring(pos=pos, axis=normalAxis, radius=radius, thickness=1, visible=False, material=materials.emissive)
+        #self.Ring = ring(pos=pos, axis=normalAxis, radius=radius, thickness=1, visible=False, material=materials.emissive)
+        #self.Trail  = curve(frame=context, pos= [ start, start + axisp], material=materials.emissive, color=self.Color, radius=radius,   visible=False)
+        self.Trail = curve(frame=context, pos=self.pos, color=self.Color, visible=False, radius=radius, material=materials.emissive)
 
+        increment = pi/32
+        for E in np.arange(0, 2*pi+increment, increment):
+            # build Equator line using angular segments of increments degres
+            # radius = self.Planet.radiusToShow/self.Planet.SizeCorrection[self.Planet.sizeType]
+
+            X = self.Radius * cos(E) 
+            Y = self.Radius * sin(E)
+            Z = 0
+            # add angular portion of equator
+#            self.Trail.append(pos= vector(self.Position[X_COOR],self.Position[Y_COOR],self.Position[Z_COOR]), color=(self.Color[0]*0.6, self.Color[1]*0.6, self.Color[2]*0.6))
+            self.Trail.append(pos= vector(X,Y,Z), color=(self.Color[0]*0.6, self.Color[1]*0.6, self.Color[2]*0.6))
 
     def display(self, trueFalse):
-        self.Ring.visible = trueFalse
+        self.Trail.visible = trueFalse
+
+    def rotate(self, angle, axis):
+        self.Origin.rotate(angle=angle, axis=axis)
 
     def setPosition(self, start, end):
-        self.Ring.pos = [start, end]
+        self.Trail.pos = [start, end]
 
 
 class arrow:

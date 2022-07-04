@@ -1,8 +1,20 @@
 
 import numpy as np
 
-def sigmoid(x):
-    sig = np.where(x < 0, np.exp(x)/(1 + np.exp(x)), 1/(1 + np.exp(-x)))
+# all func are a variation of:
+# F(alpha, t) = (t^alpha)/(t^alpha + (1-t)^alpha)
+# with t always belonging to the domain [0,1]
+# F(1, t) = t (identity)
+# F(2, t) = resembles the sigmoid: (t^2)/(t^2 + (1-t)^2)
+# the higher the value of alpha, the steeper the curve
+def F(alpha, t):
+    return (t**alpha)/(t**alpha + (1-t)**alpha)
+
+def ease_in_out(t):
+    return F(4, t)
+
+def sigmoid(t):
+    sig = np.where(t < 0, np.exp(t)/(1 + np.exp(t)), 1/(1 + np.exp(-t)))
     return sig
 
 def linear(t):

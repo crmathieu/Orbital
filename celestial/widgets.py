@@ -89,7 +89,7 @@ class makePlanetWidgets():
         self.currentLocation = -1
         self.defaultLocation = -1
         #self.makeLocation(TZ_CAPE)
-        #self.makeMultipleLocations(TZ_CAPE)
+        self.makeMultipleLocations(TZ_CAPE)
          
         # align widgets origin with planet tilt
         self.ECEF.rotate(angle=(-self.Planet.TiltAngle), axis=self.Planet.XdirectionUnit) #, origin=(0,0,0))
@@ -109,6 +109,64 @@ class makePlanetWidgets():
             if self.currentLocation >= 0:
                 self.Loc[self.currentLocation].updateEclipticPosition()
 
+
+    def shiftLocation(self):
+        #print "going from ",self.Loc[self.defaultLocation].GeoLoc.pos , "to", self.Loc[TZ_PARIS].GeoLoc.pos
+        print "BEFORE: Forward=", self.Planet.SolarSystem.Scene.forward
+        gradNorm = mag(self.Loc[self.defaultLocation].Grad) # + self.Loc[self.defaultLocation].EclipticPosition)
+        print "BEFORE: NORMAL=", self.Loc[self.defaultLocation].Grad+ self.Loc[self.defaultLocation].EclipticPosition, "Normalized:", (self.Loc[self.defaultLocation].Grad + self.Loc[self.defaultLocation].EclipticPosition)/gradNorm
+        X = (self.Planet.SolarSystem.Scene.forward[0]-self.Loc[self.defaultLocation].Grad[0])/(100*gradNorm)
+        Y = (self.Planet.SolarSystem.Scene.forward[1]-self.Loc[self.defaultLocation].Grad[1])/(100*gradNorm)
+        Z = (self.Planet.SolarSystem.Scene.forward[2]-self.Loc[self.defaultLocation].Grad[2])/(100*gradNorm)
+
+#        X = (self.Planet.SolarSystem.Scene.forward[0]-((self.Loc[self.defaultLocation].Grad[0]+self.Loc[self.defaultLocation].EclipticPosition[0])/gradNorm))/100
+#        Y = (self.Planet.SolarSystem.Scene.forward[1]-((self.Loc[self.defaultLocation].Grad[1]+self.Loc[self.defaultLocation].EclipticPosition[1])/gradNorm))/100
+#        Z = (self.Planet.SolarSystem.Scene.forward[2]-((self.Loc[self.defaultLocation].Grad[2]+self.Loc[self.defaultLocation].EclipticPosition[2])/gradNorm))/100
+
+
+#        for i in np.arange(0, self.Planet.SolarSystem.Scene.forward[0], self.Planet.SolarSystem.Scene.forward[0]/100):
+        print "X=", X, ", Y=", Y,", Z=", Z
+        X0 = self.Planet.SolarSystem.Scene.forward[0]
+        Y0 = self.Planet.SolarSystem.Scene.forward[1]
+        Z0 = self.Planet.SolarSystem.Scene.forward[2]
+        print "X0=", X0, ", Y0=", Y0,", Z0=", Z0
+        for i in np.arange(0, 100, 1):
+            g = mag(vector( X0 + 100*i*X, Y0 + 100*i*Y, Z0 + 100*i*Z))
+            self.Planet.SolarSystem.Scene.forward = vector( (X0 + 100*i*X)/g,
+                                                            (Y0 + 100*i*Y)/g,
+                                                            (Z0 + 100*i*Z)/g)
+            sleep(1e-2)
+            #self.Planet.SolarSystem.camera.cameraRefresh()
+            #print "forward=", self.Planet.SolarSystem.Scene.forward
+
+        raw_input()
+#        self.Planet.SolarSystem.Scene.forward = (self.Loc[self.defaultLocation].Grad + self.Loc[self.defaultLocation].EclipticPosition)/mag(self.Loc[self.defaultLocation].Grad + self.Loc[self.defaultLocation].EclipticPosition)
+        self.Planet.SolarSystem.Scene.forward = -(self.Loc[self.defaultLocation].Grad)/mag(self.Loc[self.defaultLocation].Grad)
+        sleep(1e-2)
+        raw_input()
+#        self.zob =  simpleArrow(color.red, 70, 20, self.Loc[self.defaultLocation].GeoLoc.pos, axisp = 1e5*(self.Planet.SolarSystem.Scene.forward), context = self.Loc[self.defaultLocation].Origin)
+        self.zob =  simpleArrow(color.red, 70, 20, self.Planet.SolarSystem.Scene.center, axisp = 1e5*(self.Planet.SolarSystem.Scene.forward), context = None) #self.Loc[self.defaultLocation].Origin)
+        self.zob.display(True)
+        #self.Planet.SolarSystem.Scene.forward = self.Loc[self.defaultLocation].Grad
+        """
+        print "Forward=", self.Planet.SolarSystem.Scene.forward
+        raw_input()
+        self.Planet.SolarSystem.Scene.forward = vector(0,1,0)
+        print "Forward=", self.Planet.SolarSystem.Scene.forward
+        raw_input()
+        self.Planet.SolarSystem.Scene.forward = vector(1,0,0)
+        print "Forward=", self.Planet.SolarSystem.Scene.forward
+        raw_input()
+        self.Planet.SolarSystem.Scene.forward = vector(0,0,1)
+        print "Forward=", self.Planet.SolarSystem.Scene.forward
+
+        #zob = self.Planet.SolarSystem.Scene.forward[0]/100
+        #for i in np.arange(0, self.Planet.SolarSystem.Scene.forward[0], self.Planet.SolarSystem.Scene.forward[0]/100):
+        
+        #self.Planet.SolarSystem.Scene.forward = vector(0,1,1)
+        """
+        print "AFTER: Forward=", self.Planet.SolarSystem.Scene.forward
+       # raw_input()
 
     def makeMultipleLocations(self, defaultLoc):
         self.defaultLocation = defaultLoc
@@ -182,9 +240,9 @@ class makeEarthLocation():
         self.Planet = widgets.Planet
         self.Color = color.red
         self.EclipticPosition = vector(0,0,0)
-
-        #self.GeoLoc = sphere(frame=self.Origin, pos=(0,0,0), np=32, radius=2, material = materials.emissive, make_trail=false, color=self.Color, visible=True) 
-        self.GeoLoc = cylinder(frame=self.Origin, pos=vector(0,0,0), radius=10, color=self.Color, material = materials.emissive, opacity=1.0, axis=(0,0,1))
+        self.lat = self.long = 0
+        self.GeoLoc = sphere(frame=self.Origin, pos=(0,0,0), np=32, radius=2, material = materials.emissive, make_trail=false, color=self.Color, visible=True) 
+        #self.GeoLoc = cylinder(frame=self.Origin, pos=vector(0,0,0), radius=10, color=self.Color, material = materials.emissive, opacity=1.0, axis=(0,0,1))
 
 
         #self.GeoLoc = circle(color=self.Color, radius=10, pos=(0,0,0), normalAxis=(0,0,1), context=self.Origin)        
@@ -195,16 +253,18 @@ class makeEarthLocation():
         if earthLoc != {}:
             print earthLoc
             self.Name = earthLoc["name"]
-            self.setPosition(earthLoc)
+            self.lat = earthLoc["lat"]
+            self.long = earthLoc["long"]
+            self.setPosition() #earthLoc)
             self.setGradient()
             self.setOrientation(self.Grad)
 
         else:
             self.Name = "None"
 
-    def setPosition(self, locInfo):
+    def setPositionSAVE(self, locInfo):
         # set the Geo position
-        radius = (self.Planet.radiusToShow/self.Planet.SizeCorrection[self.Planet.sizeType])
+        radius = (self.Planet.radiusToShow/self.Planet.SizeCorrection[self.Planet.sizeType])*0.999
         
         # calculate distance from z-axis to latitude line
         eqPlane = radius * cos(deg2rad(locInfo["lat"]))
@@ -215,6 +275,20 @@ class makeEarthLocation():
         self.GeoLoc.pos[X_COOR] = eqPlane * cos(deg2rad(locInfo["long"])+pi)
         self.GeoLoc.pos[Y_COOR] = eqPlane * sin(deg2rad(locInfo["long"])+pi)
         self.GeoLoc.pos[Z_COOR] = radius * sin(deg2rad(locInfo["lat"]))
+
+    def setPosition(self):
+        # set the Geo position
+        radius = (self.Planet.radiusToShow/self.Planet.SizeCorrection[self.Planet.sizeType])*0.999
+        
+        # calculate distance from z-axis to latitude line
+        eqPlane = radius * cos(deg2rad(self.lat))
+
+        # deduct (x,y) from eqPlane. Note, we need to extend the longitude 
+        # value by 180 degrees to take into account the way the earth texture
+        # was applied on the sphere
+        self.GeoLoc.pos[X_COOR] = eqPlane * cos(deg2rad(self.long)+pi)
+        self.GeoLoc.pos[Y_COOR] = eqPlane * sin(deg2rad(self.long)+pi)
+        self.GeoLoc.pos[Z_COOR] = radius * sin(deg2rad(self.lat))
 
     def updateEclipticPosition(self):
         # init position in ecliptic referential
@@ -243,11 +317,15 @@ class makeEarthLocation():
         self.GradientZ = 2*(self.EclipticPosition[Z_COOR]-self.Origin.pos[Z_COOR])
         self.Grad = vector(self.GradientX, self.GradientY, self.GradientZ)
         
-        self.NormalVec = simpleArrow(color.white, 0, self.GeoLoc.pos, axisp = (self.Grad/10), context = self.Origin)
-        self.NormalVec.display(True)
+        self.NormalVec = simpleArrow(color.white, 0, 10, self.GeoLoc.pos, axisp = (self.Grad/10), context = self.Origin)
+        self.NormalVec.display(False)
 
     def setOrientation(self, axis):
         self.GeoLoc.axis = axis * (1 / mag(axis))
+
+    def show(self, trueFalse):
+        self.NormalVec.display(trueFalse)
+
 
 
 class makeNode():
@@ -337,7 +415,7 @@ class makeEquatorialPlane():
         self.Opacity = opacity
         self.Color = color 
 
-        side = 0.5*AU*DIST_FACTOR
+        side = 2.5*AU*DIST_FACTOR
         self.eqPlane = box(pos=self.Planet.Position, length=side, width=0.0001, height=side, material=materials.emissive, visible=False, color=self.Color, opacity=0.9) #, axis=(0, 0, 1), opacity=0.8) #opacity=self.Opacity)
         self.eqPlane.rotate(angle=(-self.Planet.TiltAngle), axis=self.Planet.XdirectionUnit) #, origin=(0,0,0))
 

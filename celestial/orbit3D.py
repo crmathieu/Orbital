@@ -73,8 +73,11 @@ class makeSolarSystem:
 		self.camera = camera(self.Scene)
 		self.Scene.lights = []
 		
+		# the scene camera is a read only vector whose coordinates can be changed 
+		# only through mouse events and/or resetting the scene Center
 		self.Scene.forward = vector(2,0,-1) #(0,0,-1)
-		self.Scene.fov = deg2rad(40) #math.pi/3
+		self.Scene.fov = deg2rad(40) 
+		self.Scene.range = 6  ####### NEW NEW
 		self.Scene.userspin = True
 		self.Scene.userzoom = True
 		self.Scene.autoscale = True
@@ -143,9 +146,12 @@ class makeSolarSystem:
 
 		self.makeCelestialSphere()
 
-		print "CAMERA POSITION ************************* ", self.Scene.mouse.camera
+		print "initial CAMERA POSITION ************************* ", self.Scene.mouse.camera
 
 		#self.Scene.scale = self.Scene.scale * 10
+
+	def setAutoScale(self, trueFalse):
+		self.Scene.autoscale = trueFalse
 
 	def introZoomIn(self, velocity):
 		self._set_autoMovement(True)
@@ -172,6 +178,7 @@ class makeSolarSystem:
 		#file = "./img/starmap.tga"
 		#file = "./img/star-map-normalized-4096x2048-reversed.tga"
 		file = "./img/constellations_stars_to_MAG_21_RA_DEC_8192x4096_MONO-trimmed-deep-reversed.tga"
+		#file = "./img/8K-constellations-4-reversed.tga"
 		if os.path.isfile(file):
 			# adjust celestial Sphere position
 			self.CelestialSphereOrigin = frame(pos=vector(0,0,0))
@@ -224,31 +231,33 @@ class makeSolarSystem:
 		self.ShowFeatures = flags
 
 	def makeSolarReferential(self, size, position):
-#		refDirections = [vector(size,0,0), vector(0,size,0), vector(0,0,size/4)]
-		refDirections = [-vector(size,0,0), -vector(0,size,0), vector(0,0,size/4)]
+		refDirections = [vector(size,0,0), vector(0,size,0), vector(0,0,size/4)]
+#		refDirections = [-vector(size,0,0), -vector(0,size,0), vector(0,0,size/4)]
 		relsize = 2 * (self.BodyRadius/self.CorrectionSize)
 		relDirections = [vector(relsize,0,0), vector(0,relsize,0), vector(0,0,relsize)]
-		refText = ["X","Y","K"]
+		refText = ["Vernal Eq","Y","K"]
 		relText = ["x","y","z"]
 		refOpRad = [[1.0, 200],[0.5, 50],[0.5,50]]
 		pos = vector(position)
+		ve = 0.2
 		for i in range (3): # Each direction
 
 #			self.RefAxis[i] = simpleArrow(color.white, 300, pos, axisp = refDirections[i])
-			self.RefAxis[i] = simpleArrow(color.white, 0, pos, axisp = refDirections[i])
+			self.RefAxis[i] = simpleArrow(color.white, 0, 50, pos, axisp = refDirections[i])
 			#self.RefAxis[i] = curve( frame = None, color = color.white, pos= [ pos, pos+refDirections[i]], material=materials.emissive, visible=False, radius=300)
 			
 			self.RefAxisLabel[i] = label( frame = None, color = color.white,  text = refText[i],
-										pos = pos+refDirections[i]*1.04, opacity = 0, box = True, visible=False )
+										pos = pos+refDirections[i]*(1.07+ve), opacity = 0, box = True, visible=False )
 
 			A = np.matrix([[relDirections[i][0]],[relDirections[i][1]],[relDirections[i][2]]], np.float64)
 			relDirections[i] = self.Rotation_Obliquity * A
 
 			#self.Axis[i] = curve( frame = None, color = color.white, pos= [ pos, pos+relDirections[i]], visible=False)
-			self.Axis[i] = simpleArrow(color.white, 0, pos, axisp = relDirections[i])
+			self.Axis[i] = simpleArrow(color.white, 0, 20, pos, axisp = relDirections[i])
 
 			self.AxisLabel[i] = label( frame = None, color = color.white,  text = relText[i],
-										pos = pos+relDirections[i]*1.04, opacity = 0, box = False, visible=False )
+										pos = pos+relDirections[i]*(1.04+ve), opacity = 0, box = False, visible=False )
+			ve = 0.07
 
 		# calculate magnitude of each vector ...
 		ZdirectionVec = self.Axis[2].pos[1]-self.Axis[2].pos[0]
@@ -282,7 +291,7 @@ class makeSolarSystem:
 	def addTo(self, body):
 		self.bodies.append(body)
 		i = len(self.bodies) - 1
-		self.nameIndex[body.JPL_designation] = i
+		self.nameIndex[body.JPL_designation.lower()] = i
 		if body.JPL_designation.upper() == EARTH_NAME:
 			self.EarthRef = body
 		return i # this is the index of the added body in the collection
@@ -823,15 +832,18 @@ class makeBody:
 		self.directions = [vector(2*size,0,0), vector(0,2*size,0), vector(0,0,2*size)]
 		texts = ["x","y","z"]
 		pos = vector(position)
+		ve = 0.2
 		for i in range (3): # Each direction
 			A = np.matrix([[self.directions[i][0]],[self.directions[i][1]],[self.directions[i][2]]], np.float64)
 			self.directions[i] = self.Rotation_Obliquity * A
 
 #			self.Axis[i] = curve( frame = None, color = color.white, pos= [ pos, pos+self.directions[i]], visible=False)
-			self.Axis[i] = simpleArrow(color.white, 0, pos, axisp = self.directions[i])
+			self.Axis[i] = simpleArrow(color.white, 0, 20, pos, axisp = self.directions[i])
 			
 			self.AxisLabel[i] = label( frame = None, color = color.white,  text = texts[i],
-										pos = pos+self.directions[i]*1.07, opacity = 0, box = False, visible=False )
+										pos = pos+self.directions[i]*(1.07+ve), opacity = 0, box = False, visible=False )
+			ve = 0.07
+
 
 		ZdirectionVec = self.Axis[2].pos[1]-self.Axis[2].pos[0]
 		YdirectionVec = self.Axis[1].pos[1]-self.Axis[1].pos[0]
@@ -1346,17 +1358,16 @@ class makeEarth(planet):
 		pos = vector(position)
 		ve = 0.2
 
-
 		for i in range (3): # Each direction
 			A = np.matrix([[self.directions[i][0]],[self.directions[i][1]],[self.directions[i][2]]], np.float64)
 			self.directions[i] = self.Rotation_Obliquity * A
 
 #			self.Axis[i] = curve( frame = None, color = color.white, pos= [ pos, pos+self.directions[i]], visible=False)
-			self.Axis[i] = simpleArrow(color.white, 0, pos, axisp = self.directions[i])
+			self.Axis[i] = simpleArrow(color.white, 0, 20, pos, axisp = self.directions[i])
 			
 			self.AxisLabel[i] = label( frame = None, color = color.white,  text = texts[i],
 										pos = pos+self.directions[i]*(1.07+ve), opacity = 0, box = False, visible=False )
-			ve = 0
+			ve = 0.07
 
 		ZdirectionVec = self.Axis[2].pos[1]-self.Axis[2].pos[0]
 		YdirectionVec = self.Axis[1].pos[1]-self.Axis[1].pos[0]
@@ -2458,7 +2469,9 @@ def loadBodies(SolarSystem, type, filename, maxentries = 0):
 	maxentries = 1000 if maxentries == 0 else maxentries
 	for obj in allObj:
 		for key in obj:
-			objects_data[obj[key]["jpl_designation"]] = {
+			idx = obj[key]["jpl_designation"].lower()
+			#print "KEY IS ", idx
+			objects_data[idx] = {
 #			objects_data[obj[key]] = {
 				"profile": "{ \"look\":\""+obj[key]["profile"]["look"]+"\", \"engine\":"+str(obj[key]["profile"]["engine"])+", \"length\":"+str(obj[key]["profile"]["length"])+", \"COPV\":"+str(obj[key]["profile"]["COPV"])+"}" if "profile" in obj[key] else "",
 				"material": 1 if obj[key]["tga_name"] != "" else 0,
@@ -2495,8 +2508,8 @@ def loadBodies(SolarSystem, type, filename, maxentries = 0):
 						TRANS_NEPT:		transNeptunian,
 						SATELLITE:		satellite,
 						SMALL_ASTEROID:	smallAsteroid,
-						}[type](SolarSystem, obj[key]["jpl_designation"], getColor())
-	#					}[type](SolarSystem, key, getColor())
+						}[type](SolarSystem, idx, getColor())
+#						}[type](SolarSystem, obj[key]["jpl_designation"], getColor())
 
 				SolarSystem.addTo(body)
 	

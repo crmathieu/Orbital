@@ -154,6 +154,10 @@ class camera:
 			velocity = 1
 		self.cameraZoom(duration=1, velocity=velocity)
 
+	def cameraRefresh(self):
+		sleep(1e-2)
+		return
+
 	def cameraZoom(self, duration, velocity = 1, zoom = ZOOM_IN):
 		# for camera zoom motion, both right and left mouse buttons must be held down
 		left, right, middle = True, True, False
@@ -210,4 +214,60 @@ class camera:
 			lastx = x
 			x -= 1
 			sleep(1e-2)
+"""
+if False:
+	# Draw window & 3D pane =================================================
 
+	win = window(width=1024, height=720, menus=False, title='SIMULATE VPYTHON GUI')
+							# make a main window. Also sets w.panel to addr of wx window object. 
+	scene = display( window=win, width=830, height=690, forward=-vector(1,1,2))
+
+	vss = scene
+
+	# Event handlers =========================
+
+	def setModView():  # set so that we see view from mod-cam
+		global saved_pyvars
+		vss.userspin = vss.userzoom = False
+		vss.autoscale = vss.autocenter = False  # should not be necessary,  but is! 
+		saved_pyvars = [ tuple(vss.forward), tuple(vss.center), vss.fov ]
+		# save VPython GUI status (so that we can restore it later ). tuple()is NEEDED so the data
+		# is copied - not just its address.   vss.range is not useful. 
+		vss.forward = - cam_frame.axis 
+		vss.center =  cam_frame.pos
+		vss.fov = fov
+		vss.range = range_x
+		cam_box.visible = fwd_arrow.visible = mouse_arrow.visible = False
+		cam_tri.visible = False    
+		
+	def setPyView():  # set so we see view from py-cam (ie std VPython)  
+		vss.userspin = vss.userzoom = True
+		vss.forward, vss.center, vss.fov = saved_pyvars
+										# Restore py-vars to what they were when qPy was turned off.
+										# Except RANGE - as cannot be saved.  So.... 
+		vss.range = scene_size*1.5   # SET it.  
+		cam_box.visible = fwd_arrow.visible = mouse_arrow.visible = True
+		cam_tri.visible = True   
+
+
+	def hCamera(evt): # re "Switch Camera" button
+		global qPy
+		if qPy:  # we are seeing view from py-cam 
+		qPy = False     
+		setModView()  # set so that we see view from mod-cam
+		else:          
+		qPy = True
+		setPyView()  # set so we see view from py-cam (ie std VPython)
+				
+	def hReset(evt): # re "Reset" button
+		global cam_frame
+		cam_box.visible = fwd_arrow.visible = mouse_arrow.visible = True
+		cam_tri.visible = True  # so is included in cam_frame.objects list.
+		for obj in cam_frame.objects:
+		obj.visible = False
+		del obj
+		del cam_frame
+		drawCameraFrame()  # recreate camera frame and its contents
+		mode_lab.SetLabel("")  # as is no longer right 
+		if not qPy:  setModView() # because drawCameraFrame() assumes qPy is True. 
+"""

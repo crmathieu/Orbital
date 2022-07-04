@@ -115,10 +115,15 @@ def bootSolarSystem():
 	# start wxPython application
 	ex = wx.App(False)
 	db = DashBoard(solSystem)
+	print "CAMERA POSITION before earth focus ************************* ", solSystem.Scene.mouse.camera
 	db.focusTab.setCurrentBodyFocusManually(earth, 2)
 	db.Show()
 
+	print "CAMERA POSITION after earth focus************************* ", solSystem.Scene.mouse.camera
 	solSystem.introZoomIn(38)
+	print "CAMERA POSITION After zoom ************************* ", solSystem.Scene.mouse.camera
+	solSystem.setAutoScale(False)
+	print "AUTOSCALE=", solSystem.Scene.autoscale
 
 	#ex.MainLoop()
 
