@@ -282,7 +282,7 @@ class makeSolarSystem:
 		#self.SolarSystem.Scene.forward = (0, 0, -1)
 		# For a planet, Foci(x, y, z) is (0,0,0). For a moon, Foci represents the position of the planet the moon orbits around
 		self.currentPOV = body
-		self.currentPOVselection = body.Name.upper()
+		self.currentPOVselection = body.Name.lower()
 		self.Scene.center = (self.currentPOV.Position[X_COOR]+self.currentPOV.Foci[X_COOR],
 							 self.currentPOV.Position[Y_COOR]+self.currentPOV.Foci[Y_COOR],
 							 self.currentPOV.Position[Z_COOR]+self.currentPOV.Foci[Z_COOR])
@@ -292,7 +292,7 @@ class makeSolarSystem:
 		self.bodies.append(body)
 		i = len(self.bodies) - 1
 		self.nameIndex[body.JPL_designation.lower()] = i
-		if body.JPL_designation.upper() == EARTH_NAME:
+		if body.JPL_designation.lower() == EARTH_NAME:
 			self.EarthRef = body
 		return i # this is the index of the added body in the collection
 
@@ -654,7 +654,7 @@ class makeBody:
 
 		self.Foci = vector(satelliteof.Position[X_COOR], satelliteof.Position[Y_COOR], satelliteof.Position[Z_COOR])
 		
-		#key = key.upper()
+		#key = key.lower()
 
 		self.ObjectIndex = key
 		self.SolarSystem 			= system
@@ -1179,7 +1179,7 @@ class makeBody:
 			return
 
 		if 	self.BodyType & self.SolarSystem.ShowFeatures != 0 or \
-			self.Name.upper() == EARTH_NAME or \
+			self.Name.lower() == EARTH_NAME or \
 			self.Details == True:
 			if self.Origin.visible == False:
 				self.show()
@@ -1324,7 +1324,7 @@ class makeEarth(planet):
 		# into account the way vpython applies texture on a sphere 
 		self.Alpha = deg2rad(80) # 2*math.pi/5 #pi/12
 	
-		planet.__init__(self, system, "earth", ccolor, type, sizeCorrectionType, defaultSizeCorrection)
+		planet.__init__(self, system, EARTH_NAME, ccolor, type, sizeCorrectionType, defaultSizeCorrection)
 
 		# Create widgets. This must be done after initializing earth. This will correctly
 		# position the widgets with the earth current appearence

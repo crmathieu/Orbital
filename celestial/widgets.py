@@ -95,7 +95,7 @@ class makePlanetWidgets():
         self.ECEF.rotate(angle=(-self.Planet.TiltAngle), axis=self.Planet.XdirectionUnit) #, origin=(0,0,0))
 
         # align longitude to greenwich when the planet is Earth
-        if self.Planet.Name.upper() == "EARTH":
+        if self.Planet.Name.lower() == EARTH_NAME:
 
             # adjust widgets positions in relation with earth texture at current time
             self.resetWidgetsRefFromSolarTime()

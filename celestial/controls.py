@@ -210,7 +210,7 @@ class FOCUSpanel(AbstractUI):
 		self.cb.SetValue(False)
 		self.cb.Bind(wx.EVT_CHECKBOX,self.OnLocalRef)
 
-		self.cbst = wx.CheckBox(self, label="Smooth Transition", pos=(200, POV_FOCUS_Y+80)) #   POV_Y+560))
+		self.cbst = wx.CheckBox(self, label="Smooth Transition", pos=(200, POV_FOCUS_Y+60)) #   POV_Y+560))
 		self.cbst.SetValue(False)
 		self.cbst.Bind(wx.EVT_CHECKBOX,self.OnTransition)
 
@@ -351,7 +351,7 @@ class FOCUSpanel(AbstractUI):
 			# if object was hidden due to its body type, make body type
 			# visible unless it's earth which always stays visible
 			if (Body.SolarSystem.ShowFeatures & Body.BodyType) == 0 \
-				and Body.Name.upper() != "EARTH":
+				and Body.Name.lower() != EARTH_NAME:
 				#print "MAKING OBJECT VISIBLE"
 				# if the body is not visible, Make it so
 				#print "Making "+Body.Name+" visible! bodyType = "+str(Body.BodyType)
@@ -402,7 +402,7 @@ class FOCUSpanel(AbstractUI):
 		index = self.rbox.GetSelection()
 
 		# set type of object selected
-		self.SolarSystem.currentPOVselection = {0: "curobj", 1: "sun", 2:"earth", 3:"mercury", 4:"venus",
+		self.SolarSystem.currentPOVselection = {0: "curobj", 1: "sun", 2:EARTH_NAME, 3:"mercury", 4:"venus",
 												5: "mars", 6:"jupiter", 7:"saturn", 8:"uranus", 9:"neptune",
 												10:"pluto", 11:"sedna", 12:"makemake", 13:"haumea", 14:"eris", 15:"charon", 16: "phobos", 17:"deimos", 18:"moon"}[index]
 		
@@ -583,7 +583,7 @@ class SEARCHpanel(AbstractUI):
 		if self.jsonResp["element_count"] > 0:
 			today = self.jsonResp["near_earth_objects"][self.fetchDateStr]
 			for entry in today:
-				if entry["close_approach_data"][0]["orbiting_body"].upper() == 'EARTH':
+				if entry["close_approach_data"][0]["orbiting_body"].lower() == 'EARTH':
 					self.list.InsertStringItem(self.ListIndex, entry["name"])
 					if entry["is_potentially_hazardous_asteroid"] == True:
 							ch = "Y"
@@ -932,7 +932,7 @@ class SEARCHpanel(AbstractUI):
 class ORBITALCtrlPanel(AbstractUI):
 
 	def InitVariables(self):
-		self.Earth = self.SolarSystem.getBodyFromName("earth")
+		self.Earth = self.SolarSystem.getBodyFromName(EARTH_NAME)
 		self.checkboxList = {}
 		self.ResumeSlideShowLabel = False
 		self.AnimationInProgress = False
@@ -1215,7 +1215,7 @@ class ORBITALCtrlPanel(AbstractUI):
 			print "no curent object"
 			return
 
-		if self.SolarSystem.currentPOV.Name.upper() == "EARTH":
+		if self.SolarSystem.currentPOV.Name.lower() == EARTH_NAME:
 			earthLocPos = None
 			w = self.Earth.PlanetWidgets
 			if loc == None:
@@ -1269,7 +1269,7 @@ class ORBITALCtrlPanel(AbstractUI):
 		for body in self.SolarSystem.bodies:
 			if body.BodyType in [SPACECRAFT, OUTERPLANET, INNERPLANET, SATELLITE, ASTEROID, \
 								 COMET, DWARFPLANET, PHA, BIG_ASTEROID, TRANS_NEPT]:
-				if body.Origin.visible == True or body.Name.upper() == "EARTH":
+				if body.Origin.visible == True or body.Name.lower() == EARTH_NAME:
 					velocity, distance = body.animate(self.DeltaT)
 					if self.SolarSystem.currentPOV != None:
 						if body.JPL_designation == self.SolarSystem.currentPOV.JPL_designation:
