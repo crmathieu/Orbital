@@ -70,7 +70,7 @@ class makeSolarSystem:
 
 		self.MT = self.Scene.getMouseTracker()
 		#self.MT.SetMouseStateReporter(self.Scene)
-		self.camera = camera(self.Scene)
+		self.camera = camera(self)
 		self.Scene.lights = []
 		
 		# the scene camera is a read only vector whose coordinates can be changed 
@@ -87,6 +87,8 @@ class makeSolarSystem:
 		self.RefAxisLabel = ["","",""]
 		self.Axis = [0,0,0]
 		self.AxisLabel = ["","",""]
+
+		self.objects_data = objects_data
 
 		# TimeIncrement is a float representing the time quantity value by which 
 		# the solar system planet positions get updated with every tick
@@ -169,6 +171,8 @@ class makeSolarSystem:
 			self.sizeType = x
 		self.BodyShape.radius = self.radiusToShow  / self.SizeCorrection[self.sizeType]
 
+	def setDashboard(self, db):
+		self.Dashboard = db
 
 	def makeCelestialSphere(self): # Unused
 		import os.path
@@ -397,9 +401,9 @@ class makeSolarSystem:
 			self.RefAxisLabel[i].visible = setRefTo
 
 	def makeRingsCirclesXX(self, system, bodyName, density = 1):  # change default values during instantiation
-		global objects_data
+		#global objects_data
 		self.SolarSystem = system
-		planet = self.getBodyFromName(objects_data[bodyName]['jpl_designation'])
+		planet = self.getBodyFromName(self.objects_data[bodyName]['jpl_designation'])
 		if planet != None:
 			InnerRadius = planet.BodyRadius * self.INNER_RING_COEF / planet.SizeCorrection[planet.sizeType]
 			OuterRadius = planet.BodyRadius * self.OUTER_RING_COEF / planet.SizeCorrection[planet.sizeType]
@@ -590,7 +594,7 @@ class makeJtrojan(makeBelt):
 
 	def __init__(self, system, key, name, bodyType, color, size, density = 1, planetname = None):
 		makeBelt.__init__(self, system, key, name, bodyType, color, size, density, planetname)
-		self.Planet = self.SolarSystem.getBodyFromName(objects_data[self.PlanetName]['jpl_designation'])
+		self.Planet = self.SolarSystem.getBodyFromName(self.SolarSystem.objects_data[self.PlanetName]['jpl_designation'])
 		if self.Planet != None:
 			self.JupiterX = self.Planet.Position[X_COOR]
 			self.JupiterY = self.Planet.Position[Y_COOR]
@@ -658,12 +662,12 @@ class makeBody:
 
 		self.ObjectIndex = key
 		self.SolarSystem 			= system
-		self.AxialTilt				= objects_data[key]["axial_tilt"]
-		self.Name					= objects_data[key]["name"]		# body name
-		self.Iau_name				= objects_data[key]["iau_name"]		# body iau name
-		self.JPL_designation 		= objects_data[key]["jpl_designation"]
-		self.Mass 					= objects_data[key]["mass"]		# body mass
-		self.BodyRadius 			= objects_data[key]["radius"]		# body radius
+		self.AxialTilt				= system.objects_data[key]["axial_tilt"]
+		self.Name					= system.objects_data[key]["name"]		# body name
+		self.Iau_name				= system.objects_data[key]["iau_name"]		# body iau name
+		self.JPL_designation 		= system.objects_data[key]["jpl_designation"]
+		self.Mass 					= system.objects_data[key]["mass"]		# body mass
+		self.BodyRadius 			= system.objects_data[key]["radius"]		# body radius
 		self.Color 					= color
 		self.BodyType 				= bodyType
 		self.BodyShape 				= None
@@ -671,17 +675,17 @@ class makeBody:
 		self.Origin 				= frame()
 		self.Origin.visible			= False
 
-		self.Revolution 			= objects_data[key]["PR_revolution"]
-		self.Perihelion 			= objects_data[key]["QR_perihelion"]	# body perhelion
-		self.Distance 				= objects_data[key]["QR_perihelion"]	# body distance at perige from focus
+		self.Revolution 			= system.objects_data[key]["PR_revolution"]
+		self.Perihelion 			= system.objects_data[key]["QR_perihelion"]	# body perhelion
+		self.Distance 				= system.objects_data[key]["QR_perihelion"]	# body distance at perige from focus
 		self.Details				= False
 		self.hasRenderedOrbit		= False
-		self.Absolute_mag			= objects_data[key]["absolute_mag"]
+		self.Absolute_mag			= system.objects_data[key]["absolute_mag"]
 		self.Axis 					= [None,None,None]
 		self.AxisLabel 				= ["","",""]
 
-		if "tga_name" in objects_data[key]:
-			self.Tga 				= objects_data[key]["tga_name"]
+		if "tga_name" in system.objects_data[key]:
+			self.Tga 				= system.objects_data[key]["tga_name"]
 		else:
 			self.Tga 				= ""
 
@@ -694,10 +698,10 @@ class makeBody:
 		self.nRings 				= 0
 
 
-		self.Rotation = objects_data[key]["rotation"] if "rotation" in objects_data[key] else 0
+		self.Rotation = system.objects_data[key]["rotation"] if "rotation" in system.objects_data[key] else 0
 		self.RotAngle = 0
 
-		self.Moid = objects_data[key]["earth_moid"] if "earth_moid" in objects_data[key] else 0
+		self.Moid = system.objects_data[key]["earth_moid"] if "earth_moid" in system.objects_data[key] else 0
 		self.setOrbitalElements(key)
 
 		# generate 2d coordinates in the initial orbital plane, with +X pointing
@@ -820,7 +824,7 @@ class makeBody:
 		self.initRotation()
 
 	def setAspect(self, key):
-		self.Texture = materials.loadTGA("./img/"+self.Tga) if objects_data[key]["material"] != 0 else materials.loadTGA("./img/asteroid")
+		self.Texture = materials.loadTGA("./img/"+self.Tga) if self.SolarSystem.objects_data[key]["material"] != 0 else materials.loadTGA("./img/asteroid")
 		self.BodyShape.material = materials.texture(data=self.Texture, mapping="spherical", interpolate=False)
 
 	def makeShape(self):
@@ -833,6 +837,9 @@ class makeBody:
 		texts = ["x","y","z"]
 		pos = vector(position)
 		ve = 0.2
+		if size < self.SolarSystem.EarthRef.radiusToShow/self.SolarSystem.EarthRef.SizeCorrection[self.SolarSystem.EarthRef.sizeType]:
+			ve = 0.4
+
 		for i in range (3): # Each direction
 			A = np.matrix([[self.directions[i][0]],[self.directions[i][1]],[self.directions[i][2]]], np.float64)
 			self.directions[i] = self.Rotation_Obliquity * A
@@ -842,7 +849,7 @@ class makeBody:
 			
 			self.AxisLabel[i] = label( frame = None, color = color.white,  text = texts[i],
 										pos = pos+self.directions[i]*(1.07+ve), opacity = 0, box = False, visible=False )
-			ve = 0.07
+			#ve = 0.07
 
 
 		ZdirectionVec = self.Axis[2].pos[1]-self.Axis[2].pos[0]
@@ -921,7 +928,7 @@ class makeBody:
 		# files -or- predefined values. Orbital Position is calculated
 		# from the last time of perihelion passage. This is the default
 		# behavior
-		self.setOrbitalFromJPLhorizon(objects_data[key], timeincrement) #-0.7)
+		self.setOrbitalFromJPLhorizon(self.SolarSystem.objects_data[key], timeincrement) #-0.7)
 
 	# unused
 	"""
@@ -972,7 +979,7 @@ class makeBody:
 	# including pluto. This won't work for Asteroid, Comets or Dwarf planets
 
 	def setOrbitalEltFromApproximatePlanetPositioning(self, elts, timeincrement):
-		Adjustment = 0.5
+		Adjustment = 0 #0.5
 
 	#def setOrbitalFromKeplerianElements(self, elts, timeincrement):
 		# get number of days since J2000 epoch and obtain the fraction of century
@@ -1096,9 +1103,9 @@ class makeBody:
 		self.RotAxis = self.ZdirectionUnit
 		
 		# calculate current RA, to position the obliquity properly:
-		if "RA_1" in objects_data[self.ObjectIndex]:
+		if "RA_1" in self.SolarSystem.objects_data[self.ObjectIndex]:
 			T = daysSinceJ2000UTC()/36525. # T is in centuries
-			self.RA = objects_data[self.ObjectIndex]["RA_1"] + objects_data[self.ObjectIndex]["RA_2"] * T
+			self.RA = self.SolarSystem.objects_data[self.ObjectIndex]["RA_1"] + self.SolarSystem.objects_data[self.ObjectIndex]["RA_2"] * T
 			self.Origin.rotate(angle=deg2rad(self.RA), axis=self.ZdirectionUnit, origin=(self.Position[X_COOR]+self.Foci[X_COOR],self.Position[Y_COOR]+self.Foci[Y_COOR],self.Position[Z_COOR]+self.Foci[Z_COOR]))
 		#else:
 		#	print "No RA for " +self.Name
@@ -1297,7 +1304,7 @@ class planet(makeBody):
 	def setOrbitalElements(self, key, timeincrement = 0):
 		# for the Major planets (default) includig Pluto, we have Keplerian
 		# elements to calculate the body's current approximated position on orbit
-		elt = objects_data[key]["kep_elt_1"] if "kep_elt_1" in objects_data[key] else objects_data[key]["kep_elt"]
+		elt = self.SolarSystem.objects_data[key]["kep_elt_1"] if "kep_elt_1" in self.SolarSystem.objects_data[key] else self.SolarSystem.objects_data[key]["kep_elt"]
 		self.setOrbitalEltFromApproximatePlanetPositioning(elt, timeincrement) #-1.4) #0.7)
 
 ADJUSTMENT_COEFFICIENT = 0.5
@@ -1615,10 +1622,10 @@ class makeEarth(planet):
 		
 		"""
 		# calculate current RA, to position the obliquity properly:
-		if "RA_1" in objects_data[self.ObjectIndex]:
+		if "RA_1" in self.objects_data[self.ObjectIndex]:
 			print "BURP!!!!!!!!!!!!!!!!!"
 			T = daysSinceJ2000UTC()/36525. # T is in centuries
-			self.RA = objects_data[self.ObjectIndex]["RA_1"] + objects_data[self.ObjectIndex]["RA_2"] * T
+			self.RA = self.objects_data[self.ObjectIndex]["RA_1"] + self.objects_data[self.ObjectIndex]["RA_2"] * T
 		#	self.BodyShape.rotate(angle=deg2rad(self.RA), axis=self.ZdirectionUnit, origin=(self.Position[X_COOR]+self.Foci[X_COOR],self.Position[Y_COOR]+self.Foci[Y_COOR],self.Position[Z_COOR]+self.Foci[Z_COOR]))
 		#else:
 		#	print "No RA for " +self.Name
@@ -1663,7 +1670,7 @@ class makeEarth(planet):
 	def setOrbitalEltFromApproximatePlanetPositioning(self, elts, timeincrement):
 		# get number of days since J2000 epoch and obtain the fraction of century
 		# (the rate adjustment is given as a rate per century)
-		Adjustment = 0.35
+		Adjustment = 0 #0.35
 		days = daysSinceJ2000UTC() + timeincrement #- ADJUSTMENT_FACTOR_PLANETS # - 1.43
 #		days = daysSinceJ2000UTC() + timeincrement # - 1.43
 		
@@ -1865,7 +1872,7 @@ class genericSpacecraft(makeBody):
 
 
 	def setAspect(self, key):
-		if objects_data[key]["material"] != 0:
+		if self.SolarSystem.objects_data[key]["material"] != 0:
 			data = materials.loadTGA("./img/"+ self.Tga)
 			self.BodyShape.objects[0].material = materials.texture(data=data, mapping="cylinder", interpolate=False)
 
@@ -2143,9 +2150,9 @@ class starman(makeBody):
 # CLASS SPACECRAFT ------------------------------------------------------------
 class spacecraft(genericSpacecraft, starman):
 	def __init__(self, system, key, color):
-		if "profile" in objects_data[key]:
-			print objects_data[key]["profile"]
-			profile = json.loads(objects_data[key]["profile"])
+		if "profile" in system.objects_data[key]:
+			print system.objects_data[key]["profile"]
+			profile = json.loads(system.objects_data[key]["profile"])
 			self.profile 		= profile["look"]
 			self.engine  		= profile["engine"]
 			self.COPV    		= profile["COPV"]
@@ -2471,8 +2478,8 @@ def loadBodies(SolarSystem, type, filename, maxentries = 0):
 		for key in obj:
 			idx = obj[key]["jpl_designation"].lower()
 			#print "KEY IS ", idx
-			objects_data[idx] = {
-#			objects_data[obj[key]] = {
+			SolarSystem.objects_data[idx] = {
+#			self.objects_data[obj[key]] = {
 				"profile": "{ \"look\":\""+obj[key]["profile"]["look"]+"\", \"engine\":"+str(obj[key]["profile"]["engine"])+", \"length\":"+str(obj[key]["profile"]["length"])+", \"COPV\":"+str(obj[key]["profile"]["COPV"])+"}" if "profile" in obj[key] else "",
 				"material": 1 if obj[key]["tga_name"] != "" else 0,
 				"name": str(obj[key]["name"]),
@@ -2534,7 +2541,7 @@ def loadBodiesOldway(SolarSystem, type, filename, maxentries = 0):
 		else:
 			token = line.split('|')
 			if len(token) > 0:
-				objects_data[token[JPL_DESIGNATION]] = {
+				self.objects_data[token[JPL_DESIGNATION]] = {
 					"material": 0,
 					"name": token[JPL_FULLNAME],
 					"iau_name": token[JPL_IAU_NAME],

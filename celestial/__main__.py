@@ -30,7 +30,7 @@ from controls import *
 
 #from controls import *
 
-def bootSolarSystem():
+def bootSolarSystem(scenario):
 	# determine where this program runs 
 	#locationInfo = location()
 	
@@ -114,28 +114,27 @@ def bootSolarSystem():
 
 	# start wxPython application
 	ex = wx.App(False)
-	db = DashBoard(solSystem)
+	dashboard = DashBoard(solSystem)
+	solSystem.setDashboard(dashboard)
+
 	print "CAMERA POSITION before earth focus ************************* ", solSystem.Scene.mouse.camera
-	db.focusTab.setCurrentBodyFocusManually(earth, 2)
-	db.Show()
+	#### dashboard.focusTab.setCurrentBodyFocusManually(earth, 2)
+	dashboard.Show()
+	
 
 	print "CAMERA POSITION after earth focus************************* ", solSystem.Scene.mouse.camera
-	solSystem.introZoomIn(38)
+	if scenario != None:
+		scenario.play(solSystem)
+
 	print "CAMERA POSITION After zoom ************************* ", solSystem.Scene.mouse.camera
 	solSystem.setAutoScale(False)
 	print "AUTOSCALE=", solSystem.Scene.autoscale
 
-	#ex.MainLoop()
-
-	#solSystem.camera.cameraZoom(10)
 
 	while True:
 		sleep(2)
 	#	earth.updateStillPosition(cw.orbitalBox, 2)
 
 
-def main():
-	bootSolarSystem()
-
-#if __name__ == '__main__' :
-#	bootSolarSystem()
+def main(scenario):
+	bootSolarSystem(scenario)

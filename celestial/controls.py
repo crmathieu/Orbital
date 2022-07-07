@@ -252,6 +252,11 @@ class FOCUSpanel(AbstractUI):
 														(Y0 + r*Y),
 														(Z0 + r*Z))
 				sleep(2e-2)
+				if self.parentFrame.orbitalTab.RecorderOn == True:
+					if self.parentFrame.orbitalTab.VideoRecorder == None:
+						self.parentFrame.orbitalTab.VideoRecorder = setVideoRecording(25, "output.avi")
+					recOneFrame(self.parentFrame.orbitalTab.VideoRecorder)
+
 		else:
 			print "failed to obtain destination"
 
@@ -526,7 +531,8 @@ class SEARCHpanel(AbstractUI):
 	def onSearch(self, e):
 		print ("ENTER"+self.search.GetValue())
 		self.searchList.DeleteAllItems()
-		self.searchByName(self.searchHostsstr, self.search.GetValue(), searchtype=self.SRCH_BROAD)
+#		self.searchByName(self.searchHostsstr, self.search.GetValue(), searchtype=self.SRCH_BROAD)
+		self.searchByName(self.search.GetValue(), searchtype=self.SRCH_BROAD)
 		
 	def OnNext(self, e):
 		self.oneDay(1, "", self.nextUrl)
@@ -570,6 +576,7 @@ class SEARCHpanel(AbstractUI):
 		self.BodiesSPK_ID = []
 		rawResp = response.read()
 		self.jsonResp = json.loads(rawResp)
+		print rawResp
 
 		# use if "prev" not in "links"  
 		self.nextUrl = self.jsonResp["links"]["next"] if "next" in self.jsonResp["links"] else ""
@@ -583,7 +590,7 @@ class SEARCHpanel(AbstractUI):
 		if self.jsonResp["element_count"] > 0:
 			today = self.jsonResp["near_earth_objects"][self.fetchDateStr]
 			for entry in today:
-				if entry["close_approach_data"][0]["orbiting_body"].lower() == 'EARTH':
+				if entry["close_approach_data"][0]["orbiting_body"].lower() == EARTH_NAME:
 					self.list.InsertStringItem(self.ListIndex, entry["name"])
 					if entry["is_potentially_hazardous_asteroid"] == True:
 							ch = "Y"
@@ -606,7 +613,7 @@ class SEARCHpanel(AbstractUI):
 		
 		# check the new target day has been cached already
 		#if self.fetchDateStr in self.jsonResp["near_earth_objects"]:
-			# if yes, directly load info in objects_data 
+			# if yes, directly load info in self.SolarSystem.objects_data 
 		#	self.doFetchByDayFromCache()
 		#else:
 		# start a new thread to retrieve the list of NEOs from JPL
@@ -651,6 +658,7 @@ class SEARCHpanel(AbstractUI):
 		try:
 			opener = urllib2.build_opener()
 			opener.addheaders = [('User-Agent', 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_12_2) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/55.0.2883.95 Safari/537.36')]
+			print "Querying: ", host+target
 			response = opener.open(host+target)
 			rawResp = response.read()
 
@@ -719,7 +727,11 @@ class SEARCHpanel(AbstractUI):
 
 		return id
 
-	def searchByName(self, hostt, url, searchtype):
+	# Note: for scpacecraft search, the small objects database won't work. 
+	# Instead the Horizon system web scrapping should be used instead
+	
+#	def searchByName(self, hostt, url, searchtype):
+	def searchByName(self, url, searchtype):
 
 		# add code here
 		if searchtype == self.SRCH_DETAILED:
@@ -732,11 +744,14 @@ class SEARCHpanel(AbstractUI):
 		#jplThread.start()
 
 		self.doFetchByName(host, urllib.quote(url), searchtype)
+		#self.doFetchByName(host, "%2D226", searchtype)
+		
 
 	def OnSearchListClick(self, e):
 		pdes = self.searchList.GetItem(itemId=e.m_itemIndex, col=1).GetText()
 		#print("searching -> "+self.searchHostdes+pdes)
-		self.searchByName(self.searchHostdes, pdes, searchtype = self.SRCH_DETAILED)
+#		self.searchByName(self.searchHostdes, pdes, searchtype = self.SRCH_DETAILED)
+		self.searchByName(pdes, searchtype = self.SRCH_DETAILED)
 
 
 	# attempt to use SPICE functions to obtain orbital elements
@@ -784,12 +799,12 @@ class SEARCHpanel(AbstractUI):
 		spkid = entry["object"]["spkid"]
 
 		# if the key already exists, the object has already been loaded, simply return its spk-id
-		if spkid in objects_data:
+		if spkid in self.SolarSystem.objects_data:
 			return spkid
 
 		print ("SPKID="+ spkid)
 
-		objects_data[spkid] = {
+		self.SolarSystem.objects_data[spkid] = {
 			"material": 0,
 			# epoch_date_close_approach comes as the number of milliseconds in unix TT
 #			"epoch_date_close_approach": utc_close_approach, # in seconds using J2000
@@ -809,29 +824,29 @@ class SEARCHpanel(AbstractUI):
 		# add what follows through a loop going through all elements of entry["orbit"]["elements"]
 		for elt in entry["orbit"]["elements"]:
 			if elt["name"] == "e":
-				objects_data[spkid].update({"EC_e": float(elt["value"])})
+				self.SolarSystem.objects_data[spkid].update({"EC_e": float(elt["value"])})
 			elif elt["name"] == "q":
-				objects_data[spkid].update({"QR_perihelion": float(elt["value"]) * AU})
+				self.SolarSystem.objects_data[spkid].update({"QR_perihelion": float(elt["value"]) * AU})
 			elif elt["name"] == "i":
-				objects_data[spkid].update({"IN_orbital_inclination": float(elt["value"])})
+				self.SolarSystem.objects_data[spkid].update({"IN_orbital_inclination": float(elt["value"])})
 			elif elt["name"] == "om":
 				om = float(elt["value"])
-				objects_data[spkid].update({"OM_longitude_of_ascendingnode": om})
+				self.SolarSystem.objects_data[spkid].update({"OM_longitude_of_ascendingnode": om})
 			elif elt["name"] == "w":
 				W = float(elt["value"])
-				objects_data[spkid].update({"W_argument_of_perihelion": W})
+				self.SolarSystem.objects_data[spkid].update({"W_argument_of_perihelion": W})
 			elif elt["name"] == "ma":
-				objects_data[spkid].update({"MA_mean_anomaly": float(elt["value"])})
+				self.SolarSystem.objects_data[spkid].update({"MA_mean_anomaly": float(elt["value"])})
 			elif elt["name"] == "tp":
-				objects_data[spkid].update({"Tp_Time_of_perihelion_passage_JD": float(elt["value"])}) # value unit in "TDB" (Time Dynamic Baricenter)
+				self.SolarSystem.objects_data[spkid].update({"Tp_Time_of_perihelion_passage_JD": float(elt["value"])}) # value unit in "TDB" (Time Dynamic Baricenter)
 			elif elt["name"] == "per":
-				objects_data[spkid].update({"PR_revolution": float(elt["value"])})
+				self.SolarSystem.objects_data[spkid].update({"PR_revolution": float(elt["value"])})
 			elif elt["name"] == "n":
-				objects_data[spkid].update({"N_mean_motion": float(elt["value"])})
+				self.SolarSystem.objects_data[spkid].update({"N_mean_motion": float(elt["value"])})
 
-		objects_data[spkid].update({"longitude_of_perihelion": om+W})
+		self.SolarSystem.objects_data[spkid].update({"longitude_of_perihelion": om+W})
 
-		print (objects_data[spkid])
+		print (self.SolarSystem.objects_data[spkid])
 
 		# for now let's consider "search" bodies as PHAs
 		body = orbit3D.pha(self.SolarSystem, spkid, color.white) #orbit3D.getColor())
@@ -847,13 +862,13 @@ class SEARCHpanel(AbstractUI):
 		#print entry
 
 		# if the key already exists, the object has already been loaded, simply return its spk-id
-		if entry["neo_reference_id"] in objects_data:
-			if "utc_dt" in objects_data[entry["neo_reference_id"]]:
+		if entry["neo_reference_id"] in self.SolarSystem.objects_data:
+			if "utc_dt" in self.SolarSystem.objects_data[entry["neo_reference_id"]]:
 				return entry["neo_reference_id"]
 			else:
 				# object was previously loaded from normal search but lack time of close 
 				# approach ("utc_dt") hence we must reload it with this extra information
-				del(objects_data[entry["neo_reference_id"]])
+				del(self.SolarSystem.objects_data[entry["neo_reference_id"]])
 
 		# grab utc timestamp of encounter time and date (value is in ms, hence divide by 1000 to get the value in seconds)
 		utc_timestamp = entry["close_approach_data"][0]["epoch_date_close_approach"]*0.001
@@ -870,7 +885,7 @@ class SEARCHpanel(AbstractUI):
 		print "LOADBODY_INFO utc_close_approach= ", utc_close_approach, "UTC from timestamp=", utc_timestamp
 
 		# Add data to dictionary
-		objects_data[entry["neo_reference_id"]] = {
+		self.SolarSystem.objects_data[entry["neo_reference_id"]] = {
 			"material": 0,
 			# epoch_date_close_approach comes as the number of milliseconds in unix TT
 			"epoch_date_close_approach": utc_close_approach, # in seconds using J2000
@@ -899,15 +914,15 @@ class SEARCHpanel(AbstractUI):
 			"local_dt": orbit3D.utc_to_local_fromTimestamp(utc_timestamp)
 		}
 
-		#print "UTC time of approach   =========>", objects_data[entry["neo_reference_id"]]["utc_dt"]
-		#print "Local time of approach --------->", objects_data[entry["neo_reference_id"]]["local_dt"]
+		#print "UTC time of approach   =========>", self.SolarSystem.objects_data[entry["neo_reference_id"]]["utc_dt"]
+		#print "Local time of approach --------->", self.SolarSystem.objects_data[entry["neo_reference_id"]]["local_dt"]
 
 		# convert UTC to local time
-		utcNewdatetime = objects_data[entry["neo_reference_id"]]["utc_dt"]
-		LocNewdatetime = objects_data[entry["neo_reference_id"]]["local_dt"]
+		utcNewdatetime = self.SolarSystem.objects_data[entry["neo_reference_id"]]["utc_dt"]
+		LocNewdatetime = self.SolarSystem.objects_data[entry["neo_reference_id"]]["local_dt"]
 
 		# print time of closest approach on this date
- 		print ">>> Local Time of approach: ", objects_data[entry["neo_reference_id"]]["local_dt"]
+ 		print ">>> Local Time of approach: ", self.SolarSystem.objects_data[entry["neo_reference_id"]]["local_dt"]
 
 		# CLose approach objects are considered as PHAs
 		body = orbit3D.pha(self.SolarSystem, entry["neo_reference_id"], orbit3D.getColor())
@@ -923,7 +938,7 @@ class SEARCHpanel(AbstractUI):
 		self.parentFrame.widgetsTab.Earth.setTextureFromSolarTime(LocNewdatetime)
 
 		# we return the index of the object in array of cosmic bodies
-		# (to access the data, retrieve objects_data[index])
+		# (to access the data, retrieve self.SolarSystem.objects_data[index])
 		return entry["neo_reference_id"]
 
 
@@ -954,11 +969,12 @@ class ORBITALCtrlPanel(AbstractUI):
 		self.currentBody = None
 		self.DisableAnimationCallback = True
 		self.RecorderOn = False
+		self.VideoRecorder = None
 		self.earthLoc = None
 		self.Hide()
 
 	def resetDateFromBodyId(self, id):
-		diff =  objects_data[id]["utc_dt"] - self.todayUTCdatetime
+		diff =  self.SolarSystem.objects_data[id]["utc_dt"] - self.todayUTCdatetime
 		self.DeltaT = diff.total_seconds()/86400.0
 		print "ResetDateFromBodyId: DELTA from right now (in days) =", self.DeltaT
 		self.updateSolarSystem()
@@ -1365,7 +1381,7 @@ class ORBITALCtrlPanel(AbstractUI):
 
 	def updateJTrojans(self):
 		curTrojans = self.SolarSystem.getJTrojans()
-		JupiterBody = self.SolarSystem.getBodyFromName(objects_data[curTrojans.PlanetName]['jpl_designation'])
+		JupiterBody = self.SolarSystem.getBodyFromName(self.SolarSystem.objects_data[curTrojans.PlanetName]['jpl_designation'])
 		# if Jupiter coordinates haven't changed since this Trojans were generated, don't do anything
 		if JupiterBody.Position[X_COOR] == curTrojans.JupiterX and JupiterBody.Position[Y_COOR] == curTrojans.JupiterY:
 			return
@@ -1723,8 +1739,6 @@ class WIDGETSpanel(AbstractUI):
 		self.ca_deltaT = 0
 		self.Earth = self.SolarSystem.EarthRef
 		self.checkboxList = {}
-		#self.drawEquator()
-		#self.drawTimeZone()
 
 	def InitUI(self):
 
