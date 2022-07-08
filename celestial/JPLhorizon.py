@@ -298,8 +298,14 @@ class JPLsearch:
 			nameStart = nameStart + len(nameMarker) + 1
 			nameEnd = self.rawResp.find("\n", nameStart, len(self.rawResp))
 			name = self.rawResp[nameStart: nameEnd]
+			parenthO = name.find("(", 0, len(name))
+			if parenthO != -1:
+				parenthC = name.find(")", parenthO, len(name))
+				if parenthC != -1:
+					name = name[:parenthC+1]
 		else:
-			name = "unknown"
+			name = "Unknown"
+		name = name.encode('latin1')
 
 		print "Extracting ", name
 		start = self.rawResp.find(self.startMarker, 0, len(self.rawResp))
