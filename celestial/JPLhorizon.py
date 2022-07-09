@@ -198,6 +198,7 @@ class JPLsearch:
 				rec = line.readline()
 				"""
 				we have 5 lines like so...
+				FOR ASTEROID/Spacecraft
 				2459767.547222222 = A.D. 2022-Jul-07 01:08:00.0000 TDB
 				 EC= 2.559076913790752E-01 QR= 1.475078325645969E+08 IN= 1.075237496397935E+00
 				 OM= 3.169157277789936E+02 W = 1.777528322639769E+02 Tp=  2459824.944332839455
@@ -205,7 +206,14 @@ class JPLsearch:
 				 A = 1.982386202028923E+08 AD= 2.489694078411878E+08 PR= 4.814004042423832E+07	
 
 				 0- epoch
-				 1->4 elements  			
+				 1->4 elements  
+
+				FOR COMETS
+				2459771.275000000 = A.D. 2022-Jul-10 18:36:00.0000 TDB 
+				 EC= 1.000765215764738E+00 QR= 2.688045091983787E+08 IN= 8.756157502449179E+01
+				 OM= 8.823504289230128E+01 W = 2.362002075701076E+02 Tp=  2459933.184257947374
+				 N = 1.002534871705570E-10 MA=-1.402442010527421E-03 TA= 2.898425843946303E+02
+				 A =-3.512793666638310E+11 AD= 9.999999999999998E+99 PR= 9.999999999999998E+99				 			
 				"""
 				k = 0
 
@@ -227,29 +235,32 @@ class JPLsearch:
 				elements = ["" for x in range(14)]
 
 				#epoch, IN, EC, QR, QM, W, TP, N, MA, TA, A, AD, PR = "", "", "", "", "", "", "", "", "", "", "", "", ""
+				chSplit = " "
 				while len(rec) > 0:
 					# break down in tokens
-					arr = rec.split(" ")
+					arr = rec.split(chSplit) #" ")
+					chSplit = "="
 					print arr
 					if k == 0:
 						elements[JDTDB] = arr[0]
 						elements[DATETIME] = arr[3] +" "+arr[4]
 					elif k == 1:
-						elements[EC_ECCENTRICITY] = arr[2]
-						elements[QR_PERIAPSIS] =arr[4] 
-						elements[IN_INCLINATION] =arr[6][:-1]
+				 		# EC= 1.000765215764738E+00 QR= 2.688045091983787E+08 IN= 8.756157502449179E+01
+						elements[EC_ECCENTRICITY] = arr[1][1:-3]
+						elements[QR_PERIAPSIS] =arr[2][1:-3] 
+						elements[IN_INCLINATION] =arr[3][1:-1]
 					elif k == 2:
-						elements[OM_LONG_OF_ASCNODE] = arr[2]
-						elements[W_ARG_OF_PERIFOCUS] =arr[5]
-						elements[TP_TIME_OF_PERIAPSIS] =arr[8][:-1]
+						elements[OM_LONG_OF_ASCNODE] = arr[1][1:-3]
+						elements[W_ARG_OF_PERIFOCUS] = arr[2][1:-3] 
+						elements[TP_TIME_OF_PERIAPSIS] =arr[3][1:-1]
 					elif k == 3:
-						elements[N_MEAN_MOTION] = arr[3]
-						elements[MA_MEAN_ANOMALY] =arr[5]
-						elements[TA_TRUE_ANOMALY] =arr[7][:-1]
+						elements[N_MEAN_MOTION] = arr[1][1:-3]
+						elements[MA_MEAN_ANOMALY] =arr[2][1:-3] 
+						elements[TA_TRUE_ANOMALY] =arr[3][1:-1]
 					elif k == 4:
-						elements[A_SEMI_MAJOR] = arr[3]
-						elements[AD_APOAPSIS] =arr[5]
-						elements[PR_SIDERAL_ORBIT] =arr[7][:-1]
+						elements[A_SEMI_MAJOR] = arr[1][1:-3]
+						elements[AD_APOAPSIS] =arr[2][1:-3] 
+						elements[PR_SIDERAL_ORBIT] =arr[3][1:-1]
 					else:
 						break
 					k += 1
@@ -379,7 +390,8 @@ class JPLsearch:
 
 
 test = JPLsearch()
-test.fetchElements(urllib.quote("toutatis"))
+#test.fetchElements(urllib.quote("toutatis"))
+test.fetchElements(urllib.quote("C/2017 K2"))
 
 # Example of output for an asteroid/comet (Ceres)
 
