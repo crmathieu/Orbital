@@ -79,5 +79,6 @@ if __name__ == "__main__":
       else:
          storyObj = pclasses[pick_a_story(pclasses, None)]
 
+   # pass a story object to boot-loader (story is not instantiated yet)
    bootSolarSystem(storyObj)
    
