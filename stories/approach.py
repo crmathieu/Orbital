@@ -12,43 +12,43 @@ from story import storyBase
 
 class earthApproach(storyBase):
 
-    def play(self, api):
-        #api = self.api
-        #api.setRecorder(True)
-        api.setCurrentBody("earth")
-        api.zoomIn(75)
-        api.rotateDown(60)
-        api.rotateLeft(120)
-        api.pause(0.2)
-        api.rotateUp(30)
-        api.zoomOut(20)
-        api.setSmoothTransition(True)
-        api.setCurrentBody("jupiter")
+    def play(self, lib):
+        #lib = self.lib
+        #lib.setRecorder(True)
+        lib.setCurrentBody("earth")
+        lib.zoomIn(75)
+        lib.rotateDown(60)
+        lib.rotateLeft(120)
+        lib.pause(0.2)
+        lib.rotateUp(30)
+        lib.zoomOut(20)
+        lib.setSmoothTransition(True)
+        lib.setCurrentBody("jupiter")
         return 
 
-        api.pause(0.2)
-        api.setCurrentBody("mercury")
+        lib.pause(0.2)
+        lib.setCurrentBody("mercury")
 
-        api.pause(0.2)
-        api.setCurrentBody("mars")
+        lib.pause(0.2)
+        lib.setCurrentBody("mars")
 
-        api.pause(0.2)
-        api.setCurrentBody("saturn")
+        lib.pause(0.2)
+        lib.setCurrentBody("saturn")
 
-        api.pause(0.2)
-        api.setCurrentBody("Neptune")
+        lib.pause(0.2)
+        lib.setCurrentBody("Neptune")
 
-        api.pause(0.2)
-        api.setCurrentBody("venus")
+        lib.pause(0.2)
+        lib.setCurrentBody("venus")
 
-        api.pause(0.2)
-        api.setCurrentBody("sedna")
-        #api.setRecorder(False)
+        lib.pause(0.2)
+        lib.setCurrentBody("sedna")
+        #lib.setRecorder(False)
 
 
 class jupiterApproach(storyBase):
 
-    def play(self, api):
-        api.setCurrentBody("jupiter")
-        api.zoomIn(50)
-        api.rotateDown(140)
+    def play(self, lib):
+        lib.setCurrentBody("jupiter")
+        lib.zoomIn(50)
+        lib.rotateDown(140)
