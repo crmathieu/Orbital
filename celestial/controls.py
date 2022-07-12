@@ -189,6 +189,12 @@ class FOCUSpanel(AbstractUI):
 	def InitVariables(self):
 		self.ca_deltaT = 0
 		self.smoothTransition = False
+		self.bodyNameToIndex = {
+			"curobj": 0, 	"sun": 1, 		EARTH_NAME: 2, 	"mercury": 3, 	"venus": 4,
+			"mars": 5, 		"jupiter": 6, 	"saturn": 7, 	"uranus": 8, 	"neptune": 9,
+			"pluto": 10, 	"sedna": 11, 	"makemake": 12, "haumea": 13, 	"eris": 14, 
+			"charon": 15, 	"phobos": 16, 	"deimos": 17, 	"moon": 18
+		}
 
 	def InitUI(self):
 		self.BoldFont = wx.Font(10, wx.SWISS, wx.NORMAL, wx.BOLD)
@@ -316,6 +322,12 @@ class FOCUSpanel(AbstractUI):
 		self.rbox.SetSelection(selectIndex)
 		self.OnRadioBox(None)
 		self.setBodyFocus(body)
+
+	def getBodyIndexInList(self, bodyName):
+		index = self.bodyNameToIndex[bodyName.lower()]
+		if index != None:
+			return index
+		return self.bodyNameToIndex["sun"]
 
 	def setBodyFocus(self, Body):
 		print "setting body:", Body.Name

@@ -27,10 +27,12 @@ from rate_func import *
 from orbit3D import *
 import planetsdata as pd
 from controls import *
+#import sys
+from celestial.orbitalAPI import userAPI
 
 #from controls import *
 
-def bootSolarSystem(scenario):
+def bootSolarSystem(story): #scenario):
 	# determine where this program runs 
 	#locationInfo = location()
 	
@@ -119,12 +121,17 @@ def bootSolarSystem(scenario):
 
 	print "CAMERA POSITION before earth focus ************************* ", solSystem.Scene.mouse.camera
 	#### dashboard.focusTab.setCurrentBodyFocusManually(earth, 2)
-	dashboard.Show()
 	
 
 	print "CAMERA POSITION after earth focus************************* ", solSystem.Scene.mouse.camera
-	if scenario != None:
-		scenario.play(solSystem)
+	if story != None:
+		try:
+			story(solSystem, userAPI(solSystem))
+		except RuntimeError as err:
+			print ("Exception...\n\nError: " + str(err.code))
+			raise
+		
+	dashboard.Show()
 
 	print "CAMERA POSITION After zoom ************************* ", solSystem.Scene.mouse.camera
 	solSystem.setAutoScale(False)
@@ -135,6 +142,3 @@ def bootSolarSystem(scenario):
 		sleep(2)
 	#	earth.updateStillPosition(cw.orbitalBox, 2)
 
-
-def main(scenario):
-	bootSolarSystem(scenario)
