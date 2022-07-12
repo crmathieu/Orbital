@@ -6,17 +6,17 @@
 # gives it access to the set of userLIB methods that can be used to create 
 # actions that will define the story.
 #  
-# to play the story 'earthApproach' defined in the approach.py module, enter:
-# > python2.7 orbital.py stories.approach earthApproach
+# to play the story 'story_earthApproach' defined in the approach.py module, enter:
+# > python2.7 orbital.py stories.approach story_earthApproach
 # to dislay a playlist, do not specify the story to play.
 # > python2.7 orbital.py stories.approach 
 # will list:
-# (1) earthApproach
-# (2) jupiterApproach
+# (1) story_earthApproach
+# (2) story_jupiterApproach
 
 from story import storyBase
 
-class earthApproach(storyBase):
+class story_earthApproach(storyBase):
 
     def play(self, lib):
         lib.setCurrentBody("earth")
@@ -48,7 +48,7 @@ class earthApproach(storyBase):
         lib.setCurrentBody("sedna")
 
 
-class jupiterApproach(storyBase):
+class story_jupiterApproach(storyBase):
 
     def play(self, lib):
         lib.setCurrentBody("jupiter")
