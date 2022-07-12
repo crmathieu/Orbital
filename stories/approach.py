@@ -3,8 +3,8 @@
 # A story is defined as a python class deriving from a storyBase class.
 # a 'play' method must be defined for the story to play when called by the
 # solar system loader. The play method has only one parameter: lib, which
-# gives it access to the set of userLIB methods that can be used to create a
-# story.
+# gives it access to the set of userLIB methods that can be used to create 
+# actions that will define the story.
 #  
 # to play the story 'earthApproach' defined in the approach.py module, enter:
 # > python2.7 orbital.py stories.approach earthApproach
