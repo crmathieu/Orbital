@@ -1,9 +1,12 @@
 # approach.py
-# should be used as:
+# example of story file containing stories to play as introduction.
+# to play the story earthApproach, enter:
 # > python2.7 orbital.py stories.approach earthApproach
 # to dislay a playlist, do not specify the story to play.
 # > python2.7 orbital.py stories.approach 
-
+# will list:
+# (1) earthApproach
+# (2) jupiterApproach
 
 from story import storyBase
 
