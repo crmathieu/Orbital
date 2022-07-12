@@ -1,3 +1,9 @@
+"""
+userLIB is a library class that allows to create a story programmatically. 
+A story is a succession of actions that determine the location of the camera 
+and its direction. Stories are found in the "stories" package.
+"""
+
 import time
 from video import *
 
