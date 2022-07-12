@@ -1,6 +1,6 @@
 import time
 
-class userAPI:
+class userLIB:
     def __init__(self, solarsystem):
         self.solSystem = solarsystem
 
@@ -35,3 +35,4 @@ class userAPI:
 
     def setSmoothTransition(self, trueFalse):
         self.solSystem.Dashboard.focusTab.smoothTransition = trueFalse
+        self.solSystem.Dashboard.focusTab.cbst.SetValue(trueFalse) 

@@ -2,7 +2,7 @@ class storyBase:
     def __init__(self, solSystem, api):
         self.solSystem = solSystem
         self.api = api
-        self.play()
+        self.play(api)
 
-    def play(self):
+    def play(self, api):
         pass

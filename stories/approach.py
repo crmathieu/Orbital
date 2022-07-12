@@ -12,8 +12,8 @@ from story import storyBase
 
 class earthApproach(storyBase):
 
-    def play(self):
-        api = self.api
+    def play(self, api):
+        #api = self.api
         api.setCurrentBody("earth")
         api.zoomIn(75)
         api.rotateDown(60)

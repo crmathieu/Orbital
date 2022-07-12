@@ -28,7 +28,7 @@ from orbit3D import *
 import planetsdata as pd
 from controls import *
 #import sys
-from celestial.orbitalAPI import userAPI
+from celestial.orbitalLIB import userLIB
 
 #from controls import *
 
@@ -126,7 +126,7 @@ def bootSolarSystem(story): #scenario):
 	print "CAMERA POSITION after earth focus************************* ", solSystem.Scene.mouse.camera
 	if story != None:
 		try:
-			story(solSystem, userAPI(solSystem))
+			story(solSystem, userLIB(solSystem))
 		except RuntimeError as err:
 			print ("Exception...\n\nError: " + str(err.code))
 			raise
