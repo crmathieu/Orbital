@@ -2,19 +2,21 @@ import time
 from video import *
 
 class userLIB:
-    def __init__(self, solarsystem):
+    def __init__(self, solarsystem, record = False):
         self.solSystem = solarsystem
-        self.recorder = False
+        self.setRecorder(record)
 
     def setRecorder(self, trueFalse):
         self.recorder = trueFalse
         if self.recorder == True:
-            if self.solarSystem.Dashboard.orbitalTab.VideoRecorder == None:
-                self.solarSystem.Dashboard.orbitalTab.VideoRecorder = setVideoRecording(25, "output.avi")
+            self.solSystem.Dashboard.orbitalTab.RecorderOn = True
+            if self.solSystem.Dashboard.orbitalTab.VideoRecorder == None:
+                self.solSystem.Dashboard.orbitalTab.VideoRecorder = setVideoRecording(25, "output.avi")
         else:
-            if self.solarSystem.Dashboard.orbitalTab.VideoRecorder != None:
-                stopRecording(self.solarSystem.Dashboard.orbitalTab.VideoRecorder)
-                self.solarSystem.Dashboard.orbitalTab.VideoRecorder = None
+            self.solSystem.Dashboard.orbitalTab.RecorderOn = False
+            if self.solSystem.Dashboard.orbitalTab.VideoRecorder != None:
+                stopRecording(self.solSystem.Dashboard.orbitalTab.VideoRecorder)
+                self.solSystem.Dashboard.orbitalTab.VideoRecorder = None
 
     def pause(self, seconds):
         time.sleep(seconds)
@@ -35,16 +37,16 @@ class userLIB:
         self.solSystem.camera.cameraZoom(duration = 1, velocity = velocity, recorder = self.recorder, zoom = self.solSystem.camera.ZOOM_OUT)
 
     def rotateDown(self, angle):
-        self.solSystem.camera.cameraRotateDown(angle)
+        self.solSystem.camera.cameraRotateDown(angle, recorder = self.recorder)
 
     def rotateUp(self, angle):
-        self.solSystem.camera.cameraRotateUp(angle)
+        self.solSystem.camera.cameraRotateUp(angle, recorder = self.recorder)
 
     def rotateLeft(self, angle):
-        self.solSystem.camera.cameraRotateLeft(angle)
+        self.solSystem.camera.cameraRotateLeft(angle, recorder = self.recorder)
 
     def rotateRight(self, angle):
-        self.solSystem.camera.cameraRotateRight(angle)
+        self.solSystem.camera.cameraRotateRight(angle, recorder = self.recorder)
 
     def setSmoothTransition(self, trueFalse):
         self.solSystem.Dashboard.focusTab.smoothTransition = trueFalse

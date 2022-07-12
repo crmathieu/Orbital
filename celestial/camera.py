@@ -193,7 +193,7 @@ class camera:
 			[shift, ctrl, alt, cmd])
 			sleep(1e-2)
 			if recorder == True:
-				recOneFrame(self.parentFrame.orbitalTab.VideoRecorder)
+				recOneFrame(self.solarSystem.Dashboard.orbitalTab.VideoRecorder)
 
 	def cameraZoomSAVE(self, duration, velocity = 1, zoom = ZOOM_IN):
 		# for camera zoom motion, both right and left mouse buttons must be held down
@@ -340,7 +340,7 @@ class camera:
 			#y -= 1
 			sleep(1e-2)
 			if recorder == True:
-				recOneFrame(self.parentFrame.orbitalTab.VideoRecorder)
+				recOneFrame(self.solarSystem.Dashboard.orbitalTab.VideoRecorder)
 
 
 	def cameraLeft(self, duration, velocity = 1):

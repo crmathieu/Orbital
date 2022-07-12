@@ -319,6 +319,7 @@ class FOCUSpanel(AbstractUI):
 			self.setBodyFocus(self.SolarSystem.currentPOV)
 
 	def setCurrentBodyFocusManually(self, body, selectIndex):
+
 		self.rbox.SetSelection(selectIndex)
 		self.OnRadioBox(None)
 		self.setBodyFocus(body)

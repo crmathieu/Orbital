@@ -14,7 +14,7 @@ class earthApproach(storyBase):
 
     def play(self, api):
         #api = self.api
-        api.setRecorder(True)
+        #api.setRecorder(True)
         api.setCurrentBody("earth")
         api.zoomIn(75)
         api.rotateDown(60)
@@ -24,6 +24,7 @@ class earthApproach(storyBase):
         api.zoomOut(20)
         api.setSmoothTransition(True)
         api.setCurrentBody("jupiter")
+        return 
 
         api.pause(0.2)
         api.setCurrentBody("mercury")
@@ -42,13 +43,12 @@ class earthApproach(storyBase):
 
         api.pause(0.2)
         api.setCurrentBody("sedna")
-        api.setRecorder(False)
+        #api.setRecorder(False)
 
 
 class jupiterApproach(storyBase):
 
-    def play(self):
-        api = self.api #userAPI(self.solSystem)
+    def play(self, api):
         api.setCurrentBody("jupiter")
         api.zoomIn(50)
         api.rotateDown(140)

@@ -124,9 +124,12 @@ def bootSolarSystem(story): #scenario):
 	
 
 	print "CAMERA POSITION after earth focus************************* ", solSystem.Scene.mouse.camera
+	
+	# play story when provided
 	if story != None:
 		try:
-			story(solSystem, userLIB(solSystem))
+			story(solSystem, userLIB(solSystem, record = False))
+			
 		except RuntimeError as err:
 			print ("Exception...\n\nError: " + str(err.code))
 			raise
