@@ -13,7 +13,32 @@ class earthApproach(storyBase):
         api = self.api
         api.setCurrentBody("earth")
         api.zoomIn(75)
-        api.rotateDown(140)
+        api.rotateDown(60)
+        api.rotateLeft(120)
+        api.pause(0.2)
+        api.rotateUp(30)
+        api.zoomOut(20)
+        api.setSmoothTransition(True)
+        api.setCurrentBody("jupiter")
+
+        api.pause(0.2)
+        api.setCurrentBody("mercury")
+
+        api.pause(0.2)
+        api.setCurrentBody("mars")
+
+        api.pause(0.2)
+        api.setCurrentBody("saturn")
+
+        api.pause(0.2)
+        api.setCurrentBody("Neptune")
+
+        api.pause(0.2)
+        api.setCurrentBody("venus")
+
+        api.pause(0.2)
+        api.setCurrentBody("sedna")
+
 
         """
         solSystem.Dashboard.focusTab.setCurrentBodyFocusManually(solSystem.EarthRef, 2)
