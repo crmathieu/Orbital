@@ -79,6 +79,8 @@ if __name__ == "__main__":
       else:
          storyObj = pclasses[pick_a_story(pclasses, None)]
 
+      recorder = raw_input("\nRecord story? (y/n) ")
+      
    # pass a story object to boot-loader (story is not instantiated yet)
-   bootSolarSystem(storyObj)
+   bootSolarSystem(storyObj, False if str(recorder).lower() == 'n' else True)
    
