@@ -128,12 +128,14 @@ def bootSolarSystem(story): #scenario):
 	# play story when provided
 	if story != None:
 		try:
-			story(solSystem, userLIB(solSystem, record = False))
-			
+			# instantiate story
+			story(solSystem, userLIB(solSystem, recorder = False))
+
 		except RuntimeError as err:
 			print ("Exception...\n\nError: " + str(err.code))
 			raise
 		
+	# we only show the dashboard after the story has finished.
 	dashboard.Show()
 
 	print "CAMERA POSITION After zoom ************************* ", solSystem.Scene.mouse.camera

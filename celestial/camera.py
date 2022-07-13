@@ -282,9 +282,9 @@ class camera:
 		if direction == self.ROT_UP or direction == self.ROT_DWN:
 			if vangle <= angle:
 				angle = vangle * 0.9
-
-			duration = angle/50
-			durationInt = int(angle/50)
+			
+			duration = float(angle/50)
+			durationInt = 1 #int(angle/50)
 			duration = (durationInt+duration)/2
 			#factor = 51
 		else:

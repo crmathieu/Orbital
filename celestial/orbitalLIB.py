@@ -8,9 +8,9 @@ import time
 from video import *
 
 class userLIB:
-    def __init__(self, solarsystem, record = False):
+    def __init__(self, solarsystem, recorder = False):
         self.solSystem = solarsystem
-        self.setRecorder(record)
+        self.setRecorder(recorder)
 
     def setRecorder(self, trueFalse):
         self.recorder = trueFalse

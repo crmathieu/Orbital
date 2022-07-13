@@ -21,10 +21,14 @@ class story_earthApproach(storyBase):
     def play(self, lib):
         lib.setCurrentBody("earth")
         lib.zoomIn(75)
-        lib.rotateDown(60)
+        #lib.rotateDown(60)
         lib.rotateLeft(120)
         lib.pause(0.2)
         lib.rotateUp(30)
+        lib.rotateLeft(90)
+        lib.rotateDown(90)
+        return
+
         lib.zoomOut(20)
         lib.setSmoothTransition(True)
         lib.setCurrentBody("jupiter")
