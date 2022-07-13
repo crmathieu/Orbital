@@ -32,7 +32,7 @@ from celestial.orbitalLIB import userLIB
 
 #from controls import *
 
-def bootSolarSystem(story): #scenario):
+def bootSolarSystem(story, recorder): #scenario):
 	# determine where this program runs 
 	#locationInfo = location()
 	
@@ -129,7 +129,7 @@ def bootSolarSystem(story): #scenario):
 	if story != None:
 		try:
 			# instantiate story
-			st = story(solSystem, userLIB(solSystem, recorder = False))
+			st = story(solSystem, userLIB(solSystem, recorder = recorder))
 			del st
 		except RuntimeError as err:
 			print ("Exception...\n\nError: " + str(err.code))

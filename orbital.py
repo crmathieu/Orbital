@@ -14,14 +14,6 @@ from inspect import getmembers, isclass
 import importlib
 from celestial.__main__ import bootSolarSystem
 
-# 
-# Orbital(widgets) > python2.7 test_dynamic.py scenarioModule scenarioClass
-#
-# scenarioModule: where scenario classes are defined
-# scenarioClass:  the class in scenarioModule that we want to run
-#
-
-
 # extracts class names found in module
 def getAll_classes(story_module):
    allclasses = {}
