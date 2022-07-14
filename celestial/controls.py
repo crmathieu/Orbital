@@ -235,63 +235,68 @@ class FOCUSpanel(AbstractUI):
 
 	def smoothFocus(self, destination):
 		# going from current object to next current object
-		print "SMOOTH FOCUS to", destination
+		print ("SMOOTH FOCUS to", destination)
 		self.SolarSystem.currentPOV
 		dest = self.SolarSystem.getBodyFromName(destination.lower())
 		if dest != None:
-			print "we got the body info"
-#			X0 = self.Planet.SolarSystem.Scene.center[0]
-			X0 = self.SolarSystem.Scene.center[0]
-			Y0 = self.SolarSystem.Scene.center[1]
-			Z0 = self.SolarSystem.Scene.center[2]
-			print "X0=", X0, ", Y0=", Y0,", Z0=", Z0
+			print ("we got the body info")
+			Xc = self.SolarSystem.Scene.center[0]
+			Yc = self.SolarSystem.Scene.center[1]
+			Zc = self.SolarSystem.Scene.center[2]
+			print ("Xc=", Xc, ", Yc=", Yc,", Zc=", Zc)
 			
-			X = (dest.Position[0] - X0)
-			Y = (dest.Position[1] - Y0)
-			Z = (dest.Position[2] - Z0)
+			# calculate distance between current location and 
+			# destination for each coordinate 
+			deltaX = (dest.Position[0] - Xc)
+			deltaY = (dest.Position[1] - Yc)
+			deltaZ = (dest.Position[2] - Zc)
 
-			print "X=", X, ", Y=", Y,", Z=", Z
+			print ("X=", deltaX, ", Y=", deltaY,", Z=", deltaZ)
 
 			if self.parentFrame.orbitalTab.RecorderOn == True:
 				if self.parentFrame.orbitalTab.VideoRecorder == None:
 					self.parentFrame.orbitalTab.VideoRecorder = setVideoRecording(25, "output.avi")
 
+			# move scene center by an increment towards the destination coordinates. Since 
+			# we use 100 steps to do that, and our rate function only takes an input 
+			# between 0 and 1, we divide the current increment by the total number of
+			# steps to always keep the rate function input between these limits.
 			for i in np.arange(0, 101, 1):
+				
 				r = rate_func.ease_in_out(float(i)/100)
-				self.SolarSystem.Scene.center = vector( (X0 + r*X),
-														(Y0 + r*Y),
-														(Z0 + r*Z))
+				self.SolarSystem.Scene.center = vector( (Xc + r*deltaX),
+														(Yc + r*deltaY),
+														(Zc + r*deltaZ))
 				sleep(2e-2)
 				if self.parentFrame.orbitalTab.RecorderOn == True:
 					recOneFrame(self.parentFrame.orbitalTab.VideoRecorder)
 
 		else:
-			print "failed to obtain destination"
+			print ("failed to obtain destination")
 
 	def moveToEarthLocation(self, destination):
 		# going from current object to next current object
-		print "SMOOTH FOCUS to", destination
+		print ("SMOOTH FOCUS to", destination)
 		self.SolarSystem.currentPOV
 		dest = self.SolarSystem.getBodyFromName(destination.lower())
 		if dest != None:
-			print "we got the body info"
-#			X0 = self.Planet.SolarSystem.Scene.center[0]
-			X0 = self.SolarSystem.Scene.center[0]
-			Y0 = self.SolarSystem.Scene.center[1]
-			Z0 = self.SolarSystem.Scene.center[2]
-			print "X0=", X0, ", Y0=", Y0,", Z0=", Z0
+			print ("we got the body info")
+			Xc = self.SolarSystem.Scene.center[0]
+			Yc = self.SolarSystem.Scene.center[1]
+			Zc = self.SolarSystem.Scene.center[2]
+			print ("Xc=", Xc, ", Yc=", Yc,", Zc=", Zc)
 			
-			X = (dest.Position[0] - X0)/100
-			Y = (dest.Position[1] - Y0)/100
-			Z = (dest.Position[2] - Z0)/100
+			X = (dest.Position[0] - Xc)/100
+			Y = (dest.Position[1] - Yc)/100
+			Z = (dest.Position[2] - Zc)/100
 
 			print "X=", X, ", Y=", Y,", Z=", Z
 
 			for i in np.arange(0, 101, 1):
 				#g = mag(vector( X0 + 100*i*X, Y0 + 100*i*Y, Z0 + 100*i*Z))
-				self.SolarSystem.Scene.center = vector( (X0 + i*X),
-														(Y0 + i*Y),
-														(Z0 + i*Z))
+				self.SolarSystem.Scene.center = vector( (Xc + i*X),
+														(Yc + i*Y),
+														(Zc + i*Z))
 				sleep(2e-2)
 			#self.Planet.SolarSystem.camera.cameraRefresh()
 			#print "forward=", self.Planet.SolarSystem.Scene.forward
