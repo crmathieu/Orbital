@@ -23,20 +23,13 @@ SOFTWARE.
 """ main module  """
 
 from rate_func import *	
-
 from orbit3D import *
 import planetsdata as pd
 from controls import *
-#import sys
 from celestial.orbitalLIB import userLIB
 
-#from controls import *
-
-def bootSolarSystem(story, recorder): #scenario):
-	# determine where this program runs 
-	#locationInfo = location()
+def solarSystemLoader(story, recorder): 
 	
-
 	solSystem = makeSolarSystem()
 
 	# set what is displayed by default
@@ -55,7 +48,6 @@ def bootSolarSystem(story, recorder): #scenario):
 	mars = planet(solSystem, 'mars', color.red, pd.INNERPLANET, pd.INNERPLANET, pd.PLANET_SZ_CORRECTION)
 	solSystem.addTo(mars)
 
-	
 	# generate pd.SATELLITE
 	#solSystem.addTo(satellite(solSystem, 'charon', color.white, pluto))
 	#solSystem.addTo(satellite(solSystem, 'moon', color.white, earth))
@@ -70,17 +62,12 @@ def bootSolarSystem(story, recorder): #scenario):
 	solSystem.addTo(planet(solSystem, 'saturn', color.cyan, pd.OUTERPLANET, pd.GASGIANT, pd.PLANET_SZ_CORRECTION))
 	solSystem.addTo(planet(solSystem, 'uranus', color.yellow, pd.OUTERPLANET, pd.GASGIANT, pd.PLANET_SZ_CORRECTION))
 	solSystem.addTo(planet(solSystem, 'neptune', color.orange, pd.OUTERPLANET, pd.GASGIANT, pd.PLANET_SZ_CORRECTION))
-
 	
-#	solSystem.setRings(solSystem, "saturn") #, [((0.8,0.8,0.8), 0.9), ((0.5,0.5,0.5), 0.2)]) 
-#	solSystem.setRings(solSystem, "uranus") #, [((0.1,0.1,0.8), 0.1), ((0.2,0.2,0.7), 0.3)])
-
 	# generate DWARF planets
 	solSystem.addTo(dwarfPlanet(solSystem, 'eris', color.yellow))
 	solSystem.addTo(dwarfPlanet(solSystem, 'makemake', color.magenta))
 	solSystem.addTo(dwarfPlanet(solSystem, 'sedna', color.orange))
 	solSystem.addTo(dwarfPlanet(solSystem, 'haumea', color.white))
-
 
 	# generate Belts
 	solSystem.addTo(makeBelt(solSystem, 'kuiper', 'Kuiper Belt', pd.KUIPER_BELT, color.cyan, 2, 4))
@@ -91,8 +78,6 @@ def bootSolarSystem(story, recorder): #scenario):
 
 	MAX_OBJECTS = 1000
 
-	# !!!!!!!!!!!!!!!!!!!!!!!!!! test
-#	solSystem.drawAllBodiesTrajectory()
 	print "LOADING bodies orbital elements and trajectories ..."
 	loadBodies(solSystem, PHA, "data/200m+PHA_orbital_elements.txt.json", MAX_OBJECTS)
 	loadBodies(solSystem, BIG_ASTEROID,"data/200km+asteroids_orbital_elements.txt.json", MAX_OBJECTS)
@@ -100,8 +85,6 @@ def bootSolarSystem(story, recorder): #scenario):
 	loadBodies(solSystem, TRANS_NEPT, "data/transNeptunian_objects.txt.json", MAX_OBJECTS)
 	loadBodies(solSystem, SPACECRAFT, "data/spacecrafts_orbital_elements.txt.json", MAX_OBJECTS)
 	print "FINISHED ..."
-
-
 	
 	solSystem.drawAllBodiesTrajectory()
 	
@@ -119,12 +102,6 @@ def bootSolarSystem(story, recorder): #scenario):
 	dashboard = DashBoard(solSystem)
 	solSystem.setDashboard(dashboard)
 
-	print "CAMERA POSITION before earth focus ************************* ", solSystem.Scene.mouse.camera
-	#### dashboard.focusTab.setCurrentBodyFocusManually(earth, 2)
-	
-
-	print "CAMERA POSITION after earth focus************************* ", solSystem.Scene.mouse.camera
-	
 	# play story when provided
 	if story != None:
 		try:
@@ -137,11 +114,7 @@ def bootSolarSystem(story, recorder): #scenario):
 		
 	# we only show the dashboard after the story has finished.
 	dashboard.Show()
-
-	print "CAMERA POSITION After zoom ************************* ", solSystem.Scene.mouse.camera
 	solSystem.setAutoScale(False)
-	print "AUTOSCALE=", solSystem.Scene.autoscale
-
 
 	while True:
 		sleep(2)

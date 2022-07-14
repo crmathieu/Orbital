@@ -252,6 +252,10 @@ class FOCUSpanel(AbstractUI):
 
 			print "X=", X, ", Y=", Y,", Z=", Z
 
+			if self.parentFrame.orbitalTab.RecorderOn == True:
+				if self.parentFrame.orbitalTab.VideoRecorder == None:
+					self.parentFrame.orbitalTab.VideoRecorder = setVideoRecording(25, "output.avi")
+
 			for i in np.arange(0, 101, 1):
 				r = rate_func.ease_in_out(float(i)/100)
 				self.SolarSystem.Scene.center = vector( (X0 + r*X),
@@ -259,8 +263,6 @@ class FOCUSpanel(AbstractUI):
 														(Z0 + r*Z))
 				sleep(2e-2)
 				if self.parentFrame.orbitalTab.RecorderOn == True:
-					if self.parentFrame.orbitalTab.VideoRecorder == None:
-						self.parentFrame.orbitalTab.VideoRecorder = setVideoRecording(25, "output.avi")
 					recOneFrame(self.parentFrame.orbitalTab.VideoRecorder)
 
 		else:

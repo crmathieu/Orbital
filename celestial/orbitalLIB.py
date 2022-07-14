@@ -33,10 +33,9 @@ class userLIB:
             inx = self.solSystem.Dashboard.focusTab.getBodyIndexInList(bodyName)
             self.solSystem.Dashboard.focusTab.setCurrentBodyFocusManually(body, inx)
         else:
-            print "Unknown Body Name:", bodyName
+            print ("Unknown Body Name:", bodyName)
 
     def zoomIn(self, velocity):
-#        self.solSystem.introZoomIn(velocity)
         self.solSystem.camera.cameraZoom(duration = 1, velocity = velocity, recorder = self.recorder, zoom = self.solSystem.camera.ZOOM_IN)
 
     def zoomOut(self, velocity):

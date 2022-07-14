@@ -1,4 +1,3 @@
-
 import numpy as np
 
 # all func are a variation of:
@@ -14,8 +13,7 @@ def ease_in_out(t):
     return F(4, t)
 
 def sigmoid(t):
-    sig = np.where(t < 0, np.exp(t)/(1 + np.exp(t)), 1/(1 + np.exp(-t)))
-    return sig
+    return np.where(t < 0, np.exp(t)/(1 + np.exp(t)), 1/(1 + np.exp(-t)))
 
 def linear(t):
     return t
