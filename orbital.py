@@ -49,6 +49,7 @@ if __name__ == "__main__":
 
    pclasses = {}
    storyObj = None
+   recorder = False
 
    # let's check if we need to dynamically load a story to play
    if len(sys.argv) > 1:
@@ -71,8 +72,9 @@ if __name__ == "__main__":
       else:
          storyObj = pclasses[pick_a_story(pclasses, None)]
 
-      recorder = raw_input("\nRecord story? (y/n)\n")
+      if str(raw_input("\nRecord story? (y/n)\n")).lower() == "y":
+         recorder = True 
       
    # pass a story object to boot-loader (story is not instantiated yet)
-   bootSolarSystem(storyObj, False if str(recorder).lower() == 'n' else True)
+   bootSolarSystem(storyObj, recorder)
    

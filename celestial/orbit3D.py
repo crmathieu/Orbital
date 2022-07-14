@@ -181,8 +181,9 @@ class makeSolarSystem:
 		#file = "./img/stars_const.tga"
 		#file = "./img/starmap.tga"
 		#file = "./img/star-map-normalized-4096x2048-reversed.tga"
-		file = "./img/constellations_stars_to_MAG_21_RA_DEC_8192x4096_MONO-trimmed-deep-reversed.tga"
 		#file = "./img/8K-constellations-4-reversed.tga"
+		#file = "./img/constellations_stars_to_MAG_21_RA_DEC_8192x4096_MONO-trimmed-deep-reversed.tga"
+		file = "./img/8k_stars_milky_way-reversed.tga"
 		if os.path.isfile(file):
 			# adjust celestial Sphere position
 			self.CelestialSphereOrigin = frame(pos=vector(0,0,0))

@@ -1,5 +1,5 @@
 from __future__ import division
-from visual import *
+from  visual import *
 # Bruce Sherwood, August 2006
 # Demonstration of transparency (opacity), materials, and local lights in Visual 5
 
