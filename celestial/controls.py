@@ -186,9 +186,14 @@ class DashBoard(wx.Frame):
 # Point of Interest Tab
 class FOCUSpanel(AbstractUI):
 
+	VELOCITY_MAX = 3.0
+	VELOCITY_MIN = 0.1
+
 	def InitVariables(self):
 		self.ca_deltaT = 0
 		self.smoothTransition = False
+		self.transitionVelocityFactor = 1.0  # normal speed. speed can go as slow as 1/100 and as fast as 4 times the normal speed
+
 		self.bodyNameToIndex = {
 			"curobj": 0, 	"sun": 1, 		EARTH_NAME: 2, 	"mercury": 3, 	"venus": 4,
 			"mars": 5, 		"jupiter": 6, 	"saturn": 7, 	"uranus": 8, 	"neptune": 9,
@@ -235,44 +240,59 @@ class FOCUSpanel(AbstractUI):
 
 	def smoothFocus(self, destination):
 		# going from current object to next current object
-		print ("SMOOTH FOCUS to", destination)
+		#print ("SMOOTH FOCUS to", destination)
 		self.SolarSystem.currentPOV
+		target = None
 		dest = self.SolarSystem.getBodyFromName(destination.lower())
-		if dest != None:
-			print ("we got the body info")
-			Xc = self.SolarSystem.Scene.center[0]
-			Yc = self.SolarSystem.Scene.center[1]
-			Zc = self.SolarSystem.Scene.center[2]
-			print ("Xc=", Xc, ", Yc=", Yc,", Zc=", Zc)
-			
-			# calculate distance between current location and 
-			# destination for each coordinate 
-			deltaX = (dest.Position[0] - Xc)
-			deltaY = (dest.Position[1] - Yc)
-			deltaZ = (dest.Position[2] - Zc)
-
-			print ("X=", deltaX, ", Y=", deltaY,", Z=", deltaZ)
-
-			if self.parentFrame.orbitalTab.RecorderOn == True:
-				if self.parentFrame.orbitalTab.VideoRecorder == None:
-					self.parentFrame.orbitalTab.VideoRecorder = setVideoRecording(25, "output.avi")
-
-			# move scene center by an increment towards the destination coordinates. Since 
-			# we use 100 steps to do that, and our rate function only takes an input 
-			# between 0 and 1, we divide the current increment by the total number of
-			# steps to always keep the rate function input between these limits.
-			for i in np.arange(0, 101, 1):
-				
-				r = rate_func.ease_in_out(float(i)/100)
-				self.SolarSystem.Scene.center = vector( (Xc + r*deltaX),
-														(Yc + r*deltaY),
-														(Zc + r*deltaZ))
-				sleep(2e-2)
-				if self.parentFrame.orbitalTab.RecorderOn == True:
-					recOneFrame(self.parentFrame.orbitalTab.VideoRecorder)
-
+		if dest == None:
+			# use sun as target
+			target = vector(0,0,0)
 		else:
-			print ("failed to obtain destination")
+			target = vector(dest.Position[0], dest.Position[1], dest.Position[2])
+
+		Xc = self.SolarSystem.Scene.center[0]
+		Yc = self.SolarSystem.Scene.center[1]
+		Zc = self.SolarSystem.Scene.center[2]
+		#print ("Xc=", Xc, ", Yc=", Yc,", Zc=", Zc)
+		
+		# calculate distance between current location and 
+		# destination for each coordinate 
+		deltaX = (target[0] - Xc)
+		deltaY = (target[1] - Yc)
+		deltaZ = (target[2] - Zc)
+
+		#print ("X=", deltaX, ", Y=", deltaY,", Z=", deltaZ)
+
+		if self.parentFrame.orbitalTab.RecorderOn == True:
+			if self.parentFrame.orbitalTab.VideoRecorder == None:
+				self.parentFrame.orbitalTab.VideoRecorder = setVideoRecording(25, "output.avi")
+
+
+		#print ("Smooth Focus TRANSITION VELOCITY=", self.transitionVelocityFactor)
+		total_steps = int(100 * self.transitionVelocityFactor)
+		#print ("Smooth Focus TOTAL_STEPS=", total_steps)
+		# move scene center by an increment towards the destination coordinates. Since 
+		# we use 100 steps to do that, and our rate function only takes an input 
+		# between 0 and 1, we divide the current increment by the total number of
+		# steps to always keep the rate function input between these limits.
+		for i in np.arange(0, total_steps+1, 1):
+			r = rate_func.ease_in_out(float(i)/total_steps)
+			self.SolarSystem.Scene.center = vector( (Xc + r*deltaX),
+													(Yc + r*deltaY),
+													(Zc + r*deltaZ))
+			sleep(2e-2)
+			if self.parentFrame.orbitalTab.RecorderOn == True:
+				recOneFrame(self.parentFrame.orbitalTab.VideoRecorder)
+
+
+	def setTransitionVelocity(self, velocity):
+		if velocity > self.VELOCITY_MAX:
+			velocity = self.VELOCITY_MAX
+		elif velocity <= 0:
+			velocity = self.VELOCITY_MIN
+
+		# the higher the velocity, the smaller number of steps
+		self.transitionVelocityFactor = 1/float(velocity)
 
 	def moveToEarthLocation(self, destination):
 		# going from current object to next current object
@@ -326,10 +346,9 @@ class FOCUSpanel(AbstractUI):
 			self.setBodyFocus(self.SolarSystem.currentPOV)
 
 	def setCurrentBodyFocusManually(self, body, selectIndex):
-
 		self.rbox.SetSelection(selectIndex)
 		self.OnRadioBox(None)
-		self.setBodyFocus(body)
+		#self.setBodyFocus(body)
 
 	def getBodyIndexInList(self, bodyName):
 		index = self.bodyNameToIndex[bodyName.lower()]
@@ -418,7 +437,10 @@ class FOCUSpanel(AbstractUI):
 		self.resetPOV()
 
 	def resetPOV(self):
-		self.SolarSystem.resetView()
+		if self.smoothTransition == True:
+			self.smoothFocus("sun")
+		else: 
+			self.SolarSystem.resetView()
 		self.rbox.SetSelection(1)
 		self.SolarSystem.currentPOVselection = "SUN"
 		self.SolarSystem.currentPOV = None

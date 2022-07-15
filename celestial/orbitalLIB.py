@@ -56,3 +56,6 @@ class userLIB:
     def setSmoothTransition(self, trueFalse):
         self.solSystem.Dashboard.focusTab.smoothTransition = trueFalse
         self.solSystem.Dashboard.focusTab.cbst.SetValue(trueFalse) 
+    
+    def setTransitionVelocityFactor(self, factor):
+        self.solSystem.Dashboard.focusTab.setTransitionVelocity(factor)
