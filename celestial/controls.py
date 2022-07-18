@@ -250,6 +250,7 @@ class FOCUSpanel(AbstractUI):
 		else:
 			target = vector(dest.Position[0], dest.Position[1], dest.Position[2])
 
+		# (Xc, Yc, Zc) is the current location of camera (before transition)
 		Xc = self.SolarSystem.Scene.center[0]
 		Yc = self.SolarSystem.Scene.center[1]
 		Zc = self.SolarSystem.Scene.center[2]
@@ -268,13 +269,18 @@ class FOCUSpanel(AbstractUI):
 				self.parentFrame.orbitalTab.VideoRecorder = setVideoRecording(25, "output.avi")
 
 
+		# Calculate number of steps based on current transition velocity factor (default is 1.0)
 		#print ("Smooth Focus TRANSITION VELOCITY=", self.transitionVelocityFactor)
 		total_steps = int(100 * self.transitionVelocityFactor)
 		#print ("Smooth Focus TOTAL_STEPS=", total_steps)
+
 		# move scene center by an increment towards the destination coordinates. Since 
-		# we use 100 steps to do that, and our rate function only takes an input 
-		# between 0 and 1, we divide the current increment by the total number of
-		# steps to always keep the rate function input between these limits.
+		# we use 100 * transitionVelocityFactor steps to do that, and our rate function 
+		# only takes an input between 0 and 1, we divide the current increment by the 
+		# total number of steps to always keep the rate function input between these limits.
+		# Incremental location is calculated as the initial location + difference between initial
+		# and final locations time the rate for this particular step.
+
 		for i in np.arange(0, total_steps+1, 1):
 			r = rate_func.ease_in_out(float(i)/total_steps)
 			self.SolarSystem.Scene.center = vector( (Xc + r*deltaX),
