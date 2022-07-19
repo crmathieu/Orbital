@@ -113,8 +113,12 @@ def solarSystemLoader(story, recorder):
 			raise
 		
 	# we only show the dashboard after the story has finished.
+	print "DASHBOARD SHOW!!!"
 	dashboard.Show()
 	solSystem.setAutoScale(False)
+
+	#raw_input()
+	
 
 	while True:
 		sleep(2)

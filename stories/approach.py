@@ -21,17 +21,17 @@ class story_earthApproach(storyBase):
     def play(self, lib):
         lib.setCurrentBody("earth")
         lib.zoomIn(75)
-        """
+        #self.solSystem.camera.newCameraRotation(360)
         #lib.rotateDown(60)
+        
         lib.rotateLeft(120)
         lib.pause(0.2)
-        lib.rotateUp(30)
+        lib.rotateUp(180)
         lib.rotateLeft(90)
-        lib.rotateDown(90)
+        lib.rotateRight(90)
         
-        """
         lib.zoomOut(20)
-        
+        """"
 
         lib.setSmoothTransition(True)
         lib.setTransitionVelocityFactor(1.0)
@@ -58,7 +58,7 @@ class story_earthApproach(storyBase):
 
 #        lib.pause(1)
 #        lib.setCurrentBody("sedna")
-
+        """
 
 class story_jupiterApproach(storyBase):
 

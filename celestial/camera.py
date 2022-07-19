@@ -41,6 +41,9 @@ class camera:
 	ROT_LEFT = 16
 	ROT_RIGHT = 32
 
+	ROT_CLKW = 64
+	ROT_CCLKW = 128
+
 	ROT_DIAG_RIGHT_DWN = ROT_HOR|ROT_RIGHT|ROT_VER|ROT_DWN
 	ROT_DIAG_LEFT_DWN = ROT_HOR|ROT_LEFT|ROT_VER|ROT_DWN
 	ROT_DIAG_LEFT_UP = ROT_HOR|ROT_LEFT|ROT_VER|ROT_UP
@@ -227,7 +230,7 @@ class camera:
 	X_OFF = 2
 	Y_OFF = 3
 
-	#def cameraPan(self, duration, velocity = 1, direction = ROT_UP):
+	# def cameraPan(self, duration, velocity = 1, direction = ROT_UP):
 	#	self.cameraMovement(duration, velocity)
 
 	def getAngleBetweenVectors(self, v1, v2):
@@ -236,13 +239,49 @@ class camera:
 		return rad2deg(theta)
 
 
-	def cameraRotateLeft(self, angle, recorder):
-		self.cameraRotate(None, angle, recorder, direction=self.ROT_LEFT)
+	def cameraRotationAxis(self, angle, axis, recorder, direction):
+		total_steps = 100
+		rangle = deg2rad(angle) * (-1 if direction == self.ROT_CLKW else 1)
+		dangle = 0.0
+		for i in np.arange(0, total_steps+1, 1):
+			r = ease_in_out(float(i)/total_steps)
+			iAngle = rangle * r
+			self.canvas.forward = rotate(self.canvas.forward, angle=(iAngle-dangle), axis=axis)
+			dangle = iAngle
+			sleep(2e-2)
 
-	def cameraRotateRight(self, angle, recorder):
-		self.cameraRotate(None, angle, recorder, direction=self.ROT_RIGHT)
+	def getOrthogonalVector2(self, vec):
+		x = 1
+		y = 1
+		# dot product must be = 0
+		z = -(vec[0]*x + vec[1]*y)/vec[2]
+		norm = mag((x, y, z))
+		return vector(x/norm, y/norm, z/norm)
+
+	def getOrthogonalVector(self, vec):
+		z = 0
+		x = 1
+		y = -vec[0]*x/vec[1]
+
+		# dot product must be = 0
+		norm = mag((x, y, z))
+		return vector(x/norm, y/norm, z/norm)
 
 	def cameraRotateUp(self, angle, recorder):
+		axis = self.getOrthogonalVector(self.canvas.forward)
+		print "FORWARD=", self.canvas.forward, "ORTHO=", axis
+		self.cameraRotationAxis(angle, axis, recorder, direction=self.ROT_CLKW)
+
+	def cameraRotateLeft(self, angle, recorder):
+#		self.cameraRotate(None, angle, recorder, direction=self.ROT_LEFT)
+		self.cameraRotationAxis(angle, (0,0,1), recorder, direction=self.ROT_CLKW)
+
+
+	def cameraRotateRight(self, angle, recorder):
+#		self.cameraRotate(None, angle, recorder, direction=self.ROT_RIGHT)
+		self.cameraRotationAxis(angle, (0,0,1), recorder, direction=self.ROT_CCLKW)
+
+	def cameraRotateUp2(self, angle, recorder):
 		vangle = self.getAngleBetweenVectors(self.canvas.mouse.camera-self.canvas.center, vector(0,0,1))
 		print "ANGLE with vertical is", vangle
 		#if c < angle:
