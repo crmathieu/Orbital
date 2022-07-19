@@ -166,7 +166,7 @@ class camera:
 		return
 
 
-	def cameraZoom(self, duration, velocity = 1, recorder = False, zoom = ZOOM_IN):
+	def cameraZoom2(self, duration, velocity = 1, recorder = False, zoom = ZOOM_IN):
 		# for camera zoom motion, both right and left mouse buttons must be held down
 		left, right, middle = True, True, False
 		shift, ctrl, alt, cmd = False, False, False, False
@@ -239,8 +239,42 @@ class camera:
 		return rad2deg(theta)
 
 
+	def cameraZoom(self, duration, velocity = 1, recorder = False, zoom = ZOOM_IN):
+		# for camera zoom motion, both right and left mouse buttons must be held down
+		left, right, middle = True, True, False
+		shift, ctrl, alt, cmd = False, False, False, False
+		x, y, lastx, lasty = 500, 500, 500, 500
+		delta = 1
+		if zoom == self.ZOOM_IN:
+			delta = -1
+
+#		if recorder == True:
+#			if self.parentFrame.orbitalTab.VideoRecorder == None:
+#				self.parentFrame.orbitalTab.VideoRecorder = setVideoRecording(25, "output.avi")
+
+		# calculate number of ticks
+		ticks = duration * 70 # duration / sleep time which is 0.01
+		for i in range(ticks):
+			# calculate rate of velocity as a function of time
+			r = there_and_back(float(i)/ticks)
+
+			# calculate instant zoom velocity value as a function of time and max velocity
+			v = int(velocity * r)+1
+			
+			# feed coordinate with new increment value
+			y = 500 + delta * v
+	
+			self.canvas.report_mouse_state([left, right, middle],
+			lastx, lasty, x, y,
+			[shift, ctrl, alt, cmd])
+			sleep(1e-2)
+			if recorder == True:
+				recOneFrame(self.solarSystem.Dashboard.orbitalTab.VideoRecorder)
+
 	def cameraRotationAxis(self, angle, axis, recorder, direction):
-		total_steps = 100
+		#total_steps = 100
+		total_steps = int(100 * self.solarSystem.Dashboard.focusTab.transitionVelocityFactor)
+
 		rangle = deg2rad(angle) * (-1 if direction == self.ROT_CLKW else 1)
 		dangle = 0.0
 		for i in np.arange(0, total_steps+1, 1):
@@ -248,38 +282,54 @@ class camera:
 			iAngle = rangle * r
 			self.canvas.forward = rotate(self.canvas.forward, angle=(iAngle-dangle), axis=axis)
 			dangle = iAngle
-			sleep(2e-2)
-
-	def getOrthogonalVector2(self, vec):
-		x = 1
-		y = 1
-		# dot product must be = 0
-		z = -(vec[0]*x + vec[1]*y)/vec[2]
-		norm = mag((x, y, z))
-		return vector(x/norm, y/norm, z/norm)
+			sleep(1e-2)
+			if recorder == True:
+				recOneFrame(self.solarSystem.Dashboard.orbitalTab.VideoRecorder)
 
 	def getOrthogonalVector(self, vec):
+		# The set of all possible orthogonal vectors is a surface. Among all possible 
+		# orthogonal vectors we choose the one in the (x,y) plane (z=0) and whose x 
+		# coordinate is arbitrary 1. Using these preset, we can deduct the y coordinate 
+		# by applying a dot product between our vec and the orthogonal vector: 
+		# (x.x1 + y.y1 + z.z1 = 0)  => y = -(z.z1 + x.x1)/y1 
 		z = 0
 		x = 1
 		y = -vec[0]*x/vec[1]
 
-		# dot product must be = 0
+		# return a unit vector
 		norm = mag((x, y, z))
 		return vector(x/norm, y/norm, z/norm)
 
+	def cameraRotateDown(self, angle, recorder):
+		vangle = self.getAngleBetweenVectors(self.canvas.forward, vector(0,0,-1))
+
+		# if angle between vertical anf forward is smaller than
+		# desired rotation angle, adjust rotation angle accordingly.
+		vangle = self.getAngleBetweenVectors(self.canvas.forward, vector(0,0,-1))
+		if vangle < axis:
+			axis = vangle
+
+		self.cameraRotationAxis(angle, axis, recorder, direction=self.ROT_CCLKW)
+
 	def cameraRotateUp(self, angle, recorder):
+		# find vector orthogonal to forward vector
 		axis = self.getOrthogonalVector(self.canvas.forward)
-		print "FORWARD=", self.canvas.forward, "ORTHO=", axis
+
+		# if angle between vertical anf forward is smaller than
+		# desired rotation angle, adjust rotation angle accordingly.
+		vangle = self.getAngleBetweenVectors(self.canvas.forward, vector(0,0,1))
+		if vangle < axis:
+			axis = vangle
+
 		self.cameraRotationAxis(angle, axis, recorder, direction=self.ROT_CLKW)
 
 	def cameraRotateLeft(self, angle, recorder):
-#		self.cameraRotate(None, angle, recorder, direction=self.ROT_LEFT)
-		self.cameraRotationAxis(angle, (0,0,1), recorder, direction=self.ROT_CLKW)
+		self.cameraRotationAxis(angle, vector(0,0,1), recorder, direction=self.ROT_CLKW)
 
 
 	def cameraRotateRight(self, angle, recorder):
-#		self.cameraRotate(None, angle, recorder, direction=self.ROT_RIGHT)
-		self.cameraRotationAxis(angle, (0,0,1), recorder, direction=self.ROT_CCLKW)
+		self.cameraRotationAxis(angle, vector(0,0,1), recorder, direction=self.ROT_CCLKW)
+
 
 	def cameraRotateUp2(self, angle, recorder):
 		vangle = self.getAngleBetweenVectors(self.canvas.mouse.camera-self.canvas.center, vector(0,0,1))
@@ -288,7 +338,7 @@ class camera:
 		#	angle = c
 		self.cameraRotate(vangle, angle, recorder, direction=self.ROT_DWN)
 
-	def cameraRotateDown(self, angle, recorder):
+	def cameraRotateDown2(self, angle, recorder):
 		vangle = self.getAngleBetweenVectors(self.canvas.mouse.camera-self.canvas.center, vector(0,0,-1))
 		print "ANGLE with vertical BEFORE", vangle
 		#if c < angle:

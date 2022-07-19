@@ -111,7 +111,9 @@ def solarSystemLoader(story, recorder):
 		except RuntimeError as err:
 			print ("Exception...\n\nError: " + str(err.code))
 			raise
-		
+	else:
+		solSystem.introZoomIn(4)
+
 	# we only show the dashboard after the story has finished.
 	print "DASHBOARD SHOW!!!"
 	dashboard.Show()
