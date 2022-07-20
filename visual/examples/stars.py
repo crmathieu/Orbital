@@ -19,10 +19,11 @@ vsun = 0.8*sqrt(G*Msun/Rsun)
 
 scene = display(title="Stars", width=win, height=win,
                 range=2*L, forward=(-1,-1,-1))
-
+raw_input("1")
 xaxis = curve(pos=[(0,0,0), (L,0,0)], color=(0.5,0.5,0.5))
 yaxis = curve(pos=[(0,0,0), (0,L,0)], color=(0.5,0.5,0.5))
 zaxis = curve(pos=[(0,0,0), (0,0,L)], color=(0.5,0.5,0.5))
+raw_input("2")
 
 Stars = []
 colors = [color.red, color.green, color.blue,
@@ -62,6 +63,7 @@ Nsteps = 0
 pos = pos+(p/m)*(dt/2.) # initial half-step
 time = clock()
 Nhits = 0
+raw_input("3")
 
 while True:
     rate(100)

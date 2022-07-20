@@ -57,6 +57,15 @@ class camera:
 		self.solarSystem = solSys
 		self.MAX_ZOOM_VELOCITY = 100
 		
+	def noTick(self):
+		left, right, middle = True, True, False
+		shift, ctrl, alt, cmd = False, False, False, False
+		x, y = 500, 500
+		lastx, lasty = 500, 500
+		self.canvas.report_mouse_state([left, right, middle],
+		lastx, lasty, x, y,
+		[shift, ctrl, alt, cmd])
+
 	def oneTickCameraZoom(self, forward = True):
 		# for camera zoom motion, both right and left mouse buttons must be held down
 		left, right, middle = True, True, False
@@ -260,26 +269,28 @@ class camera:
 		distance = mag(self.canvas.forward-self.canvas.center)
 		print "distance=", distance
 
+		initialRange = self.canvas.range
 
-		raw_input("enter key")
-		self.canvas.forward = vector(1,0,0)
-		return
+		#self.canvas.forward = vector(1,0,0)
+		
 		for i in np.arange(1, total_steps+1, 1):
 			r = ease_in_out(float(i)/total_steps)
 			
-			print "fX=", Xf + r*deltaX, "fY=", Yf + r*deltaY,"fZ=", Zf + r*deltaZ
+			#print "fX=", Xf + r*deltaX, "fY=", Yf + r*deltaY,"fZ=", Zf + r*deltaZ
 
-#			self.canvas.forward = vector((Xf + r*deltaX),
-#										 (Yf + r*deltaY),
-#										 (Zf + r*deltaZ))
-			
-			if i < 10:
-				print "r=", r
-				self.canvas.forward = i * self.canvas.forward
-				distance = mag(self.canvas.forward-self.canvas.center)
-				print "distance=", distance
+			#self.canvas.forward = vector((Xf + r*deltaX),
+			#							 (Yf + r*deltaY),
+			#							 (Zf + r*deltaZ))
+#			self.canvas.forward = i * self.canvas.forward
+			self.canvas.range = initialRange + r * distance
+			print "x=", self.canvas.forward[0], "y=", self.canvas.forward[1], "z=", self.canvas.forward[2], "cam=", self.canvas.mouse.camera
+#			if i < 10:
+#				print "r=", r
+#				self.canvas.forward = i * self.canvas.forward
+#				distance = mag(self.canvas.forward-self.canvas.center)
+#				print "distance=", distance
 
-			sleep(1e-2)
+			sleep(1)
 			if recorder == True:
 				recOneFrame(self.solarSystem.Dashboard.orbitalTab.VideoRecorder)
 

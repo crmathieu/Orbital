@@ -28,6 +28,7 @@ class userLIB:
         time.sleep(seconds)
 
     def setCurrentBody(self, bodyName):
+        
         body = self.solSystem.getBodyFromName(bodyName)
         if body != None:
             inx = self.solSystem.Dashboard.focusTab.getBodyIndexInList(bodyName)

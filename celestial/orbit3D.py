@@ -66,7 +66,7 @@ class makeSolarSystem:
 		self.currentPOV = None
 		self.LocalRef = False
 		self.currentPOVselection = "SUN"
-		self.Scene = display(title = 'Solar System', width = self.SCENE_WIDTH, height =self.SCENE_HEIGHT, range=3, center = (0,0,0))
+		self.Scene = display(title = 'Solar System', width = self.SCENE_WIDTH, height =self.SCENE_HEIGHT, range=3, visible=True, center = (0,0,0))
 
 		self.MT = self.Scene.getMouseTracker()
 		#self.MT.SetMouseStateReporter(self.Scene)
@@ -77,7 +77,7 @@ class makeSolarSystem:
 		# only through mouse events and/or resetting the scene Center
 		self.Scene.forward = vector(2,0,-1) #(0,0,-1)
 		self.Scene.fov = deg2rad(40) 
-		self.Scene.range = 6  ####### NEW NEW
+		#self.Scene.range = 6  ####### NEW NEW
 		self.Scene.userspin = True
 		self.Scene.userzoom = True
 		self.Scene.autoscale = True
@@ -151,6 +151,9 @@ class makeSolarSystem:
 		print "initial CAMERA POSITION ************************* ", self.Scene.mouse.camera
 
 		#self.Scene.scale = self.Scene.scale * 10
+
+	def displaySolarSystem(self):
+		sleep(1e-2)
 
 	def setAutoScale(self, trueFalse):
 		self.Scene.autoscale = trueFalse
@@ -321,7 +324,7 @@ class makeSolarSystem:
 			if body.BodyType in [OUTERPLANET, INNERPLANET, SATELLITE, DWARFPLANET, KUIPER_BELT, ASTEROID_BELT, INNER_OORT_CLOUD, ECLIPTIC_PLANE]:
 				body.draw()
 
-		self.Scene.autoscale = 0
+		self.Scene.autoscale = False #0
 
 	def getBodyFromName(self, jpl_designation):
 		if jpl_designation in self.nameIndex:

@@ -29,11 +29,8 @@ from story import storyBase
 class story_earthApproach(storyBase):
 
     def play(self, lib):
-        raw_input("S1")
         lib.setCurrentBody("earth")
-        raw_input("S2")
         lib.zoomIn(75)
-        raw_input("S3")
         #self.solSystem.camera.newCameraRotation(360)
         #lib.rotateDown(60)
         
