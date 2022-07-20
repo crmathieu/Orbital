@@ -4,10 +4,20 @@
 # a 'play' method must be defined for the story to play when called by the
 # solar system loader. The play method has only one parameter: lib, which
 # gives it access to the set of userLIB methods that can be used to create 
-# actions that will define the story.
+# the actions that define the story.
 #  
+# The generic way to play a story is:
+# > python2.7 orbital.py stories.<story_module> <story_name>
+# 
+# Where:
+#   - <story_module> is a python file where stories can be found. Do not use the ".py"
+#     file extension when you specify a story module.
+#   - <story_name> is a python class containing a "play" method. This python class must 
+#     be defined in the <story_module>.
+#
 # to play the story 'story_earthApproach' defined in the approach.py module, enter:
 # > python2.7 orbital.py stories.approach story_earthApproach
+#
 # to dislay a playlist, do not specify the story to play.
 # > python2.7 orbital.py stories.approach 
 # will list:
@@ -19,8 +29,11 @@ from story import storyBase
 class story_earthApproach(storyBase):
 
     def play(self, lib):
+        raw_input("S1")
         lib.setCurrentBody("earth")
+        raw_input("S2")
         lib.zoomIn(75)
+        raw_input("S3")
         #self.solSystem.camera.newCameraRotation(360)
         #lib.rotateDown(60)
         

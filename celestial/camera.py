@@ -159,7 +159,8 @@ class camera:
 			velocity = self.MAX_ZOOM_VELOCITY
 		elif velocity < 0:
 			velocity = 1
-		self.cameraZoom(duration=1, velocity=velocity)
+#		self.cameraZoom(duration=1, velocity=velocity)
+		self.cameraZoom(duration=3, velocity=0)
 
 	def cameraRefresh(self):
 		sleep(1e-2)
@@ -240,39 +241,50 @@ class camera:
 
 
 	def cameraZoom(self, duration, velocity = 1, recorder = False, zoom = ZOOM_IN):
-		# for camera zoom motion, both right and left mouse buttons must be held down
-		left, right, middle = True, True, False
-		shift, ctrl, alt, cmd = False, False, False, False
-		x, y, lastx, lasty = 500, 500, 500, 500
-		delta = 1
-		if zoom == self.ZOOM_IN:
-			delta = -1
+		#total_steps = int(100 * self.solarSystem.Dashboard.focusTab.transitionVelocityFactor)
+		duration = 0.2
+		total_steps = duration / 1e-2
 
-#		if recorder == True:
-#			if self.parentFrame.orbitalTab.VideoRecorder == None:
-#				self.parentFrame.orbitalTab.VideoRecorder = setVideoRecording(25, "output.avi")
+		#rangle = deg2rad(angle) * (-1 if direction == self.ROT_CLKW else 1)
+		#dangle = 0.0
+		Xf = self.canvas.forward[0]
+		Yf = self.canvas.forward[1]
+		Zf = self.canvas.forward[2]
 
-		# calculate number of ticks
-		ticks = duration * 70 # duration / sleep time which is 0.01
-		for i in range(ticks):
-			# calculate rate of velocity as a function of time
-			r = there_and_back(float(i)/ticks)
+		deltaX = (self.canvas.center[0] - Xf)
+		deltaY = (self.canvas.center[1] - Yf)
+		deltaZ = (self.canvas.center[2] - Zf)
+		print "deltaX=", deltaX, "deltaY=", deltaY, "deltaZ=", deltaZ
+		print "total step", total_steps
+		print "FORWARD before=", self.canvas.forward
+		distance = mag(self.canvas.forward-self.canvas.center)
+		print "distance=", distance
 
-			# calculate instant zoom velocity value as a function of time and max velocity
-			v = int(velocity * r)+1
+
+		raw_input("enter key")
+		self.canvas.forward = vector(1,0,0)
+		return
+		for i in np.arange(1, total_steps+1, 1):
+			r = ease_in_out(float(i)/total_steps)
 			
-			# feed coordinate with new increment value
-			y = 500 + delta * v
-	
-			self.canvas.report_mouse_state([left, right, middle],
-			lastx, lasty, x, y,
-			[shift, ctrl, alt, cmd])
+			print "fX=", Xf + r*deltaX, "fY=", Yf + r*deltaY,"fZ=", Zf + r*deltaZ
+
+#			self.canvas.forward = vector((Xf + r*deltaX),
+#										 (Yf + r*deltaY),
+#										 (Zf + r*deltaZ))
+			
+			if i < 10:
+				print "r=", r
+				self.canvas.forward = i * self.canvas.forward
+				distance = mag(self.canvas.forward-self.canvas.center)
+				print "distance=", distance
+
 			sleep(1e-2)
 			if recorder == True:
 				recOneFrame(self.solarSystem.Dashboard.orbitalTab.VideoRecorder)
 
+
 	def cameraRotationAxis(self, angle, axis, recorder, direction):
-		#total_steps = 100
 		total_steps = int(100 * self.solarSystem.Dashboard.focusTab.transitionVelocityFactor)
 
 		rangle = deg2rad(angle) * (-1 if direction == self.ROT_CLKW else 1)
