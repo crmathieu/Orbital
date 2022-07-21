@@ -176,7 +176,7 @@ class camera:
 		return
 
 
-	def cameraZoom2(self, duration, velocity = 1, recorder = False, zoom = ZOOM_IN):
+	def cameraZoom(self, duration, velocity = 1, recorder = False, zoom = ZOOM_IN):
 		# for camera zoom motion, both right and left mouse buttons must be held down
 		left, right, middle = True, True, False
 		shift, ctrl, alt, cmd = False, False, False, False
@@ -208,40 +208,28 @@ class camera:
 			if recorder == True:
 				recOneFrame(self.solarSystem.Dashboard.orbitalTab.VideoRecorder)
 
-	def cameraZoomSAVE(self, duration, velocity = 1, zoom = ZOOM_IN):
-		# for camera zoom motion, both right and left mouse buttons must be held down
-		left, right, middle = True, True, False
-		shift, ctrl, alt, cmd = False, False, False, False
-		x, y, lastx, lasty = 500, 500, 500, 500
-		delta = 1
-		if zoom == self.ZOOM_IN:
-			delta = -1
-
-		# calculate number of ticks
-		ticks = duration * 70 # duration / sleep time which is 0.01
-		for i in range(ticks):
-			# calculate rate of velocity as a function of time
-			r = there_and_back(float(i)/ticks)
-
-			# calculate instant zoom velocity value as a function of time and max velocity
-			v = int(velocity * r)+1
-			
-			# feed coordinate with new increment value
-			y = 500 + delta * v
-	
-			self.canvas.report_mouse_state([left, right, middle],
-			lastx, lasty, x, y,
-			[shift, ctrl, alt, cmd])
-			sleep(1e-2)
-
 
 	LASTX_OFF = 0
 	LASTY_OFF = 1
 	X_OFF = 2
 	Y_OFF = 3
 
-	# def cameraPan(self, duration, velocity = 1, direction = ROT_UP):
-	#	self.cameraMovement(duration, velocity)
+	#def cameraPan(self, duration, velocity = 1, direction = ROT_CLKW):
+	def cameraPan(self, angle, axis, recorder, direction, ptype):
+		total_steps = int(100 * self.solarSystem.Dashboard.focusTab.transitionVelocityFactor)
+
+		rangle = deg2rad(angle) * (-1 if direction == self.ROT_CLKW else 1)
+		dangle = 0.0
+		if ptype == ROT_
+		for i in np.arange(0, total_steps+1, 1):
+			r = ease_in_out(float(i)/total_steps)
+			iAngle = rangle * r
+#			self.canvas.forward = rotate(self.canvas.forward, angle=(iAngle-dangle), axis=axis)
+			self.canvas.forward.rotate(angle=(iAngle-dangle), axis=axis)
+			dangle = iAngle
+			sleep(1e-2)
+			if recorder == True:
+				recOneFrame(self.solarSystem.Dashboard.orbitalTab.VideoRecorder)
 
 	def getAngleBetweenVectors(self, v1, v2):
 		dotProduct = v1[0]*v2[0]+v1[1]*v2[1]+v1[2]*v2[2]
@@ -249,7 +237,7 @@ class camera:
 		return rad2deg(theta)
 
 
-	def cameraZoom(self, duration, velocity = 1, recorder = False, zoom = ZOOM_IN):
+	def cameraZoom4(self, duration, velocity = 1, recorder = False, zoom = ZOOM_IN):
 		#total_steps = int(100 * self.solarSystem.Dashboard.focusTab.transitionVelocityFactor)
 		duration = 0.2
 		total_steps = duration / 1e-2
@@ -294,7 +282,7 @@ class camera:
 			if recorder == True:
 				recOneFrame(self.solarSystem.Dashboard.orbitalTab.VideoRecorder)
 
-
+############################ GOOD FROM HERE DOWN
 	def cameraRotationAxis(self, angle, axis, recorder, direction):
 		total_steps = int(100 * self.solarSystem.Dashboard.focusTab.transitionVelocityFactor)
 
@@ -303,7 +291,8 @@ class camera:
 		for i in np.arange(0, total_steps+1, 1):
 			r = ease_in_out(float(i)/total_steps)
 			iAngle = rangle * r
-			self.canvas.forward = rotate(self.canvas.forward, angle=(iAngle-dangle), axis=axis)
+#			self.canvas.forward = rotate(self.canvas.forward, angle=(iAngle-dangle), axis=axis)
+			self.canvas.forward.rotate(angle=(iAngle-dangle), axis=axis)
 			dangle = iAngle
 			sleep(1e-2)
 			if recorder == True:
@@ -353,7 +342,7 @@ class camera:
 	def cameraRotateRight(self, angle, recorder):
 		self.cameraRotationAxis(angle, vector(0,0,1), recorder, direction=self.ROT_CCLKW)
 
-
+######################
 	def cameraRotateUp2(self, angle, recorder):
 		vangle = self.getAngleBetweenVectors(self.canvas.mouse.camera-self.canvas.center, vector(0,0,1))
 		print "ANGLE with vertical is", vangle
@@ -384,7 +373,7 @@ class camera:
 			return 50
 		return 45
 
-	def cameraRotate(self, vangle, angle, recorder, direction): # duration, velocity = 1, direction = ROT_UP):
+	def cameraRotateSAVE(self, vangle, angle, recorder, direction): # duration, velocity = 1, direction = ROT_UP):
 		# the algorithm moves at an angle of 1/40 degres for a velocity 
 		# of 20 and duration of 20. Keeping this 2 constant, we can now
 		# rotate given a particular angle
@@ -467,8 +456,10 @@ class camera:
 
 	def cameraRight(self, duration, velocity = 1):
 		return self.cameraMovement(duration, velocity, direction = self.ROT_RIGHT)
+	
 	def cameraPanUp(self, duration, velocity = 1):
 		return self.cameraMovement(duration, velocity, direction = self.ROT_UP)
+	
 	def cameraPanDown(self, duration, velocity = 1):
 		return self.cameraMovement(duration, velocity, direction = self.ROT_DWN)
 

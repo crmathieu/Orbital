@@ -105,21 +105,22 @@ def solarSystemLoader(story, recorder):
 	solSystem.displaySolarSystem()
 
 	# play story when provided
+	lib = userLIB(solSystem, recorder = recorder)
 	if story != None:
 		try:
 			# instantiate story
-			
-			st = story(solSystem, userLIB(solSystem, recorder = recorder))
+			st = story(solSystem, lib)
 			del st
 		except RuntimeError as err:
 			print ("Exception...\n\nError: " + str(err.code))
 			raise
 	else:
 		solSystem.setAutoScale(False)
-		body = solSystem.getBodyFromName(EARTH_NAME)
-		inx = solSystem.Dashboard.focusTab.getBodyIndexInList(EARTH_NAME)
-		solSystem.Dashboard.focusTab.setCurrentBodyFocusManually(body, inx)
-		solSystem.introZoomIn(4)
+		lib.setCurrentBody(EARTH_NAME)
+		#body = solSystem.getBodyFromName(EARTH_NAME)
+		#inx = solSystem.Dashboard.focusTab.getBodyIndexInList(EARTH_NAME)
+		#solSystem.Dashboard.focusTab.setCurrentBodyFocusManually(body, inx)
+		solSystem.introZoomIn(35)
 
 	# we only show the dashboard after the story has finished.
 	print "DASHBOARD SHOW!!!"
