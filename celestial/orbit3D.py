@@ -381,8 +381,8 @@ class makeSolarSystem:
 			self.sunLight.visible = True
 			self.BodyShape.material = materials.emissive
 
-		#### setRefTo = True if self.ShowFeatures & REFERENTIAL != 0 else False
-
+		setRefTo = True if self.ShowFeatures & REFERENTIAL != 0 else False
+		
 		if 	self.currentPOVselection == self.JPL_designation and \
 			self.ShowFeatures & LOCAL_REFERENTIAL:
 			setRelTo = True

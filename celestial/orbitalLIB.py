@@ -6,6 +6,7 @@ and its direction. Stories are found in the "stories" package.
 
 import time
 from video import *
+import orbit3D
 
 class userLIB:
     def __init__(self, solarsystem, recorder = False):
@@ -60,3 +61,44 @@ class userLIB:
     
     def setTransitionVelocityFactor(self, factor):
         self.solSystem.Dashboard.focusTab.setTransitionVelocity(factor)
+
+    ### Widgets ###
+
+    def showEquator(self, trueFalse):
+        self.solSystem.Dashboard.widgetsTab.eqcb.SetValue(trueFalse)
+        self.solSystem.EarthRef.PlanetWidgets.showEquator(self.solSystem.Dashboard.widgetsTab.eqcb.GetValue())        
+
+    def showLatitudes(self, trueFalse):
+        self.solSystem.Dashboard.widgetsTab.latcb.SetValue(trueFalse)
+        self.solSystem.EarthRef.PlanetWidgets.showLatitudes(self.solSystem.Dashboard.widgetsTab.latcb.GetValue())
+
+    def showLongitudes(self, trueFalse):
+        self.solSystem.Dashboard.widgetsTab.mrcb.SetValue(trueFalse)
+        self.solSystem.EarthRef.PlanetWidgets.showLongitudes(self.solSystem.Dashboard.widgetsTab.mrcb.GetValue())
+
+    def showTZLines(self, trueFalse):
+        self.solSystem.Dashboard.widgetsTab.tzcb.SetValue(trueFalse)        
+        self.solSystem.EarthRef.PlanetWidgets.showTimezones(self.solSystem.Dashboard.widgetsTab.tzcb.GetValue())
+
+    def showTropics(self, trueFalse):
+        self.solSystem.Dashboard.widgetsTab.trcb.SetValue(trueFalse)        
+        self.solSystem.EarthRef.PlanetWidgets.showTropics(self.solSystem.Dashboard.widgetsTab.trcb.GetValue())
+
+    def showEquatorialPlane(self, trueFalse):
+        self.solSystem.Dashboard.widgetsTab.eqpcb.SetValue(trueFalse)        
+        self.solSystem.EarthRef.PlanetWidgets.showEquatorialPlane(self.solSystem.Dashboard.widgetsTab.eqpcb.GetValue())
+
+    def showNodes(self, trueFalse):
+        self.solSystem.Dashboard.widgetsTab.ncb.SetValue(trueFalse)        
+        self.solSystem.EarthRef.PlanetWidgets.showNodes(self.solSystem.Dashboard.widgetsTab.ncb.GetValue())
+
+    def showLocalRef(self, trueFalse):
+        self.solSystem.Dashboard.widgetsTab.lrcb.SetValue(trueFalse)
+        self.solSystem.Dashboard.focusTab.cb.SetValue(self.solSystem.Dashboard.widgetsTab.lrcb.GetValue())
+        self.solSystem.setFeature(orbit3D.LOCAL_REFERENTIAL, (self.solSystem.Dashboard.widgetsTab.lrcb.GetValue()))
+        orbit3D.glbRefresh(self.solSystem, (self.solSystem.Dashboard.orbitalTab.AnimationInProgress))
+
+    def showPlanet(self, trueFalse):
+        self.solSystem.Dashboard.widgetsTab.hpcb.SetValue(not trueFalse)   
+        self.solSystem.EarthRef.Origin.visible = not self.solSystem.Dashboard.widgetsTab.hpcb.GetValue()
+

@@ -36,11 +36,26 @@ class story_earthApproach(storyBase):
         
         lib.rotateLeft(120)
         lib.pause(0.2)
+        lib.showEquator(True)
         lib.rotateUp(180)
+        lib.showLatitudes(True)
         lib.rotateLeft(90)
+        lib.showLongitudes(True)
         lib.rotateRight(90)
+        lib.pause(1)
+        lib.showLocalRef(True)
+        lib.rotateDown(90)
+        lib.showLocalRef(True)
+        lib.showEquator(False)
         
-        lib.zoomOut(20)
+        lib.zoomOut(30)
+        lib.zoomIn(15)
+        lib.showEquatorialPlane(True)
+        lib.rotateRight(120)
+        lib.showNodes(True)
+        
+
+
         """"
 
         lib.setSmoothTransition(True)

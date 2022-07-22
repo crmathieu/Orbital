@@ -190,7 +190,8 @@ class camera:
 #				self.parentFrame.orbitalTab.VideoRecorder = setVideoRecording(25, "output.avi")
 
 		# calculate number of ticks
-		ticks = duration * 70 # duration / sleep time which is 0.01
+		#### ticks = duration * 70 # duration / sleep time which is 0.01
+		ticks = int(duration * 70 * self.solarSystem.Dashboard.focusTab.transitionVelocityFactor)
 		for i in range(ticks):
 			# calculate rate of velocity as a function of time
 			r = there_and_back(float(i)/ticks)
@@ -220,7 +221,7 @@ class camera:
 
 		rangle = deg2rad(angle) * (-1 if direction == self.ROT_CLKW else 1)
 		dangle = 0.0
-		if ptype == ROT_
+		#if ptype == ROT_
 		for i in np.arange(0, total_steps+1, 1):
 			r = ease_in_out(float(i)/total_steps)
 			iAngle = rangle * r
@@ -291,8 +292,7 @@ class camera:
 		for i in np.arange(0, total_steps+1, 1):
 			r = ease_in_out(float(i)/total_steps)
 			iAngle = rangle * r
-#			self.canvas.forward = rotate(self.canvas.forward, angle=(iAngle-dangle), axis=axis)
-			self.canvas.forward.rotate(angle=(iAngle-dangle), axis=axis)
+			self.canvas.forward = rotate(self.canvas.forward, angle=(iAngle-dangle), axis=axis)
 			dangle = iAngle
 			sleep(1e-2)
 			if recorder == True:
@@ -305,23 +305,30 @@ class camera:
 		# by applying a dot product between our vec and the orthogonal vector: 
 		# (x.x1 + y.y1 + z.z1 = 0)  => y = -(z.z1 + x.x1)/y1 
 		z = 0
-		x = 1
-		y = -vec[0]*x/vec[1]
+		x, y = 0, 0
+		if vec[1] != 0:
+			x = 1
+			y = -vec[0]*x/vec[1]
+		else:
+			print "Y1=0"
+			y = 1
+			x = 0
 
 		# return a unit vector
 		norm = mag((x, y, z))
 		return vector(x/norm, y/norm, z/norm)
 
 	def cameraRotateDown(self, angle, recorder):
-		vangle = self.getAngleBetweenVectors(self.canvas.forward, vector(0,0,-1))
+#		vangle = self.getAngleBetweenVectors(self.canvas.forward, vector(0,0,-1))
+		axis = self.getOrthogonalVector(self.canvas.forward)
 
 		# if angle between vertical anf forward is smaller than
 		# desired rotation angle, adjust rotation angle accordingly.
-		vangle = self.getAngleBetweenVectors(self.canvas.forward, vector(0,0,-1))
-		if vangle < axis:
-			axis = vangle
+		vangle = self.getAngleBetweenVectors(self.canvas.forward, vector(0,0,1))
+		if vangle < angle:
+			angle = vangle - 1
 
-		self.cameraRotationAxis(angle, axis, recorder, direction=self.ROT_CCLKW)
+		self.cameraRotationAxis(angle, axis, recorder, direction=self.ROT_CLKW)
 
 	def cameraRotateUp(self, angle, recorder):
 		# find vector orthogonal to forward vector
@@ -329,11 +336,11 @@ class camera:
 
 		# if angle between vertical anf forward is smaller than
 		# desired rotation angle, adjust rotation angle accordingly.
-		vangle = self.getAngleBetweenVectors(self.canvas.forward, vector(0,0,1))
-		if vangle < axis:
-			axis = vangle
+		vangle = self.getAngleBetweenVectors(self.canvas.forward, vector(0,0,-1))
+		if vangle < angle:
+			angle = vangle - 1
 
-		self.cameraRotationAxis(angle, axis, recorder, direction=self.ROT_CLKW)
+		self.cameraRotationAxis(angle, axis, recorder, direction=self.ROT_CCLKW)
 
 	def cameraRotateLeft(self, angle, recorder):
 		self.cameraRotationAxis(angle, vector(0,0,1), recorder, direction=self.ROT_CLKW)
