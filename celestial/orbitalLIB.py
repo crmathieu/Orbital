@@ -37,6 +37,8 @@ class userLIB:
         else:
             print ("Unknown Body Name:", bodyName)
 
+    ### transition primitives ###
+    
     def zoomIn(self, velocity):
         self.solSystem.camera.cameraZoom(duration = 1, velocity = velocity, recorder = self.recorder, zoom = self.solSystem.camera.ZOOM_IN)
 
@@ -54,6 +56,8 @@ class userLIB:
 
     def rotateRight(self, angle):
         self.solSystem.camera.cameraRotateRight(angle, recorder = self.recorder)
+
+    ### Transition Control ###
 
     def setSmoothTransition(self, trueFalse):
         self.solSystem.Dashboard.focusTab.smoothTransition = trueFalse

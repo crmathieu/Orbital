@@ -33,7 +33,7 @@ class story_earthApproach(storyBase):
         lib.zoomIn(75)
         #self.solSystem.camera.newCameraRotation(360)
         #lib.rotateDown(60)
-        
+        lib.rotateDown(45)
         lib.rotateLeft(120)
         lib.pause(0.2)
         lib.showEquator(True)

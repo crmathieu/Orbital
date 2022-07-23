@@ -43,7 +43,6 @@ def pick_a_story(pclasses, clName):
    return map[int(val)]
 
 
-
 # Orbital entry point
 if __name__ == "__main__":
 
