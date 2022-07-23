@@ -1,13 +1,12 @@
 class storyBase:
-    def __init__(self, solSystem, lib):
+    def __init__(self, solSystem, api):
         self.solSystem = solSystem
-        self.lib = lib
-
         self.solSystem._set_autoMovement(True)
-        self.play(lib)
+        self.play(api)
+        api.camera.zoomOut(0.1)
         self.solSystem._set_autoMovement(False)
         # make sure we stopped potential video recording
-        self.lib.setRecorder(False)
+        api.camera.setRecorder(False)
 
-    def play(self, lib):
+    def play(self, api):
         pass

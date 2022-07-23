@@ -2,7 +2,7 @@
 # example of story file containing stories to play as introduction.
 # A story is defined as a python class deriving from a storyBase class.
 # a 'play' method must be defined for the story to play when called by the
-# solar system loader. The play method has only one parameter: lib, which
+# solar system loader. The play method has only one parameter: Api, which
 # gives it access to the set of userLIB methods that can be used to create 
 # the actions that define the story.
 #  
@@ -28,66 +28,69 @@ from story import storyBase
 
 class story_earthApproach(storyBase):
 
-    def play(self, lib):
-        lib.setCurrentBody("earth")
-        lib.zoomIn(75)
+    def play(self, Api):
+        Api.camera.setCameraTarget("earth")
+        Api.camera.zoomIn(75)
         #self.solSystem.camera.newCameraRotation(360)
-        #lib.rotateDown(60)
-        lib.rotateDown(45)
-        lib.rotateLeft(120)
-        lib.pause(0.2)
-        lib.showEquator(True)
-        lib.rotateUp(180)
-        lib.showLatitudes(True)
-        lib.rotateLeft(90)
-        lib.showLongitudes(True)
-        lib.rotateRight(90)
-        lib.pause(1)
-        lib.showLocalRef(True)
-        lib.rotateDown(90)
-        lib.showLocalRef(True)
-        lib.showEquator(False)
-        
-        lib.zoomOut(30)
-        lib.zoomIn(15)
-        lib.showEquatorialPlane(True)
-        lib.rotateRight(120)
-        lib.showNodes(True)
-        
-
+        #Api.rotateDown(60)
+#        Api.camera.rotateDown(45)
+        Api.camera.rotateLeft(120)
+        #Api.camera.pause(0.2)
+        #Api.widgets.showEquator(True)
+        """
+        Api.camera.rotateUp(180)
+        Api.widgets.showLatitudes(True)
+        Api.camera.rotateLeft(90)
+        Api.widgets.showLongitudes(True)
+        Api.camera.rotateRight(90)
+        Api.camera.pause(1)
+        Api.widgets.showLocalRef(True)
+        Api.camera.rotateDown(30)
+#        Api.widgets.showLocalRef(True)
+#        Api.widgets.showEquator(False)
+        """
+        #Api.camera.zoomOut(30)
+        #Api.camera.zoomIn(35)
+        #Api.widgets.showNodes(True)
+        #Api.camera.pause(1)
+        Api.camera.rotateRight(120)
+        Api.widgets.showEquatorialPlane(True)
+        print "after equ plane"
+        Api.camera.pause(1)
+        #Api.camera.zoomOut(40)
 
         """"
 
-        lib.setSmoothTransition(True)
-        lib.setTransitionVelocityFactor(1.0)
+        Api.camera.setSmoothTransition(True)
+        Api.camera.setTransitionVelocityFactor(1.0)
 
-        lib.setCurrentBody("jupiter")
-        lib.pause(1)
+        Api.camera.setCameraTarget("jupiter")
+        Api.pause(1)
 
-        lib.setCurrentBody("mercury")
-        lib.zoomIn(20)
-        lib.pause(1)
+        Api.camera.setCameraTarget("mercury")
+        Api.camera.zoomIn(20)
+        Api.pause(1)
 
-        lib.setCurrentBody("mars")
-        lib.pause(1)
+        Api.camera.setCameraTarget("mars")
+        Api.pause(1)
 
-        lib.zoomOut(20)
-        lib.setCurrentBody("saturn")
-        lib.pause(1)
+        Api.camera.zoomOut(20)
+        Api.camera.setCameraTarget("saturn")
+        Api.pause(1)
 
-        lib.setCurrentBody("neptune")
-        lib.zoomIn(15)
-        lib.pause(1)
+        Api.camera.setCameraTarget("neptune")
+        Api.camera.zoomIn(15)
+        Api.pause(1)
 
-        lib.setCurrentBody("venus")
+        Api.camera.setCameraTarget("venus")
 
-#        lib.pause(1)
-#        lib.setCurrentBody("sedna")
+#        Api.pause(1)
+#        Api.camera.setCameraTarget("sedna")
         """
 
 class story_jupiterApproach(storyBase):
 
-    def play(self, lib):
-        lib.setCurrentBody("jupiter")
-        lib.zoomIn(50)
-        lib.rotateDown(140)
+    def play2(self, Api):
+        Api.camera.setCameraTarget("jupiter")
+        Api.camera.zoomIn(50)
+        Api.camera.rotateDown(140)

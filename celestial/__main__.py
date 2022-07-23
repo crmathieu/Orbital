@@ -26,7 +26,7 @@ from rate_func import *
 from orbit3D import *
 import planetsdata as pd
 from controls import *
-from celestial.orbitalLIB import userLIB
+from celestial.orbitalLIB import Api
 
 def solarSystemLoader(story, recorder): 
 	
@@ -105,11 +105,11 @@ def solarSystemLoader(story, recorder):
 	solSystem.displaySolarSystem()
 
 	# play story when provided
-	lib = userLIB(solSystem, recorder = recorder)
+	api = Api(solSystem, recorder = recorder)
 	if story != None:
 		try:
 			# instantiate story
-			st = story(solSystem, lib)
+			st = story(solSystem, api)
 			del st
 		except RuntimeError as err:
 			print ("Exception...\n\nError: " + str(err.code))
