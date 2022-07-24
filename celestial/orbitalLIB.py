@@ -108,8 +108,10 @@ class userLIB:
         self.solSystem.EarthRef.Origin.visible = not self.solSystem.Dashboard.widgetsTab.hpcb.GetValue()
     """
 
-class widgets(userLIB):
+class widgets():
     ### Widgets ###
+    def __init__(self, solSystem):
+        self.solSystem = solSystem
 
     def showEquator(self, trueFalse):
         self.solSystem.Dashboard.widgetsTab.eqcb.SetValue(trueFalse)
@@ -151,9 +153,9 @@ class widgets(userLIB):
         self.solSystem.Dashboard.widgetsTab.hpcb.SetValue(not trueFalse)   
         self.solSystem.EarthRef.Origin.visible = not self.solSystem.Dashboard.widgetsTab.hpcb.GetValue()
 
-class camera(userLIB):
+class camera():
     def __init__(self, solSystem, recorder = False):
-        userLIB.__init__(self, solSystem)
+        self.solSystem = solSystem
         self.setRecorder(recorder)
 
     def pause(self, seconds):
@@ -218,8 +220,9 @@ class camera(userLIB):
                 self.solSystem.Dashboard.orbitalTab.VideoRecorder = None
 
 
-class Api(userLIB):
+class Api():
     def __init__(self, solarsystem, recorder = False):
         userLIB.__init__(self, solarsystem)
         self.camera = camera(solarsystem, recorder)
         self.widgets = widgets(solarsystem)        
+        

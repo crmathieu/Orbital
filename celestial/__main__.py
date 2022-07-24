@@ -102,7 +102,6 @@ def solarSystemLoader(story, recorder):
 	dashboard = DashBoard(solSystem)
 	solSystem.setDashboard(dashboard)
 
-	solSystem.displaySolarSystem()
 
 	# play story when provided
 	api = Api(solSystem, recorder = recorder)
@@ -116,7 +115,9 @@ def solarSystemLoader(story, recorder):
 			raise
 	else:
 		solSystem.setAutoScale(False)
-		lib.setCurrentBody(EARTH_NAME)
+		api.camera.setCameraTarget(EARTH_NAME)
+		solSystem.displaySolarSystem()
+		
 		#body = solSystem.getBodyFromName(EARTH_NAME)
 		#inx = solSystem.Dashboard.focusTab.getBodyIndexInList(EARTH_NAME)
 		#solSystem.Dashboard.focusTab.setCurrentBodyFocusManually(body, inx)
