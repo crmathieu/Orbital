@@ -30,11 +30,13 @@ class story_earthApproach(storyBase):
 
     def play(self, Api):
         Api.camera.setCameraTarget("earth")
+        Api.displaySolarSystem()
+
         Api.camera.zoomIn(75)
         #self.solSystem.camera.newCameraRotation(360)
         #Api.rotateDown(60)
 #        Api.camera.rotateDown(45)
-        Api.camera.rotateLeft(120)
+        Api.camera.rotateLeft(80)
         #Api.camera.pause(0.2)
         #Api.widgets.showEquator(True)
         """
@@ -56,7 +58,8 @@ class story_earthApproach(storyBase):
         Api.camera.rotateRight(120)
         Api.widgets.showEquatorialPlane(True)
         print "after equ plane"
-        Api.camera.pause(1)
+        Api.camera.pause(5.0)
+        #Api.camera.pause(1)
         #Api.camera.zoomOut(40)
 
         """"

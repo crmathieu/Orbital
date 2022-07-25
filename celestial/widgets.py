@@ -374,7 +374,6 @@ class makeEquator():
     def display(self, trueFalse):
         self.Trail.visible = trueFalse
 
-
     def draw(self):
         increment = pi/180
         for E in np.arange(0, 2*pi+increment, increment):
@@ -416,7 +415,7 @@ class makeEquatorialPlane():
         self.Color = color 
 
         side = 2.5*AU*DIST_FACTOR
-        self.eqPlane = box(pos=self.Planet.Position, length=side, width=0.0001, height=side, material=materials.emissive, visible=False, color=self.Color, opacity=0.9) #, axis=(0, 0, 1), opacity=0.8) #opacity=self.Opacity)
+        self.eqPlane = box(pos=self.Planet.Position, length=side, width=0.0001, height=side, material=materials.emissive, visible=True, color=self.Color, opacity=0) #, axis=(0, 0, 1), opacity=0.8) #opacity=self.Opacity)
         self.eqPlane.rotate(angle=(-self.Planet.TiltAngle), axis=self.Planet.XdirectionUnit) #, origin=(0,0,0))
 
 
@@ -427,7 +426,15 @@ class makeEquatorialPlane():
 
 
     def display(self, trueFalse):
-        self.eqPlane.visible = trueFalse
+        STEPS = 10
+        if trueFalse == True:
+            bound = 0
+        else:
+            bound = STEPS-1
+        
+        for i in range(STEPS):
+            self.eqPlane.opacity = float(abs(bound-i))/STEPS
+            sleep(1e-2)
 
 
 class doMeridian():
@@ -446,7 +453,6 @@ class doMeridian():
 
     def display(self, trueFalse):
         self.Trail.visible = trueFalse
-
 
     def draw(self):
         increment = pi/180

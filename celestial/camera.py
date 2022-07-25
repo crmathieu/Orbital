@@ -168,8 +168,8 @@ class camera:
 			velocity = self.MAX_ZOOM_VELOCITY
 		elif velocity < 0:
 			velocity = 1
-#		self.cameraZoom(duration=1, velocity=velocity)
-		self.cameraZoom(duration=3, velocity=0)
+		self.cameraZoom(duration=1, velocity=velocity)
+#		self.cameraZoom(duration=3, velocity=0)
 
 	def cameraRefresh(self):
 		sleep(1e-2)

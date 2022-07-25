@@ -17,8 +17,11 @@ pathOut = "c:/proj/orbital/img"
 #TGAarrayOut = ["8K-constellations-4-reversed"]
 
 
-TGAarrayIn = ["8k_stars_milky_way-reversed"]
-TGAarrayOut = ["8k_stars_milky_way-reversed"]
+#TGAarrayIn = ["8k_stars_milky_way-reversed"]
+#TGAarrayOut = ["8k_stars_milky_way-reversed"]
+TGAarrayIn = ["starmap_8k-reversed"]
+TGAarrayOut = ["starmap_8k-reversed"]
+
 width = 8192 #16384 #8192 # must be power of 2
 height = 4096 #8192 #4096 # must be power of 2
 

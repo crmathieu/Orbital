@@ -147,6 +147,7 @@ class makeSolarSystem:
 		self.initRotation()
 
 		self.makeCelestialSphere()
+		self.makeConstellations()
 
 		print "initial CAMERA POSITION ************************* ", self.Scene.mouse.camera
 
@@ -177,7 +178,7 @@ class makeSolarSystem:
 	def setDashboard(self, db):
 		self.Dashboard = db
 
-	def makeCelestialSphere(self): # Unused
+	def makeConstellations(self):
 		import os.path
 		#print "CELESTIAL SPHERE"
 		CELESTIAL_RADIUS = 2000 #10000
@@ -185,8 +186,27 @@ class makeSolarSystem:
 		#file = "./img/starmap.tga"
 		#file = "./img/star-map-normalized-4096x2048-reversed.tga"
 		#file = "./img/8K-constellations-4-reversed.tga"
-		#file = "./img/constellations_stars_to_MAG_21_RA_DEC_8192x4096_MONO-trimmed-deep-reversed.tga"
-		file = "./img/8k_stars_milky_way-reversed.tga"
+		file = "./img/constellations_stars_to_MAG_21_RA_DEC_8192x4096_MONO-trimmed-deep-reversed.tga"
+		if os.path.isfile(file):
+			# adjust celestial Sphere position
+			self.ConstellationOrigin = frame(pos=vector(0,0,0))
+			#self.UniversRadius = CELESTIAL_RADIUS * AU * DIST_FACTOR
+			self.Constellations = sphere(frame=self.ConstellationOrigin, pos=vector(0,0,0), visible = False, radius=self.UniversRadius, color=color.white, opacity=0.5)
+			self.Constellations.material = materials.texture(data=materials.loadTGA(file), mapping="spherical", interpolate=False)
+			self.Constellations.rotate(angle=(pi/2+deg2rad(5)), 	axis=self.XdirectionUnit, origin=(0,0,0))
+			self.Constellations.rotate(angle=deg2rad(-30), 		axis=self.YdirectionUnit, origin=(0,0,0))
+			self.Constellations.rotate(angle=deg2rad(-88), 		axis=self.RotAxis, 		  origin=(0,0,0))
+
+		else:
+			print ("Could not find "+file)
+		#self.Scene.scale = self.Scene.scale / 1e10
+
+	def makeCelestialSphere(self): # Unused
+		import os.path
+		#print "CELESTIAL SPHERE"
+		CELESTIAL_RADIUS = 2000 #10000
+		#file = "./img/8k_stars_milky_way-reversed.tga"
+		file = "./img/starmap_8k-reversed.tga"
 		if os.path.isfile(file):
 			# adjust celestial Sphere position
 			self.CelestialSphereOrigin = frame(pos=vector(0,0,0))
@@ -195,7 +215,7 @@ class makeSolarSystem:
 			self.Universe.material = materials.texture(data=materials.loadTGA(file), mapping="spherical", interpolate=False)
 			self.Universe.rotate(angle=(pi/2+deg2rad(5)), 	axis=self.XdirectionUnit, origin=(0,0,0))
 			self.Universe.rotate(angle=deg2rad(-30), 		axis=self.YdirectionUnit, origin=(0,0,0))
-			self.Universe.rotate(angle=deg2rad(-88), 		axis=self.RotAxis, 		  origin=(0,0,0))
+			self.Universe.rotate(angle=deg2rad(-88+140), 		axis=self.RotAxis, 		  origin=(0,0,0))
 
 		else:
 			print ("Could not find "+file)
@@ -392,6 +412,7 @@ class makeSolarSystem:
 		self.setAxisVisibility(setRefTo, setRelTo)
 
 		self.Universe.visible = self.isFeatured(CELESTIAL_SPHERE)
+		self.Constellations.visible = self.isFeatured(CONSTELLATIONS)
 
 
 	def setAxisVisibility(self, setRefTo, setRelTo):

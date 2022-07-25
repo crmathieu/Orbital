@@ -62,6 +62,7 @@ CHK_L11 = CHK_L10 + 20
 CHK_L12 = CHK_L11 + 20
 CHK_L13 = CHK_L12 + 20
 CHK_L14 = CHK_L13 + 20
+CHK_L15 = CHK_L14 + 20
 
 LSTB_Y = DATE_Y + 60
 SLDS_Y = LSTB_Y + 40
@@ -1159,16 +1160,17 @@ class ORBITALCtrlPanel(AbstractUI):
 		self.createCheckBox(self, "Kuiper Belt", KUIPER_BELT, 20, CHK_L7)
 		#self.createCheckBox(self, "Inner Oort Cloud", INNER_OORT_CLOUD, 20, CHK_L8)
 		self.createCheckBox(self, "Celestial Sphere", CELESTIAL_SPHERE, 20, CHK_L8)
+		self.createCheckBox(self, "Constellations", CONSTELLATIONS, 20, CHK_L9)
 		
-		self.createCheckBox(self, "Ecliptic", ECLIPTIC_PLANE, 20, CHK_L9)
-		self.createCheckBox(self, "Labels", LABELS, 20, CHK_L10)
-		self.createCheckBox(self, "Lit Scene", LIT_SCENE, 20, CHK_L11)
-		self.createCheckBox(self, "Adjust objects size", REALSIZE, 20, CHK_L12)
-		self.createCheckBox(self, "Referential", REFERENTIAL, 20, CHK_L13)
+		self.createCheckBox(self, "Ecliptic", ECLIPTIC_PLANE, 20, CHK_L10)
+		self.createCheckBox(self, "Labels", LABELS, 20, CHK_L11)
+		self.createCheckBox(self, "Lit Scene", LIT_SCENE, 20, CHK_L12)
+		self.createCheckBox(self, "Adjust objects size", REALSIZE, 20, CHK_L13)
+		self.createCheckBox(self, "Referential", REFERENTIAL, 20, CHK_L14)
 
 		self.createBodyList(200, LSTB_Y)
 
-		cbtn = wx.Button(self, label='Refresh', pos=(20, CHK_L14))
+		cbtn = wx.Button(self, label='Refresh', pos=(20, CHK_L15))
 		cbtn.Bind(wx.EVT_BUTTON, self.OnRefresh)
 
 		lblList = ['PHA', 'Comets', 'Major Asteroids', 'Trans Neptunians']

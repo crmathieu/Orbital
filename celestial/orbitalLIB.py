@@ -10,7 +10,7 @@ import orbit3D
 
 
 
-class userLIB:
+class userLIBXX:
     def __init__(self, solarsystem):
         self.solSystem = solarsystem
         #self.setRecorder(recorder)
@@ -134,10 +134,10 @@ class widgets():
         self.solSystem.EarthRef.PlanetWidgets.showTropics(self.solSystem.Dashboard.widgetsTab.trcb.GetValue())
 
     def showEquatorialPlane(self, trueFalse):
-        self.solSystem.EarthRef.PlanetWidgets.EqPlane.display(trueFalse)
-        #self.solSystem.EarthRef.PlanetWidgets.showEquatorialPlane(trueFalse) #self.solSystem.Dashboard.widgetsTab.eqpcb.GetValue())
         self.solSystem.Dashboard.widgetsTab.eqpcb.SetValue(trueFalse)    ## added    
-        orbit3D.glbRefresh(self.solSystem, (self.solSystem.Dashboard.orbitalTab.AnimationInProgress))
+        self.solSystem.EarthRef.PlanetWidgets.showEquatorialPlane(trueFalse) #self.solSystem.Dashboard.widgetsTab.eqpcb.GetValue())
+        #self.solSystem.EarthRef.PlanetWidgets.EqPlane.display(trueFalse)
+        #orbit3D.glbRefresh(self.solSystem, (self.solSystem.Dashboard.orbitalTab.AnimationInProgress))
 
     def showNodes(self, trueFalse):
         self.solSystem.Dashboard.widgetsTab.ncb.SetValue(trueFalse)        
@@ -156,7 +156,8 @@ class widgets():
 class camera():
     def __init__(self, solSystem, recorder = False):
         self.solSystem = solSystem
-        self.setRecorder(recorder)
+        self.recorder = recorder
+#        self.setRecorder(recorder)
 
     def pause(self, seconds):
         #ticks = int(float(seconds) / 1e-2) 
@@ -207,6 +208,18 @@ class camera():
 
     ### camera recording ###
 
+
+
+class Api():
+    def __init__(self, solarsystem, recorder = False):
+        self.solSystem = solarsystem
+        self.setRecorder(recorder)
+        self.camera = camera(solarsystem, recorder)
+        self.widgets = widgets(solarsystem)        
+
+    def displaySolarSystem(self):
+        self.solSystem.displaySolarSystem()
+
     def setRecorder(self, trueFalse):
         self.recorder = trueFalse
         if self.recorder == True:
@@ -218,11 +231,3 @@ class camera():
             if self.solSystem.Dashboard.orbitalTab.VideoRecorder != None:
                 stopRecording(self.solSystem.Dashboard.orbitalTab.VideoRecorder)
                 self.solSystem.Dashboard.orbitalTab.VideoRecorder = None
-
-
-class Api():
-    def __init__(self, solarsystem, recorder = False):
-        userLIB.__init__(self, solarsystem)
-        self.camera = camera(solarsystem, recorder)
-        self.widgets = widgets(solarsystem)        
-        

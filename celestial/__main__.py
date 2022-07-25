@@ -121,7 +121,7 @@ def solarSystemLoader(story, recorder):
 		#body = solSystem.getBodyFromName(EARTH_NAME)
 		#inx = solSystem.Dashboard.focusTab.getBodyIndexInList(EARTH_NAME)
 		#solSystem.Dashboard.focusTab.setCurrentBodyFocusManually(body, inx)
-		solSystem.introZoomIn(35)
+		solSystem.introZoomIn(75)
 
 	# we only show the dashboard after the story has finished.
 	print "DASHBOARD SHOW!!!"
