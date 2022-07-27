@@ -3,8 +3,8 @@ from PIL import Image
 
 #path = "c:/proj/orbital-2/jsorrery-master/img/new"
 #path = "c:/proj/orbital-2/V2.0/img"
-path = "c:/proj/orbital/new images"
-pathOut = "c:/proj/orbital/img"
+path = "c:/proj/orbital/new images/NASA"
+pathOut = "c:/proj/orbital/img/NASA"
 #TGAarrayIn = ["sunmapalpha2k","jupiter2k","earth2k","mercurymap2k","moon2k","neptune2k","saturn2k","pluto-grey2k","uranus1k","venus2k", "mars2k","eris2k","makemake2k","haumea2k","sedna2k", "asteroidmap2k"]
 #TGAarrayOut = ["sun","jupiter","earth","mercury","moon","neptune","saturn","pluto","uranus","venus", "mars","eris","makemake","haumea","sedna","asteroid"]
 #TGAarrayIn = ["8k_earth_daymap"]
@@ -19,8 +19,10 @@ pathOut = "c:/proj/orbital/img"
 
 #TGAarrayIn = ["8k_stars_milky_way-reversed"]
 #TGAarrayOut = ["8k_stars_milky_way-reversed"]
-TGAarrayIn = ["starmap_8k-reversed"]
-TGAarrayOut = ["starmap_8k-reversed"]
+#TGAarrayIn = ["starmap_8k-reversed"]
+#TGAarrayOut = ["starmap_8k-reversed"]
+TGAarrayIn = ["constellation_bounds_and_figures_colored_legend_reversed_8k"]
+TGAarrayOut = ["constellation_bounds_and_figures_colored_legend_reversed_8k"]
 
 width = 8192 #16384 #8192 # must be power of 2
 height = 4096 #8192 #4096 # must be power of 2
