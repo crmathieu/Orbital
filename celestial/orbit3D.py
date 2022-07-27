@@ -212,7 +212,7 @@ class makeSolarSystem:
 		#print "CELESTIAL SPHERE"
 		CELESTIAL_RADIUS = 2000 #10000
 		#file = "./img/8k_stars_milky_way-reversed.tga"
-		file = "./img/starmap_8k-reversed.tga"
+		file = "./img/NASA/starmap_8k-reversed.tga"
 		if os.path.isfile(file):
 			# adjust celestial Sphere position
 			self.CelestialSphereOrigin = frame(pos=vector(0,0,0))
