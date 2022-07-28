@@ -1879,7 +1879,7 @@ class WIDGETSpanel(AbstractUI):
 		loc = self.Earth.PlanetWidgets.Loc[self.Earth.PlanetWidgets.currentLocation]
 		loc.show(self.ncpcb.GetValue())
 		self.Earth.PlanetWidgets.shiftLocation()
-		self.Earth.SolarSystem.camera.cameraRefresh()
+		### self.Earth.SolarSystem.camera.cameraRefresh()
 
 		
 
