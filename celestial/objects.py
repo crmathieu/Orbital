@@ -97,3 +97,42 @@ def main2():
     b = arrow(color.yellow, 40, 1, materials.emissive,"y", axisp = vector(0,1,0))
     d = arrow(color.green, 40, 1, materials.emissive,"z", axisp = vector(0,0,1))
 
+
+class threedVector:
+    def __init__(self, vec): #, color, length, radius, materialType, label, textborder=False, axisp = vector(1,0,0)):
+        self.Origin = frame()
+        #self.Length = length
+        #self.Radius = radius
+        #self.Color = color
+        #self.Label = label
+        self.vec = vec
+
+#    def getAngleBetweenVectors(self, v1, v2):
+    def getAngleWithVector(self, v):
+        # will return angle in degree
+        dotProduct = self.vec[0]*v[0] + self.vec[1]*v[1] + self.vec[2]*v[2]
+        theta = np.arccos(dotProduct/(mag(self.vec)*mag(v)))
+        return rad2deg(theta)
+
+    def getOrthogonalVector(self):
+        # The set of all possible orthogonal vectors to this vector is a Plane. On  
+        # this plane we choose an orthogonal vector that also lies in the (x,y) plane 
+        # (with z=0) and whose x coordinate is arbitrary 1. Using these presets, we 
+        # can deduct the y coordinate by applying a dot product between our vec and 
+        # the orthogonal vector. Its results must be zero since the vectors are othogonal. 
+        # (x.x1 + y.y1 + z.z1 = 0)  => y = -(z.z1 + x.x1)/y1 
+        z = 0
+        x, y = 0, 0
+        if self.vec[1] != 0:
+            x = 1
+            y = -self.vec[0]*x/self.vec[1]
+        else:
+            
+            y = 1
+            x = 0
+
+        # return a unit vector
+        norm = mag((x, y, z))
+        return vector(x/norm, y/norm, z/norm)
+
+    

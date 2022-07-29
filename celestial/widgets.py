@@ -1,8 +1,14 @@
+from celestial.utils import getAngleBetweenVectors
 from orbit3D import *
 from visual import *
 from objects import circle
+from video import *
+import rate_func
 
 class makePlanetWidgets():
+
+    ROT_CLKW = 64
+    ROT_CCLKW = 128
 
     def __init__(self, planet):
 
@@ -110,9 +116,97 @@ class makePlanetWidgets():
                 self.Loc[self.currentLocation].updateEclipticPosition()
 
 
+    def shiftFocus(self, dest, angle, direction):
+        # going from current object to next current object 
+        #print ("SMOOTH FOCUS to", destination)
+        #target = vector(dest[0], dest[1], dest[2])
+
+        # (Xc, Yc, Zc) is the current location of camera (before transition)
+        Xc = self.Planet.SolarSystem.Scene.center[0]
+        Yc = self.Planet.SolarSystem.Scene.center[1]
+        Zc = self.Planet.SolarSystem.Scene.center[2]
+        #print ("Xc=", Xc, ", Yc=", Yc,", Zc=", Zc)
+        
+        # calculate distance between current location and 
+        # destination for each coordinate 
+        deltaX = (dest[0] - Xc)
+        deltaY = (dest[1] - Yc)
+        deltaZ = (dest[2] - Zc)
+
+        #print ("X=", deltaX, ", Y=", deltaY,", Z=", deltaZ)
+
+        if self.Planet.SolarSystem.Dashboard.orbitalTab.RecorderOn == True:
+            if self.Planet.SolarSystem.Dashboard.orbitalTab.VideoRecorder == None:
+                self.Planet.SolarSystem.Dashboard.orbitalTab.VideoRecorder = setVideoRecording(25, "output.avi")
+
+
+        # Calculate number of steps based on current transition velocity factor (default is 1.0)
+        #print ("Smooth Focus TRANSITION VELOCITY=", self.transitionVelocityFactor)
+        total_steps = int(100)#### * self.Planet.SolarSystem.Dashboard.focusTab.transitionVelocityFactor)
+        #print ("Smooth Focus TOTAL_STEPS=", total_steps)
+
+        # move scene center by an increment towards the destination coordinates. Since 
+        # we use 100 * transitionVelocityFactor steps to do that, and our rate function 
+        # only takes an input between 0 and 1, we divide the current increment by the 
+        # total number of steps to always keep the rate function input between these limits.
+        # Incremental location is calculated as the initial location + difference between initial
+        # and final locations time the rate for this particular step.
+
+        rangle = deg2rad(angle) * (-1 if direction == self.ROT_CLKW else 1)
+        dangle = 0.0
+
+        for i in np.arange(0, total_steps+1, 1):
+            # incrementally, change center focus and rotate
+            r = rate_func.ease_in_out(float(i)/total_steps)
+            self.Planet.SolarSystem.Scene.center = vector( (Xc + r*deltaX),
+                                                    (Yc + r*deltaY),
+                                                    (Zc + r*deltaZ))
+
+            iAngle = rangle * r
+            self.Planet.SolarSystem.Scene.forward = rotate(self.Planet.SolarSystem.Scene.forward, angle=(iAngle-dangle), axis=(0,0,1))
+            dangle = iAngle
+
+            sleep(2e-2)
+            if self.Planet.SolarSystem.Dashboard.orbitalTab.RecorderOn == True:
+                recOneFrame(self.Planet.SolarSystem.Dashboard.orbitalTab.VideoRecorder)
+
+
+#################
+#  		rangle = deg2rad(angle) * (-1 if direction == self.ROT_CLKW else 1)
+#		dangle = 0.0
+#		for i in np.arange(0, total_steps+1, 1):
+#			r = ease_in_out(float(i)/total_steps)
+#			iAngle = rangle * r
+#			self.view.forward = rotate(self.view.forward, angle=(iAngle-dangle), axis=axis)
+#			dangle = iAngle
+#			sleep(1e-2)
+
+###########                
+
     def shiftLocation(self):
+
         #print "going from ",self.Loc[self.defaultLocation].GeoLoc.pos , "to", self.Loc[TZ_PARIS].GeoLoc.pos
-        print "BEFORE: Forward=", self.Planet.SolarSystem.Scene.forward
+        print "BEFORE: Forward=", self.Planet.SolarSystem.camera.getDirection() #Scene.forward
+
+        # calculate angle between current location and new location
+
+        angle = getAngleBetweenVectors(self.Loc[self.defaultLocation].Grad, self.Loc[TZ_CHINA].Grad)
+        print "Angle=", angle
+
+        # shift focus and rotate to new location
+        self.Loc[TZ_CHINA].updateEclipticPosition()
+        direction =  self.ROT_CCLKW
+        if self.Loc[TZ_CHINA].long < self.Loc[self.defaultLocation].long:
+            direction =  self.ROT_CLKW
+
+        self.shiftFocus(self.Loc[TZ_CHINA].getEclipticPosition(), angle, direction = direction)
+
+        # rotate camera direction by the same angle
+        #self.Planet.SolarSystem.camera.cameraRotateRight(angle, False)
+
+        return
+
+
         gradNorm = mag(self.Loc[self.defaultLocation].Grad) # + self.Loc[self.defaultLocation].EclipticPosition)
         print "BEFORE: NORMAL=", self.Loc[self.defaultLocation].Grad+ self.Loc[self.defaultLocation].EclipticPosition, "Normalized:", (self.Loc[self.defaultLocation].Grad + self.Loc[self.defaultLocation].EclipticPosition)/gradNorm
         X = (self.Planet.SolarSystem.Scene.forward[0]-self.Loc[self.defaultLocation].Grad[0])/(100*gradNorm)
@@ -130,6 +224,7 @@ class makePlanetWidgets():
         Y0 = self.Planet.SolarSystem.Scene.forward[1]
         Z0 = self.Planet.SolarSystem.Scene.forward[2]
         print "X0=", X0, ", Y0=", Y0,", Z0=", Z0
+        """
         for i in np.arange(0, 100, 1):
             g = mag(vector( X0 + 100*i*X, Y0 + 100*i*Y, Z0 + 100*i*Z))
             self.Planet.SolarSystem.Scene.forward = vector( (X0 + 100*i*X)/g,
@@ -138,14 +233,14 @@ class makePlanetWidgets():
             sleep(1e-2)
             #self.Planet.SolarSystem.camera.cameraRefresh()
             #print "forward=", self.Planet.SolarSystem.Scene.forward
-
+        """
         raw_input()
 #        self.Planet.SolarSystem.Scene.forward = (self.Loc[self.defaultLocation].Grad + self.Loc[self.defaultLocation].EclipticPosition)/mag(self.Loc[self.defaultLocation].Grad + self.Loc[self.defaultLocation].EclipticPosition)
-        self.Planet.SolarSystem.Scene.forward = -(self.Loc[self.defaultLocation].Grad)/mag(self.Loc[self.defaultLocation].Grad)
-        sleep(1e-2)
-        raw_input()
+        ##### self.Planet.SolarSystem.Scene.forward = -(self.Loc[self.defaultLocation].Grad)/mag(self.Loc[self.defaultLocation].Grad)
+        #sleep(1e-2)
+        #raw_input()
 #        self.zob =  simpleArrow(color.red, 70, 20, self.Loc[self.defaultLocation].GeoLoc.pos, axisp = 1e5*(self.Planet.SolarSystem.Scene.forward), context = self.Loc[self.defaultLocation].Origin)
-        self.zob =  simpleArrow(color.red, 70, 20, self.Planet.SolarSystem.Scene.center, axisp = 1e5*(-self.Planet.SolarSystem.Scene.forward), context = None) #self.Loc[self.defaultLocation].Origin)
+        self.zob =  simpleArrow(color.red, 70, 20, self.Planet.SolarSystem.Scene.center, axisp = 1e2*(self.Planet.SolarSystem.Scene.forward), context = None) #self.Loc[self.defaultLocation].Origin)
         self.zob.display(True)
         #self.Planet.SolarSystem.Scene.forward = self.Loc[self.defaultLocation].Grad
         """
@@ -256,7 +351,7 @@ class makeEarthLocation():
             self.lat = earthLoc["lat"]
             self.long = earthLoc["long"]
             self.setPosition() #earthLoc)
-            self.setGradient()
+            self.setNormalToSurface()
             self.setOrientation(self.Grad)
 
         else:
@@ -290,6 +385,9 @@ class makeEarthLocation():
         self.GeoLoc.pos[Y_COOR] = eqPlane * sin(deg2rad(self.long)+pi)
         self.GeoLoc.pos[Z_COOR] = radius * sin(deg2rad(self.lat))
 
+    def getPosition(self):
+        return self.GeoLoc.pos
+
     def updateEclipticPosition(self):
         # init position in ecliptic referential
         self.EclipticPosition = self.Origin.frame_to_world(self.GeoLoc.pos)
@@ -305,11 +403,13 @@ class makeEarthLocation():
     def display(self, trueFalse):
         self.GeoLoc.visible = trueFalse
 
-    def setGradient(self):
+    def setNormalToSurface(self):
         # the equation of the earth surface is S: (x-xcenter)^2 + (y-ycenter)^2 + (z-zcenter)^2 = R^2
-        # DS/Dx = 2(x-xcenter) 
-        # DS/Dy = 2(y-ycenter)  
-        # DS/Dz = 2(z-zcenter)
+        # the coordinates of a vector normal to the earth surface is given by the earth's surface gradient:
+        #   Gradient(S) = (DS/Dx, DS/Dy, DS/Dz)
+        # DS/Dx = 2(x-xcenter) partial derivative of surface for x
+        # DS/Dy = 2(y-ycenter) partial derivative of surface for y 
+        # DS/Dz = 2(z-zcenter) partial derivative of surface for z
         # the normal vector in our location is given by [xloc+DS/Dx(loc)]
         self.updateEclipticPosition()
         self.GradientX = 2*(self.EclipticPosition[X_COOR]-self.Origin.pos[X_COOR])

@@ -30,6 +30,11 @@ TZ_KOUR = 10
 TZ_BAIK = 11
 TZ_CHINA = 12
 TZ_INDIA = 13
+TZ_VDBERG = 14
+TZ_NZ = 15
+TZ_JAP = 16
+TZ_XICHG = 17
+
 
 class Timeloc:
 	tzEarthLocations = [
