@@ -94,8 +94,8 @@ class makePlanetWidgets():
         self.Loc = []
         self.currentLocation = -1
         self.defaultLocation = -1
-        #self.makeLocation(TZ_CAPE)
-        self.makeMultipleLocations(TZ_CAPE)
+        #self.makeLocation(TZ_US_CAPE)
+        self.makeMultipleLocations(TZ_US_CAPE)
          
         # align widgets origin with planet tilt
         self.ECEF.rotate(angle=(-self.Planet.TiltAngle), axis=self.Planet.XdirectionUnit) #, origin=(0,0,0))
@@ -115,11 +115,11 @@ class makePlanetWidgets():
             if self.currentLocation >= 0:
                 self.Loc[self.currentLocation].updateEclipticPosition()
 
+    #def smoothFocusShift(self, location):
+
 
     def shiftFocus(self, dest, angle, direction):
-        # going from current object to next current object 
-        #print ("SMOOTH FOCUS to", destination)
-        #target = vector(dest[0], dest[1], dest[2])
+        # going from current location to next destination location coordinates
 
         # (Xc, Yc, Zc) is the current location of camera (before transition)
         Xc = self.Planet.SolarSystem.Scene.center[0]
@@ -183,23 +183,38 @@ class makePlanetWidgets():
 
 ###########                
 
-    def shiftLocation(self):
+    def shiftLocation(self, locationID):
 
-        #print "going from ",self.Loc[self.defaultLocation].GeoLoc.pos , "to", self.Loc[TZ_PARIS].GeoLoc.pos
+        #print "going from ",self.Loc[self.defaultLocation].GeoLoc.pos , "to", self.Loc[TZ_FR_PARIS].GeoLoc.pos
         print "BEFORE: Forward=", self.Planet.SolarSystem.camera.getDirection() #Scene.forward
 
-        # calculate angle between current location and new location
+        # calculate angle between normal of current location and normal to camera
+        x = self.Planet.SolarSystem.camera.view.mouse.pos[0] - self.Planet.Origin.pos[0]
+        y = self.Planet.SolarSystem.camera.view.mouse.pos[1] - self.Planet.Origin.pos[1]
+        z = self.Planet.SolarSystem.camera.view.mouse.pos[2] - self.Planet.Origin.pos[2]
 
-        angle = getAngleBetweenVectors(self.Loc[self.defaultLocation].Grad, self.Loc[TZ_CHINA].Grad)
+        angleA = getAngleBetweenVectors(self.Loc[self.defaultLocation].Grad, -vector(x,y,z))
+        print "Angle between ", self.Loc[self.defaultLocation].Name, " and camera:", angleA
+
+        # zoom out
+        self.Planet.SolarSystem.camera.cameraZoom(duration = 1, velocity = 10, recorder = False, zoom = self.Planet.SolarSystem.camera.ZOOM_OUT)
+        # refocus smoothly from current location to planet center
+        self.Planet.SolarSystem.Dashboard.focusTab.smoothFocus(self.Planet.Name)
+
+        # calculate angle between camera location Normal and new location normal
+        angle = getAngleBetweenVectors(-self.Planet.SolarSystem.camera.view.forward, self.Loc[locationID].Grad)
         print "Angle=", angle
 
         # shift focus and rotate to new location
-        self.Loc[TZ_CHINA].updateEclipticPosition()
+        self.Loc[locationID].updateEclipticPosition()
         direction =  self.ROT_CCLKW
-        if self.Loc[TZ_CHINA].long < self.Loc[self.defaultLocation].long:
+        if self.Loc[locationID].long < self.Loc[self.defaultLocation].long:
             direction =  self.ROT_CLKW
 
-        self.shiftFocus(self.Loc[TZ_CHINA].getEclipticPosition(), angle, direction = direction)
+
+        self.shiftFocus(self.Loc[locationID].getEclipticPosition(), angle+angleA, direction = direction)
+        self.defaultLocation = locationID
+        self.Planet.SolarSystem.camera.cameraZoom(duration = 1, velocity = 10, recorder = False, zoom = self.Planet.SolarSystem.camera.ZOOM_IN)
 
         # rotate camera direction by the same angle
         #self.Planet.SolarSystem.camera.cameraRotateRight(angle, False)
@@ -336,7 +351,7 @@ class makeEarthLocation():
         self.Color = color.red
         self.EclipticPosition = vector(0,0,0)
         self.lat = self.long = 0
-        self.GeoLoc = sphere(frame=self.Origin, pos=(0,0,0), np=32, radius=2, material = materials.emissive, make_trail=false, color=self.Color, visible=True) 
+        self.GeoLoc = sphere(frame=self.Origin, pos=(0,0,0), np=32, radius=20, material = materials.emissive, make_trail=false, color=self.Color, visible=True) 
         #self.GeoLoc = cylinder(frame=self.Origin, pos=vector(0,0,0), radius=10, color=self.Color, material = materials.emissive, opacity=1.0, axis=(0,0,1))
 
 

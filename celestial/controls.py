@@ -22,6 +22,7 @@ SOFTWARE.
 """
 import datetime
 import orbit3D 
+from location import *
 from planetsdata import *
 from visual import *
 import threading
@@ -1878,7 +1879,10 @@ class WIDGETSpanel(AbstractUI):
 		self.Earth.PlanetWidgets.currentLocation = self.Earth.PlanetWidgets.defaultLocation
 		loc = self.Earth.PlanetWidgets.Loc[self.Earth.PlanetWidgets.currentLocation]
 		loc.show(self.ncpcb.GetValue())
-		self.Earth.PlanetWidgets.shiftLocation()
+		self.Earth.PlanetWidgets.shiftLocation(TZ_FR_PARIS)
+		self.Earth.PlanetWidgets.shiftLocation(TZ_RUS_BAIK)
+		self.Earth.PlanetWidgets.shiftLocation(TZ_US_VDBERG)
+		self.Earth.PlanetWidgets.shiftLocation(TZ_JP_TAN)
 		### self.Earth.SolarSystem.camera.cameraRefresh()
 
 		
