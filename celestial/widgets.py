@@ -27,7 +27,7 @@ class makePlanetWidgets():
         # The "Earth-centered, Earth-fixed coordinate system": fixed to the earth (moves with its rotation)
         # is a cartesian spatial reference system that represents locations in the vicinity of the 
         # Earth (including its surface, interior, atmosphere, and surrounding outer space) as X, Y, and Z 
-        # measurements from its center of mass.[1][2] Its most common use is in tracking the orbits of 
+        # measurements from its center of mass. Its most common use is in tracking the orbits of 
         # satellites and in satellite navigation systems for measuring locations on the surface of the 
         # Earth, but it is also used in applications such as tracking crustal motion.
         # 
@@ -56,18 +56,6 @@ class makePlanetWidgets():
         self.ECEF.rotate(angle=(self.Planet.Psi-self.Psi), axis=self.Planet.RotAxis) #, origin=(0,0,0))
 
 
-        # Psi is the initial rotation to apply on the sphere texture to match the solar Time
-        self.Psi = self.Planet.Psi
-        print "resetWidgetsRefFromSolarTime: Psi =", self.Psi
-
-    def resetWidgetsRefFromSolarTime_SAVE(self):
-
-        if self.SiderealCorrectionAngle != 0.0:
-            self.ECEF.rotate(angle=(-self.SiderealCorrectionAngle), axis=self.Planet.RotAxis) #, origin=(0,0,0))
-            self.SiderealCorrectionAngle = 0.0
-
-        self.ECEF.rotate(angle=(self.Planet.Psi-self.Psi), axis=self.Planet.RotAxis) #, origin=(0,0,0))
-        
         # Psi is the initial rotation to apply on the sphere texture to match the solar Time
         self.Psi = self.Planet.Psi
         print "resetWidgetsRefFromSolarTime: Psi =", self.Psi
