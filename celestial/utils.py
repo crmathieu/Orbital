@@ -15,7 +15,7 @@ def getAngleBetweenVectors(v1, v2):
 
 def getOrthogonalVector(vec):
 	# The set of all possible orthogonal vectors is a Plane. Among all possible 
-	# orthogonal vectors we choose the one that also to the (x,y) plane (with z=0) 
+	# orthogonal vectors we choose the one that also lay on the (x,y) plane (with z=0) 
 	# and whose x coordinate is arbitrary 1. Using these presets, we can deduct the 
 	# y coordinate by applying a dot product between our vec and the orthogonal vector. 
 	# Its results must be zero since the vectors are othogonal. 

@@ -150,7 +150,12 @@ class camera:
 		return
 
 
-	def cameraZoom(self, duration, velocity = 1, recorder = False, zoom = ZOOM_IN):
+	# for normal zoom operation, a rate function such as "there_and_back" creates a smooth zoom. If the zoom
+	# needs to be followed up by further motions as a continuous flow, a rate function that ends up at its
+	# max (value 1) such as "easy_in_quad" is desirable, so that the motion from one primitive to the next 
+	# will look natural. 
+
+	def cameraZoom(self, duration, velocity = 1, recorder = False, zoom = ZOOM_IN, ratefunc = there_and_back):
 		# for camera zoom motion, both right and left mouse buttons must be held down
 		left, right, middle = True, True, False
 		shift, ctrl, alt, cmd = False, False, False, False
@@ -168,7 +173,8 @@ class camera:
 		ticks = int(duration * 70 * self.solarSystem.Dashboard.focusTab.transitionVelocityFactor)
 		for i in range(ticks):
 			# calculate rate of velocity as a function of time
-			r = there_and_back(float(i)/ticks)
+			##### r = there_and_back(float(i)/ticks)
+			r = ratefunc(float(i)/ticks)
 
 			# calculate instant zoom velocity value as a function of time and max velocity
 			v = int(velocity * r)+1
@@ -193,13 +199,18 @@ class camera:
 		theta = np.arccos(dotProduct/(mag(v1)*mag(v2)))
 		return rad2deg(theta)
 
-	def cameraRotationAxis(self, angle, axis, recorder, direction):
+	# for normal rotation operation, a rate function such as "ease_in_out" creates a smooth panoramic. If the rotation
+	# was preceded by a zoom that ended at its ratefunc maximum value (1), the rotation could use a rate function
+	# that starts at its maximum value, such as "1 - rush_into",  to ensure a continuous flow.
+
+	def cameraRotationAxis(self, angle, axis, recorder, direction, ratefunc = ease_in_out):
 		total_steps = int(100 * self.solarSystem.Dashboard.focusTab.transitionVelocityFactor)
 
 		rangle = deg2rad(angle) * (-1 if direction == self.ROT_CLKW else 1)
 		dangle = 0.0
 		for i in np.arange(0, total_steps+1, 1):
-			r = ease_in_out(float(i)/total_steps)
+#			r = ease_in_out(float(i)/total_steps)
+			r = ratefunc(float(i)/total_steps)
 			iAngle = rangle * r
 			self.view.forward = rotate(self.view.forward, angle=(iAngle-dangle), axis=axis)
 			dangle = iAngle

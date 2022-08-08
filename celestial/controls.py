@@ -302,10 +302,11 @@ class FOCUSpanel(AbstractUI):
 		# the higher the velocity, the smaller number of steps
 		self.transitionVelocityFactor = 1/float(velocity)
 
+	"""
 	def moveToEarthLocation(self, destination):
 		# going from current object to next current object
 		print ("SMOOTH FOCUS to", destination)
-		self.SolarSystem.currentPOV
+		#self.SolarSystem.currentPOV
 		dest = self.SolarSystem.getBodyFromName(destination.lower())
 		if dest != None:
 			print ("we got the body info")
@@ -332,6 +333,7 @@ class FOCUSpanel(AbstractUI):
 				print rate_func.ease_in_out(float(i)/100)
 		else:
 			print "failed to obtain destination"
+	"""
 
 	def OnLocalRef(self, e):
 		#print ("currentPOV:",self.SolarSystem.currentPOVselection)
@@ -1879,6 +1881,8 @@ class WIDGETSpanel(AbstractUI):
 		self.Earth.PlanetWidgets.currentLocation = self.Earth.PlanetWidgets.defaultLocation
 		loc = self.Earth.PlanetWidgets.Loc[self.Earth.PlanetWidgets.currentLocation]
 		loc.show(self.ncpcb.GetValue())
+
+		# testing shifting earth locations
 		self.Earth.PlanetWidgets.shiftLocation(TZ_FR_PARIS)
 		self.Earth.PlanetWidgets.shiftLocation(TZ_RUS_BAIK)
 		self.Earth.PlanetWidgets.shiftLocation(TZ_US_VDBERG)
