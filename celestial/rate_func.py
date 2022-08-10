@@ -1,21 +1,32 @@
+# Rate functions can be used "incrementally" or "absolutely"
+#   Typically these functions require a domain between [0, 1] and will
+#   return a value always comprise in the interval [0, 1]. 
+#
+#   So, as a consequence, always make sure to have the input parameter between [0, 1] 
 # 2 types of rate functions:
-# 1) functions operating on a quantity to deduct a value at a given step knowing the 
-# original and final value of that quantity. for instance: 
+# 1) When used absolutely, rate functions operate on a quantity to deduct a value at a 
+# given step knowing the global quantity difference. 
+#   
+#   for instance: 
 #
 #       current_dist = original_distance + (original_distance - final_distance) * rate_func(step)
 #
 #    The current value is calculated using the original value as a reference, incremented by
-#    the rate function x the difference
+#    the rate_function * the_total_difference
 #   
-# 2) functions operating on a quantity to deduct a value at a given step knowing the value at
-# the previous step on that time frame. for instance:
+# 2) When used incrementally, rate functions operate on a quantity to deduct a value at a 
+# given step knowing the value at the previous step. 
+# 
+#   for instance:
+#
 #       current_angle = current_angle + (angle_variation) * rate_func(step)
 #
 #    The current value is calculated using the value at the previous step as a reference, incremented by
-#    the rate function x the difference.
+#    the rate_function * the_total_difference.
 #
-#    Typically these functions return the value at each born
-#    of the interval [0,1]. Example is "there_and_back"
+# Depending on the type of "rate of change" we want to use it for, we will need either type of rate functions.
+#
+# Note: the rate profile of rate functions will have a dratically different effect when used absolutely of incrementally.
 
 import numpy as np
 
@@ -29,6 +40,23 @@ def unit_interval(function):
             return 0
         else:
             return 1
+
+    return wrapper
+
+# To improve runtime, this decorator is temporary and used for testing
+# purpose, but should be removed upon good test results
+def test_unit_interval(function):
+    def wrapper(t, *args, **kwargs):
+        if 0 <= t <= 1:
+            return function(t, *args, **kwargs)
+        elif t < 0:
+            print (function, " returned a negative value: ", t)
+            return 0
+        else:
+            print (function, " returned a value greater than 1: ", t)
+            return 1
+
+    return wrapper
 
 # all func are a variation of:
 # F(alpha, t) = (t^alpha)/(t^alpha + (1-t)^alpha)
@@ -85,7 +113,7 @@ def smooth(t):
 
 
 @unit_interval
-def smoothSig(t: float, inflection: float = 10.0) -> float:
+def smoothSig(t, inflection = 10.0):
     error = sigmoid(-inflection / 2)
     return min(
         max((sigmoid(inflection * (t - 0.5)) - error) / (1 - 2 * error), 0),
@@ -209,7 +237,7 @@ def ease_out_circ(t):
 
 
 @unit_interval
-def ease_in_out_circ(t: float) -> float:
+def ease_in_out_circ(t):
     return (
         (1 - np.sqrt(1 - pow(2 * t, 2))) / 2
         if t < 0.5
@@ -255,7 +283,7 @@ def ease_in_out_elastic(t):
 
 # in-out bounce
 @unit_interval
-def ease_in_bounce(t: float) -> float:
+def ease_in_bounce(t):
     return 1 - ease_out_bounce(1 - t)
 
 @unit_interval

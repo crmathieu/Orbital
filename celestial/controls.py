@@ -240,7 +240,7 @@ class FOCUSpanel(AbstractUI):
 	def OnTransition(self, e):
 		self.smoothTransition = self.cbst.GetValue() 
 
-	def smoothFocus(self, destination):
+	def smoothFocus(self, destination, ratefunc = rate_func.ease_in_out):
 		# going from current object to next current object
 		#print ("SMOOTH FOCUS to", destination)
 		self.SolarSystem.currentPOV
@@ -284,7 +284,7 @@ class FOCUSpanel(AbstractUI):
 		# and final locations time the rate for this particular step.
 
 		for i in np.arange(0, total_steps+1, 1):
-			r = rate_func.ease_in_out(float(i)/total_steps)
+			r = ratefunc(float(i)/total_steps)
 			self.SolarSystem.Scene.center = vector( (Xc + r*deltaX),
 													(Yc + r*deltaY),
 													(Zc + r*deltaZ))

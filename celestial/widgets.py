@@ -169,18 +169,61 @@ class makePlanetWidgets():
 #			dangle = iAngle
 #			sleep(1e-2)
 
-###########                
+###########              
 
     def shiftLocation(self, locationID):
 
         #print "going from ",self.Loc[self.defaultLocation].GeoLoc.pos , "to", self.Loc[TZ_FR_PARIS].GeoLoc.pos
-        print "BEFORE: Forward=", self.Planet.SolarSystem.camera.getDirection() #Scene.forward
+        #### print "BEFORE: Forward=", self.Planet.SolarSystem.camera.getDirection() #Scene.forward
 
-        # calculate angle between normal of current location and normal to camera
+        # calculate angle between normal of current location and normal to camera. Here
+        # (x,y,z) is the vector between camera location and planet center
         x = self.Planet.SolarSystem.camera.view.mouse.pos[0] - self.Planet.Origin.pos[0]
         y = self.Planet.SolarSystem.camera.view.mouse.pos[1] - self.Planet.Origin.pos[1]
         z = self.Planet.SolarSystem.camera.view.mouse.pos[2] - self.Planet.Origin.pos[2]
 
+        # calculate angle between (x,y,z) and default location Nomal vector
+        angleA = getAngleBetweenVectors(self.Loc[self.defaultLocation].Grad, -vector(x,y,z))
+        print "Angle between ", self.Loc[self.defaultLocation].Name, " and camera:", angleA
+
+        # zoom out
+        #### self.Planet.SolarSystem.camera.cameraZoom(duration = 1, velocity = 10, recorder = False, zoom = self.Planet.SolarSystem.camera.ZOOM_OUT)
+        # refocus smoothly from current location to planet center
+        self.Planet.SolarSystem.Dashboard.focusTab.smoothFocus(self.Planet.Name)
+
+        # calculate angle between camera location Normal and new location normal
+        angle = getAngleBetweenVectors(-self.Planet.SolarSystem.camera.view.forward, self.Loc[locationID].Grad)
+        print "Angle=", angle
+
+        # shift focus and rotate to new location
+        self.Loc[locationID].updateEclipticPosition()
+        direction =  self.ROT_CCLKW
+        if self.Loc[locationID].long < self.Loc[self.defaultLocation].long:
+            direction =  self.ROT_CLKW
+
+
+        self.shiftFocus(self.Loc[locationID].getEclipticPosition(), angle+angleA, direction = direction)
+        self.defaultLocation = locationID
+        self.Planet.SolarSystem.camera.cameraZoom(duration = 1, velocity = 10, recorder = False, zoom = self.Planet.SolarSystem.camera.ZOOM_IN)
+
+        # rotate camera direction by the same angle
+        #self.Planet.SolarSystem.camera.cameraRotateRight(angle, False)
+
+        return
+
+
+    def shiftLocationXX(self, locationID):
+
+        #print "going from ",self.Loc[self.defaultLocation].GeoLoc.pos , "to", self.Loc[TZ_FR_PARIS].GeoLoc.pos
+        #### print "BEFORE: Forward=", self.Planet.SolarSystem.camera.getDirection() #Scene.forward
+
+        # calculate angle between normal of current location and normal to camera. Here
+        # (x,y,z) is the vector between camera location and planet center
+        x = self.Planet.SolarSystem.camera.view.mouse.pos[0] - self.Planet.Origin.pos[0]
+        y = self.Planet.SolarSystem.camera.view.mouse.pos[1] - self.Planet.Origin.pos[1]
+        z = self.Planet.SolarSystem.camera.view.mouse.pos[2] - self.Planet.Origin.pos[2]
+
+        # calculate angle between (x,y,z) and default location Nomal vector
         angleA = getAngleBetweenVectors(self.Loc[self.defaultLocation].Grad, -vector(x,y,z))
         print "Angle between ", self.Loc[self.defaultLocation].Name, " and camera:", angleA
 

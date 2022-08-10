@@ -1,5 +1,6 @@
 from visual import *
 from rate_func import *
+#import rate_func
 from utils import deg2rad, rad2deg, getAngleBetweenVectors, getOrthogonalVector
 
 from video import * 
@@ -142,7 +143,7 @@ class camera:
 			velocity = self.MAX_ZOOM_VELOCITY
 		elif velocity < 0:
 			velocity = 1
-		self.cameraZoom(duration=1, velocity=velocity)
+		self.cameraZoom(duration=1, velocity=velocity, ratefunc = there_and_back)
 #		self.cameraZoom(duration=3, velocity=0)
 
 	def cameraRefresh(self):
@@ -156,6 +157,7 @@ class camera:
 	# will look natural. 
 
 	def cameraZoom(self, duration, velocity = 1, recorder = False, zoom = ZOOM_IN, ratefunc = there_and_back):
+		print "ZOB ", ratefunc
 		# for camera zoom motion, both right and left mouse buttons must be held down
 		left, right, middle = True, True, False
 		shift, ctrl, alt, cmd = False, False, False, False

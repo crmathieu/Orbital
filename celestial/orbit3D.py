@@ -1372,6 +1372,11 @@ class makeEarth(planet):
 		# position the widgets with the earth current appearence
 		self.PlanetWidgets = makePlanetWidgets(self)
 
+	def makeShapeXX(self):
+		print "MAKING EARTH PNLY..............................."
+		self.Origin.pos=(self.Position[X_COOR]+self.Foci[X_COOR],self.Position[Y_COOR]+self.Foci[Y_COOR],self.Position[Z_COOR]+self.Foci[Z_COOR])
+		self.BodyShape = sphere(frame=self.Origin, pos=(0,0,0), radius=self.radiusToShow/self.SizeCorrection[self.sizeType], make_trail=false)
+
 	def makeLocalRef(self, size, position):
 		self.makeECIref(size, position)
 
