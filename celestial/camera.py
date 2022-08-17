@@ -1,8 +1,9 @@
 from visual import *
 from rate_func import *
 #import rate_func
-from utils import deg2rad, rad2deg, getAngleBetweenVectors, getOrthogonalVector
-
+from utils import deg2rad, rad2deg, getAngleBetweenVectors, getOrthogonalVector, getVectorOrthogonalToPlane
+from objects import simpleArrow
+from planetsdata import EARTH_NAME
 from video import * 
 
 # All camera movements occur using a focal point centered on the
@@ -34,7 +35,7 @@ from video import *
 
 
 
-class camera:
+class camera3D:
 
 	ROT_HOR = 1
 	ROT_VER = 2
@@ -59,11 +60,18 @@ class camera:
 	X_OFF = 2
 	Y_OFF = 3
 
-	def __init__(self, solSys):
-		self.view = solSys.Scene
-		self.solarSystem = solSys
+	VELOCITY_MAX = 3.0
+	VELOCITY_MIN = 0.1
+
+	def __init__(self, solarSystem):
+		self.view = solarSystem.Scene
+		self.SolarSystem = solarSystem
 		self.MAX_ZOOM_VELOCITY = 100
+		self.transitionVelocityFactor = 1.0  # normal speed. speed can go as slow as 1/100 and as fast as 4 times the normal speed
 		
+	def setEarthLocations(self):
+		self.Loc = self.SolarSystem.EarthRef.PlanetWidgets.Loc
+
 	def getDirection(self):
 		return self.view.forward
 		
@@ -172,7 +180,8 @@ class camera:
 
 		# calculate number of ticks
 		#### ticks = duration * 70 # duration / sleep time which is 0.01
-		ticks = int(duration * 70 * self.solarSystem.Dashboard.focusTab.transitionVelocityFactor)
+#		ticks = int(duration * 70 * self.SolarSystem.Dashboard.focusTab.transitionVelocityFactor)
+		ticks = int(duration * 70 * self.transitionVelocityFactor)
 		for i in range(ticks):
 			# calculate rate of velocity as a function of time
 			##### r = there_and_back(float(i)/ticks)
@@ -189,24 +198,20 @@ class camera:
 			[shift, ctrl, alt, cmd])
 			sleep(1e-2)
 			if recorder == True:
-				recOneFrame(self.solarSystem.Dashboard.orbitalTab.VideoRecorder)
+				recOneFrame(self.SolarSystem.Dashboard.orbitalTab.VideoRecorder)
 
 
 
 
 ############################ GOOD FROM HERE DOWN
 
-	def getAngleBetweenVectorsXX(self, v1, v2):
-		dotProduct = v1[0]*v2[0]+v1[1]*v2[1]+v1[2]*v2[2]
-		theta = np.arccos(dotProduct/(mag(v1)*mag(v2)))
-		return rad2deg(theta)
-
 	# for normal rotation operation, a rate function such as "ease_in_out" creates a smooth panoramic. If the rotation
 	# was preceded by a zoom that ended at its ratefunc maximum value (1), the rotation could use a rate function
 	# that starts at its maximum value, such as "1 - rush_into",  to ensure a continuous flow.
 
 	def cameraRotationAxis(self, angle, axis, recorder, direction, ratefunc = ease_in_out):
-		total_steps = int(100 * self.solarSystem.Dashboard.focusTab.transitionVelocityFactor)
+#		total_steps = int(100 * self.SolarSystem.Dashboard.focusTab.transitionVelocityFactor)
+		total_steps = int(100 * self.transitionVelocityFactor)
 
 		rangle = deg2rad(angle) * (-1 if direction == self.ROT_CLKW else 1)
 		dangle = 0.0
@@ -218,29 +223,8 @@ class camera:
 			dangle = iAngle
 			sleep(1e-2)
 			if recorder == True:
-				recOneFrame(self.solarSystem.Dashboard.orbitalTab.VideoRecorder)
+				recOneFrame(self.SolarSystem.Dashboard.orbitalTab.VideoRecorder)
 
-
-	def getOrthogonalVectorXX(self, vec):
-		# The set of all possible orthogonal vectors is a Plane. Among all possible 
-		# orthogonal vectors we choose the one that also to the (x,y) plane (with z=0) 
-		# and whose x coordinate is arbitrary 1. Using these presets, we can deduct the 
-		# y coordinate by applying a dot product between our vec and the orthogonal vector. 
-		# Its results must be zero since the vectors are othogonal. 
-		# (x.x1 + y.y1 + z.z1 = 0)  => y = -(z.z1 + x.x1)/y1 
-		z = 0
-		x, y = 0, 0
-		if vec[1] != 0:
-			x = 1
-			y = -vec[0]*x/vec[1]
-		else:
-			
-			y = 1
-			x = 0
-
-		# return a unit vector
-		norm = mag((x, y, z))
-		return vector(x/norm, y/norm, z/norm)
 
 	def cameraRotateDown(self, angle, recorder):
 #		vangle = self.getAngleBetweenVectors(self.view.forward, vector(0,0,-1))
@@ -274,6 +258,198 @@ class camera:
 		self.cameraRotationAxis(angle, vector(0,0,1), recorder, direction=self.ROT_CCLKW)
 
 ######################
+
+	def updateCameraPOV(self, loc = None):
+		if loc != None:
+			print "Location is", loc.Name
+
+		if self.SolarSystem.cameraPOV == None:
+			print "no curent object"
+			return
+
+		if self.SolarSystem.cameraPOV.Name.lower() == EARTH_NAME:
+			earthLocPos = None
+			w = self.SolarSystem.EarthRef.PlanetWidgets
+			if loc == None:
+				if w.currentLocation >= 0:
+					#w = self.Earth.PlanetWidgets.Loc[w.currentLocation]
+					earthLocPos = w.Loc[w.currentLocation].getEclipticPosition()
+			else:
+				loc.updateEclipticPosition()
+				earthLocPos = loc.getEclipticPosition()
+				print "reading ecliptic from loc", loc.getEclipticPosition()
+
+			if earthLocPos != None:
+				#print "centering on loc", earthLocPos.Name
+				self.SolarSystem.Scene.center = (
+					earthLocPos[0],
+					earthLocPos[1],
+					earthLocPos[2]
+				)
+				return
+		#else:
+		
+		# the following values will do the following
+		# (0,-1,-1): freezes rotation and looks down towards the left
+		# (0,-1, 1): freezes rotation and looks up towards the left
+		# (0, 1, 1): freezes rotation and looks up towards the right
+		# (0, 1,-1): freezes rotation and looks down towards the right
+
+		# self.SolarSystem.Scene.forward = (0, 0, -1)
+		# For a planet, Foci(x, y, z) is (0,0,0). For a moon, Foci represents the 
+		# position of the planet the moon orbits around in the ecliptic referential
+
+		######self.surfaceRadius = (1.1 * self.SolarSystem.cameraPOV.BodyShape.radius) if self.SolarSystem.SurfaceView == True else 0
+		#print "UPDATING Scene Center with POV origin"
+		self.SolarSystem.Scene.center = (
+			self.SolarSystem.cameraPOV.Position[0] + self.SolarSystem.cameraPOV.Foci[0],
+			self.SolarSystem.cameraPOV.Position[1] + self.SolarSystem.cameraPOV.Foci[1],
+			self.SolarSystem.cameraPOV.Position[2] + self.SolarSystem.cameraPOV.Foci[2]
+		)
+		#print "----------"
+		#print "updateCameraPOV: position:",self.SolarSystem.cameraPOV.Position
+		##print "label coordinates:",self.SolarSystem.cameraPOV.Labels[0].pos
+		#print "updateCameraPOV: label=", self.SolarSystem.cameraPOV.Labels[0].pos, "origin=", self.SolarSystem.cameraPOV.Origin.pos
+		#print "----------"
+
+	def setTransitionVelocity(self, velocity):
+		if velocity > self.VELOCITY_MAX:
+			velocity = self.VELOCITY_MAX
+		elif velocity <= 0:
+			velocity = self.VELOCITY_MIN
+
+		# the higher the velocity, the smaller number of steps
+		self.transitionVelocityFactor = 1/float(velocity)
+
+
+	def _smoothFocus(self, newloc, ratefunc = ease_in_out):
+
+		# (Xc, Yc, Zc) is the current location (scene center before transition)
+		Xc = self.SolarSystem.Scene.center[0]
+		Yc = self.SolarSystem.Scene.center[1]
+		Zc = self.SolarSystem.Scene.center[2]
+		print ("Xc=", Xc, ", Yc=", Yc,", Zc=", Zc)
+		
+		# calculate distance between current location and 
+		# destination for each coordinate 
+		deltaX = (newloc[0] - Xc)
+		deltaY = (newloc[1] - Yc)
+		deltaZ = (newloc[2] - Zc)
+
+		print ("X=", deltaX, ", Y=", deltaY,", Z=", deltaZ)
+
+		if self.SolarSystem.Dashboard.orbitalTab.RecorderOn == True:
+			if self.SolarSystem.Dashboard.orbitalTab.VideoRecorder == None:
+				self.SolarSystem.Dashboard.orbitalTab.VideoRecorder = setVideoRecording(25, "output.avi")
+
+
+		# Calculate number of steps based on current transition velocity factor (default is 1.0)
+		#print ("Smooth Focus TRANSITION VELOCITY=", self.transitionVelocityFactor)
+		total_steps = int(100 * self.transitionVelocityFactor)
+		#print ("Smooth Focus TOTAL_STEPS=", total_steps)
+
+		# move scene center by an increment towards the destination coordinates. Since 
+		# we use 100 * transitionVelocityFactor steps to do that, and our rate function 
+		# only takes an input between 0 and 1, we divide the current increment by the 
+		# total number of steps to always keep the rate function input between these limits.
+		# Incremental location is calculated as the initial location + difference between initial
+		# and final locations time the rate for this particular step.
+
+		for i in np.arange(0, total_steps+1, 1):
+			r = ratefunc(float(i)/total_steps)
+			self.SolarSystem.Scene.center = vector( (Xc + r*deltaX),
+													(Yc + r*deltaY),
+													(Zc + r*deltaZ))
+			sleep(2e-2)
+			#if self.parentFrame.orbitalTab.RecorderOn == True:
+			#	recOneFrame(self.parentFrame.orbitalTab.VideoRecorder)
+			if self.SolarSystem.Dashboard.orbitalTab.RecorderOn == True:
+				recOneFrame(self.SolarSystem.Dashboard.orbitalTab.VideoRecorder)
+
+
+	def smoothFocus2target(self, target, ratefunc = ease_in_out):
+		return self._smoothFocus(target, ratefunc)
+
+	def smoothFocus(self, targetBodyName, ratefunc =  ease_in_out):
+		# going from current object to next current object
+		target = None
+		targetBody = self.SolarSystem.getBodyFromName(targetBodyName.lower())
+		if targetBody == None:
+			# use sun as target
+			target = vector(0,0,0)
+		else:
+			target = targetBody.Position
+
+		return self._smoothFocus(target, ratefunc)
+
+
+	def gotoEarthLocation(self, nextLocation, ratefunc = ease_in_out_quart):
+
+		self.Loc[nextLocation].updateEclipticPosition()
+		nextPos = self.Loc[nextLocation].getGeoPosition()
+
+
+		self.B =  simpleArrow(color.green, 0, 20, nextPos, axisp = self.Loc[nextLocation].Grad/10, context = self.Loc[nextLocation].Origin)
+		self.B.display(True)
+
+		# build radial vector vertical to location in ecliptic coordinate
+		dest = self.Loc[nextLocation].getEclipticPosition()
+		A = dest[0] - self.SolarSystem.EarthRef.Origin.pos[0] #self.Planet.Origin.pos[0]
+		B = dest[1] - self.SolarSystem.EarthRef.Origin.pos[1] #self.Planet.Origin.pos[1]
+		C = dest[2] - self.SolarSystem.EarthRef.Origin.pos[2] #self.Planet.Origin.pos[2] 
+		radialToLocation = vector(A, B, C)
+
+        # (Xc, Yc, Zc) is the current location of center (before transition)
+		Xc = self.SolarSystem.Scene.center[0]
+		Yc = self.SolarSystem.Scene.center[1]
+		Zc = self.SolarSystem.Scene.center[2]
+        #print ("Xc=", Xc, ", Yc=", Yc,", Zc=", Zc)
+        
+		# calculate distance between current location and 
+		# destination for each coordinate 
+		deltaX = (dest[0] - Xc)
+		deltaY = (dest[1] - Yc)
+		deltaZ = (dest[2] - Zc)
+
+		if self.SolarSystem.Dashboard.orbitalTab.RecorderOn == True:
+			if self.SolarSystem.Dashboard.orbitalTab.VideoRecorder == None:
+				self.SolarSystem.Dashboard.orbitalTab.VideoRecorder = setVideoRecording(25, "output.avi")
+
+        # Calculate number of steps based on current transition velocity factor (default is 1.0)
+		total_steps = int(100) * self.transitionVelocityFactor
+
+		# radialToCamera (vector between center of earth and camera location)
+		radialToCamera = -self.SolarSystem.Scene.forward
+
+		# determine axis of rotation. We do that by obtaining a vector orthogonal 
+		# to the plane defined our 2 radial vectors
+		rotAxis = getVectorOrthogonalToPlane(radialToCamera, radialToLocation)
+		#self.K =  simpleArrow(color.cyan, 0, 20, self.Planet.SolarSystem.Scene.mouse.camera, axisp = 1e4*rotAxis, context = None) #self.Loc[locationID].Origin)
+		#self.K.display(True)
+
+		# determine angle between 2 radial vectors
+		rotAngle = deg2rad(getAngleBetweenVectors(radialToCamera, radialToLocation))
+        
+		accumulated_rot = 0.0
+		for i in np.arange(0, total_steps+1, 1):
+			# incrementally, change center focus and rotate
+			r = ratefunc(float(i)/total_steps)
+			self.SolarSystem.Scene.center = vector( (Xc + r*deltaX),
+													(Yc + r*deltaY),
+													(Zc + r*deltaZ))
+
+			iAngle = rotAngle * r
+
+			self.SolarSystem.Scene.forward = rotate(self.SolarSystem.Scene.forward, angle=(iAngle-accumulated_rot), axis=rotAxis)
+			accumulated_rot = iAngle
+
+			sleep(2e-2)
+			if self.SolarSystem.Dashboard.orbitalTab.RecorderOn == True:
+				recOneFrame(self.SolarSystem.Dashboard.orbitalTab.VideoRecorder)
+
+		self.SolarSystem.EarthRef.PlanetWidgets.currentLocation = nextLocation
+
+
 """	
 	#def cameraPan(self, duration, velocity = 1, direction = ROT_CLKW):
 	def cameraPan(self, angle, axis, recorder, direction, ptype):
@@ -462,4 +638,38 @@ if False:
 		drawCameraFrame()  # recreate camera frame and its contents
 		mode_lab.SetLabel("")  # as is no longer right 
 		if not qPy:  setModView() # because drawCameraFrame() assumes qPy is True. 
+
+def drawCameraFrame():  # create frame and draw its contents
+    global  cam_box, cent_plane,  cam_lab, cam_tri, range_lab, linelen, fwd_line
+    global fwd_arrow, mouse_line, mouse_arrow, mouse_lab, fov, range_x, cam_dist, cam_frame
+    global ray
+    cam_frame = vs.frame( pos = vs.vector(0,2,2,),  axis = (0,0,1))
+               # NB: contents are rel to this frame.  start with camera looking "forward"
+               # origin is at simulated scene.center
+    fov = vs.pi/3.0  # 60 deg 
+    range_x = 6  # simulates scene.range.x  
+    cam_dist = range_x / vs.tan(fov/2.0)  # distance between camera and center. 
+    ray = vs.vector(-20.0, 2.5, 3.0).norm()  # (unit) direction of ray vector (arbitrary)
+                                         #  REL TO CAMERA FRAME
+    cam_box = vs.box(frame=cam_frame, length=1.5, height=1, width=1.0, color=clr.blue,
+                                                   pos=(cam_dist,0,0)) # camera-box
+    cent_plane = vs.box(frame=cam_frame, length=0.01, height=range_x*1.3, width=range_x*2,
+                                                    pos=(0,0,0), opacity=0.5 )  # central plane
+    cam_lab = vs.label(frame=cam_frame, text= 'U', pos= (cam_dist,0,0), height= 9, xoffset= 6)
+    cam_tri = vs.faces( frame=cam_frame, pos=[(0,0,0), (0,0,-range_x), (cam_dist,0,0)])
+    cam_tri.make_normals()
+    cam_tri.make_twosided()
+    range_lab = vs.label(frame=cam_frame, text= 'R', pos= (0, 0, -range_x), height= 9, xoffset= 6)
+    linelen = scene_size + vs.mag( cam_frame.axis.norm()*cam_dist + cam_frame.pos)
+                                                                   # len of lines from camera
+    fwd_line = drawLine( vs.vector(cam_dist,0,0), linelen, vs.vector(-1,0,0))
+    fwd_arrow = vs.arrow(frame=cam_frame, axis=(-2,0,0), pos=(cam_dist, 0, 0), shaftwidth=0.08,
+                                                                            color=clr.yellow)
+    vs.label(frame=cam_frame, text='C', pos=(0,0,0), height=9, xoffset=6, color=clr.yellow)
+    mouse_line = drawLine ( vs.vector(cam_dist,0,0), linelen, ray ) 
+    mouse_arrow = vs.arrow(frame=cam_frame, axis=ray*2, pos=(cam_dist,0,0), shaftwidth=0.08,
+                                                                                   color=clr.red)
+    mouse_lab = vs.label(frame=cam_frame, text= 'M', height= 9, xoffset= 10, color=clr.red, 
+                                pos=  -ray*(cam_dist/vs.dot(ray,(1,0,0))) + (cam_dist,0,0))
+
 """

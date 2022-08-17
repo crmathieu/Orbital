@@ -32,14 +32,15 @@ from visual import *
 
 #import spice
 
-from location import *
+from location import Timeloc
 from planetsdata import *
 from utils import deg2rad, rad2deg
 
-from camera import *
+from camera import camera3D
 from objects import simpleArrow
+import json
 
-locationInfo = Timeloc() 
+#locationInfo = Timeloc() 
 
 # CLASS SOLARSYSTEM -----------------------------------------------------------
 class makeSolarSystem:
@@ -52,7 +53,8 @@ class makeSolarSystem:
 	bodies = []
 
 	def __init__(self):
-		self.todayUTCdatetime = locationInfo.getUTCDateTime()
+		self.locationInfo = Timeloc()
+		self.todayUTCdatetime = self.locationInfo.getUTCDateTime()
 		self.SurfaceView = False
 		self.SurfaceDirection = [0,0,0]
 		self.Name = "Sun"
@@ -65,14 +67,14 @@ class makeSolarSystem:
 		self.SlideShowInProgress = False
 		self.currentSource = PHA
 		self.JTrojansIndex = -1
-		self.currentPOV = None
+		self.cameraPOV = None
 		self.LocalRef = False
-		self.currentPOVselection = "SUN"
+		self.cameraPOVselection = "SUN"
 		self.Scene = display(title = 'Solar System', width = self.SCENE_WIDTH, height =self.SCENE_HEIGHT, range=3, visible=True, center = (0,0,0))
 
 		self.MT = self.Scene.getMouseTracker()
 		#self.MT.SetMouseStateReporter(self.Scene)
-		self.camera = camera(self)
+		self.camera = camera3D(self)
 		self.Scene.lights = []
 		
 		# the scene camera is a read only vector whose coordinates can be changed 
@@ -177,6 +179,10 @@ class makeSolarSystem:
 			self.sizeType = x
 		self.BodyShape.radius = self.radiusToShow  / self.SizeCorrection[self.sizeType]
 
+	def finalSetup(self, db):
+		self.setDashboard(db)
+		self.camera.setEarthLocations()
+
 	def setDashboard(self, db):
 		self.Dashboard = db
 
@@ -253,7 +259,7 @@ class makeSolarSystem:
 			self.ShowFeatures |= type
 		else:
 			self.ShowFeatures = (self.ShowFeatures & ~type)
-			if 	self.currentPOVselection != "SUN" and self.currentPOV.BodyType == type:
+			if 	self.cameraPOVselection != "SUN" and self.cameraPOV.BodyType == type:
 				# reset SUN as current POV when the currobject should not longer be visible
 				return 1
 		return 0
@@ -319,11 +325,11 @@ class makeSolarSystem:
 
 		#self.SolarSystem.Scene.forward = (0, 0, -1)
 		# For a planet, Foci(x, y, z) is (0,0,0). For a moon, Foci represents the position of the planet the moon orbits around
-		self.currentPOV = body
-		self.currentPOVselection = body.Name.lower()
-		self.Scene.center = (self.currentPOV.Position[X_COOR]+self.currentPOV.Foci[X_COOR],
-							 self.currentPOV.Position[Y_COOR]+self.currentPOV.Foci[Y_COOR],
-							 self.currentPOV.Position[Z_COOR]+self.currentPOV.Foci[Z_COOR])
+		self.cameraPOV = body
+		self.cameraPOVselection = body.Name.lower()
+		self.Scene.center = (self.cameraPOV.Position[X_COOR]+self.cameraPOV.Foci[X_COOR],
+							 self.cameraPOV.Position[Y_COOR]+self.cameraPOV.Foci[Y_COOR],
+							 self.cameraPOV.Position[Z_COOR]+self.cameraPOV.Foci[Z_COOR])
 		print self.Scene.center
 
 	def addTo(self, body):
@@ -413,7 +419,7 @@ class makeSolarSystem:
 
 		setRefTo = True if self.ShowFeatures & REFERENTIAL != 0 else False
 		
-		if 	self.currentPOVselection == self.JPL_designation and \
+		if 	self.cameraPOVselection == self.JPL_designation and \
 			self.ShowFeatures & LOCAL_REFERENTIAL:
 			setRelTo = True
 		else:
@@ -697,6 +703,7 @@ class makeBody:
 
 		self.ObjectIndex = key
 		self.SolarSystem 			= system
+		self.locationInfo 			= system.locationInfo
 		self.AxialTilt				= system.objects_data[key]["axial_tilt"]
 		self.Name					= system.objects_data[key]["name"]		# body name
 		self.Iau_name				= system.objects_data[key]["iau_name"]		# body iau name
@@ -1019,7 +1026,7 @@ class makeBody:
 	#def setOrbitalFromKeplerianElements(self, elts, timeincrement):
 		# get number of days since J2000 epoch and obtain the fraction of century
 		# (the rate adjustment is given as a rate per century)
-		days = daysSinceJ2000UTC() + timeincrement #- ADJUSTMENT_FACTOR_PLANETS # - 1.43
+		days = daysSinceJ2000UTC(self.locationInfo) + timeincrement #- ADJUSTMENT_FACTOR_PLANETS # - 1.43
 		#T = (daysSinceJ2000UTC() + timeincrement)/36525. # T is in centuries
 
         # These formulas use 'days' based on days since 1/Jan/2000 12:00 UTC ("J2000.0"), 
@@ -1078,7 +1085,7 @@ class makeBody:
 		# calculate current position based on orbital elements
 		#dT = daysSinceEpochJD(self.Epoch) + timeincrement # timeincrement comes in days
 		
-		dT = daysSinceEpochJD(self.Epoch) + timeincrement # - ADJUSTMENT_COEFFICIENT # substracting 0.5 to match for earth correction
+		dT = daysSinceEpochJD(self.Epoch, self.locationInfo) + timeincrement # - ADJUSTMENT_COEFFICIENT # substracting 0.5 to match for earth correction
 #		dT = daysSinceEpochJD(self.Time_of_perihelion_passage) + timeincrement 
 
 		# compute Longitude of Ascending node taking into account the time elapsed since epoch
@@ -1139,7 +1146,7 @@ class makeBody:
 		
 		# calculate current RA, to position the obliquity properly:
 		if "RA_1" in self.SolarSystem.objects_data[self.ObjectIndex]:
-			T = daysSinceJ2000UTC()/36525. # T is in centuries
+			T = daysSinceJ2000UTC(self.locationInfo)/36525. # T is in centuries
 			self.RA = self.SolarSystem.objects_data[self.ObjectIndex]["RA_1"] + self.SolarSystem.objects_data[self.ObjectIndex]["RA_2"] * T
 			self.Origin.rotate(angle=deg2rad(self.RA), axis=self.ZdirectionUnit, origin=(self.Position[X_COOR]+self.Foci[X_COOR],self.Position[Y_COOR]+self.Foci[Y_COOR],self.Position[Z_COOR]+self.Foci[Z_COOR]))
 		#else:
@@ -1225,8 +1232,8 @@ class makeBody:
 			self.Details == True:
 			if self.Origin.visible == False:
 				self.show()
-			# if this is the currentPOV, check for local referential attribute
-			if 	self.SolarSystem.currentPOVselection == self.JPL_designation and \
+			# if this is the cameraPOV, check for local referential attribute
+			if 	self.SolarSystem.cameraPOVselection == self.JPL_designation and \
 				self.SolarSystem.ShowFeatures & LOCAL_REFERENTIAL:
 					setTo = True
 			else:
@@ -1456,7 +1463,7 @@ class makeEarth(planet):
 		# see the document "data/texture-positioning.png"
 
 		if localDatetime == None:
-			localDatetime = locationInfo.localdatetime
+			localDatetime = self.locationInfo.localdatetime
 		else:
 			# reset texture
 			self.resetTexture()
@@ -1469,11 +1476,11 @@ class makeEarth(planet):
 		#print "setTextureFromSolarTime: Initial angle between earth and Ecliptic referential Y is ", Theta, " rd (", Theta * (180/math.pi), "degrees)"
 
 		# calculate angle between location and the dateline
-		Beta =  deg2rad(locationInfo.Time2degree(locationInfo.TimeToWESTdateline))
+		Beta =  deg2rad(self.locationInfo.Time2degree(self.locationInfo.TimeToWESTdateline))
 		Omega = Beta - self.Alpha
 
 		# calculate rotation necessary to position texture properly for this local time
-		Psi = Theta + deg2rad(locationInfo.computeSolarTime(localDatetime)) - Omega
+		Psi = Theta + deg2rad(self.locationInfo.computeSolarTime(localDatetime)) - Omega
 
 		if False:
 			print "adjust "+self.Name+": Alpha .............  ", self.Alpha
@@ -1515,7 +1522,7 @@ class makeEarth(planet):
 		# see the document "data/texture-positioning.png"
 
 		if localDatetime == None:
-			localDatetime = locationInfo.localdatetime
+			localDatetime = self.locationInfo.localdatetime
 
 		# calculate initial angle (theta) between sun-earth 
 		# axis and solar referential x axis tan(theta) = Y/X
@@ -1524,11 +1531,11 @@ class makeEarth(planet):
 		#print "setTextureFromSolarTime: Initial angle between earth and Ecliptic referential Y is ", Theta, " rd (", Theta * (180/math.pi), "degrees)"
 
 		# calculate angle between location and the dateline
-		Beta =  deg2rad(locationInfo.Time2degree(locationInfo.TimeToWESTdateline))
+		Beta =  deg2rad(self.locationInfo.Time2degree(self.locationInfo.TimeToWESTdateline))
 		Omega = Beta - self.Alpha
 
 		# calculate rotation necessary to position texture properly for this local time
-		Psi = Theta + deg2rad(locationInfo.computeSolarTime(localDatetime)) - Omega
+		Psi = Theta + deg2rad(self.locationInfo.computeSolarTime(localDatetime)) - Omega
 
 		if False:
 			print "adjust "+self.Name+": Alpha .............  ", self.Alpha
@@ -1619,11 +1626,11 @@ class makeEarth(planet):
 		# calculate angle between location and the dateline
 
 		# Calculate the local initial angle between the normal to the sun and our location
-		alpha = deg2rad(locationInfo.Time2degree(locationInfo.TimeToWESTdateline)) # * 3600))
+		alpha = deg2rad(self.locationInfo.Time2degree(self.locationInfo.TimeToWESTdateline)) # * 3600))
 		omega = alpha - TEXTURE_POSITIONING_CORRECTION
 
-		self.Gamma = pi/2 + deg2rad(locationInfo.solarT) - omega
-					 #+ deg2rad(locationInfo.Time2degree(locationInfo.TimeToWESTdateline * 3600)) \
+		self.Gamma = pi/2 + deg2rad(self.locationInfo.solarT) - omega
+					 #+ deg2rad(self.locationInfo.Time2degree(self.locationInfo.TimeToWESTdateline * 3600)) \
 					 #+ self.iDelta 
 		self.LocalInitialAngle = self.Gamma# + self.Theta
 		#self.LocalInitialAngle = 0
@@ -1652,8 +1659,8 @@ class makeEarth(planet):
 		print "Initial angle for earth referential Y is ", self.Theta, " rd"
 
 		# Calculate the local initial angle between the normal to the sun and our location
-		self.Gamma = deg2rad(locationInfo.solarT) \
-					 + deg2rad(locationInfo.Time2degree(locationInfo.TimeToEASTdateline)) \
+		self.Gamma = deg2rad(self.locationInfo.solarT) \
+					 + deg2rad(self.locationInfo.Time2degree(self.locationInfo.TimeToEASTdateline)) \
 					 + self.Theta 
 
 		# deduct correction due to initial position of texture on earth sphere, then rotate texture to make it match current time
@@ -1685,18 +1692,18 @@ class makeEarth(planet):
 
 			self.rotationInterval -= timeinsec
 			if self.rotationInterval <= 0:
-				locationInfo.setSolarTime()
+				self.locationInfo.setSolarTime()
 				self.incrementRotation()
 				self.rotationInterval = self.STILL_ROTATION_INTERVAL
 
 	def incrementRotation(self):
 		# recalculate the angle of the texture on sphere based on updated time 
-		#newLocalInitialAngle = deg2rad(locationInfo.solarT) \
-		#					   - deg2rad(locationInfo.Time2degree(locationInfo.TimeToEASTdateline)) \
+		#newLocalInitialAngle = deg2rad(self.locationInfo.solarT) \
+		#					   - deg2rad(self.locationInfo.Time2degree(self.locationInfo.TimeToEASTdateline)) \
 		#					   - self.Theta 
 
-		newLocalInitialAngle = deg2rad(locationInfo.solarT) \
-							   + deg2rad(locationInfo.Time2degree(locationInfo.TimeToEASTdateline)) \
+		newLocalInitialAngle = deg2rad(self.locationInfo.solarT) \
+							   + deg2rad(self.locationInfo.Time2degree(self.locationInfo.TimeToEASTdateline)) \
 					 		   + self.Theta 
 
 		# rotate for the difference between updated angle and its formal value
@@ -1711,7 +1718,7 @@ class makeEarth(planet):
 		# get number of days since J2000 epoch and obtain the fraction of century
 		# (the rate adjustment is given as a rate per century)
 		Adjustment = 0 #0.35
-		days = daysSinceJ2000UTC() + timeincrement #- ADJUSTMENT_FACTOR_PLANETS # - 1.43
+		days = daysSinceJ2000UTC(self.locationInfo) + timeincrement #- ADJUSTMENT_FACTOR_PLANETS # - 1.43
 #		days = daysSinceJ2000UTC() + timeincrement # - 1.43
 		
 		#T = (daysSinceJ2000UTC() + timeincrement)/36525. # T is in centuries
@@ -2735,21 +2742,21 @@ def julian(d,m,y):
 	return temp2 + 367 * (m - 2 - temp3) / 12 - 3 * temp4 / 4
 
 # will compute the number of days since J2000 UTC
-def daysSinceJ2000UTC(delta = 0):
+def daysSinceJ2000UTC(locationInfo, delta = 0):
 	#utc = datetime.datetime.utcnow()
 	utc = locationInfo.getUTCDateTime()
 
 	return makeJulianDate(utc, delta)
 
-def daysSinceEpochJD(julianDate):
+def daysSinceEpochJD(julianDate, locationInfo):
 	if julianDate == 0:
 		# when epoch is not known, epoch is set to zero
 		return 0
 	# otherwise determine number of days since epoch
-	days = daysSinceJ2000UTC() # days from 2000
+	days = daysSinceJ2000UTC(locationInfo) # days from 2000
 	return days - (julianDate - EPOCH_2000_JD)
 
-def daysSinceEpochJDfromUnixTimeStamp(UnixTimeStamp):
+def daysSinceEpochJDfromUnixTimeStamp(UnixTimeStamp, locationInfo):
 	# Unix timestamp are the number of seconds since 01-01-1970 GMT.
 	# first let's convert that number in a number of days, by a)
 	# calculating the number of days since 1970 and b) add the number
@@ -2758,14 +2765,14 @@ def daysSinceEpochJDfromUnixTimeStamp(UnixTimeStamp):
 
 	# second convert that number of days into the number of days since
 	# 01-01-2000
-	return daysSinceEpochJD(ndays)
+	return daysSinceEpochJD(ndays, locationInfo)
 
 #    now_timestamp = time.time()
 #    offset = datetime.datetime.fromtimestamp(now_timestamp) - datetime.datetime.utcfromtimestamp(now_timestamp)
 #    return utc_datetime + offset
 
 
-def utc_to_local_fromTimestamp(utcTimeStamp):
+def utc_to_local_fromTimestamp(utcTimeStamp, locationInfo):
 	# given a UTC timestamp, figure out local datetime
 	utc	= datetime.datetime.fromtimestamp(utcTimeStamp)
 	utc = utc.replace(tzinfo=pytz.utc)
@@ -2774,13 +2781,14 @@ def utc_to_local_fromTimestamp(utcTimeStamp):
 
 
 # Convert date/time from UTC to local date/time
-def utc_to_local_fromDatetime(utc_datetime):
+def utc_to_local_fromDatetime(utc_datetime, locationInfo):
 	
 	return utc_datetime + locationInfo.longitudeSign * datetime.timedelta(seconds=locationInfo.TimeToUtcInSec())
 	#return utc_datetime - datetime.timedelta(seconds=locationInfo.TimeToUtcInSec())
 
 
 # Convert date/time from UTC to local date/time
+"""
 def utc_to_localXX():
 	UTC_datetime = datetime.datetime.utcnow()
 	UTC_datetime_timestamp = datetime.datetime.timestamp(UTC_datetime) #float(UTC_datetime.strftime("%S"))
@@ -2800,11 +2808,11 @@ def to_timestampXX(a_date):
 
     if a_date.tzinfo:
     	pass
-    	"""
-    	print "TZINFO", a_date.tzinfo
-        epoch = datetime.datetime(1970, 1, 1, tzinfo=pytz.UTC)
-        diff = a_date.astimezone(pytz.UTC) - epoch
-        """
+    	
+    	#print "TZINFO", a_date.tzinfo
+        #epoch = datetime.datetime(1970, 1, 1, tzinfo=pytz.UTC)
+        #diff = a_date.astimezone(pytz.UTC) - epoch
+        
     else:
         epoch = datetime.datetime(1970, 1, 1)
         diff = a_date - epoch
@@ -2814,4 +2822,4 @@ def to_timestampXX(a_date):
 def from_timestampXX(timestamp):
     return datetime.datetime.fromtimestamp(timestamp, pytz.UTC)
 
-
+"""

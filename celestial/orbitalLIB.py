@@ -7,8 +7,9 @@ and its direction. Stories are found in the "stories" package.
 import time
 from video import *
 import orbit3D
+from planetsdata import LIT_SCENE, LABELS
 
-
+"""
 
 class userLIBXX:
     def __init__(self, solarsystem):
@@ -16,7 +17,6 @@ class userLIBXX:
         #self.setRecorder(recorder)
 
 
-    """
     def setRecorder(self, trueFalse):
         self.recorder = trueFalse
         if self.recorder == True:
@@ -159,14 +159,22 @@ class camera():
         self.recorder = recorder
 #        self.setRecorder(recorder)
 
+    def litScene(self, trueFalse):
+        self.setFeatures(LIT_SCENE, trueFalse)
+        self.solSystem.Dashboard.orbitalTab.checkboxList[LIT_SCENE].SetValue(trueFalse)
+        self.solSystem.refresh()
+
+    def setFeatures(self, flags, trueFalse):
+        return self.solSystem.setFeature(flags, trueFalse)
+
     def pause(self, seconds):
         #ticks = int(float(seconds) / 1e-2) 
         ticks = int(seconds * 25) # 25 = frames / sec
-        print "PAUSE ticks=", ticks, ", param was: ",seconds
+        #print "PAUSE ticks=", ticks, ", param was: ",seconds
         for i in range(ticks):
             time.sleep(1e-2)
             if self.recorder == True:
-                print "Pause: Record Frame"
+                #print "Pause: Record Frame"
                 recOneFrame(self.solSystem.Dashboard.orbitalTab.VideoRecorder)
 
     ### transition primitives ###
@@ -196,7 +204,8 @@ class camera():
         self.solSystem.Dashboard.focusTab.cbst.SetValue(trueFalse) 
     
     def setTransitionVelocityFactor(self, factor):
-        self.solSystem.Dashboard.focusTab.setTransitionVelocity(factor)
+#        self.solSystem.Dashboard.focusTab.setTransitionVelocity(factor)
+        self.solSystem.camera.setTransitionVelocity(factor)
     
     def setCameraTarget(self, bodyName):
         body = self.solSystem.getBodyFromName(bodyName)
@@ -205,6 +214,10 @@ class camera():
             self.solSystem.Dashboard.focusTab.setCurrentBodyFocusManually(body, inx)
         else:
             print ("Unknown Body Name:", bodyName)
+
+    def gotoEarthLocation(self, locationID):
+     	return self.solSystem.camera.gotoEarthLocation(locationID)
+
 
     ### camera recording ###
 

@@ -15,25 +15,25 @@ from orbit3D import deg2rad
 TimeLoc - time management
 
 """
-
-TZ_UTC = 0
-TZ_EG_CAIRO = 1
-TZ_FR_PARIS = 2
-TZ_US_COUVE = 3
-TZ_ICE_REK = 4
-TZ_CHN_HONG = 5
-TZ_AUS_SYD = 6
-TZ_CHL_SAN = 7
-TZ_US_HONO = 8
-TZ_US_CAPE = 9
-TZ_FR_KOUR = 10
-TZ_RUS_BAIK = 11
-TZ_CHN_WE = 12
-TZ_IND_THI = 13
-TZ_US_VDBERG = 14
-TZ_NZ_MAH = 15
-TZ_JP_TAN = 16
-TZ_CHN_XI = 17
+class locList:
+	TZ_UTC = 0
+	TZ_EG_CAIRO = 1
+	TZ_FR_PARIS = 2
+	TZ_US_COUVE = 3
+	TZ_ICE_REK = 4
+	TZ_CHN_HONG = 5
+	TZ_AUS_SYD = 6
+	TZ_CHL_SAN = 7
+	TZ_US_HONO = 8
+	TZ_US_CAPE = 9
+	TZ_FR_KOUR = 10
+	TZ_RUS_BAIK = 11
+	TZ_CHN_WE = 12
+	TZ_IND_THI = 13
+	TZ_US_VDBERG = 14
+	TZ_NZ_MAH = 15
+	TZ_JP_TAN = 16
+	TZ_CHN_XI = 17
 
 
 class Timeloc:

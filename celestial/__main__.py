@@ -100,8 +100,9 @@ def solarSystemLoader(story, recorder):
 	# start wxPython application
 	ex = wx.App(False)
 	dashboard = DashBoard(solSystem)
-	solSystem.setDashboard(dashboard)
-
+	solSystem.finalSetup(dashboard)
+	#solSystem.setDashboard(dashboard)
+	#solSystem.camera.setEarthLocations()
 
 	# play story when provided
 	api = Api(solSystem, recorder = recorder)

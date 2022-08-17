@@ -56,20 +56,27 @@ class story_earthApproach(storyBase):
         #Api.widgets.showNodes(True)
         #Api.camera.pause(1)
         Api.camera.rotateRight(120)
-        Api.widgets.showEquatorialPlane(True)
-        print "after equ plane"
-        Api.camera.pause(5.0)
-        #Api.camera.pause(1)
-        #Api.camera.zoomOut(40)
-
-        """"
+        #Api.widgets.showEquatorialPlane(True)
+        Api.camera.pause(1)
 
         Api.camera.setSmoothTransition(True)
         Api.camera.setTransitionVelocityFactor(1.0)
+        Api.camera.litScene(True)
+        Api.camera.pause(1)
+        
+        Api.camera.gotoEarthLocation(self.locList.TZ_RUS_BAIK)
+        Api.camera.gotoEarthLocation(self.locList.TZ_CHN_XI)
+        Api.camera.gotoEarthLocation(self.locList.TZ_FR_KOUR)
+        Api.camera.gotoEarthLocation(self.locList.TZ_FR_PARIS)
+        Api.camera.gotoEarthLocation(self.locList.TZ_JP_TAN)
+        Api.camera.gotoEarthLocation(self.locList.TZ_EG_CAIRO)
+        Api.camera.gotoEarthLocation(self.locList.TZ_US_VDBERG)
 
+        Api.camera.zoomOut(20)
         Api.camera.setCameraTarget("jupiter")
-        Api.pause(1)
+        Api.camera.pause(1)
 
+        """"
         Api.camera.setCameraTarget("mercury")
         Api.camera.zoomIn(20)
         Api.pause(1)

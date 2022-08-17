@@ -1,7 +1,8 @@
-from celestial.utils import getAngleBetweenVectors
+from celestial.utils import getAngleBetweenVectors, getOrthogonalVector, getVectorOrthogonalToPlane, getXYprojection, getYZprojection
 from orbit3D import *
 from visual import *
-from objects import circle
+#from objects import circle
+from location import locList
 from video import *
 import rate_func
 
@@ -19,6 +20,7 @@ class makePlanetWidgets():
         self.Psi = 0.0
         self.NumberOfSiderealDaysPerYear = 0.0
         self.SiderealCorrectionAngle = 0.0
+        self.zoomToLocation = False
         self.Loc = []
         self.initWidgets()
 
@@ -83,7 +85,7 @@ class makePlanetWidgets():
         self.currentLocation = -1
         self.defaultLocation = -1
         #self.makeLocation(TZ_US_CAPE)
-        self.makeMultipleLocations(TZ_US_CAPE)
+        self.makeMultipleLocations(locList.TZ_US_CAPE)
          
         # align widgets origin with planet tilt
         self.ECEF.rotate(angle=(-self.Planet.TiltAngle), axis=self.Planet.XdirectionUnit) #, origin=(0,0,0))
@@ -106,8 +108,9 @@ class makePlanetWidgets():
     #def smoothFocusShift(self, location):
 
 
-    def shiftFocus(self, dest, angle, direction):
+    def shiftFocus(self, dest, long_angle, lat_angle, long_direction, lat_direction, axis = (0,0,1), ratefunc = rate_func.ease_in_out):
         # going from current location to next destination location coordinates
+        #print ("SHIFT-FOCUS: angle=", long_angle)
 
         # (Xc, Yc, Zc) is the current location of camera (before transition)
         Xc = self.Planet.SolarSystem.Scene.center[0]
@@ -129,8 +132,7 @@ class makePlanetWidgets():
 
 
         # Calculate number of steps based on current transition velocity factor (default is 1.0)
-        #print ("Smooth Focus TRANSITION VELOCITY=", self.transitionVelocityFactor)
-        total_steps = int(100)#### * self.Planet.SolarSystem.Dashboard.focusTab.transitionVelocityFactor)
+        total_steps = int(100) * self.Planet.SolarSystem.camera.transitionVelocityFactor
         #print ("Smooth Focus TOTAL_STEPS=", total_steps)
 
         # move scene center by an increment towards the destination coordinates. Since 
@@ -140,19 +142,30 @@ class makePlanetWidgets():
         # Incremental location is calculated as the initial location + difference between initial
         # and final locations time the rate for this particular step.
 
-        rangle = deg2rad(angle) * (-1 if direction == self.ROT_CLKW else 1)
-        dangle = 0.0
+        lg_rangle = deg2rad(long_angle) * (-1 if long_direction == self.ROT_CLKW else 1)
+        lg_dangle = 0.0
+
+        lat_axis = 1
+        if lat_angle < 0:
+            lat_axis = -1
+            lat_angle = - lat_angle
+
+        la_rangle = deg2rad(lat_angle)* (-1 if lat_direction == self.ROT_CLKW else 1)
+        la_dangle = 0.0
 
         for i in np.arange(0, total_steps+1, 1):
             # incrementally, change center focus and rotate
-            r = rate_func.ease_in_out(float(i)/total_steps)
+            r = ratefunc(float(i)/total_steps)
             self.Planet.SolarSystem.Scene.center = vector( (Xc + r*deltaX),
                                                     (Yc + r*deltaY),
                                                     (Zc + r*deltaZ))
 
-            iAngle = rangle * r
-            self.Planet.SolarSystem.Scene.forward = rotate(self.Planet.SolarSystem.Scene.forward, angle=(iAngle-dangle), axis=(0,0,1))
-            dangle = iAngle
+            lg_iAngle = lg_rangle * r
+            la_iAngle = la_rangle * r
+            self.Planet.SolarSystem.Scene.forward = rotate(self.Planet.SolarSystem.Scene.forward, angle=(lg_iAngle-lg_dangle), axis=(0,0,1)) #(0,0,1))
+            self.Planet.SolarSystem.Scene.forward = rotate(self.Planet.SolarSystem.Scene.forward, angle=(la_iAngle-la_dangle), axis=(lat_axis,0,0)) #(0,0,1))
+            lg_dangle = lg_iAngle
+            la_dangle = la_iAngle
 
             sleep(2e-2)
             if self.Planet.SolarSystem.Dashboard.orbitalTab.RecorderOn == True:
@@ -170,47 +183,436 @@ class makePlanetWidgets():
 #			sleep(1e-2)
 
 ###########              
+    def gotoVertical(self, locationID, ratefunc = rate_func.ease_in_out_sine):
+############
+
+        self.Loc[self.defaultLocation].updateEclipticPosition()
+        #curPos = self.Loc[self.defaultLocation].getGeoPosition()
+        nextPos = self.Loc[locationID].getGeoPosition()
+
+        if False:
+            x = self.Planet.SolarSystem.Scene.mouse.camera[0] - self.Planet.SolarSystem.Scene.center[0] #self.Planet.Origin.pos[0]
+            y = self.Planet.SolarSystem.Scene.mouse.camera[1] - self.Planet.SolarSystem.Scene.center[1] #self.Planet.Origin.pos[1]
+            z = self.Planet.SolarSystem.Scene.mouse.camera[2] - self.Planet.SolarSystem.Scene.center[2] #self.Planet.Origin.pos[2] 
+            print "(XC,YC,ZC)=(",x/mag(vector(x,y,x)),",",y/mag(vector(x,y,x)),",",z/mag(vector(x,y,x)),")"
+            print "CAMERA=",self.Planet.SolarSystem.Scene.mouse.camera
+            print "Center=",self.Planet.SolarSystem.Scene.center
+            
+            x = self.Planet.SolarSystem.Scene.forward[0]
+            y = self.Planet.SolarSystem.Scene.forward[1]
+            z = self.Planet.SolarSystem.Scene.forward[2]
+            print "(XF,YF,ZF)=(",x,",",y,",",z,")"
+            print "Forward=", self.Planet.SolarSystem.Scene.forward
+
+#        self.C =  simpleArrow(color.yellow, 0, 20, self.Loc[self.defaultLocation].getEclipticPosition(), axisp = 0.1*vector(x,y,z), context = self.Loc[locationID].Origin) #, context = self.Planet.Origin) #self.Loc[self.defaultLocation].Origin)
+        #self.C =  simpleArrow(color.yellow, 0, 20, self.Planet.SolarSystem.Scene.mouse.camera, axisp = 1e4*self.Planet.SolarSystem.Scene.forward, context = None) #self.Loc[locationID].Origin) #, context = self.Planet.Origin) #self.Loc[self.defaultLocation].Origin)
+        #self.C.display(True)
+
+        #ortho = getOrthogonalVector(self.Planet.SolarSystem.Scene.forward)
+        #self.C =  simpleArrow(color.red, 0, 20, self.Planet.SolarSystem.Scene.mouse.camera, axisp = 1e4*ortho, context = None) #self.Loc[locationID].Origin)
+        #self.C.display(True)
+
+        if False:
+            x = self.Planet.SolarSystem.Scene.forward[0]
+            y = self.Planet.SolarSystem.Scene.forward[1]
+            z = self.Planet.SolarSystem.Scene.forward[2]
+            print "(XF,YF,ZF)=(",x,",",y,",",z,")"
+
+            self.C =  simpleArrow(color.red, 0, 20, curPos, axisp = 20*vector(x,y,z), context = self.Planet.Origin) #, context = self.Loc[self.defaultLocation].Origin)
+            self.C.display(True)
+
+
+        self.B =  simpleArrow(color.green, 0, 20, nextPos, axisp = self.Loc[locationID].Grad/10, context = self.Loc[locationID].Origin) #self.Loc[self.defaultLocation].Origin)
+        self.B.display(True)
+
+        EC = self.Loc[locationID].getEclipticPosition()
+        A = EC[0] - self.Planet.Origin.pos[0] #self.Planet.Origin.pos[0]
+        B = EC[1] - self.Planet.Origin.pos[1] #self.Planet.Origin.pos[1]
+        C = EC[2] - self.Planet.Origin.pos[2] #self.Planet.Origin.pos[2] 
+
+        #self.D =  simpleArrow(color.white, 0, 20, self.Planet.Origin.pos, axisp = 5*vector(A,B,C), context = None) #self.Loc[locationID].Origin) #self.Loc[self.defaultLocation].Origin)
+        #self.D.display(True)
+
+#        Hangle = getAngleBetweenVectors(getXYprojection(self.Loc[locationID].Grad), getXYprojection(vector(x,y,z)/mag(vector(x,y,z))))
+#        Hangle = getAngleBetweenVectors(getXYprojection(vector(A,B,C)), getXYprojection(vector(x,y,z)))
+#        print "Hangle=", Hangle
+
+#        Vangle = getAngleBetweenVectors(getYZprojection(self.Loc[locationID].Grad), getYZprojection(vector(x,y,z)/mag(vector(x,y,z))))
+#        Vangle = getAngleBetweenVectors(getYZprojection(vector(A,B,C)), getYZprojection(vector(x,y,z)))
+#        print "Hangle=", Hangle, ", Vangle=", Vangle, "angle=", getAngleBetweenVectors(self.Loc[locationID].Grad, vector(x,y,z))
+#        print "V1=", vector(A,B,C) #self.Loc[locationID].Grad/mag(self.Loc[locationID].Grad)
+#        print "V2=", vector(x,y,z)/mag(vector(x,y,z))
+
+        # (Xc, Yc, Zc) is the current location of camera (before transition)
+        Xc = self.Planet.SolarSystem.Scene.center[0]
+        Yc = self.Planet.SolarSystem.Scene.center[1]
+        Zc = self.Planet.SolarSystem.Scene.center[2]
+        #print ("Xc=", Xc, ", Yc=", Yc,", Zc=", Zc)
+        
+        dest = self.Loc[locationID].getEclipticPosition()
+        # calculate distance between current location and 
+        # destination for each coordinate 
+        deltaX = (dest[0] - Xc)
+        deltaY = (dest[1] - Yc)
+        deltaZ = (dest[2] - Zc)
+
+        #print ("X=", deltaX, ", Y=", deltaY,", Z=", deltaZ)
+
+        if self.Planet.SolarSystem.Dashboard.orbitalTab.RecorderOn == True:
+            if self.Planet.SolarSystem.Dashboard.orbitalTab.VideoRecorder == None:
+                self.Planet.SolarSystem.Dashboard.orbitalTab.VideoRecorder = setVideoRecording(25, "output.avi")
+
+        # Calculate number of steps based on current transition velocity factor (default is 1.0)
+        total_steps = int(100) * self.Planet.SolarSystem.camera.transitionVelocityFactor
+        #print ("Smooth Focus TOTAL_STEPS=", total_steps)
+
+        #dX = (self.Planet.SolarSystem.Scene.forward[0] - A)
+        #dY = (self.Planet.SolarSystem.Scene.forward[1] - B)
+        #dZ = (self.Planet.SolarSystem.Scene.forward[2] - C)
+        Initial = -self.Planet.SolarSystem.Scene.forward
+
+
+        rotAxis = getVectorOrthogonalToPlane(Initial, vector(A,B,C))
+        self.K =  simpleArrow(color.cyan, 0, 20, self.Planet.SolarSystem.Scene.mouse.camera, axisp = 1e4*rotAxis, context = None) #self.Loc[locationID].Origin)
+        self.K.display(True)
+
+        rotAngle = deg2rad(getAngleBetweenVectors(Initial, vector(A,B,C)))
+        print "Rot Angle is", rotAngle, "radians", "-initial=",deg2rad(getAngleBetweenVectors(-Initial, vector(A,B,C)))
+        print "Rot Axis is", rotAxis
+        
+        accumulated_rot = 0.0
+        for i in np.arange(0, total_steps+1, 1):
+            # incrementally, change center focus and rotate
+            r = ratefunc(float(i)/total_steps)
+            self.Planet.SolarSystem.Scene.center = vector( (Xc + r*deltaX),
+                                                    (Yc + r*deltaY),
+                                                    (Zc + r*deltaZ))
+
+            iAngle = rotAngle * r
+
+            self.Planet.SolarSystem.Scene.forward = rotate(self.Planet.SolarSystem.Scene.forward, angle=(iAngle-accumulated_rot), axis=rotAxis)
+            accumulated_rot = iAngle
+
+###            self.Planet.SolarSystem.Scene.forward = Initial + vector(dX*r, dY*r,dZ*r)
+            sleep(2e-2)
+            #print "factor=",r, "vector=",vector(dX*r, dY*r,dZ*r)
+            if self.Planet.SolarSystem.Dashboard.orbitalTab.RecorderOn == True:
+                recOneFrame(self.Planet.SolarSystem.Dashboard.orbitalTab.VideoRecorder)
+
+
+        return
+        lg_rangle = deg2rad(Hangle) #* (-1 if long_direction == self.ROT_CLKW else 1)
+        lg_dangle = 0.0
+
+        lat_axis = 1
+        #if lat_angle < 0:
+        #    lat_axis = -1
+        #    lat_angle = - lat_angle
+
+        la_rangle = deg2rad(Vangle) #* (-1 if lat_direction == self.ROT_CLKW else 1)
+        la_dangle = 0.0
+        return 
+
+        for i in np.arange(0, total_steps+1, 1):
+            # incrementally, change center focus and rotate
+            r = ratefunc(float(i)/total_steps)
+            self.Planet.SolarSystem.Scene.center = vector( (Xc + r*deltaX),
+                                                    (Yc + r*deltaY),
+                                                    (Zc + r*deltaZ))
+
+            lg_iAngle = lg_rangle * r
+            la_iAngle = la_rangle * r
+            self.Planet.SolarSystem.Scene.forward = rotate(self.Planet.SolarSystem.Scene.forward, angle=(lg_iAngle-lg_dangle), axis=(0,0,1)) #(0,0,1))
+            self.Planet.SolarSystem.Scene.forward = rotate(self.Planet.SolarSystem.Scene.forward, angle=(la_iAngle-la_dangle), axis=(lat_axis,0,0)) #(0,0,1))
+            lg_dangle = lg_iAngle
+            la_dangle = la_iAngle
+
+            sleep(2e-2)
+            if self.Planet.SolarSystem.Dashboard.orbitalTab.RecorderOn == True:
+                recOneFrame(self.Planet.SolarSystem.Dashboard.orbitalTab.VideoRecorder)
+
+#############
+
 
     def shiftLocation(self, locationID):
 
-        #print "going from ",self.Loc[self.defaultLocation].GeoLoc.pos , "to", self.Loc[TZ_FR_PARIS].GeoLoc.pos
-        #### print "BEFORE: Forward=", self.Planet.SolarSystem.camera.getDirection() #Scene.forward
+        if self.currentLocation == -1:
+            print "Auto shifting to default location ..."
+            self.Planet.SolarSystem.Dashboard.widgetTab.centerToDefaultLocation()
 
-        # calculate angle between normal of current location and normal to camera. Here
-        # (x,y,z) is the vector between camera location and planet center
-        x = self.Planet.SolarSystem.camera.view.mouse.pos[0] - self.Planet.Origin.pos[0]
-        y = self.Planet.SolarSystem.camera.view.mouse.pos[1] - self.Planet.Origin.pos[1]
-        z = self.Planet.SolarSystem.camera.view.mouse.pos[2] - self.Planet.Origin.pos[2]
+        # set current and next coordinates in ICE referential
 
-        # calculate angle between (x,y,z) and default location Nomal vector
-        angleA = getAngleBetweenVectors(self.Loc[self.defaultLocation].Grad, -vector(x,y,z))
-        print "Angle between ", self.Loc[self.defaultLocation].Name, " and camera:", angleA
+        curPos = self.Loc[self.defaultLocation].getGeoPosition()
+        nextPos = self.Loc[locationID].getGeoPosition()
 
-        # zoom out
-        #### self.Planet.SolarSystem.camera.cameraZoom(duration = 1, velocity = 10, recorder = False, zoom = self.Planet.SolarSystem.camera.ZOOM_OUT)
-        # refocus smoothly from current location to planet center
-        self.Planet.SolarSystem.Dashboard.focusTab.smoothFocus(self.Planet.Name)
+        # calculate angle between normal of camera location and normal vector in next location. 
+        # Here (x,y,z) is the vector between camera location and center of earth
+        
+        x = self.Planet.SolarSystem.Scene.mouse.camera[0] - self.Planet.Origin.pos[0]
+        y = self.Planet.SolarSystem.Scene.mouse.camera[1] - self.Planet.Origin.pos[1]
+        z = self.Planet.SolarSystem.Scene.mouse.camera[2] - self.Planet.Origin.pos[2] 
 
-        # calculate angle between camera location Normal and new location normal
-        angle = getAngleBetweenVectors(-self.Planet.SolarSystem.camera.view.forward, self.Loc[locationID].Grad)
-        print "Angle=", angle
+        long_diff = getAngleBetweenVectors(self.Loc[locationID].Grad, -vector(x,y,z))
 
-        # shift focus and rotate to new location
+        self.B =  simpleArrow(color.green, 0, 20, nextPos, axisp = self.Loc[locationID].Grad/10, context = self.Loc[locationID].Origin) #self.Loc[self.defaultLocation].Origin)
+        self.B.display(True)
+
+        if False:
+            self.Z =  simpleArrow(color.magenta, 20, 20, self.Planet.Origin.pos, axisp = vector(x,y,z), context =None)
+            if self.Z != None:
+                self.Z.display(True)
+
+            self.A =  simpleArrow(color.yellow, 0, 20, nextPos, axisp = self.Loc[self.defaultLocation].Grad/10, context = self.Loc[self.defaultLocation].Origin) #self.Loc[self.defaultLocation].Origin)
+            self.A.display(True)
+            self.B =  simpleArrow(color.green, 0, 20, nextPos, axisp = self.Loc[locationID].Grad/10, context = self.Loc[locationID].Origin) #self.Loc[self.defaultLocation].Origin)
+            self.B.display(True)
+
+            # calculate angle between (x,y,z) and default location Nomal vector
+            # angleA = getAngleBetweenVectors(self.Loc[self.defaultLocation].Grad, -vector(x,y,z))
+            #print "Angle between ", self.Loc[self.defaultLocation].Name, " and camera:", angleA
+
+            # zoom out
+            #### self.Planet.SolarSystem.camera.cameraZoom(duration = 1, velocity = 10, recorder = False, zoom = self.Planet.SolarSystem.camera.ZOOM_OUT)
+            # refocus smoothly from current location to planet center
+            #self.Planet.SolarSystem.Dashboard.focusTab.smoothFocus2target(self.Planet.Origin.pos) #, ratefunc=rate_func.ease_in_quad) #, ratefunc = rate_func.ease_in_quad)
+
+            # calculate angle between camera location Normal and new location normal
+            #### angle = getAngleBetweenVectors(-self.Planet.SolarSystem.camera.view.forward, self.Loc[locationID].Grad)
+        ### angle = getAngleBetweenVectors(-vector(x,y,z), self.Loc[locationID].Grad)
+        
+            ### angle = getAngleBetweenVectors(self.Loc[self.defaultLocation].Grad, self.Loc[locationID].Grad)
+        
+            #print "Angle between", self.Loc[self.defaultLocation].Name, " and ", self.Loc[locationID].Name, "=", angle
+            #print "ALTERNATE METHOD gives:", self.Loc[locationID].long - self.Loc[self.defaultLocation].long
+
         self.Loc[locationID].updateEclipticPosition()
-        direction =  self.ROT_CCLKW
-        if self.Loc[locationID].long < self.Loc[self.defaultLocation].long:
-            direction =  self.ROT_CLKW
+        clg = self.Loc[self.defaultLocation].long
+        nlg = self.Loc[locationID].long
 
+        lg_direction = 0
+        angle = 0
+        if clg < 0:
+            if nlg >= 0:
+                angle = nlg + abs(clg)
+                lg_direction = self.ROT_CCLKW
+            else:
+                angle = abs(clg-nlg)
+                lg_direction = self.ROT_CCLKW if nlg > clg else self.ROT_CLKW
+        else:
+            if nlg >= 0:
+                angle = abs(clg-nlg)
+                lg_direction = self.ROT_CCLKW if nlg > clg else self.ROT_CLKW
+            else:
+                angle = clg + abs(nlg)
+                lg_direction = self.ROT_CCLKW
+        long_diff = angle
 
-        self.shiftFocus(self.Loc[locationID].getEclipticPosition(), angle+angleA, direction = direction)
+        cla = self.Loc[self.defaultLocation].lat
+        nla = self.Loc[locationID].lat
+        if cla < 0:
+            if nla >= 0:
+                aangle = nla + abs(cla)
+                la_direction = self.ROT_CCLKW
+            else:
+                angle = abs(cla-nla)
+                la_direction = self.ROT_CCLKW if nla > cla else self.ROT_CLKW
+        else:
+            if nla >= 0:
+                angle = abs(cla-nla)
+                la_direction = self.ROT_CCLKW if nla > cla else self.ROT_CLKW
+            else:
+                angle = cla + abs(nla)
+                la_direction = self.ROT_CCLKW
+
+        lat_diff = angle
+        #lat_diff = self.Loc[locationID].lat - self.Loc[self.defaultLocation].lat
+
+        if self.zoomToLocation == True:
+            self.Planet.SolarSystem.camera.cameraZoom(duration = 1, velocity = 10, recorder = False, zoom = self.Planet.SolarSystem.camera.ZOOM_OUT)
+            self.zoomToLocation = False
+
+#        self.shiftFocus(self.Loc[locationID].getEclipticPosition(), ((angle+angleA)*1.5) % 180, lat_angle, direction = direction, axis=vector(0,0,1))#, ratefunc = rate_func.ease_in_quad_mirror) #, axis=vector(xA, yA, zA)) #, ratefunc = rate_func.ease_in_quad_mirror)
+####        self.shiftFocus(self.Loc[locationID].getEclipticPosition(), long_diff, lat_diff, direction = direction, axis=vector(0,0,1))#, ratefunc = rate_func.ease_in_quad_mirror) #, axis=vector(xA, yA, zA)) #, ratefunc = rate_func.ease_in_quad_mirror)
+        self.shiftFocus(self.Loc[locationID].getEclipticPosition(), long_diff, lat_diff, long_direction = lg_direction, lat_direction = la_direction, axis=vector(0,0,1))#, ratefunc = rate_func.ease_in_quad_mirror) #, axis=vector(xA, yA, zA)) #, ratefunc = rate_func.ease_in_quad_mirror)
+        print "LONG_DIFF=", long_diff, ", LAT_DIFF", lat_diff
         self.defaultLocation = locationID
+
+        #### self.Planet.SolarSystem.Dashboard.focusTab.smoothFocus2target(self.Loc[locationID].getEclipticPosition())
         self.Planet.SolarSystem.camera.cameraZoom(duration = 1, velocity = 10, recorder = False, zoom = self.Planet.SolarSystem.camera.ZOOM_IN)
+        self.zoomToLocation = True
 
         # rotate camera direction by the same angle
         #self.Planet.SolarSystem.camera.cameraRotateRight(angle, False)
 
         return
 
+    def shiftLocationSAVE_2(self, locationID):
+
+        if self.currentLocation == -1:
+            print "Auto shifting to default location ..."
+            self.Planet.SolarSystem.Dashboard.widgetTab.centerToDefaultLocation()
+
+        # set current and next coordinates in ICE referential
+        #self.Loc[self.defaultLocation].updateEclipticPosition()
+        #self.Loc[locationID].updateEclipticPosition()
+
+        curPos = self.Loc[self.defaultLocation].getGeoPosition()
+        nextPos = self.Loc[locationID].getGeoPosition()
+
+        # calculate angle between normal of current location and camera vector pointing to 
+        # current location. Here (x,y,z) is the vector between camera location and current location
+        
+#        x = self.Planet.SolarSystem.camera.view.mouse.camera[0] - curPos[0] #self.Planet.Origin.pos[0]
+#        y = self.Planet.SolarSystem.camera.view.mouse.camera[1] - curPos[1] #self.Planet.Origin.pos[1]
+#        z = self.Planet.SolarSystem.camera.view.mouse.camera[2] - curPos[2] #self.Planet.Origin.pos[2] #self.Loc[self.defaultLocation].getGeoPosition()[2] 
+        x = self.Planet.SolarSystem.Scene.mouse.camera[0] - curPos[0] #self.Planet.Origin.pos[0]
+        y = self.Planet.SolarSystem.Scene.mouse.camera[1] - curPos[1] #self.Planet.Origin.pos[1]
+        z = self.Planet.SolarSystem.Scene.mouse.camera[2] - curPos[2] #self.Planet.Origin.pos[2] #self.Loc[self.defaultLocation].getGeoPosition()[2] 
+        angleA = getAngleBetweenVectors(self.Loc[self.defaultLocation].Grad, -vector(x,y,z))
+
+        #self.Z =  simpleArrow(color.magenta, 20, 20, self.Planet.Origin.pos, axisp = vector(x,y,z), context =None)
+        #if self.Z != None:
+        #    self.Z.display(True)
+
+        #self.A =  simpleArrow(color.yellow, 0, 20, nextPos, axisp = self.Loc[self.defaultLocation].Grad/10, context = self.Loc[self.defaultLocation].Origin) #self.Loc[self.defaultLocation].Origin)
+        #self.A.display(True)
+        self.B =  simpleArrow(color.green, 0, 20, nextPos, axisp = self.Loc[locationID].Grad/10, context = self.Loc[locationID].Origin) #self.Loc[self.defaultLocation].Origin)
+        self.B.display(True)
+
+        # calculate angle between (x,y,z) and default location Nomal vector
+        # angleA = getAngleBetweenVectors(self.Loc[self.defaultLocation].Grad, -vector(x,y,z))
+        #print "Angle between ", self.Loc[self.defaultLocation].Name, " and camera:", angleA
+
+        # zoom out
+        #### self.Planet.SolarSystem.camera.cameraZoom(duration = 1, velocity = 10, recorder = False, zoom = self.Planet.SolarSystem.camera.ZOOM_OUT)
+        # refocus smoothly from current location to planet center
+        #self.Planet.SolarSystem.Dashboard.focusTab.smoothFocus2target(self.Planet.Origin.pos) #, ratefunc=rate_func.ease_in_quad) #, ratefunc = rate_func.ease_in_quad)
+
+        # calculate angle between camera location Normal and new location normal
+        #### angle = getAngleBetweenVectors(-self.Planet.SolarSystem.camera.view.forward, self.Loc[locationID].Grad)
+       ### angle = getAngleBetweenVectors(-vector(x,y,z), self.Loc[locationID].Grad)
+        angle = getAngleBetweenVectors(self.Loc[self.defaultLocation].Grad, self.Loc[locationID].Grad)
+        #print "Angle between", self.Loc[self.defaultLocation].Name, " and ", self.Loc[locationID].Name, "=", angle
+        #print "ALTERNATE METHOD gives:", self.Loc[locationID].long - self.Loc[self.defaultLocation].long
+
+        clg = self.Loc[self.defaultLocation].long
+        nlg = self.Loc[locationID].long
+
+        if clg * nlg < 0:
+            angle = 360 - (abs(clg)+abs(nlg))
+        else:   
+            angle = abs(nlg - clg)
+
+        # shift focus and rotate to new location
+        self.Loc[locationID].updateEclipticPosition()
+        direction =  self.ROT_CCLKW
+
+        if self.Loc[locationID].long >= 0 and self.Loc[locationID].long > self.Loc[self.defaultLocation].long:
+            print "Rotating clockwise 1"
+            direction =  self.ROT_CLKW
+        elif self.Loc[locationID].long < 0 and self.Loc[locationID].long > self.Loc[self.defaultLocation].long:
+            print "Rotating clockwise 2"
+            direction =  self.ROT_CLKW
+        else:
+            print "Rotating counter-clockwise"
+
+                
+        axis = getVectorOrthogonalToPlane(self.Loc[self.defaultLocation].Grad, self.Loc[locationID].Grad)
+        #self.zob =  simpleArrow(color.red, 0, 20, nextPos, axisp = axis*1e4, context = self.Loc[locationID].Origin) #self.Loc[self.defaultLocation].Origin)
+        #self.zob.display(True)
+
+        #print ("ORTHO=", axis)
+        pos = self.Loc[locationID].getEclipticPosition()
+        xA = pos[0] - self.Planet.Origin.pos[0]
+        yA = pos[1] - self.Planet.Origin.pos[1]
+        zA = pos[2] - self.Planet.Origin.pos[2]
+
+        lat_angle = self.Loc[locationID].lat - self.Loc[self.defaultLocation].lat
+
+#        self.shiftFocus(self.Loc[locationID].getEclipticPosition(), ((angle+angleA)*1.5) % 180, lat_angle, direction = direction, axis=vector(0,0,1))#, ratefunc = rate_func.ease_in_quad_mirror) #, axis=vector(xA, yA, zA)) #, ratefunc = rate_func.ease_in_quad_mirror)
+        self.shiftFocus(self.Loc[locationID].getEclipticPosition(), (angle+angleA) % 180, lat_angle*1.5, direction = direction, axis=vector(0,0,1))#, ratefunc = rate_func.ease_in_quad_mirror) #, axis=vector(xA, yA, zA)) #, ratefunc = rate_func.ease_in_quad_mirror)
+
+        self.defaultLocation = locationID
+
+        #### self.Planet.SolarSystem.Dashboard.focusTab.smoothFocus2target(self.Loc[locationID].getEclipticPosition())
+        ##### self.Planet.SolarSystem.camera.cameraZoom(duration = 1, velocity = 10, recorder = False, zoom = self.Planet.SolarSystem.camera.ZOOM_IN)
+
+        # rotate camera direction by the same angle
+        #self.Planet.SolarSystem.camera.cameraRotateRight(angle, False)
+
+        return
+
+
+    def shiftLocationSAVE(self, locationID):
+
+        #print "going from ",self.Loc[self.defaultLocation].GeoLoc.pos , "to", self.Loc[TZ_FR_PARIS].GeoLoc.pos
+        #### print "BEFORE: Forward=", self.Planet.SolarSystem.camera.getDirection() #Scene.forward
+
+        # set current and next coordinates in ICE referential
+        curPos = self.Loc[self.defaultLocation].getGeoPosition()
+        nextPos = self.Loc[locationID].getGeoPosition()
+
+        # calculate angle between normal of current location and normal to camera. Here
+        # (x,y,z) is the vector between camera location and planet center
+        
+        x = self.Planet.SolarSystem.camera.view.mouse.camera[0] - curPos[0] #self.Planet.Origin.pos[0]
+        y = self.Planet.SolarSystem.camera.view.mouse.camera[1] - curPos[1] #self.Planet.Origin.pos[1]
+        z = self.Planet.SolarSystem.camera.view.mouse.camera[2] - curPos[2] #self.Planet.Origin.pos[2] #self.Loc[self.defaultLocation].getGeoPosition()[2] 
+
+
+        #self.Z =  simpleArrow(color.magenta, 20, 20, self.Planet.Origin.pos, axisp = vector(x,y,z), context =None)
+        #if self.Z != None:
+        #    self.Z.display(True)
+
+        self.A =  simpleArrow(color.yellow, 0, 20, nextPos, axisp = self.Loc[self.defaultLocation].Grad/10, context = self.Loc[self.defaultLocation].Origin) #self.Loc[self.defaultLocation].Origin)
+        self.A.display(True)
+        self.B =  simpleArrow(color.green, 0, 20, nextPos, axisp = self.Loc[locationID].Grad/10, context = self.Loc[locationID].Origin) #self.Loc[self.defaultLocation].Origin)
+        self.B.display(True)
+
+        # calculate angle between (x,y,z) and default location Nomal vector
+        angleA = getAngleBetweenVectors(self.Loc[self.defaultLocation].Grad, -vector(x,y,z))
+        #print "Angle between ", self.Loc[self.defaultLocation].Name, " and camera:", angleA
+
+        # zoom out
+        #### self.Planet.SolarSystem.camera.cameraZoom(duration = 1, velocity = 10, recorder = False, zoom = self.Planet.SolarSystem.camera.ZOOM_OUT)
+        # refocus smoothly from current location to planet center
+        #self.Planet.SolarSystem.Dashboard.focusTab.smoothFocus2target(self.Planet.Origin.pos) #, ratefunc=rate_func.ease_in_quad) #, ratefunc = rate_func.ease_in_quad)
+
+        # calculate angle between camera location Normal and new location normal
+        #### angle = getAngleBetweenVectors(-self.Planet.SolarSystem.camera.view.forward, self.Loc[locationID].Grad)
+       ### angle = getAngleBetweenVectors(-vector(x,y,z), self.Loc[locationID].Grad)
+        angle = getAngleBetweenVectors(self.Loc[self.defaultLocation].Grad, self.Loc[locationID].Grad)
+        print "Angle between", self.Loc[self.defaultLocation].Name, " and ", self.Loc[locationID].Name, "=", angle
+
+        # shift focus and rotate to new location
+        self.Loc[locationID].updateEclipticPosition()
+        direction =  self.ROT_CCLKW
+
+        if self.Loc[locationID].long >= 0 and self.Loc[locationID].long < self.Loc[self.defaultLocation].long:
+            direction =  self.ROT_CLKW
+        elif self.Loc[locationID].long < 0 and self.Loc[locationID].long < self.Loc[self.defaultLocation].long:
+            direction =  self.ROT_CLKW
+                
+        axis = getVectorOrthogonalToPlane(self.Loc[self.defaultLocation].Grad, self.Loc[locationID].Grad)
+        self.zob =  simpleArrow(color.red, 0, 20, nextPos, axisp = axis*1e4, context = self.Loc[locationID].Origin) #self.Loc[self.defaultLocation].Origin)
+        self.zob.display(True)
+
+        #print ("ORTHO=", axis)
+        pos = self.Loc[locationID].getEclipticPosition()
+        xA = pos[0] - self.Planet.Origin.pos[0]
+        yA = pos[1] - self.Planet.Origin.pos[1]
+        zA = pos[2] - self.Planet.Origin.pos[2]
+        self.shiftFocus(self.Loc[locationID].getEclipticPosition(), ((angle+angleA)*1.5) % 180, direction = direction, axis=vector(0,0,1))#, ratefunc = rate_func.ease_in_quad_mirror) #, axis=vector(xA, yA, zA)) #, ratefunc = rate_func.ease_in_quad_mirror)
+
+        self.defaultLocation = locationID
+
+        #### self.Planet.SolarSystem.Dashboard.focusTab.smoothFocus2target(self.Loc[locationID].getEclipticPosition())
+        ##### self.Planet.SolarSystem.camera.cameraZoom(duration = 1, velocity = 10, recorder = False, zoom = self.Planet.SolarSystem.camera.ZOOM_IN)
+
+        # rotate camera direction by the same angle
+        #self.Planet.SolarSystem.camera.cameraRotateRight(angle, False)
+
+        return
 
     def shiftLocationXX(self, locationID):
 
@@ -309,10 +711,10 @@ class makePlanetWidgets():
         print "AFTER: Forward=", self.Planet.SolarSystem.Scene.forward
        # raw_input()
 
-    def makeMultipleLocations(self, defaultLoc):
-        self.defaultLocation = defaultLoc
+    def makeMultipleLocations(self, defaultLoc_idx):
+        self.defaultLocation = defaultLoc_idx
         #self.currentLocation = defaultLoc
-        for i in np.arange(0, len(locationInfo.tzEarthLocations), 1):
+        for i in np.arange(0, len(self.Planet.SolarSystem.locationInfo.tzEarthLocations), 1):
             self.Loc.append(makeEarthLocation(self, i))
 
     def makeLocation(self, locIndex):
@@ -390,7 +792,7 @@ class makeEarthLocation():
         self.Origin.axis.visible = True
 
         # obtain location info. Earthloc is a tuple (lat, long, timezone)
-        earthLoc = locationInfo.getLocationInfo(tz_index)
+        earthLoc = self.Planet.SolarSystem.locationInfo.getLocationInfo(tz_index)
         if earthLoc != {}:
             print earthLoc
             self.Name = earthLoc["name"]
@@ -402,7 +804,7 @@ class makeEarthLocation():
 
         else:
             self.Name = "None"
-
+    """
     def setPositionSAVE(self, locInfo):
         # set the Geo position
         radius = (self.Planet.radiusToShow/self.Planet.SizeCorrection[self.Planet.sizeType])*0.999
@@ -416,6 +818,7 @@ class makeEarthLocation():
         self.GeoLoc.pos[X_COOR] = eqPlane * cos(deg2rad(locInfo["long"])+pi)
         self.GeoLoc.pos[Y_COOR] = eqPlane * sin(deg2rad(locInfo["long"])+pi)
         self.GeoLoc.pos[Z_COOR] = radius * sin(deg2rad(locInfo["lat"]))
+    """
 
     def setPosition(self):
         # set the Geo position
@@ -427,9 +830,9 @@ class makeEarthLocation():
         # deduct (x,y) from eqPlane. Note, we need to extend the longitude 
         # value by 180 degrees to take into account the way the earth texture
         # was applied on the sphere
-        self.GeoLoc.pos[X_COOR] = eqPlane * cos(deg2rad(self.long)+pi)
-        self.GeoLoc.pos[Y_COOR] = eqPlane * sin(deg2rad(self.long)+pi)
-        self.GeoLoc.pos[Z_COOR] = radius * sin(deg2rad(self.lat))
+        self.GeoLoc.pos[0] = eqPlane * cos(deg2rad(self.long)+pi)
+        self.GeoLoc.pos[1] = eqPlane * sin(deg2rad(self.long)+pi)
+        self.GeoLoc.pos[2] = radius * sin(deg2rad(self.lat))
 
     def getPosition(self):
         return self.GeoLoc.pos
@@ -442,8 +845,8 @@ class makeEarthLocation():
         # return ecliptic coordinates
         return self.EclipticPosition
 
-    def getGeo(self):
-        # return ecliptic coordinates
+    def getGeoPosition(self):
+        # return ECEF coordinates
         return self.GeoLoc.pos
 
     def display(self, trueFalse):
@@ -458,9 +861,9 @@ class makeEarthLocation():
         # DS/Dz = 2(z-zcenter) partial derivative of surface for z
         # the normal vector in our location is given by [xloc+DS/Dx(loc)]
         self.updateEclipticPosition()
-        self.GradientX = 2*(self.EclipticPosition[X_COOR]-self.Origin.pos[X_COOR])
-        self.GradientY = 2*(self.EclipticPosition[Y_COOR]-self.Origin.pos[Y_COOR])
-        self.GradientZ = 2*(self.EclipticPosition[Z_COOR]-self.Origin.pos[Z_COOR])
+        self.GradientX = 2*(self.EclipticPosition[0]-self.Origin.pos[0])
+        self.GradientY = 2*(self.EclipticPosition[1]-self.Origin.pos[1])
+        self.GradientZ = 2*(self.EclipticPosition[2]-self.Origin.pos[2])
         self.Grad = vector(self.GradientX, self.GradientY, self.GradientZ)
         
         self.NormalVec = simpleArrow(color.white, 0, 10, self.GeoLoc.pos, axisp = (self.Grad/10), context = self.Origin)

@@ -22,7 +22,7 @@ SOFTWARE.
 """
 import datetime
 import orbit3D 
-from location import *
+from location import locList #*
 from planetsdata import *
 from visual import *
 import threading
@@ -188,13 +188,11 @@ class DashBoard(wx.Frame):
 # Point of Interest Tab
 class FOCUSpanel(AbstractUI):
 
-	VELOCITY_MAX = 3.0
-	VELOCITY_MIN = 0.1
 
 	def InitVariables(self):
 		self.ca_deltaT = 0
 		self.smoothTransition = False
-		self.transitionVelocityFactor = 1.0  # normal speed. speed can go as slow as 1/100 and as fast as 4 times the normal speed
+#		self.transitionVelocityFactor = 1.0  # normal speed. speed can go as slow as 1/100 and as fast as 4 times the normal speed
 
 		self.bodyNameToIndex = {
 			"curobj": 0, 	"sun": 1, 		EARTH_NAME: 2, 	"mercury": 3, 	"venus": 4,
@@ -240,73 +238,11 @@ class FOCUSpanel(AbstractUI):
 	def OnTransition(self, e):
 		self.smoothTransition = self.cbst.GetValue() 
 
-	def smoothFocus(self, destination, ratefunc = rate_func.ease_in_out):
-		# going from current object to next current object
-		#print ("SMOOTH FOCUS to", destination)
-		self.SolarSystem.currentPOV
-		target = None
-		dest = self.SolarSystem.getBodyFromName(destination.lower())
-		if dest == None:
-			# use sun as target
-			target = vector(0,0,0)
-		else:
-			target = vector(dest.Position[0], dest.Position[1], dest.Position[2])
-
-		# (Xc, Yc, Zc) is the current location of camera (before transition)
-		Xc = self.SolarSystem.Scene.center[0]
-		Yc = self.SolarSystem.Scene.center[1]
-		Zc = self.SolarSystem.Scene.center[2]
-		#print ("Xc=", Xc, ", Yc=", Yc,", Zc=", Zc)
-		
-		# calculate distance between current location and 
-		# destination for each coordinate 
-		deltaX = (target[0] - Xc)
-		deltaY = (target[1] - Yc)
-		deltaZ = (target[2] - Zc)
-
-		#print ("X=", deltaX, ", Y=", deltaY,", Z=", deltaZ)
-
-		if self.parentFrame.orbitalTab.RecorderOn == True:
-			if self.parentFrame.orbitalTab.VideoRecorder == None:
-				self.parentFrame.orbitalTab.VideoRecorder = setVideoRecording(25, "output.avi")
-
-
-		# Calculate number of steps based on current transition velocity factor (default is 1.0)
-		#print ("Smooth Focus TRANSITION VELOCITY=", self.transitionVelocityFactor)
-		total_steps = int(100 * self.transitionVelocityFactor)
-		#print ("Smooth Focus TOTAL_STEPS=", total_steps)
-
-		# move scene center by an increment towards the destination coordinates. Since 
-		# we use 100 * transitionVelocityFactor steps to do that, and our rate function 
-		# only takes an input between 0 and 1, we divide the current increment by the 
-		# total number of steps to always keep the rate function input between these limits.
-		# Incremental location is calculated as the initial location + difference between initial
-		# and final locations time the rate for this particular step.
-
-		for i in np.arange(0, total_steps+1, 1):
-			r = ratefunc(float(i)/total_steps)
-			self.SolarSystem.Scene.center = vector( (Xc + r*deltaX),
-													(Yc + r*deltaY),
-													(Zc + r*deltaZ))
-			sleep(2e-2)
-			if self.parentFrame.orbitalTab.RecorderOn == True:
-				recOneFrame(self.parentFrame.orbitalTab.VideoRecorder)
-
-
-	def setTransitionVelocity(self, velocity):
-		if velocity > self.VELOCITY_MAX:
-			velocity = self.VELOCITY_MAX
-		elif velocity <= 0:
-			velocity = self.VELOCITY_MIN
-
-		# the higher the velocity, the smaller number of steps
-		self.transitionVelocityFactor = 1/float(velocity)
-
 	"""
 	def moveToEarthLocation(self, destination):
 		# going from current object to next current object
 		print ("SMOOTH FOCUS to", destination)
-		#self.SolarSystem.currentPOV
+		#self.SolarSystem.cameraPOV
 		dest = self.SolarSystem.getBodyFromName(destination.lower())
 		if dest != None:
 			print ("we got the body info")
@@ -336,7 +272,7 @@ class FOCUSpanel(AbstractUI):
 	"""
 
 	def OnLocalRef(self, e):
-		#print ("currentPOV:",self.SolarSystem.currentPOVselection)
+		#print ("cameraPOV:",self.SolarSystem.cameraPOVselection)
 		self.setLocalRef()
 
 	def setLocalRef(self):
@@ -351,9 +287,9 @@ class FOCUSpanel(AbstractUI):
 			self.setSunFocus()
 
 		else:
-			self.SolarSystem.currentPOV = self.parentFrame.orbitalTab.currentBody
+			self.SolarSystem.cameraPOV = self.parentFrame.orbitalTab.currentBody
 			###### self.parentFrame.orbitalTab.updateCameraPOV()
-			self.setBodyFocus(self.SolarSystem.currentPOV)
+			self.setBodyFocus(self.SolarSystem.cameraPOV)
 
 	def setCurrentBodyFocusManually(self, body, selectIndex):
 		self.rbox.SetSelection(selectIndex)
@@ -399,8 +335,8 @@ class FOCUSpanel(AbstractUI):
 				"Eccentricity ", e,
 				"Axial Tilt(deg) ", Body.AxialTilt))
 
-		if self.SolarSystem.currentPOVselection != 'curobj':
-			print "CurrentPOV", self.SolarSystem.currentPOVselection
+		if self.SolarSystem.cameraPOVselection != 'curobj':
+			print "cameraPOV", self.SolarSystem.cameraPOVselection
 
 			# if object was hidden due to its body type, make body type
 			# visible unless it's earth which always stays visible
@@ -421,17 +357,19 @@ class FOCUSpanel(AbstractUI):
 			#else:
 			#	print "OBJECT ALREADY VISIBLE"
 
-		self.SolarSystem.currentPOV = Body
-		#### self.SolarSystem.currentPOVselection = Body.JPL_designation
-		print "currentPOV selection is:", self.SolarSystem.currentPOVselection
+		self.SolarSystem.cameraPOV = Body
+		#### self.SolarSystem.cameraPOVselection = Body.JPL_designation
+		print "cameraPOV selection is:", self.SolarSystem.cameraPOVselection
 
 		if self.smoothTransition == True:
-			self.smoothFocus(Body.JPL_designation)
+#			self.smoothFocus(Body.JPL_designation)
+			self.SolarSystem.camera.smoothFocus(Body.JPL_designation)
 		else: # may have to remove "else" just for earth locations management
-			self.parentFrame.orbitalTab.updateCameraPOV()
+			self.SolarSystem.camera.updateCameraPOV()	
+			#self.parentFrame.orbitalTab.updateCameraPOV()
 
 	def setPlanetFocus(self):
-		planetBody = self.SolarSystem.getBodyFromName(self.SolarSystem.currentPOVselection)
+		planetBody = self.SolarSystem.getBodyFromName(self.SolarSystem.cameraPOVselection)
 		return self.setBodyFocus(planetBody)
 
 	def setSunFocus(self):
@@ -452,14 +390,14 @@ class FOCUSpanel(AbstractUI):
 		else: 
 			self.SolarSystem.resetView()
 		self.rbox.SetSelection(1)
-		self.SolarSystem.currentPOVselection = "SUN"
-		self.SolarSystem.currentPOV = None
+		self.SolarSystem.cameraPOVselection = "SUN"
+		self.SolarSystem.cameraPOV = None
 
 	def OnRadioBox(self, e):
 		index = self.rbox.GetSelection()
 
 		# set type of object selected
-		self.SolarSystem.currentPOVselection = {0: "curobj", 1: "sun", 2:EARTH_NAME, 3:"mercury", 4:"venus",
+		self.SolarSystem.cameraPOVselection = {0: "curobj", 1: "sun", 2:EARTH_NAME, 3:"mercury", 4:"venus",
 												5: "mars", 6:"jupiter", 7:"saturn", 8:"uranus", 9:"neptune",
 												10:"pluto", 11:"sedna", 12:"makemake", 13:"haumea", 14:"eris", 15:"charon", 16: "phobos", 17:"deimos", 18:"moon"}[index]
 		
@@ -477,8 +415,8 @@ class FOCUSpanel(AbstractUI):
 
 		self.setLocalRef()
 
-	def getCurrentPOVselection(self):
-		return self.SolarSystem.currentPOVselection
+	def getCameraPOVselection(self):
+		return self.SolarSystem.cameraPOVselection
 
 	def OnReset(self, e):
 		self.resetPOV()
@@ -694,9 +632,10 @@ class SEARCHpanel(AbstractUI):
 			############self.parentFrame.orbitalTab.refreshDate()
 
 			self.parentFrame.orbitalTab.setCurrentBodyFromId(id)
-			if self.SolarSystem.currentPOVselection == "curobj":
-				self.SolarSystem.currentPOV = self.parentFrame.orbitalTab.currentBody
-				self.parentFrame.orbitalTab.updateCameraPOV()
+			if self.SolarSystem.cameraPOVselection == "curobj":
+				self.SolarSystem.cameraPOV = self.parentFrame.orbitalTab.currentBody
+				self.SolarSystem.camera.updateCameraPOV()	
+				#self.parentFrame.orbitalTab.updateCameraPOV()
 			toggle = False
 			if self.SolarSystem.isRealsize():
 				toggle = True
@@ -769,9 +708,11 @@ class SEARCHpanel(AbstractUI):
 			##########self.parentFrame.orbitalTab.refreshDate()
 
 			self.parentFrame.orbitalTab.setCurrentBodyFromId(id)
-			if self.SolarSystem.currentPOVselection == "curobj":
-				self.SolarSystem.currentPOV = self.parentFrame.orbitalTab.currentBody
-				self.parentFrame.orbitalTab.updateCameraPOV()
+			if self.SolarSystem.cameraPOVselection == "curobj":
+				self.SolarSystem.cameraPOV = self.parentFrame.orbitalTab.currentBody
+				#self.parentFrame.orbitalTab.updateCameraPOV()
+				self.SolarSystem.camera.updateCameraPOV()	
+				
 			toggle = False
 			if self.SolarSystem.isRealsize():
 				toggle = True
@@ -930,7 +871,7 @@ class SEARCHpanel(AbstractUI):
 		utc_close_approach = utc_close_approach.replace(tzinfo=pytz.utc)
 
 		print "*******************"
-		print "FROM_TIMESTAMP = ", utc_close_approach, ", WITH TZ info=", datetime.datetime.fromtimestamp(utc_timestamp, tz=orbit3D.locationInfo.getPytzValue())
+		print "FROM_TIMESTAMP = ", utc_close_approach, ", WITH TZ info=", datetime.datetime.fromtimestamp(utc_timestamp, tz=self.SolarSystem.locationInfo.getPytzValue())
 		print "*******************"
 
 		# utc_close_approach is a naive datetime object
@@ -963,7 +904,7 @@ class SEARCHpanel(AbstractUI):
 			"axial_tilt": 0.0,
 			"utcstr": utc_close_approach.strftime('%Y-%m-%d %H:%M:%S'),
 			"utc_dt": utc_close_approach,
-			"local_dt": orbit3D.utc_to_local_fromTimestamp(utc_timestamp)
+			"local_dt": orbit3D.utc_to_local_fromTimestamp(utc_timestamp, self.SolarSystem.locationInfo)
 		}
 
 		#print "UTC time of approach   =========>", self.SolarSystem.objects_data[entry["neo_reference_id"]]["utc_dt"]
@@ -1009,7 +950,7 @@ class ORBITALCtrlPanel(AbstractUI):
 		self.TimeIncrementKey = INITIAL_INCREMENT_KEY
 		self.AnimLoop = 0
 		self.surfaceRadius = 0.0  # used for surface focus
-		self.todayUTCdatetime = orbit3D.locationInfo.getUTCDateTime()
+		self.todayUTCdatetime = self.SolarSystem.locationInfo.getUTCDateTime()
 
 #		self.DaysIncrement = 0 # number of days from today - used for animation into future or past (detalT < 0)
 		self.DeltaT = 0
@@ -1050,15 +991,17 @@ class ORBITALCtrlPanel(AbstractUI):
 			index = e.GetSelection()
 			jpl_designation = self.listjplid[index]
 			self.setCurrentBodyFromId(jpl_designation)
-			if self.SolarSystem.currentPOVselection == "curobj":
+			if self.SolarSystem.cameraPOVselection == "curobj":
 				print ""
 				print "CHANGING CURRENT OBJECT"
 				print ""
-				self.SolarSystem.currentPOV = self.currentBody
+				self.SolarSystem.cameraPOV = self.currentBody
 				self.parentFrame.focusTab.setBodyFocus(self.currentBody)
-				self.updateCameraPOV()
+				#self.updateCameraPOV()
+				self.SolarSystem.camera.updateCameraPOV()	
+
 			else:
-				print "OnSELECT: currentPOV is", self.SolarSystem.currentPOV.Name, "current POV selection type is", self.SolarSystem.currentPOVselection
+				print "OnSELECT: cameraPOV is", self.SolarSystem.cameraPOV.Name, "current POV selection type is", self.SolarSystem.cameraPOVselection
 
 	def setCurrentBody(self, body):
 		if self.currentBody != None:
@@ -1127,7 +1070,7 @@ class ORBITALCtrlPanel(AbstractUI):
 		self.UTCtimeLabel = wx.StaticText(self, label='hh:mm:ss', pos=(280+OFF_TIME+5, DATE_Y-33))
 		self.UTCdateLabel = wx.StaticText(self, label='mm/dd/yyyy', pos=(280+OFF_TIME+75, DATE_Y-33))
 
-		lt = orbit3D.locationInfo.getLocalDateTime()
+		lt = self.SolarSystem.locationInfo.getLocalDateTime()
 
 		self.setLocalDateTimeLabel(lt)
 		self.setUTCDateTimeLabel(self.todayUTCdatetime)
@@ -1252,7 +1195,7 @@ class ORBITALCtrlPanel(AbstractUI):
 		wx.Event.Skip(e, True)
 
 	def setCameraPOV(self, body):
-		self.SolarSystem.currentPOV = body
+		self.SolarSystem.cameraPOV = body
 
 	def updateCameraPOV_ADV(self):
 
@@ -1264,27 +1207,28 @@ class ORBITALCtrlPanel(AbstractUI):
 
 		#self.SolarSystem.Scene.forward = (0, 0, -1)
 		# For a planet, Foci(x, y, z) is (0,0,0). For a moon, Foci represents the position of the planet the moon orbits around
-		####surfaceRadius = (1.1 * self.SolarSystem.currentPOV.BodyShape.radius) if self.SolarSystem.SurfaceView == True else 0
+		####surfaceRadius = (1.1 * self.SolarSystem.cameraPOV.BodyShape.radius) if self.SolarSystem.SurfaceView == True else 0
 		surfaceRadius = 0.0
 		if self.SolarSystem.SurfaceView == True:
-			surfaceRadius = (1.3 * self.SolarSystem.currentPOV.BodyShape.radius)
+			surfaceRadius = (1.3 * self.SolarSystem.cameraPOV.BodyShape.radius)
 		#print "surfaceRadius = ", surfaceRadius
 
 		self.SolarSystem.Scene.center = (
-			self.SolarSystem.currentPOV.Position[X_COOR]+self.SolarSystem.currentPOV.Foci[X_COOR]+surfaceRadius * self.SolarSystem.SurfaceDirection[0],
-			self.SolarSystem.currentPOV.Position[Y_COOR]+self.SolarSystem.currentPOV.Foci[Y_COOR]+surfaceRadius * self.SolarSystem.SurfaceDirection[1],
-			self.SolarSystem.currentPOV.Position[Z_COOR]+self.SolarSystem.currentPOV.Foci[Z_COOR]+surfaceRadius * self.SolarSystem.SurfaceDirection[2]
+			self.SolarSystem.cameraPOV.Position[X_COOR]+self.SolarSystem.cameraPOV.Foci[X_COOR]+surfaceRadius * self.SolarSystem.SurfaceDirection[0],
+			self.SolarSystem.cameraPOV.Position[Y_COOR]+self.SolarSystem.cameraPOV.Foci[Y_COOR]+surfaceRadius * self.SolarSystem.SurfaceDirection[1],
+			self.SolarSystem.cameraPOV.Position[Z_COOR]+self.SolarSystem.cameraPOV.Foci[Z_COOR]+surfaceRadius * self.SolarSystem.SurfaceDirection[2]
 		)
-
+	
+	"""
 	def updateCameraPOV(self, loc = None):
 		if loc != None:
 			print "Location is", loc.Name
 
-		if self.SolarSystem.currentPOV == None:
+		if self.SolarSystem.cameraPOV == None:
 			print "no curent object"
 			return
 
-		if self.SolarSystem.currentPOV.Name.lower() == EARTH_NAME:
+		if self.SolarSystem.cameraPOV.Name.lower() == EARTH_NAME:
 			earthLocPos = None
 			w = self.Earth.PlanetWidgets
 			if loc == None:
@@ -1316,20 +1260,20 @@ class ORBITALCtrlPanel(AbstractUI):
 		# For a planet, Foci(x, y, z) is (0,0,0). For a moon, Foci represents the 
 		# position of the planet the moon orbits around in the ecliptic referential
 
-		######self.surfaceRadius = (1.1 * self.SolarSystem.currentPOV.BodyShape.radius) if self.SolarSystem.SurfaceView == True else 0
+		######self.surfaceRadius = (1.1 * self.SolarSystem.cameraPOV.BodyShape.radius) if self.SolarSystem.SurfaceView == True else 0
 		#print "UPDATING Scene Center with POV origin"
 		self.SolarSystem.Scene.center = (
-			self.SolarSystem.currentPOV.Position[X_COOR] + self.SolarSystem.currentPOV.Foci[X_COOR],
-			self.SolarSystem.currentPOV.Position[Y_COOR] + self.SolarSystem.currentPOV.Foci[Y_COOR],
-			self.SolarSystem.currentPOV.Position[Z_COOR] + self.SolarSystem.currentPOV.Foci[Z_COOR]
+			self.SolarSystem.cameraPOV.Position[X_COOR] + self.SolarSystem.cameraPOV.Foci[X_COOR],
+			self.SolarSystem.cameraPOV.Position[Y_COOR] + self.SolarSystem.cameraPOV.Foci[Y_COOR],
+			self.SolarSystem.cameraPOV.Position[Z_COOR] + self.SolarSystem.cameraPOV.Foci[Z_COOR]
 		)
 		#print "----------"
-		#print "updateCameraPOV: position:",self.SolarSystem.currentPOV.Position
-		##print "label coordinates:",self.SolarSystem.currentPOV.Labels[0].pos
-		#print "updateCameraPOV: label=", self.SolarSystem.currentPOV.Labels[0].pos, "origin=", self.SolarSystem.currentPOV.Origin.pos
+		#print "updateCameraPOV: position:",self.SolarSystem.cameraPOV.Position
+		##print "label coordinates:",self.SolarSystem.cameraPOV.Labels[0].pos
+		#print "updateCameraPOV: label=", self.SolarSystem.cameraPOV.Labels[0].pos, "origin=", self.SolarSystem.cameraPOV.Origin.pos
 		#print "----------"
 
-			
+	"""			
 	
 
 	def updateSolarSystem(self):
@@ -1340,9 +1284,9 @@ class ORBITALCtrlPanel(AbstractUI):
 								 COMET, DWARFPLANET, PHA, BIG_ASTEROID, TRANS_NEPT]:
 				if body.Origin.visible == True or body.Name.lower() == EARTH_NAME:
 					velocity, distance = body.animate(self.DeltaT)
-					if self.SolarSystem.currentPOV != None:
-						if body.JPL_designation == self.SolarSystem.currentPOV.JPL_designation:
-							self.updateCameraPOV()
+					if self.SolarSystem.cameraPOV != None:
+						if body.JPL_designation == self.SolarSystem.cameraPOV.JPL_designation:
+							self.SolarSystem.camera.updateCameraPOV()
 
 					if body.BodyType == self.Source or body.Details == True:
 						self.velocity = velocity
@@ -1365,7 +1309,7 @@ class ORBITALCtrlPanel(AbstractUI):
 		new_utcDatetime = new_utcDatetime.replace(tzinfo=pytz.utc)
 
 		# from that utc datetime, calculate local datetime
-		new_localDatetime = orbit3D.utc_to_local_fromDatetime(new_utcDatetime)
+		new_localDatetime = orbit3D.utc_to_local_fromDatetime(new_utcDatetime, self.SolarSystem.locationInfo)
 		#print "Resetting LOCAL datetime to -> ", new_localDatetime
 
 		# calculate the time difference between current "today's Date" with new selected date
@@ -1406,7 +1350,7 @@ class ORBITALCtrlPanel(AbstractUI):
 
 	def refreshDate(self):
 		new_utcDatetime = self.todayUTCdatetime + datetime.timedelta(days = self.DeltaT)
-		new_localDatetime = orbit3D.utc_to_local_fromDatetime(new_utcDatetime)
+		new_localDatetime = orbit3D.utc_to_local_fromDatetime(new_utcDatetime, self.SolarSystem.locationInfo)
 		#print "Refresh DATE: UTC = ", new_utcDatetime, ", LOCAL=",new_localDatetime
 		
 		self.dateDSpin.SetValue(new_utcDatetime.day)
@@ -1511,14 +1455,14 @@ class ORBITALCtrlPanel(AbstractUI):
 			if reset == True:
 				self.parentFrame.focusTab.setSunFocus()
 
-			#if self.SolarSystem.currentPOV != None and self.SolarSystem.currentPOV.BodyType == type:
+			#if self.SolarSystem.cameraPOV != None and self.SolarSystem.cameraPOV.BodyType == type:
 			#		self.parentFrame.focusTab.resetPOV()
 			"""
 		for type, cbox in self.checkboxList.iteritems():
 			if cbox.GetValue() == True:
 				self.SolarSystem.ShowFeatures |= type
 			else:
-				if self.SolarSystem.currentPOV != None and self.SolarSystem.currentPOV.BodyType == type:
+				if self.SolarSystem.cameraPOV != None and self.SolarSystem.cameraPOV.BodyType == type:
 					self.parentFrame.focusTab.resetPOV()
 				self.SolarSystem.ShowFeatures = (self.SolarSystem.ShowFeatures & ~type)
 			"""
@@ -1535,9 +1479,9 @@ class ORBITALCtrlPanel(AbstractUI):
 		else:
 			e.GetEventObject().SetLabel("Resume")
 			self.ResumeSlideShowLabel = True
-			if self.SolarSystem.currentPOVselection == "curobj":
-				self.SolarSystem.currentPOV = self.currentBody
-				self.updateCameraPOV()
+			if self.SolarSystem.cameraPOVselection == "curobj":
+				self.SolarSystem.cameraPOV = self.currentBody
+				self.SolarSystem.camera.updateCameraPOV()
 
 	def showObjectDetails(self, body):
 		self.InfoTitle.SetLabel(body.Name)
@@ -1597,7 +1541,7 @@ class ORBITALCtrlPanel(AbstractUI):
 		return False	# else return false
 
 	def OnSlideShow(self, e):
-		if self.SolarSystem.currentPOVselection == 'curobj':
+		if self.SolarSystem.cameraPOVselection == 'curobj':
 			#print "currPOVselection = curobj - Reset to SUN"
 			self.parentFrame.focusTab.resetPOV()
 
@@ -1681,7 +1625,8 @@ class ORBITALCtrlPanel(AbstractUI):
 		# if auto movement is required, execute it
 		if self.AutoRotation.GetValue() == True:
 #			self.SolarSystem.camera.cameraTest(frame=1)
-			self.SolarSystem.camera.oneTickCameraCombination(zoom=True, zoom_forward=True)
+			#self.SolarSystem.camera.oneTickCameraCombination(zoom=True, zoom_forward=True)
+			self.SolarSystem.camera.oneTickCameraRotationWithDirection(direction = self.SolarSystem.camera.ROT_HOR|self.SolarSystem.camera.ROT_LEFT)
 		self.updateSolarSystem()
 		sleep(1e-4)
 
@@ -1883,15 +1828,71 @@ class WIDGETSpanel(AbstractUI):
 		loc.show(self.ncpcb.GetValue())
 
 		# testing shifting earth locations
-		self.Earth.PlanetWidgets.shiftLocation(TZ_FR_PARIS)
-		self.Earth.PlanetWidgets.shiftLocation(TZ_RUS_BAIK)
-		self.Earth.PlanetWidgets.shiftLocation(TZ_US_VDBERG)
-		self.Earth.PlanetWidgets.shiftLocation(TZ_JP_TAN)
+		self.Earth.PlanetWidgets.shiftLocation(locList.TZ_AUS_SYD)
+		self.Earth.PlanetWidgets.shiftLocation(locList.TZ_FR_PARIS)
+		self.Earth.PlanetWidgets.shiftLocation(locList.TZ_JP_TAN)
+		self.Earth.PlanetWidgets.shiftLocation(locList.TZ_US_VDBERG)
+		self.Earth.PlanetWidgets.shiftLocation(locList.TZ_RUS_BAIK)
 		### self.Earth.SolarSystem.camera.cameraRefresh()
 
 		
-
 	def OnCenterToLocation(self, e):
+		# focus on current location
+		loc = None
+		if self.cpcb.GetValue() == True:
+			self.centerToDefaultLocation()
+		else:
+			self.Earth.PlanetWidgets.currentLocation = -1
+
+	def centerToDefaultLocation(self):
+
+
+		self.SolarSystem.camera.gotoEarthLocation(locList.TZ_RUS_BAIK)
+		self.SolarSystem.camera.gotoEarthLocation(locList.TZ_CHN_XI)
+		self.SolarSystem.camera.gotoEarthLocation(locList.TZ_FR_KOUR)
+		self.SolarSystem.camera.gotoEarthLocation(locList.TZ_FR_PARIS)
+		self.SolarSystem.camera.gotoEarthLocation(locList.TZ_JP_TAN)
+		self.SolarSystem.camera.gotoEarthLocation(locList.TZ_EG_CAIRO)
+		self.SolarSystem.camera.gotoEarthLocation(locList.TZ_US_VDBERG)
+		
+		return
+
+		self.Earth.PlanetWidgets.defaultLocation = TZ_RUS_BAIK
+		loc = self.Earth.PlanetWidgets.Loc[self.Earth.PlanetWidgets.defaultLocation]
+		loc.updateEclipticPosition()
+		self.Earth.PlanetWidgets.gotoVertical(self.Earth.PlanetWidgets.defaultLocation)
+		self.Earth.PlanetWidgets.currentLocation = self.Earth.PlanetWidgets.defaultLocation
+
+
+		self.Earth.PlanetWidgets.defaultLocation = TZ_CHN_XI
+		loc = self.Earth.PlanetWidgets.Loc[self.Earth.PlanetWidgets.defaultLocation]
+		loc.updateEclipticPosition()
+		self.Earth.PlanetWidgets.gotoVertical(self.Earth.PlanetWidgets.defaultLocation)
+		self.Earth.PlanetWidgets.currentLocation = self.Earth.PlanetWidgets.defaultLocation
+		return
+
+		self.Earth.PlanetWidgets.defaultLocation = TZ_FR_KOUR
+		loc = self.Earth.PlanetWidgets.Loc[self.Earth.PlanetWidgets.defaultLocation]
+		loc.updateEclipticPosition()
+		self.Earth.PlanetWidgets.gotoVertical(self.Earth.PlanetWidgets.defaultLocation)
+		self.Earth.PlanetWidgets.currentLocation = self.Earth.PlanetWidgets.defaultLocation
+
+		self.Earth.PlanetWidgets.defaultLocation = TZ_FR_PARIS
+		loc = self.Earth.PlanetWidgets.Loc[self.Earth.PlanetWidgets.defaultLocation]
+		loc.updateEclipticPosition()
+		self.Earth.PlanetWidgets.gotoVertical(self.Earth.PlanetWidgets.defaultLocation)
+		self.Earth.PlanetWidgets.currentLocation = self.Earth.PlanetWidgets.defaultLocation
+
+		self.Earth.PlanetWidgets.defaultLocation = TZ_JP_TAN
+		loc = self.Earth.PlanetWidgets.Loc[self.Earth.PlanetWidgets.defaultLocation]
+		loc.updateEclipticPosition()
+		self.Earth.PlanetWidgets.gotoVertical(self.Earth.PlanetWidgets.defaultLocation)
+		self.Earth.PlanetWidgets.currentLocation = self.Earth.PlanetWidgets.defaultLocation
+
+
+####		self.SolarSystem.camera.smoothFocus2target(loc.getEclipticPosition(), ratefunc = rate_func.ease_in_out)
+
+	def OnCenterToLocation2(self, e):
 		# focus on current location
 		loc = None
 		if self.cpcb.GetValue() == True:
@@ -1900,7 +1901,10 @@ class WIDGETSpanel(AbstractUI):
 		else:
 			self.Earth.PlanetWidgets.currentLocation = -1
 
-		self.parentFrame.orbitalTab.updateCameraPOV(loc)
+
+#		self.Earth.SolarSystem.cameraPOV = self.Earth
+		#self.parentFrame.orbitalTab.updateCameraPOV(loc)
+		self.SolarSystem.camera.updateCameraPOV(loc)
 
 	"""
 	def OnCenterToSurfaceSouth(self, e):
@@ -1954,12 +1958,13 @@ class WIDGETSpanel(AbstractUI):
 	def OnCenterToSurface(self, e):
 		# focus on surface rather than center
 		self.SolarSystem.SurfaceView = self.flcb.GetValue()
-		self.parentFrame.orbitalTab.surfaceRadius = (1.1 * self.SolarSystem.currentPOV.BodyShape.radius) if self.SolarSystem.SurfaceView == True else 0
+		self.parentFrame.orbitalTab.surfaceRadius = (1.1 * self.SolarSystem.cameraPOV.BodyShape.radius) if self.SolarSystem.SurfaceView == True else 0
 
 		#self.SolarSystem.SurfaceDirection[0] = 0		
 		#self.SolarSystem.SurfaceDirection[1] = 0		
-		#self.SolarSystem.SurfaceDirection[2] = -1		
-		self.parentFrame.orbitalTab.updateCameraPOV()
+		#self.SolarSystem.SurfaceDirection[2] = -1	
+		self.SolarSystem.camera.updateCameraPOV()	
+		#self.parentFrame.orbitalTab.updateCameraPOV()
 
 	def OnHidePlanet(self, e):
 		self.Earth.Origin.visible = not self.hpcb.GetValue()
