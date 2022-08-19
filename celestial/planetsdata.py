@@ -20,7 +20,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 
 """
-
+# Body types
 INNERPLANET = 0x01
 OUTERPLANET = 0x02
 DWARFPLANET = 0x04
@@ -46,6 +46,8 @@ SATELLITE = 0x200000
 CELESTIAL_SPHERE = 0x400000
 HYPERBOLIC = 0x800000
 SPACECRAFT = 0x1000000
+CONSTELLATIONS = 0x2000000
+
 TYPE_MASK = 0xFFFFFFF
 
 
@@ -53,6 +55,7 @@ SATELLITE_M = 100
 THREE_D = False
 MAX_P_D = 1.1423e13
 MIN_P_D = 46.0e9
+
 LEGEND = True
 
 SUN_M = 1.989e+30 # in Kg
@@ -79,6 +82,7 @@ TYPE_COMET = 4
 TYPE_TRANS_N = 5
 TYPE_SATELLITE = 6
 
+EARTH_NAME = "earth"
 
 AU = 149597870691
 DEFAULT_RADIUS = 2.0
@@ -190,14 +194,15 @@ SCALE_OVERSIZED = 0
 SCALE_NORMALIZED = 1
 
 # size corrections...
-#SMALLBODY_SZ_CORRECTION = 1e-6/(DIST_FACTOR*5) #(default)
-SMALLBODY_SZ_CORRECTION = 5e-5/(DIST_FACTOR * 5) #(default)
+SMALLBODY_SZ_CORRECTION = 1e-6/(DIST_FACTOR*5) #(default)
+#SMALLBODY_SZ_CORRECTION = 5e-5/(DIST_FACTOR * 5) #(default)
 
 SUN_SZ_CORRECTION = 1e-2/(DIST_FACTOR * 20)
 PLANET_SZ_CORRECTION = 1/(DIST_FACTOR * 5)
 SATELLITE_SZ_CORRECTION = 1/(DIST_FACTOR * 5)
 HYPERBOLIC_SZ_CORRECTION = 1/(DIST_FACTOR * 5)
-ASTEROID_SZ_CORRECTION = 1e-2/(DIST_FACTOR * 5)
+### ASTEROID_SZ_CORRECTION = 1e-2/(DIST_FACTOR * 5)
+ASTEROID_SZ_CORRECTION = SMALLBODY_SZ_CORRECTION
 DWARFPLANET_SZ_CORRECTION = 1e-2/(DIST_FACTOR * 5)
 
 # adjustment factor
@@ -205,7 +210,8 @@ DWARFPLANET_SZ_CORRECTION = 1e-2/(DIST_FACTOR * 5)
 ADJUSTMENT_FACTOR_PLANETS = 0 # 1.95
 ADJUSTMENT_FACTOR = 0 #1.72 #1.80
 
-from visual import color
+#from visual import color
+from vpython_interface import Color
 
 objects_data = {
 	"moon" :{
@@ -522,6 +528,7 @@ objects_data = {
 		"kep_elt":{'a' : 1.00000018, 'ar': -3e-08, 'EC_e' : 0.01673163, 'er':-3.661e-05, 'i' :-0.00054346, 'ir':-0.01337178, 'L' :100.46691572, 'Lr':35999.3730633, 'W' :102.93005885, 'Wr':0.3179526, 'N' :-5.11260389, 'Nr':-0.24123856, 'b' :0.0, 'c' :0.0, 's':0.0, 'f' :0.0},
 		#"kep_elt_1":{'a' : 1.00000261, 'ar': 0.00000562, 'EC_e' : 0.01671123, 'er':-0.00004392, 'i' :-0.00001531, 'ir':-0.01294668, 'L' :100.46457166, 'Lr':35999.37244981, 'W' :102.93768193, 'Wr':0.32327364, 'N' :0.0, 'Nr':0.0, 'b' :0.0, 'c' :0.0, 's':0.0, 'f' :0.0},
 		"tga_name": "highres-earth-8192x4096-clouds" #"EarthClouds"
+		#"tga_name": "land_shallow_topo_16384x8192"
 		},
 
 	"pluto" : {
@@ -546,6 +553,8 @@ objects_data = {
 		"kep_elt":{'a' : 39.48686035, 'ar': 0.00449751, 'EC_e' : 0.24885238, 'er':6.016e-05, 'i' :17.1410426, 'ir':5.01e-06, 'L' :238.96535011, 'Lr':145.18042903, 'W' :224.09702598, 'Wr':-0.00968827, 'N' :110.30167986, 'Nr':-0.00809981, 'b' :-0.01262724, 'c' :0.0, 's':0.0, 'f' :0.0},
 		#"kep_elt_1":{'a' : 39.48211675, 'ar':-0.00031596, 'EC_e' : 0.24882730, 'er':0.00005170, 'i' :17.14001206, 'ir':0.00004818, 'L' :238.92903833, 'Lr':145.20780515, 'W' :224.06891629, 'Wr':-0.04062942, 'N' :110.30393684, 'Nr':-0.01183482, 'b' :0.0, 'c' :0.0, 's':0.0, 'f' :0.0},
 		"tga_name": "Pluto"
+#		"tga_name": "highres-earth-8192x4096-clouds" #"EarthClouds"
+
 		},
 
 	"eris" : {
@@ -712,17 +721,17 @@ rings_data = {
 			{	"name": "Mu",
 				"radius": 103000e3,
 				"width": 17000e3,
-				"color": color.darkblue
+				"color": Color.darkblue
 			},
 			{	"name": "Nu",
 				"radius": 69900e3,
 				"width": 3800e3,
-				"color": color.darkblue
+				"color": Color.darkblue
 			},
 			{	"name": "Tau",
 				"radius": 41350e3,
 				"width": 3500e3,
-				"color": color.blueish
+				"color": Color.blueish
 			}
 		]
 	},
@@ -731,27 +740,27 @@ rings_data = {
 			{	"name": "F",
 				"radius": 140180e3,
 				"width":100e3,
-				"color": color.whiteish
+				"color": Color.whiteish
 			},
 			{	"name": "A",
 				"radius": 136775e3,
 				"width": 14600e3,
-				"color": color.lightgrey
+				"color": Color.lightgrey
 			},
 			{	"name": "B",
 				"radius": 117580e3,
 				"width": 25500e3,
-				"color": color.whiteish
+				"color": Color.whiteish
 			},
 			{	"name": "C",
 				"radius": 92000e3,
 				"width": 17500e3,
-				"color": color.grey
+				"color": Color.grey
 			},
 			{	"name": "D",
 				"radius": 74510e3,
 				"width": 7500e3,
-				"color": color.darkgrey
+				"color": Color.darkgrey
 			}		
 		]
 	}

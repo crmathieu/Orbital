@@ -22,21 +22,25 @@ SOFTWARE.
 """
 import datetime
 import orbit3D 
+from location import locList #*
 from planetsdata import *
 from visual import *
 import threading
+import pytz
 
 #from concurrent.futures import ThreadPoolExecutor, ProcessPoolExecutor, as_completed
 
 from numberfmt import *
 import urllib2, urllib
-import httplib
+#import httplib
 from video import * #VideoRecorder
 #import re
 import json
 
 import wx
 import wx.lib.newevent # necessary for custom event
+
+import rate_func
 
 MAIN_HEADING_Y = 40
 MAIN_MIDDLE_X = 200
@@ -59,6 +63,7 @@ CHK_L11 = CHK_L10 + 20
 CHK_L12 = CHK_L11 + 20
 CHK_L13 = CHK_L12 + 20
 CHK_L14 = CHK_L13 + 20
+CHK_L15 = CHK_L14 + 20
 
 LSTB_Y = DATE_Y + 60
 SLDS_Y = LSTB_Y + 40
@@ -101,20 +106,6 @@ JPL_BRW_Y = JPL_LISTCTRL_Y + JPL_LIST_SZ + 15
 
 JPL_SEARCH_Y = JPL_BRW_Y + 20
 
-# ----------------------------------------------------------------------
-# The nasa API key used for all access to the JPL small objects database
-# This is a personal information
-NASA_API_KEY = "KTTV4ZQFuTywtkoi3gA59Qdlk5H2V1ry6UdYL0xU"
-# ----------------------------------------------------------------------
-
-#NASA_API_V1_FEED_TODAY = "https://api.nasa.gov/neo/rest/v1/feed/today?detailed=true&api_key="+NASA_API_KEY
-NASA_API_V1_FEED_TODAY = "https://api.nasa.gov/neo/rest/v1/feed?api_key="+NASA_API_KEY
-
-NASA_API_V1_FEED_TODAY_HOST = "https://api.nasa.gov"
-NASA_API_V1_FEED_TODAY_URL = "/neo/rest/v1/feed?detailed=true&api_key="+NASA_API_KEY
-NASA_API_HTTPS_HOST = "https://api.nasa.gov"
-
-NASA_API_KEY_DETAILS = "https://api.nasa.gov/neo/rest/v1/neo/"
 
 # PANELS numbers - Note that panels MUST be added in the same order to the parent
 # notebook to make it possible to switch from panel to panel programmatically
@@ -129,7 +120,7 @@ POV_FOCUS_Y = POV_Y+150
 from abc import ABCMeta
 
 # CLASS AbstractUI ------------------------------------------------------------
-# abstract class from which each "tab" class derives
+# abstract class from which each "panel" class derives
 class AbstractUI(wx.Panel):
 	__metaclass__ = ABCMeta
 
@@ -158,9 +149,9 @@ class AbstractUI(wx.Panel):
 		self.checkboxList[type] = cb
 
 
-# CLASS orbitalControl ---------------------------------------------------------
+# CLASS DashBoard ---------------------------------------------------------
 # This is the GUI entry point
-class orbitalControl(wx.Frame):
+class DashBoard(wx.Frame):
 
 	def __init__(self, solarsystem):
 		newHeight = INFO1_Y+300 # +220
@@ -173,30 +164,42 @@ class orbitalControl(wx.Frame):
 		self.Notebook = wx.Notebook(self.Panel, size=(500, newHeight))
 
 		# create subpanels to be used with tabs
-		self.orbitalBox = orbitalCtrlPanel(self, self.Notebook, solarsystem)
-		self.jplBox = JPLpanel(self, self.Notebook, solarsystem)
-		self.povBox = POVpanel(self, self.Notebook, solarsystem)
-		self.widgetBox = WIDGETSpanel(self, self.Notebook, solarsystem)
+		self.orbitalTab = ORBITALCtrlPanel(self, self.Notebook, solarsystem)
+		self.searchTab = SEARCHpanel(self, self.Notebook, solarsystem)
+		self.focusTab = FOCUSpanel(self, self.Notebook, solarsystem)
+		self.widgetsTab = WIDGETSpanel(self, self.Notebook, solarsystem)
 
 		# Bind subpanels to tabs and name them.
-		self.Notebook.AddPage(self.orbitalBox, "Main")
-		self.Notebook.AddPage(self.povBox, "Animation POV")
-		self.Notebook.AddPage(self.jplBox, "Close Approach Data")
-		self.Notebook.AddPage(self.widgetBox, "Animation Widgets")
+		self.Notebook.AddPage(self.orbitalTab, "Main")
+		self.Notebook.AddPage(self.focusTab, "Focus")
+		self.Notebook.AddPage(self.searchTab, "Search")
+		self.Notebook.AddPage(self.widgetsTab, "Widgets")
 		#self.getLocationFromIPaddress()
 
 		# if we want flyOver animation
 		#if self.AutoRotation.GetValue() == True:
-		#	self.orbitalBox.SetAnimationCallback(self.SolarSystem.camera.oneTickCameraCombination, (zoom=True, zoom_forward=True))
+		#	self.orbitalTab.SetAnimationCallback(self.SolarSystem.camera.oneTickCameraCombination, (zoom=True, zoom_forward=True))
 			#self.SolarSystem.camera.oneTickCameraCombination(zoom=True, zoom_forward=True)
-		self.orbitalBox.Show()
+		self.orbitalTab.Show()
 
 
-# CLASS POVpanel --------------------------------------------------------------
-class POVpanel(AbstractUI):
+
+# CLASS FOCUSpanel ------------------------------------------------------------
+# Point of Interest Tab
+class FOCUSpanel(AbstractUI):
+
 
 	def InitVariables(self):
 		self.ca_deltaT = 0
+		self.smoothTransition = False
+#		self.transitionVelocityFactor = 1.0  # normal speed. speed can go as slow as 1/100 and as fast as 4 times the normal speed
+
+		self.bodyNameToIndex = {
+			"curobj": 0, 	"sun": 1, 		EARTH_NAME: 2, 	"mercury": 3, 	"venus": 4,
+			"mars": 5, 		"jupiter": 6, 	"saturn": 7, 	"uranus": 8, 	"neptune": 9,
+			"pluto": 10, 	"sedna": 11, 	"makemake": 12, "haumea": 13, 	"eris": 14, 
+			"charon": 15, 	"phobos": 16, 	"deimos": 17, 	"moon": 18
+		}
 
 	def InitUI(self):
 		self.BoldFont = wx.Font(10, wx.SWISS, wx.NORMAL, wx.BOLD)
@@ -218,6 +221,10 @@ class POVpanel(AbstractUI):
 		self.cb.SetValue(False)
 		self.cb.Bind(wx.EVT_CHECKBOX,self.OnLocalRef)
 
+		self.cbst = wx.CheckBox(self, label="Smooth Transition", pos=(200, POV_FOCUS_Y+60)) #   POV_Y+560))
+		self.cbst.SetValue(False)
+		self.cbst.Bind(wx.EVT_CHECKBOX,self.OnTransition)
+
 		self.Title = wx.StaticText(self, label="", pos=(200, POV_FOCUS_Y+80), size=(TOTAL_X-210, TOTAL_Y -240))# -160))
 		self.Title.SetFont(self.BoldFont)
 		self.Info = wx.StaticText(self, label="", pos=(200, POV_FOCUS_Y+100), size=(TOTAL_X-210, TOTAL_Y -240)) #-160))
@@ -228,34 +235,75 @@ class POVpanel(AbstractUI):
 		self.resetPOV()
 		self.Hide()
 
+	def OnTransition(self, e):
+		self.smoothTransition = self.cbst.GetValue() 
+
+	"""
+	def moveToEarthLocation(self, destination):
+		# going from current object to next current object
+		print ("SMOOTH FOCUS to", destination)
+		#self.SolarSystem.cameraPOV
+		dest = self.SolarSystem.getBodyFromName(destination.lower())
+		if dest != None:
+			print ("we got the body info")
+			Xc = self.SolarSystem.Scene.center[0]
+			Yc = self.SolarSystem.Scene.center[1]
+			Zc = self.SolarSystem.Scene.center[2]
+			print ("Xc=", Xc, ", Yc=", Yc,", Zc=", Zc)
+			
+			X = (dest.Position[0] - Xc)/100
+			Y = (dest.Position[1] - Yc)/100
+			Z = (dest.Position[2] - Zc)/100
+
+			print "X=", X, ", Y=", Y,", Z=", Z
+
+			for i in np.arange(0, 101, 1):
+				#g = mag(vector( X0 + 100*i*X, Y0 + 100*i*Y, Z0 + 100*i*Z))
+				self.SolarSystem.Scene.center = vector( (Xc + i*X),
+														(Yc + i*Y),
+														(Zc + i*Z))
+				sleep(2e-2)
+			#self.Planet.SolarSystem.camera.cameraRefresh()
+			#print "forward=", self.Planet.SolarSystem.Scene.forward
+			for i in np.arange(0,101, 1):
+				print rate_func.ease_in_out(float(i)/100)
+		else:
+			print "failed to obtain destination"
+	"""
+
 	def OnLocalRef(self, e):
-		print ("currentPOV:",self.SolarSystem.currentPOVselection)
+		#print ("cameraPOV:",self.SolarSystem.cameraPOVselection)
 		self.setLocalRef()
 
 	def setLocalRef(self):
+		self.parentFrame.widgetsTab.lrcb.SetValue(self.cb.GetValue())
 		self.SolarSystem.setFeature(LOCAL_REFERENTIAL, self.cb.GetValue())
-		orbit3D.glbRefresh(self.SolarSystem, self.parentFrame.orbitalBox.AnimationInProgress)
+		orbit3D.glbRefresh(self.SolarSystem, self.parentFrame.orbitalTab.AnimationInProgress)
 
 	def setCurrentBodyFocus(self):
-		if self.parentFrame.orbitalBox.currentBody == None:
+		if self.parentFrame.orbitalTab.currentBody == None:
 			self.rbox.SetSelection(1)
 			#self.SolarSystem.resetView()
 			self.setSunFocus()
 
 		else:
-			self.SolarSystem.currentPOV = self.parentFrame.orbitalBox.currentBody
-			self.parentFrame.orbitalBox.updateCameraPOV()
-			self.setBodyFocus(self.SolarSystem.currentPOV)
+			self.SolarSystem.cameraPOV = self.parentFrame.orbitalTab.currentBody
+			###### self.parentFrame.orbitalTab.updateCameraPOV()
+			self.setBodyFocus(self.SolarSystem.cameraPOV)
 
 	def setCurrentBodyFocusManually(self, body, selectIndex):
-		#self.SolarSystem.currentPOV = body
-		# TODO check the body's option box in POV tab 
-		#self.parentFrame.orbitalBox.updateCameraPOV()
-		self.setBodyFocus(body) #self.SolarSystem.currentPOV)
 		self.rbox.SetSelection(selectIndex)
+		self.OnRadioBox(None)
+		#self.setBodyFocus(body)
 
+	def getBodyIndexInList(self, bodyName):
+		index = self.bodyNameToIndex[bodyName.lower()]
+		if index != None:
+			return index
+		return self.bodyNameToIndex["sun"]
 
 	def setBodyFocus(self, Body):
+		print "setting body:", Body.Name
 		# display planet Info
 		if Body.Mass == 0:
 			mass = "???"
@@ -287,10 +335,13 @@ class POVpanel(AbstractUI):
 				"Eccentricity ", e,
 				"Axial Tilt(deg) ", Body.AxialTilt))
 
-		if self.SolarSystem.currentPOVselection != 'curobj':
-			print "CurrentPOV", self.SolarSystem.currentPOVselection
+		if self.SolarSystem.cameraPOVselection != 'curobj':
+			print "cameraPOV", self.SolarSystem.cameraPOVselection
 
-			if (Body.SolarSystem.ShowFeatures & Body.BodyType) == 0:
+			# if object was hidden due to its body type, make body type
+			# visible unless it's earth which always stays visible
+			if (Body.SolarSystem.ShowFeatures & Body.BodyType) == 0 \
+				and Body.Name.lower() != EARTH_NAME:
 				#print "MAKING OBJECT VISIBLE"
 				# if the body is not visible, Make it so
 				#print "Making "+Body.Name+" visible! bodyType = "+str(Body.BodyType)
@@ -300,17 +351,25 @@ class POVpanel(AbstractUI):
 				Body.Labels[0].visible = True
 				#planetBody.SolarSystem.ShowFeatures |= planetBody.BodyType
 				Body.SolarSystem.setFeature(Body.BodyType, True)
-				self.parentFrame.orbitalBox.checkboxList[Body.BodyType].SetValue(True)
-				#glbRefresh(self.SolarSystem, self.parentFrame.orbitalBox.AnimationInProgress)
+				self.parentFrame.orbitalTab.checkboxList[Body.BodyType].SetValue(True)
+				#glbRefresh(self.SolarSystem, self.parentFrame.orbitalTab.AnimationInProgress)
+
 			#else:
 			#	print "OBJECT ALREADY VISIBLE"
 
-		self.SolarSystem.currentPOV = Body
-		self.SolarSystem.currentPOVselection = Body.JPL_designation
-		self.parentFrame.orbitalBox.updateCameraPOV()
+		self.SolarSystem.cameraPOV = Body
+		#### self.SolarSystem.cameraPOVselection = Body.JPL_designation
+		print "cameraPOV selection is:", self.SolarSystem.cameraPOVselection
+
+		if self.smoothTransition == True:
+#			self.smoothFocus(Body.JPL_designation)
+			self.SolarSystem.camera.smoothFocus(Body.JPL_designation)
+		else: # may have to remove "else" just for earth locations management
+			self.SolarSystem.camera.updateCameraPOV()	
+			#self.parentFrame.orbitalTab.updateCameraPOV()
 
 	def setPlanetFocus(self):
-		planetBody = self.SolarSystem.getBodyFromName(self.SolarSystem.currentPOVselection)
+		planetBody = self.SolarSystem.getBodyFromName(self.SolarSystem.cameraPOVselection)
 		return self.setBodyFocus(planetBody)
 
 	def setSunFocus(self):
@@ -326,17 +385,23 @@ class POVpanel(AbstractUI):
 		self.resetPOV()
 
 	def resetPOV(self):
-		self.SolarSystem.resetView()
+		if self.smoothTransition == True:
+			self.smoothFocus("sun")
+		else: 
+			self.SolarSystem.resetView()
 		self.rbox.SetSelection(1)
-		self.SolarSystem.currentPOVselection = "SUN"
-		self.SolarSystem.currentPOV = None
+		self.SolarSystem.cameraPOVselection = "SUN"
+		self.SolarSystem.cameraPOV = None
 
 	def OnRadioBox(self, e):
 		index = self.rbox.GetSelection()
 
-		self.SolarSystem.currentPOVselection = {0: "curobj", 1: "sun", 2:"earth", 3:"mercury", 4:"venus",
+		# set type of object selected
+		self.SolarSystem.cameraPOVselection = {0: "curobj", 1: "sun", 2:EARTH_NAME, 3:"mercury", 4:"venus",
 												5: "mars", 6:"jupiter", 7:"saturn", 8:"uranus", 9:"neptune",
 												10:"pluto", 11:"sedna", 12:"makemake", 13:"haumea", 14:"eris", 15:"charon", 16: "phobos", 17:"deimos", 18:"moon"}[index]
+		
+		# and then call proper focus function
 		{0:	self.setCurrentBodyFocus, 1: self.setSunFocus,
 		 2: self.setPlanetFocus, 3: self.setPlanetFocus,
 		 4: self.setPlanetFocus, 5: self.setPlanetFocus,
@@ -350,20 +415,50 @@ class POVpanel(AbstractUI):
 
 		self.setLocalRef()
 
-	def getCurrentPOVselection(self):
-		return self.SolarSystem.currentPOVselection
+	def getCameraPOVselection(self):
+		return self.SolarSystem.cameraPOVselection
 
 	def OnReset(self, e):
 		self.resetPOV()
 
-# CLASS JPLpanel --------------------------------------------------------------
-class JPLpanel(AbstractUI):
+
+
+# CLASS SEARCHpanel --------------------------------------------------------------
+# Near Earth Objects tab
+class SEARCHpanel(AbstractUI):
 
 	def InitVariables(self):
 		self.ca_deltaT = 0 # close approach deltaT
+		# read NASA API key
+		self.LoadAPIKey("data/private-config.json", "data/public-config.json")
 		self.searchHostdes = "https://ssd-api.jpl.nasa.gov/sbdb.api?des="
 		self.searchHostsstr = "https://ssd-api.jpl.nasa.gov/sbdb.api?sstr="
 		self.Hide()
+
+	def LoadAPIKey(self, filename, altfilename):
+		fo = None
+		try:
+			fo = open(filename, "r")
+		except IOError:
+			fo = open(altfilename, "r")
+
+		js = json.loads(fo.read())
+
+		self.NASA_API_KEY = js["NASA_API_KEY"]
+		self.NASA_API_V1_FEED_TODAY = "https://api.nasa.gov/neo/rest/v1/feed?api_key="+self.NASA_API_KEY
+		self.NASA_API_V1_FEED_TODAY_URL = "/neo/rest/v1/feed?detailed=true&api_key="+self.NASA_API_KEY
+		self.NASA_API_V1_FEED_TODAY_HOST = "https://api.nasa.gov"
+		self.NASA_API_HTTPS_HOST = "https://api.nasa.gov"
+		self.NASA_API_KEY_DETAILS = "https://api.nasa.gov/neo/rest/v1/neo/"
+
+		# ----------------------------------------------------------------------
+		# The nasa API key used for all access to the JPL small objects database
+		# This is a personal information that is obtained by submitting a request
+		# at https://api.nasa.gov/
+		# ----------------------------------------------------------------------
+
+		print "Your API key .......... ", self.NASA_API_KEY
+
 
 	def InitUI(self):
 		self.fetchDate = datetime.date.today()
@@ -426,26 +521,27 @@ class JPLpanel(AbstractUI):
 	def onSearch(self, e):
 		print ("ENTER"+self.search.GetValue())
 		self.searchList.DeleteAllItems()
-		self.searchByName(self.searchHostsstr, self.search.GetValue(), searchtype=self.SRCH_BROAD)
+#		self.searchByName(self.searchHostsstr, self.search.GetValue(), searchtype=self.SRCH_BROAD)
+		self.searchByName(self.search.GetValue(), searchtype=self.SRCH_BROAD)
 		
 	def OnNext(self, e):
-		self.oneDay(1, "", self.nextUrl) #NASA_API_V1_FEED_TODAY_HOST, self.nextUrl)
+		self.oneDay(1, "", self.nextUrl)
 
 	def OnPrev(self, e):
-		self.oneDay(-1, "", self.prevUrl) #NASA_API_V1_FEED_TODAY_HOST, self.prevUrl)
+		self.oneDay(-1, "", self.prevUrl)
 
 	def oneDay(self, incr, host, url):
 		self.ca_deltaT += incr
 		self.fetchDate = datetime.date.today() + datetime.timedelta(days = self.ca_deltaT)
 		self.fetchDateStr = self.fetchDate.strftime('%Y-%m-%d')
-		self.searchNEOByDay(NASA_API_V1_FEED_TODAY_HOST, NASA_API_V1_FEED_TODAY_URL)
+		self.searchNEOByDay(self.NASA_API_V1_FEED_TODAY_HOST, self.NASA_API_V1_FEED_TODAY_URL)
 #		self.heading.SetLabel('Close Approaches On '+self.fetchDateStr)
 
 	def OnCloseApproach(self, event):
 		self.download.SetLabel("Fetching ...")
 		self.fetchDate = datetime.date.today()
 		self.fetchDateStr = self.fetchDate.strftime('%Y-%m-%d')
-		self.searchNEOByDay(NASA_API_V1_FEED_TODAY_HOST, NASA_API_V1_FEED_TODAY_URL)
+		self.searchNEOByDay(self.NASA_API_V1_FEED_TODAY_HOST, self.NASA_API_V1_FEED_TODAY_URL)
 		self.download.Hide()
 		self.next.Show()
 		self.prev.Show()
@@ -470,6 +566,7 @@ class JPLpanel(AbstractUI):
 		self.BodiesSPK_ID = []
 		rawResp = response.read()
 		self.jsonResp = json.loads(rawResp)
+		print rawResp
 
 		# use if "prev" not in "links"  
 		self.nextUrl = self.jsonResp["links"]["next"] if "next" in self.jsonResp["links"] else ""
@@ -483,7 +580,7 @@ class JPLpanel(AbstractUI):
 		if self.jsonResp["element_count"] > 0:
 			today = self.jsonResp["near_earth_objects"][self.fetchDateStr]
 			for entry in today:
-				if entry["close_approach_data"][0]["orbiting_body"].upper() == 'EARTH':
+				if entry["close_approach_data"][0]["orbiting_body"].lower() == EARTH_NAME:
 					self.list.InsertStringItem(self.ListIndex, entry["name"])
 					if entry["is_potentially_hazardous_asteroid"] == True:
 							ch = "Y"
@@ -506,7 +603,7 @@ class JPLpanel(AbstractUI):
 		
 		# check the new target day has been cached already
 		#if self.fetchDateStr in self.jsonResp["near_earth_objects"]:
-			# if yes, directly load info in objects_data 
+			# if yes, directly load info in self.SolarSystem.objects_data 
 		#	self.doFetchByDayFromCache()
 		#else:
 		# start a new thread to retrieve the list of NEOs from JPL
@@ -522,25 +619,28 @@ class JPLpanel(AbstractUI):
 		# load orbital elements
 		id = self.loadBodyInfoFromDaily(e.m_itemIndex)
 		if id > 0:
+			
 			# switch to main panel to display orbit
 			self.nb.SetSelection(PANEL_MAIN)
 			
 			# If slide show in progress, stop it, and reset body List
-			self.parentFrame.orbitalBox.stopSlideSHow()
-			self.parentFrame.orbitalBox.resetBodyList()
+			self.parentFrame.orbitalTab.stopSlideSHow()
+			self.parentFrame.orbitalTab.resetBodyList()
 
 			# make sure to reset the date using the selected object close encounter date time (provided as UTC)
-			self.parentFrame.orbitalBox.resetDateFromBodyId(id)
-			self.parentFrame.orbitalBox.refreshDate()
+			self.parentFrame.orbitalTab.resetDateFromBodyId(id)
+			############self.parentFrame.orbitalTab.refreshDate()
 
-			self.parentFrame.orbitalBox.setCurrentBodyFromId(id)
-			if self.SolarSystem.currentPOVselection == "curobj":
-				self.SolarSystem.currentPOV = self.parentFrame.orbitalBox.currentBody
-				self.parentFrame.orbitalBox.updateCameraPOV()
+			self.parentFrame.orbitalTab.setCurrentBodyFromId(id)
+			if self.SolarSystem.cameraPOVselection == "curobj":
+				self.SolarSystem.cameraPOV = self.parentFrame.orbitalTab.currentBody
+				self.SolarSystem.camera.updateCameraPOV()	
+				#self.parentFrame.orbitalTab.updateCameraPOV()
 			toggle = False
 			if self.SolarSystem.isRealsize():
 				toggle = True
-			self.parentFrame.orbitalBox.currentBody.toggleSize(toggle)
+			self.parentFrame.orbitalTab.currentBody.toggleSize(toggle)
+
 
 
 	def doFetchByName(self, host, target, type):
@@ -549,6 +649,7 @@ class JPLpanel(AbstractUI):
 		try:
 			opener = urllib2.build_opener()
 			opener.addheaders = [('User-Agent', 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_12_2) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/55.0.2883.95 Safari/537.36')]
+			print "Querying: ", host+target
 			response = opener.open(host+target)
 			rawResp = response.read()
 
@@ -596,28 +697,34 @@ class JPLpanel(AbstractUI):
 		# for "DETAILDED" search, load body and draw its orbit
 		id = self.loadBodyInfoFromSearch()
 		if id > 0:
-			#self.parentFrame.orbitalBox.refreshDate()
+			#self.parentFrame.orbitalTab.refreshDate()
 			# switch to main panel to display orbit
 			self.nb.SetSelection(PANEL_MAIN)
 
 			# If slide show in progress, stop it, and reset body List
-			self.parentFrame.orbitalBox.stopSlideSHow()
-			self.parentFrame.orbitalBox.resetBodyList()
+			self.parentFrame.orbitalTab.stopSlideSHow()
+			self.parentFrame.orbitalTab.resetBodyList()
 
-			self.parentFrame.orbitalBox.refreshDate()
+			##########self.parentFrame.orbitalTab.refreshDate()
 
-			self.parentFrame.orbitalBox.setCurrentBodyFromId(id)
-			if self.SolarSystem.currentPOVselection == "curobj":
-				self.SolarSystem.currentPOV = self.parentFrame.orbitalBox.currentBody
-				self.parentFrame.orbitalBox.updateCameraPOV()
+			self.parentFrame.orbitalTab.setCurrentBodyFromId(id)
+			if self.SolarSystem.cameraPOVselection == "curobj":
+				self.SolarSystem.cameraPOV = self.parentFrame.orbitalTab.currentBody
+				#self.parentFrame.orbitalTab.updateCameraPOV()
+				self.SolarSystem.camera.updateCameraPOV()	
+				
 			toggle = False
 			if self.SolarSystem.isRealsize():
 				toggle = True
-			self.parentFrame.orbitalBox.currentBody.toggleSize(toggle)
+			self.parentFrame.orbitalTab.currentBody.toggleSize(toggle)
 
 		return id
 
-	def searchByName(self, hostt, url, searchtype):
+	# Note: for scpacecraft search, the small objects database won't work. 
+	# Instead the Horizon system web scrapping should be used instead
+	
+#	def searchByName(self, hostt, url, searchtype):
+	def searchByName(self, url, searchtype):
 
 		# add code here
 		if searchtype == self.SRCH_DETAILED:
@@ -630,11 +737,14 @@ class JPLpanel(AbstractUI):
 		#jplThread.start()
 
 		self.doFetchByName(host, urllib.quote(url), searchtype)
+		#self.doFetchByName(host, "%2D226", searchtype)
+		
 
 	def OnSearchListClick(self, e):
 		pdes = self.searchList.GetItem(itemId=e.m_itemIndex, col=1).GetText()
 		#print("searching -> "+self.searchHostdes+pdes)
-		self.searchByName(self.searchHostdes, pdes, searchtype = self.SRCH_DETAILED)
+#		self.searchByName(self.searchHostdes, pdes, searchtype = self.SRCH_DETAILED)
+		self.searchByName(pdes, searchtype = self.SRCH_DETAILED)
 
 
 	# attempt to use SPICE functions to obtain orbital elements
@@ -682,12 +792,12 @@ class JPLpanel(AbstractUI):
 		spkid = entry["object"]["spkid"]
 
 		# if the key already exists, the object has already been loaded, simply return its spk-id
-		if spkid in objects_data:
+		if spkid in self.SolarSystem.objects_data:
 			return spkid
 
 		print ("SPKID="+ spkid)
 
-		objects_data[spkid] = {
+		self.SolarSystem.objects_data[spkid] = {
 			"material": 0,
 			# epoch_date_close_approach comes as the number of milliseconds in unix TT
 #			"epoch_date_close_approach": utc_close_approach, # in seconds using J2000
@@ -707,29 +817,29 @@ class JPLpanel(AbstractUI):
 		# add what follows through a loop going through all elements of entry["orbit"]["elements"]
 		for elt in entry["orbit"]["elements"]:
 			if elt["name"] == "e":
-				objects_data[spkid].update({"EC_e": float(elt["value"])})
+				self.SolarSystem.objects_data[spkid].update({"EC_e": float(elt["value"])})
 			elif elt["name"] == "q":
-				objects_data[spkid].update({"QR_perihelion": float(elt["value"]) * AU})
+				self.SolarSystem.objects_data[spkid].update({"QR_perihelion": float(elt["value"]) * AU})
 			elif elt["name"] == "i":
-				objects_data[spkid].update({"IN_orbital_inclination": float(elt["value"])})
+				self.SolarSystem.objects_data[spkid].update({"IN_orbital_inclination": float(elt["value"])})
 			elif elt["name"] == "om":
 				om = float(elt["value"])
-				objects_data[spkid].update({"OM_longitude_of_ascendingnode": om})
+				self.SolarSystem.objects_data[spkid].update({"OM_longitude_of_ascendingnode": om})
 			elif elt["name"] == "w":
 				W = float(elt["value"])
-				objects_data[spkid].update({"W_argument_of_perihelion": W})
+				self.SolarSystem.objects_data[spkid].update({"W_argument_of_perihelion": W})
 			elif elt["name"] == "ma":
-				objects_data[spkid].update({"MA_mean_anomaly": float(elt["value"])})
+				self.SolarSystem.objects_data[spkid].update({"MA_mean_anomaly": float(elt["value"])})
 			elif elt["name"] == "tp":
-				objects_data[spkid].update({"Tp_Time_of_perihelion_passage_JD": float(elt["value"])}) # value unit in "TDB" (Time Dynamic Baricenter)
+				self.SolarSystem.objects_data[spkid].update({"Tp_Time_of_perihelion_passage_JD": float(elt["value"])}) # value unit in "TDB" (Time Dynamic Baricenter)
 			elif elt["name"] == "per":
-				objects_data[spkid].update({"PR_revolution": float(elt["value"])})
+				self.SolarSystem.objects_data[spkid].update({"PR_revolution": float(elt["value"])})
 			elif elt["name"] == "n":
-				objects_data[spkid].update({"N_mean_motion": float(elt["value"])})
+				self.SolarSystem.objects_data[spkid].update({"N_mean_motion": float(elt["value"])})
 
-		objects_data[spkid].update({"longitude_of_perihelion": om+W})
+		self.SolarSystem.objects_data[spkid].update({"longitude_of_perihelion": om+W})
 
-		print (objects_data[spkid])
+		print (self.SolarSystem.objects_data[spkid])
 
 		# for now let's consider "search" bodies as PHAs
 		body = orbit3D.pha(self.SolarSystem, spkid, color.white) #orbit3D.getColor())
@@ -742,27 +852,33 @@ class JPLpanel(AbstractUI):
 			return -1
 
 		entry = self.jsonResp["near_earth_objects"][self.fetchDateStr][index]
-		print entry
+		#print entry
 
 		# if the key already exists, the object has already been loaded, simply return its spk-id
-		if entry["neo_reference_id"] in objects_data:
-			return entry["neo_reference_id"]
+		if entry["neo_reference_id"] in self.SolarSystem.objects_data:
+			if "utc_dt" in self.SolarSystem.objects_data[entry["neo_reference_id"]]:
+				return entry["neo_reference_id"]
+			else:
+				# object was previously loaded from normal search but lack time of close 
+				# approach ("utc_dt") hence we must reload it with this extra information
+				del(self.SolarSystem.objects_data[entry["neo_reference_id"]])
 
 		# grab utc timestamp of encounter time and date (value is in ms, hence divide by 1000 to get the value in seconds)
 		utc_timestamp = entry["close_approach_data"][0]["epoch_date_close_approach"]*0.001
 		
 		# make a datetime off of that timestamp 
 		utc_close_approach = datetime.datetime.fromtimestamp(utc_timestamp)
+		utc_close_approach = utc_close_approach.replace(tzinfo=pytz.utc)
 
 		print "*******************"
-		print "FROM_TIMESTAMP = ", utc_close_approach, ", WITH TZ info=", datetime.datetime.fromtimestamp(utc_timestamp, tz=orbit3D.locationInfo.getPytzValue())
+		print "FROM_TIMESTAMP = ", utc_close_approach, ", WITH TZ info=", datetime.datetime.fromtimestamp(utc_timestamp, tz=self.SolarSystem.locationInfo.getPytzValue())
 		print "*******************"
 
 		# utc_close_approach is a naive datetime object
 		print "LOADBODY_INFO utc_close_approach= ", utc_close_approach, "UTC from timestamp=", utc_timestamp
 
 		# Add data to dictionary
-		objects_data[entry["neo_reference_id"]] = {
+		self.SolarSystem.objects_data[entry["neo_reference_id"]] = {
 			"material": 0,
 			# epoch_date_close_approach comes as the number of milliseconds in unix TT
 			"epoch_date_close_approach": utc_close_approach, # in seconds using J2000
@@ -788,36 +904,43 @@ class JPLpanel(AbstractUI):
 			"axial_tilt": 0.0,
 			"utcstr": utc_close_approach.strftime('%Y-%m-%d %H:%M:%S'),
 			"utc_dt": utc_close_approach,
-			"local_dt": orbit3D.timestamp_utc_to_local(utc_timestamp)
+			"local_dt": orbit3D.utc_to_local_fromTimestamp(utc_timestamp, self.SolarSystem.locationInfo)
 		}
 
-		print "UTC time of approach   =========>", objects_data[entry["neo_reference_id"]]["utc_dt"]
-		print "Local time of approach --------->", objects_data[entry["neo_reference_id"]]["local_dt"]
+		#print "UTC time of approach   =========>", self.SolarSystem.objects_data[entry["neo_reference_id"]]["utc_dt"]
+		#print "Local time of approach --------->", self.SolarSystem.objects_data[entry["neo_reference_id"]]["local_dt"]
 
 		# convert UTC to local time
-		utcNewdate = objects_data[entry["neo_reference_id"]]["utc_dt"]
-		LocNewdate = objects_data[entry["neo_reference_id"]]["local_dt"]
+		utcNewdatetime = self.SolarSystem.objects_data[entry["neo_reference_id"]]["utc_dt"]
+		LocNewdatetime = self.SolarSystem.objects_data[entry["neo_reference_id"]]["local_dt"]
 
 		# print time of closest approach on this date
- 		print ">>> Local Time of approach: ", objects_data[entry["neo_reference_id"]]["local_dt"]
+ 		print ">>> Local Time of approach: ", self.SolarSystem.objects_data[entry["neo_reference_id"]]["local_dt"]
 
 		# CLose approach objects are considered as PHAs
 		body = orbit3D.pha(self.SolarSystem, entry["neo_reference_id"], orbit3D.getColor())
 		self.SolarSystem.addTo(body)
 
+		print "UTC time of approach   =========>", utcNewdatetime
+		print "Local time of approach --------->", LocNewdatetime
+
 		# update timeStamps
-		self.parentFrame.orbitalBox.updateTimeStamps(LocNewdate, utcNewdate)
+		self.parentFrame.orbitalTab.updateTimeStamps(LocNewdatetime, utcNewdatetime)
+
+		# update texture and widgets references
+		self.parentFrame.widgetsTab.Earth.setTextureFromSolarTime(LocNewdatetime)
 
 		# we return the index of the object in array of cosmic bodies
-		# (to access the data, retrieve objects_data[index])
+		# (to access the data, retrieve self.SolarSystem.objects_data[index])
 		return entry["neo_reference_id"]
 
 
-# CLASS orbitalCtrlPanel ------------------------------------------------------
-class orbitalCtrlPanel(AbstractUI):
+# CLASS ORBITALCtrlPanel ------------------------------------------------------
+# Orbital control tab
+class ORBITALCtrlPanel(AbstractUI):
 
 	def InitVariables(self):
-		self.Earth = self.SolarSystem.getBodyFromName("earth")
+		self.Earth = self.SolarSystem.getBodyFromName(EARTH_NAME)
 		self.checkboxList = {}
 		self.ResumeSlideShowLabel = False
 		self.AnimationInProgress = False
@@ -826,7 +949,8 @@ class orbitalCtrlPanel(AbstractUI):
 		self.BaseTimeIncrement = INITIAL_TIMEINCR
 		self.TimeIncrementKey = INITIAL_INCREMENT_KEY
 		self.AnimLoop = 0
-		self.todayUTCdatetime = orbit3D.locationInfo.getUTCDateTime()
+		self.surfaceRadius = 0.0  # used for surface focus
+		self.todayUTCdatetime = self.SolarSystem.locationInfo.getUTCDateTime()
 
 #		self.DaysIncrement = 0 # number of days from today - used for animation into future or past (detalT < 0)
 		self.DeltaT = 0
@@ -838,13 +962,14 @@ class orbitalCtrlPanel(AbstractUI):
 		self.currentBody = None
 		self.DisableAnimationCallback = True
 		self.RecorderOn = False
-
+		self.VideoRecorder = None
+		self.earthLoc = None
 		self.Hide()
 
 	def resetDateFromBodyId(self, id):
-		diff =  objects_data[id]["utc_dt"] - self.todayUTCdatetime
+		diff =  self.SolarSystem.objects_data[id]["utc_dt"] - self.todayUTCdatetime
 		self.DeltaT = diff.total_seconds()/86400.0
-		#print "RESET DELTA_T=",self.DeltaT
+		print "ResetDateFromBodyId: DELTA from right now (in days) =", self.DeltaT
 		self.updateSolarSystem()
 		return
 
@@ -852,7 +977,7 @@ class orbitalCtrlPanel(AbstractUI):
 		for body in self.SolarSystem.bodies:
 			if body.BodyType in [SPACECRAFT, PHA, BIG_ASTEROID, COMET, TRANS_NEPT]:
 				self.list.append(body.Name)
-				self.listjplid.append(body.JPL_designation)
+				self.listjplid.append(body.JPL_designation.lower())
 
 		self.comb = wx.ComboBox(self, id=wx.ID_ANY, value="Select Object Individually", size=wx.DefaultSize, pos=(xpos, ypos), choices=self.list, style=(wx.CB_DROPDOWN))
 		self.comb.Bind(wx.EVT_COMBOBOX, self.OnSelect)
@@ -866,11 +991,17 @@ class orbitalCtrlPanel(AbstractUI):
 			index = e.GetSelection()
 			jpl_designation = self.listjplid[index]
 			self.setCurrentBodyFromId(jpl_designation)
-			if self.SolarSystem.currentPOVselection == "curobj":
-				self.SolarSystem.currentPOV = self.currentBody
-				self.parentFrame.povBox.setBodyFocus(self.currentBody)
-				self.updateCameraPOV()
+			if self.SolarSystem.cameraPOVselection == "curobj":
+				print ""
+				print "CHANGING CURRENT OBJECT"
+				print ""
+				self.SolarSystem.cameraPOV = self.currentBody
+				self.parentFrame.focusTab.setBodyFocus(self.currentBody)
+				#self.updateCameraPOV()
+				self.SolarSystem.camera.updateCameraPOV()	
 
+			else:
+				print "OnSELECT: cameraPOV is", self.SolarSystem.cameraPOV.Name, "current POV selection type is", self.SolarSystem.cameraPOVselection
 
 	def setCurrentBody(self, body):
 		if self.currentBody != None:
@@ -884,9 +1015,27 @@ class orbitalCtrlPanel(AbstractUI):
 		if self.currentBody != None:
 			self.currentBody.hide()
 
+		body = self.SolarSystem.getBodyFromName(id)
+		if body != None:
+			self.currentBody = body
+			self.currentBody.Details = True
+			#print "Current body SET-1 with ", self.currentBody.Name, "Origin=",self.currentBody.Origin.pos
+			#print ""
+			self.showObjectDetails(self.currentBody)
+		else:
+			print "SetCurrentBodyFromId: could not find", id
+		#print "Current body SET-2 with ", self.currentBody.Name, "Origin=",self.currentBody.Origin.pos
+
+	def setCurrentBodyFromIdSAVE(self, id):
+		if self.currentBody != None:
+			self.currentBody.hide()
+
 		self.currentBody = self.SolarSystem.getBodyFromName(id)
 		self.currentBody.Details = True
+		#print "Current body SET-1 with ", self.currentBody.Name, "Origin=",self.currentBody.Origin.pos
+		#print ""
 		self.showObjectDetails(self.currentBody)
+		#print "Current body SET-2 with ", self.currentBody.Name, "Origin=",self.currentBody.Origin.pos
 
 	def updateTimeStamps(self, ldt, utcdt):
 		self.setLocalDateTimeLabel(ldt)
@@ -894,7 +1043,10 @@ class orbitalCtrlPanel(AbstractUI):
 
 	def setLocalDateTimeLabel(self, ldt):
 		self.localTimeLabel.SetLabel("{:>2}:{:>2}:{:2}".format(str(ldt.hour).zfill(2), str(ldt.minute).zfill(2), str(ldt.second).zfill(2)))
+		#print ("{:>2}:{:>2}:{:2}".format(str(ldt.hour).zfill(2), str(ldt.minute).zfill(2), str(ldt.second).zfill(2)))
+
 		self.localDateLabel.SetLabel("{:>2}/{:>2}/{:2}".format(str(ldt.month).zfill(2), str(ldt.day).zfill(2), str(ldt.year).zfill(2)))
+		#print ("{:>2}/{:>2}/{:2}".format(str(ldt.month).zfill(2), str(ldt.day).zfill(2), str(ldt.year).zfill(2)))
 
 	def setUTCDateTimeLabel(self, utcdt):
 		self.UTCtimeLabel.SetLabel("{:>2}:{:>2}:{:2}".format(str(utcdt.hour).zfill(2), str(utcdt.minute).zfill(2), str(utcdt.second).zfill(2)))
@@ -918,7 +1070,7 @@ class orbitalCtrlPanel(AbstractUI):
 		self.UTCtimeLabel = wx.StaticText(self, label='hh:mm:ss', pos=(280+OFF_TIME+5, DATE_Y-33))
 		self.UTCdateLabel = wx.StaticText(self, label='mm/dd/yyyy', pos=(280+OFF_TIME+75, DATE_Y-33))
 
-		lt = orbit3D.locationInfo.getLocalDateTime()
+		lt = self.SolarSystem.locationInfo.getLocalDateTime()
 
 		self.setLocalDateTimeLabel(lt)
 		self.setUTCDateTimeLabel(self.todayUTCdatetime)
@@ -952,16 +1104,19 @@ class orbitalCtrlPanel(AbstractUI):
 		self.createCheckBox(self, "Asteroids Belt", ASTEROID_BELT, 20, CHK_L5)
 		self.createCheckBox(self, "Jupiter Trojans", JTROJANS, 20, CHK_L6)
 		self.createCheckBox(self, "Kuiper Belt", KUIPER_BELT, 20, CHK_L7)
-		self.createCheckBox(self, "Inner Oort Cloud", INNER_OORT_CLOUD, 20, CHK_L8)
-		self.createCheckBox(self, "Ecliptic", ECLIPTIC_PLANE, 20, CHK_L9)
-		self.createCheckBox(self, "Labels", LABELS, 20, CHK_L10)
-		self.createCheckBox(self, "Lit Scene", LIT_SCENE, 20, CHK_L11)
-		self.createCheckBox(self, "Adjust objects size", REALSIZE, 20, CHK_L12)
-		self.createCheckBox(self, "Referential", REFERENTIAL, 20, CHK_L13)
+		#self.createCheckBox(self, "Inner Oort Cloud", INNER_OORT_CLOUD, 20, CHK_L8)
+		self.createCheckBox(self, "Celestial Sphere", CELESTIAL_SPHERE, 20, CHK_L8)
+		self.createCheckBox(self, "Constellations", CONSTELLATIONS, 20, CHK_L9)
+		
+		self.createCheckBox(self, "Ecliptic", ECLIPTIC_PLANE, 20, CHK_L10)
+		self.createCheckBox(self, "Labels", LABELS, 20, CHK_L11)
+		self.createCheckBox(self, "Lit Scene", LIT_SCENE, 20, CHK_L12)
+		self.createCheckBox(self, "Adjust objects size", REALSIZE, 20, CHK_L13)
+		self.createCheckBox(self, "Referential", REFERENTIAL, 20, CHK_L14)
 
 		self.createBodyList(200, LSTB_Y)
 
-		cbtn = wx.Button(self, label='Refresh', pos=(20, CHK_L14))
+		cbtn = wx.Button(self, label='Refresh', pos=(20, CHK_L15))
 		cbtn.Bind(wx.EVT_BUTTON, self.OnRefresh)
 
 		lblList = ['PHA', 'Comets', 'Major Asteroids', 'Trans Neptunians']
@@ -1040,9 +1195,9 @@ class orbitalCtrlPanel(AbstractUI):
 		wx.Event.Skip(e, True)
 
 	def setCameraPOV(self, body):
-		self.SolarSystem.currentPOV = body
+		self.SolarSystem.cameraPOV = body
 
-	def updateCameraPOV(self):
+	def updateCameraPOV_ADV(self):
 
 		# the following values will do the following
 		# (0,-1,-1): freezes rotation and looks down towards the left
@@ -1052,9 +1207,74 @@ class orbitalCtrlPanel(AbstractUI):
 
 		#self.SolarSystem.Scene.forward = (0, 0, -1)
 		# For a planet, Foci(x, y, z) is (0,0,0). For a moon, Foci represents the position of the planet the moon orbits around
-		self.SolarSystem.Scene.center = (self.SolarSystem.currentPOV.Position[X_COOR]+self.SolarSystem.currentPOV.Foci[X_COOR],
-										 self.SolarSystem.currentPOV.Position[Y_COOR]+self.SolarSystem.currentPOV.Foci[Y_COOR],
-										 self.SolarSystem.currentPOV.Position[Z_COOR]+self.SolarSystem.currentPOV.Foci[Z_COOR])
+		####surfaceRadius = (1.1 * self.SolarSystem.cameraPOV.BodyShape.radius) if self.SolarSystem.SurfaceView == True else 0
+		surfaceRadius = 0.0
+		if self.SolarSystem.SurfaceView == True:
+			surfaceRadius = (1.3 * self.SolarSystem.cameraPOV.BodyShape.radius)
+		#print "surfaceRadius = ", surfaceRadius
+
+		self.SolarSystem.Scene.center = (
+			self.SolarSystem.cameraPOV.Position[X_COOR]+self.SolarSystem.cameraPOV.Foci[X_COOR]+surfaceRadius * self.SolarSystem.SurfaceDirection[0],
+			self.SolarSystem.cameraPOV.Position[Y_COOR]+self.SolarSystem.cameraPOV.Foci[Y_COOR]+surfaceRadius * self.SolarSystem.SurfaceDirection[1],
+			self.SolarSystem.cameraPOV.Position[Z_COOR]+self.SolarSystem.cameraPOV.Foci[Z_COOR]+surfaceRadius * self.SolarSystem.SurfaceDirection[2]
+		)
+	
+	"""
+	def updateCameraPOV(self, loc = None):
+		if loc != None:
+			print "Location is", loc.Name
+
+		if self.SolarSystem.cameraPOV == None:
+			print "no curent object"
+			return
+
+		if self.SolarSystem.cameraPOV.Name.lower() == EARTH_NAME:
+			earthLocPos = None
+			w = self.Earth.PlanetWidgets
+			if loc == None:
+				if w.currentLocation >= 0:
+					#w = self.Earth.PlanetWidgets.Loc[w.currentLocation]
+					earthLocPos = w.Loc[w.currentLocation].getEclipticPosition()
+			else:
+				loc.updateEclipticPosition()
+				earthLocPos = loc.getEclipticPosition()
+				print "reading ecliptic from loc", loc.getEclipticPosition()
+
+			if earthLocPos != None:
+				#print "centering on loc", earthLocPos.Name
+				self.SolarSystem.Scene.center = (
+					earthLocPos[X_COOR],
+					earthLocPos[Y_COOR],
+					earthLocPos[Z_COOR]
+				)
+				return
+		#else:
+		
+		# the following values will do the following
+		# (0,-1,-1): freezes rotation and looks down towards the left
+		# (0,-1, 1): freezes rotation and looks up towards the left
+		# (0, 1, 1): freezes rotation and looks up towards the right
+		# (0, 1,-1): freezes rotation and looks down towards the right
+
+		# self.SolarSystem.Scene.forward = (0, 0, -1)
+		# For a planet, Foci(x, y, z) is (0,0,0). For a moon, Foci represents the 
+		# position of the planet the moon orbits around in the ecliptic referential
+
+		######self.surfaceRadius = (1.1 * self.SolarSystem.cameraPOV.BodyShape.radius) if self.SolarSystem.SurfaceView == True else 0
+		#print "UPDATING Scene Center with POV origin"
+		self.SolarSystem.Scene.center = (
+			self.SolarSystem.cameraPOV.Position[X_COOR] + self.SolarSystem.cameraPOV.Foci[X_COOR],
+			self.SolarSystem.cameraPOV.Position[Y_COOR] + self.SolarSystem.cameraPOV.Foci[Y_COOR],
+			self.SolarSystem.cameraPOV.Position[Z_COOR] + self.SolarSystem.cameraPOV.Foci[Z_COOR]
+		)
+		#print "----------"
+		#print "updateCameraPOV: position:",self.SolarSystem.cameraPOV.Position
+		##print "label coordinates:",self.SolarSystem.cameraPOV.Labels[0].pos
+		#print "updateCameraPOV: label=", self.SolarSystem.cameraPOV.Labels[0].pos, "origin=", self.SolarSystem.cameraPOV.Origin.pos
+		#print "----------"
+
+	"""			
+	
 
 	def updateSolarSystem(self):
 		self.refreshDate()
@@ -1062,15 +1282,18 @@ class orbitalCtrlPanel(AbstractUI):
 		for body in self.SolarSystem.bodies:
 			if body.BodyType in [SPACECRAFT, OUTERPLANET, INNERPLANET, SATELLITE, ASTEROID, \
 								 COMET, DWARFPLANET, PHA, BIG_ASTEROID, TRANS_NEPT]:
-				if body.Origin.visible == True:
+				if body.Origin.visible == True or body.Name.lower() == EARTH_NAME:
 					velocity, distance = body.animate(self.DeltaT)
-					if self.SolarSystem.currentPOV != None:
-						if body.JPL_designation == self.SolarSystem.currentPOV.JPL_designation:
-							self.updateCameraPOV()
+					if self.SolarSystem.cameraPOV != None:
+						if body.JPL_designation == self.SolarSystem.cameraPOV.JPL_designation:
+							self.SolarSystem.camera.updateCameraPOV()
 
 					if body.BodyType == self.Source or body.Details == True:
 						self.velocity = velocity
 						self.distance = distance
+
+			#else:
+			#	print("UNKNOWN BODYTYPE:", body.BodyType)
 
 	def OnValidateDate(self, e):
 		# typically the date spinner only changes the date. We keep the current time. 
@@ -1083,23 +1306,26 @@ class orbitalCtrlPanel(AbstractUI):
 		# make new utc date using spinner for mm/dd/yyyy and utctime for hh:mm:ss 
 		new_utcDatetime = datetime.datetime(self.dateYSpin.GetValue(), self.dateMSpin.GetValue(), self.dateDSpin.GetValue(), int(utctime[0]), int(utctime[1]), int(utctime[2]))
 		#print "Resetting UTC datetime to -> ", new_utcDatetime
+		new_utcDatetime = new_utcDatetime.replace(tzinfo=pytz.utc)
 
 		# from that utc datetime, calculate local datetime
-		new_localDatetime = orbit3D.utc_to_local(new_utcDatetime)
+		new_localDatetime = orbit3D.utc_to_local_fromDatetime(new_utcDatetime, self.SolarSystem.locationInfo)
 		#print "Resetting LOCAL datetime to -> ", new_localDatetime
 
 		# calculate the time difference between current "today's Date" with new selected date
 		diff = new_utcDatetime - self.todayUTCdatetime
+		
 
 		# ... and convert the difference in days (as a float value)
 		self.DeltaT = diff.total_seconds()/86400.0
-
-		#print "DELTA_T=",self.DeltaT
+		print "OnValidateDate: DELTA from right now (in days) =", self.DeltaT
 
 		# update planet positions accordingly
+		# (adjust earth rotation by (2*pi/365.25 )* DeltaT)
+		self.parentFrame.widgetsTab.Earth.updateSiderealAngleFromNewDate(self.DeltaT)
 		self.updateSolarSystem()
 		self.disableBeltsForAnimation()
-		self.refreshDate()
+		#self.refreshDate()
 
 
 	def setVelocityLabel(self):
@@ -1118,11 +1344,15 @@ class orbitalCtrlPanel(AbstractUI):
 		#print self.SolarSystem.DaysIncrement, "+", float(timeinsec)/86400, "for", timeinsec 
 		#self.SolarSystem.DaysIncrement += float(timeinsec)/86400
 		self.DeltaT += float(timeinsec)/86400
+		print "deltaTtick: DELTA from right now (in days) =", self.DeltaT
+
 		#print self.SolarSystem.DaysIncrement
 
 	def refreshDate(self):
 		new_utcDatetime = self.todayUTCdatetime + datetime.timedelta(days = self.DeltaT)
-		new_localDatetime = orbit3D.utc_to_local(new_utcDatetime)
+		new_localDatetime = orbit3D.utc_to_local_fromDatetime(new_utcDatetime, self.SolarSystem.locationInfo)
+		#print "Refresh DATE: UTC = ", new_utcDatetime, ", LOCAL=",new_localDatetime
+		
 		self.dateDSpin.SetValue(new_utcDatetime.day)
 		self.dateMSpin.SetValue(new_utcDatetime.month)
 		self.dateYSpin.SetValue(new_utcDatetime.year)
@@ -1131,6 +1361,7 @@ class orbitalCtrlPanel(AbstractUI):
 
 		self.setVelocityLabel()
 		self.setDistanceLabel()
+		#print ("refresh Date")
 
 	def updateTimeDisplay(self, utcDatetime, localDatetime):
 		self.setLocalDateTimeLabel(localDatetime)
@@ -1140,17 +1371,17 @@ class orbitalCtrlPanel(AbstractUI):
 		self.checkboxList[JTROJANS].SetValue(False)
 		self.checkboxList[ASTEROID_BELT].SetValue(False)
 		self.checkboxList[KUIPER_BELT].SetValue(False)
-		self.checkboxList[INNER_OORT_CLOUD].SetValue(False)
+		#self.checkboxList[INNER_OORT_CLOUD].SetValue(False)
 		self.SolarSystem.setFeature(JTROJANS|ASTEROID_BELT|KUIPER_BELT|INNER_OORT_CLOUD, False)
 		#self.SolarSystem.ShowFeatures = (self.SolarSystem.ShowFeatures & ~(JTROJANS|ASTEROID_BELT|KUIPER_BELT|INNER_OORT_CLOUD))
 		orbit3D.glbRefresh(self.SolarSystem, self.AnimationInProgress)
 
 	def updateJTrojans(self):
 		curTrojans = self.SolarSystem.getJTrojans()
-		JupiterBody = self.SolarSystem.getBodyFromName(objects_data[curTrojans.PlanetName]['jpl_designation'])
+		JupiterBody = self.SolarSystem.getBodyFromName(self.SolarSystem.objects_data[curTrojans.PlanetName]['jpl_designation'])
 		# if Jupiter coordinates haven't changed since this Trojans were generated, don't do anything
 		if JupiterBody.Position[X_COOR] == curTrojans.JupiterX and JupiterBody.Position[Y_COOR] == curTrojans.JupiterY:
-		   return
+			return
 
 		# otherwise, generate a new set of Trojans corresponding to Jupiter's new location
 		self.SolarSystem.addJTrojans(orbit3D.makeJtrojan(self.SolarSystem, 'jupiterTrojan', 'Jupiter Trojans', JTROJANS, color.green, 2, 5, 'jupiter'))
@@ -1222,17 +1453,17 @@ class orbitalCtrlPanel(AbstractUI):
 		for type, cbox in self.checkboxList.iteritems():
 			reset = self.SolarSystem.setFeature(type, cbox.GetValue())
 			if reset == True:
-				self.parentFrame.povBox.setSunFocus()
+				self.parentFrame.focusTab.setSunFocus()
 
-			#if self.SolarSystem.currentPOV != None and self.SolarSystem.currentPOV.BodyType == type:
-			#		self.parentFrame.povBox.resetPOV()
+			#if self.SolarSystem.cameraPOV != None and self.SolarSystem.cameraPOV.BodyType == type:
+			#		self.parentFrame.focusTab.resetPOV()
 			"""
 		for type, cbox in self.checkboxList.iteritems():
 			if cbox.GetValue() == True:
 				self.SolarSystem.ShowFeatures |= type
 			else:
-				if self.SolarSystem.currentPOV != None and self.SolarSystem.currentPOV.BodyType == type:
-					self.parentFrame.povBox.resetPOV()
+				if self.SolarSystem.cameraPOV != None and self.SolarSystem.cameraPOV.BodyType == type:
+					self.parentFrame.focusTab.resetPOV()
 				self.SolarSystem.ShowFeatures = (self.SolarSystem.ShowFeatures & ~type)
 			"""
 
@@ -1248,9 +1479,9 @@ class orbitalCtrlPanel(AbstractUI):
 		else:
 			e.GetEventObject().SetLabel("Resume")
 			self.ResumeSlideShowLabel = True
-			if self.SolarSystem.currentPOVselection == "curobj":
-				self.SolarSystem.currentPOV = self.currentBody
-				self.updateCameraPOV()
+			if self.SolarSystem.cameraPOVselection == "curobj":
+				self.SolarSystem.cameraPOV = self.currentBody
+				self.SolarSystem.camera.updateCameraPOV()
 
 	def showObjectDetails(self, body):
 		self.InfoTitle.SetLabel(body.Name)
@@ -1286,7 +1517,7 @@ class orbitalCtrlPanel(AbstractUI):
 				"Period(yr) ", rev,
 				"Moid(AU) ", moid));
 
-		self.refreshDate() 
+		############ self.refreshDate() 
 
 		#for i in range(len(body.BodyShape)):
 
@@ -1310,9 +1541,9 @@ class orbitalCtrlPanel(AbstractUI):
 		return False	# else return false
 
 	def OnSlideShow(self, e):
-		if self.SolarSystem.currentPOVselection == 'curobj':
+		if self.SolarSystem.cameraPOVselection == 'curobj':
 			#print "currPOVselection = curobj - Reset to SUN"
-			self.parentFrame.povBox.resetPOV()
+			self.parentFrame.focusTab.resetPOV()
 
 		if self.stopSlideSHow() == True:
 			# slideshow was stop and reset. Exit
@@ -1394,7 +1625,8 @@ class orbitalCtrlPanel(AbstractUI):
 		# if auto movement is required, execute it
 		if self.AutoRotation.GetValue() == True:
 #			self.SolarSystem.camera.cameraTest(frame=1)
-			self.SolarSystem.camera.oneTickCameraCombination(zoom=True, zoom_forward=True)
+			#self.SolarSystem.camera.oneTickCameraCombination(zoom=True, zoom_forward=True)
+			self.SolarSystem.camera.oneTickCameraRotationWithDirection(direction = self.SolarSystem.camera.ROT_HOR|self.SolarSystem.camera.ROT_LEFT)
 		self.updateSolarSystem()
 		sleep(1e-4)
 
@@ -1498,7 +1730,7 @@ class orbitalCtrlPanel(AbstractUI):
 
 
 # CLASS WIDGETSpanel ----------------------------------------------------------
-# WIP
+# Current Planet widgets Tab
 class WIDGETSpanel(AbstractUI):
 
 	def InitVariables(self):	
@@ -1506,83 +1738,261 @@ class WIDGETSpanel(AbstractUI):
 		self.Earth = self.SolarSystem.EarthRef
 		self.checkboxList = {}
 
-		#self.drawEquator()
-		#self.drawTimeZone()
-
 	def InitUI(self):
 
 		self.BoldFont = wx.Font(10, wx.SWISS, wx.NORMAL, wx.BOLD)
 		self.RegFont = wx.Font(10, wx.SWISS, wx.NORMAL, wx.NORMAL)
+		self.SurfaceDirection = [0,0,0]
 
 		heading = wx.StaticText(self, label='Earth Widgets', pos=(20, MAIN_HEADING_Y))
 		heading.SetFont(self.BoldFont)
 
-		#dateLabel = wx.StaticText(self, label='Orbital Date', pos=(200, DATE_Y))
-		#dateLabel.SetFont(self.BoldFont)
+		self.eqcb = wx.CheckBox(self, label="Equator", pos=(50, CHK_L1)) #   POV_Y+560))
+		self.eqcb.SetValue(False)
+		self.eqcb.Bind(wx.EVT_CHECKBOX,self.OnDrawEquator)
 
-		#self.localTimeLabel = wx.StaticText(self, label='hh:mm:ss', pos=(320, DATE_Y-2))
-		#lt = orbit3D.locationInfo.getLocalTime()
-		#self.localTimeLabel.SetLabel("{:>2} : {:>2} : {:2}".format(str(lt.tm_hour).zfill(2), str(lt.tm_min).zfill(2), str(lt.tm_sec).zfill(2)))
+		self.trcb = wx.CheckBox(self, label="Tropics", pos=(230, CHK_L1)) #   POV_Y+560))
+		self.trcb.SetValue(False)
+		self.trcb.Bind(wx.EVT_CHECKBOX,self.OnDrawTropics)
 
-		#self.dateMSpin = wx.SpinCtrl(self, id=wx.ID_ANY, initial=self.todayDate.month, min=1, max=12, pos=(200, DATE_SLD_Y), size=(65, 25), style=wx.SP_ARROW_KEYS)
-		#self.dateMSpin.Bind(wx.EVT_SPINCTRL,self.OnTimeSpin)
-		#self.dateDSpin = wx.SpinCtrl(self, id=wx.ID_ANY, initial=self.todayDate.day, min=1, max=31, pos=(265, DATE_SLD_Y), size=(65, 25), style=wx.SP_ARROW_KEYS)
-		#self.dateDSpin.Bind(wx.EVT_SPINCTRL,self.OnTimeSpin)
+		self.eqpcb = wx.CheckBox(self, label="Equatorial Plane", pos=(50, CHK_L2)) #   POV_Y+560))
+		self.eqpcb.SetValue(False)
+		self.eqpcb.Bind(wx.EVT_CHECKBOX,self.OnDrawEquatorialPlane)
 
-		# Create a custom event in order to update the content of the day spinner if its value is out-of-range
-		#self.CustomEvent, EVT_RESET_SPINNER = wx.lib.newevent.NewEvent()
-		#self.dateDSpin.Bind(EVT_RESET_SPINNER, self.ResetSpinner) # bind it as usual
-		# The day spinner has 2 events. one triggered when clicking on an arrow, and one
-		# triggered programmatically to update the value of the day spinner in order to correct it
-		# The firing of the EVT_RESET_SPINNER is programmatically done during the execution
-		# of the EVT_SPINCTRL handler
+		self.ncb = wx.CheckBox(self, label="Nodes", pos=(50, CHK_L3)) #   POV_Y+560))
+		self.ncb.SetValue(False)
+		self.ncb.Bind(wx.EVT_CHECKBOX,self.OnShowNodes)
+
+		self.mrcb = wx.CheckBox(self, label="Longitude lines", pos=(50, CHK_L4)) #   POV_Y+560))
+		self.mrcb.SetValue(False)
+		self.mrcb.Bind(wx.EVT_CHECKBOX,self.OnDrawLongitudeLines)
+
+		self.tzcb = wx.CheckBox(self, label="Time zones", pos=(230, CHK_L4)) #   POV_Y+560))
+		self.tzcb.SetValue(False)
+		self.tzcb.Bind(wx.EVT_CHECKBOX,self.OnDrawTZLines)
+
+		self.latcb = wx.CheckBox(self, label="Latitude lines", pos=(50, CHK_L5)) #   POV_Y+560))
+		self.latcb.SetValue(False)
+		self.latcb.Bind(wx.EVT_CHECKBOX,self.OnDrawLatitudeLines)
+
+		self.lrcb = wx.CheckBox(self, label="Local Referential", pos=(50, CHK_L6)) #   POV_Y+560))
+		self.lrcb.SetValue(False)
+		self.lrcb.Bind(wx.EVT_CHECKBOX,self.OnLocalRef)
+
+		self.hpcb = wx.CheckBox(self, label="Hide Planet", pos=(50, CHK_L7)) #   POV_Y+560))
+		self.hpcb.SetValue(False)
+		self.hpcb.Bind(wx.EVT_CHECKBOX,self.OnHidePlanet)
+
+		self.flcb = wx.CheckBox(self, label="Center to surface", pos=(50, CHK_L8)) #   POV_Y+560))
+		self.flcb.SetValue(False)
+		self.flcb.Bind(wx.EVT_CHECKBOX,self.OnCenterToSurface)
+
+		"""
+		self.flscb = wx.CheckBox(self, label="S", pos=(200, CHK_L8))
+		self.flscb.SetValue(False)
+		self.flscb.Bind(wx.EVT_CHECKBOX,self.OnCenterToSurfaceSouth)
+
+		self.flncb = wx.CheckBox(self, label="N", pos=(250, CHK_L8))
+		self.flncb.SetValue(False)
+		self.flncb.Bind(wx.EVT_CHECKBOX,self.OnCenterToSurfaceNorth)
+
+		self.flwcb = wx.CheckBox(self, label="W", pos=(300, CHK_L8)) 
+		self.flwcb.SetValue(False)
+		self.flwcb.Bind(wx.EVT_CHECKBOX,self.OnCenterToSurfaceWest)
+
+		self.flecb = wx.CheckBox(self, label="E", pos=(350, CHK_L8)) 
+		self.flecb.SetValue(False)
+		self.flecb.Bind(wx.EVT_CHECKBOX,self.OnCenterToSurfaceEast)
+
+		self.fldarkcb = wx.CheckBox(self, label="D", pos=(400, CHK_L8)) 
+		self.fldarkcb.SetValue(False)
+		self.fldarkcb.Bind(wx.EVT_CHECKBOX,self.OnCenterToSurfaceDark)
+
+		self.flbrightcb = wx.CheckBox(self, label="B", pos=(450, CHK_L8)) 
+		self.flbrightcb.SetValue(False)
+		self.flbrightcb.Bind(wx.EVT_CHECKBOX,self.OnCenterToSurfaceBright)
+		"""
+		
+		self.cpcb = wx.CheckBox(self, label="Center to Cape Canaveral", pos=(50, CHK_L9)) #   POV_Y+560))
+		self.cpcb.SetValue(False)
+		self.cpcb.Bind(wx.EVT_CHECKBOX,self.OnCenterToLocation)
+
+		self.ncpcb = wx.CheckBox(self, label="Show Normal Vector", pos=(230, CHK_L9)) #   POV_Y+560))
+		self.ncpcb.SetValue(False)
+		self.ncpcb.Bind(wx.EVT_CHECKBOX,self.OnShowNormal)
+
+	def OnShowNormal(self, e):
+		# focus on current location
+		self.Earth.PlanetWidgets.currentLocation = self.Earth.PlanetWidgets.defaultLocation
+		loc = self.Earth.PlanetWidgets.Loc[self.Earth.PlanetWidgets.currentLocation]
+		loc.show(self.ncpcb.GetValue())
+
+		# testing shifting earth locations
+		self.Earth.PlanetWidgets.shiftLocation(locList.TZ_AUS_SYD)
+		self.Earth.PlanetWidgets.shiftLocation(locList.TZ_FR_PARIS)
+		self.Earth.PlanetWidgets.shiftLocation(locList.TZ_JP_TAN)
+		self.Earth.PlanetWidgets.shiftLocation(locList.TZ_US_VDBERG)
+		self.Earth.PlanetWidgets.shiftLocation(locList.TZ_RUS_BAIK)
+		### self.Earth.SolarSystem.camera.cameraRefresh()
+
+		
+	def OnCenterToLocation(self, e):
+		# focus on current location
+		loc = None
+		if self.cpcb.GetValue() == True:
+			self.centerToDefaultLocation()
+		else:
+			self.Earth.PlanetWidgets.currentLocation = -1
+
+	def centerToDefaultLocation(self):
 
 
-		#self.dateYSpin = wx.SpinCtrl(self, id=wx.ID_ANY, initial=self.todayDate.year, min=-3000, max=3000, pos=(330, DATE_SLD_Y), size=(65, 25), style=wx.SP_ARROW_KEYS)
-		#self.dateYSpin.Bind(wx.EVT_SPINCTRL,self.OnTimeSpin)
+		self.SolarSystem.camera.gotoEarthLocation(locList.TZ_RUS_BAIK)
+		self.SolarSystem.camera.gotoEarthLocation(locList.TZ_CHN_XI)
+		self.SolarSystem.camera.gotoEarthLocation(locList.TZ_FR_KOUR)
+		self.SolarSystem.camera.gotoEarthLocation(locList.TZ_FR_PARIS)
+		self.SolarSystem.camera.gotoEarthLocation(locList.TZ_JP_TAN)
+		self.SolarSystem.camera.gotoEarthLocation(locList.TZ_EG_CAIRO)
+		self.SolarSystem.camera.gotoEarthLocation(locList.TZ_US_VDBERG)
+		
+		return
 
-		#self.ValidateDate = wx.Button(self, label='Set', pos=(400, DATE_SLD_Y), size=(60, 25))
-		#self.ValidateDate.Bind(wx.EVT_BUTTON, self.OnValidateDate)
+		self.Earth.PlanetWidgets.defaultLocation = TZ_RUS_BAIK
+		loc = self.Earth.PlanetWidgets.Loc[self.Earth.PlanetWidgets.defaultLocation]
+		loc.updateEclipticPosition()
+		self.Earth.PlanetWidgets.gotoVertical(self.Earth.PlanetWidgets.defaultLocation)
+		self.Earth.PlanetWidgets.currentLocation = self.Earth.PlanetWidgets.defaultLocation
 
 
-		self.createCheckBox(self, "Equator", INNERPLANET, 20, CHK_L1)
-		self.createCheckBox(self, "Time Zones", OUTERPLANET, 20, CHK_L2)
-		self.createCheckBox(self, "Referential", REFERENTIAL, 20, CHK_L3)
+		self.Earth.PlanetWidgets.defaultLocation = TZ_CHN_XI
+		loc = self.Earth.PlanetWidgets.Loc[self.Earth.PlanetWidgets.defaultLocation]
+		loc.updateEclipticPosition()
+		self.Earth.PlanetWidgets.gotoVertical(self.Earth.PlanetWidgets.defaultLocation)
+		self.Earth.PlanetWidgets.currentLocation = self.Earth.PlanetWidgets.defaultLocation
+		return
 
-		#self.createBodyList(200, LSTB_Y)
+		self.Earth.PlanetWidgets.defaultLocation = TZ_FR_KOUR
+		loc = self.Earth.PlanetWidgets.Loc[self.Earth.PlanetWidgets.defaultLocation]
+		loc.updateEclipticPosition()
+		self.Earth.PlanetWidgets.gotoVertical(self.Earth.PlanetWidgets.defaultLocation)
+		self.Earth.PlanetWidgets.currentLocation = self.Earth.PlanetWidgets.defaultLocation
 
-		cbtn = wx.Button(self, label='Refresh', pos=(20, CHK_L14))
-		cbtn.Bind(wx.EVT_BUTTON, self.OnRefresh)
+		self.Earth.PlanetWidgets.defaultLocation = TZ_FR_PARIS
+		loc = self.Earth.PlanetWidgets.Loc[self.Earth.PlanetWidgets.defaultLocation]
+		loc.updateEclipticPosition()
+		self.Earth.PlanetWidgets.gotoVertical(self.Earth.PlanetWidgets.defaultLocation)
+		self.Earth.PlanetWidgets.currentLocation = self.Earth.PlanetWidgets.defaultLocation
 
-	def OnRefresh(self, e):
-		pass
+		self.Earth.PlanetWidgets.defaultLocation = TZ_JP_TAN
+		loc = self.Earth.PlanetWidgets.Loc[self.Earth.PlanetWidgets.defaultLocation]
+		loc.updateEclipticPosition()
+		self.Earth.PlanetWidgets.gotoVertical(self.Earth.PlanetWidgets.defaultLocation)
+		self.Earth.PlanetWidgets.currentLocation = self.Earth.PlanetWidgets.defaultLocation
 
-	def OnRadioBox(self, e):
-		index = self.rbox.GetSelection()
 
-		self.SolarSystem.currentPOVselection = {0: "curobj", 1: "sun", 2:"earth", 3:"mercury", 4:"venus",
-												5: "mars", 6:"jupiter", 7:"saturn", 8:"uranus", 9:"neptune",
-												10:"pluto", 11:"sedna", 12:"makemake", 13:"haumea", 14:"eris", 15:"charon", 16: "phobos", 17:"deimos", 18:"moon"}[index]
-		{0:	self.setCurrentBodyFocus, 1: self.setSunFocus,
-		 2: self.setPlanetFocus, 3: self.setPlanetFocus,
-		 4: self.setPlanetFocus, 5: self.setPlanetFocus,
-		 6: self.setPlanetFocus, 7: self.setPlanetFocus,
-		 8: self.setPlanetFocus, 9: self.setPlanetFocus,
-		 10: self.setPlanetFocus, 11: self.setPlanetFocus,
-		 12: self.setPlanetFocus, 13: self.setPlanetFocus,
-		 14: self.setPlanetFocus, 15: self.setPlanetFocus,
-		 16: self.setPlanetFocus, 17: self.setPlanetFocus,
-		 18: self.setPlanetFocus }[index]()
+####		self.SolarSystem.camera.smoothFocus2target(loc.getEclipticPosition(), ratefunc = rate_func.ease_in_out)
 
-		self.setLocalRef()
+	def OnCenterToLocation2(self, e):
+		# focus on current location
+		loc = None
+		if self.cpcb.GetValue() == True:
+			self.Earth.PlanetWidgets.currentLocation = self.Earth.PlanetWidgets.defaultLocation
+			loc = self.Earth.PlanetWidgets.Loc[self.Earth.PlanetWidgets.currentLocation]
+		else:
+			self.Earth.PlanetWidgets.currentLocation = -1
 
-	def drawEquator(self):
-		print "draw equator..."
-		#self.eq = cylinder(frame=self.Earth.Origin, pos=(0,0,0), color=color.blue, radius=self.Earth.BodyShape.radius*1.003, length=self.Earth.BodyShape.radius*0.003)
-		self.eq = cylinder(frame=self.Earth.Origin, pos=(0,0,0), color=color.cyan, radius=self.Earth.BodyShape.radius*1.004, length=self.Earth.BodyShape.radius*0.003)
-		self.eq.rotate(angle=(pi/2), axis=self.Earth.YdirectionUnit, origine=(0,0,0))
 
-	def drawTimeZone(self):
-		for i in np.arange(0, pi, deg2rad(15)):
-			TZ = cylinder(frame=self.Earth.Origin, pos=(0,0,0), color=color.blue, radius=self.Earth.BodyShape.radius*1.003, length=self.Earth.BodyShape.radius*0.003)
-			TZ.rotate(angle=(i), axis=self.Earth.ZdirectionUnit, origine=(0,0,0))
+#		self.Earth.SolarSystem.cameraPOV = self.Earth
+		#self.parentFrame.orbitalTab.updateCameraPOV(loc)
+		self.SolarSystem.camera.updateCameraPOV(loc)
+
+	"""
+	def OnCenterToSurfaceSouth(self, e):
+		# focus on surface rather than center
+		if self.flscb.GetValue() == True:
+			self.SolarSystem.SurfaceDirection[2] = -1
+		else:
+			self.SolarSystem.SurfaceDirection[2] = 0
+		self.parentFrame.orbitalTab.updateCameraPOV()
+
+	def OnCenterToSurfaceNorth(self, e):
+		# focus on surface rather than center
+		if self.flncb.GetValue() == True:
+			self.SolarSystem.SurfaceDirection[2] = 1
+		else:
+			self.SolarSystem.SurfaceDirection[2] = 0
+		self.parentFrame.orbitalTab.updateCameraPOV()
+
+	def OnCenterToSurfaceEast(self, e):
+		# focus on surface rather than center
+		if self.flecb.GetValue() == True:
+			self.SolarSystem.SurfaceDirection[0] = 1
+		else:
+			self.SolarSystem.SurfaceDirection[0] = 0
+		self.parentFrame.orbitalTab.updateCameraPOV()
+
+	def OnCenterToSurfaceWest(self, e):
+		# focus on surface rather than center
+		if self.flwcb.GetValue() == True:
+			self.SolarSystem.SurfaceDirection[0] = -1
+		else:
+			self.SolarSystem.SurfaceDirection[0] = 0
+		self.parentFrame.orbitalTab.updateCameraPOV()
+
+	def OnCenterToSurfaceBright(self, e):
+		# focus on surface rather than center
+		if self.flbrightcb.GetValue() == True:
+			self.SolarSystem.SurfaceDirection[1] = 1
+		else:
+			self.SolarSystem.SurfaceDirection[0] = 0
+		self.parentFrame.orbitalTab.updateCameraPOV()
+
+	def OnCenterToSurfaceDark(self, e):
+		# focus on surface rather than center
+		if self.fldarkcb.GetValue() == True:
+			self.SolarSystem.SurfaceDirection[1] = -1
+		else:
+			self.SolarSystem.SurfaceDirection[0] = 0
+		self.parentFrame.orbitalTab.updateCameraPOV()
+	"""
+	def OnCenterToSurface(self, e):
+		# focus on surface rather than center
+		self.SolarSystem.SurfaceView = self.flcb.GetValue()
+		self.parentFrame.orbitalTab.surfaceRadius = (1.1 * self.SolarSystem.cameraPOV.BodyShape.radius) if self.SolarSystem.SurfaceView == True else 0
+
+		#self.SolarSystem.SurfaceDirection[0] = 0		
+		#self.SolarSystem.SurfaceDirection[1] = 0		
+		#self.SolarSystem.SurfaceDirection[2] = -1	
+		self.SolarSystem.camera.updateCameraPOV()	
+		#self.parentFrame.orbitalTab.updateCameraPOV()
+
+	def OnHidePlanet(self, e):
+		self.Earth.Origin.visible = not self.hpcb.GetValue()
+
+	def OnDrawEquator(self, e):
+		self.Earth.PlanetWidgets.showEquator(self.eqcb.GetValue())
+
+	def OnDrawTropics(self, e):
+		self.Earth.PlanetWidgets.showTropics(self.trcb.GetValue())
+
+	def OnShowNodes(self, e):
+		self.Earth.PlanetWidgets.showNodes(self.ncb.GetValue())
+
+	def OnDrawEquatorialPlane(self, e):
+		self.Earth.PlanetWidgets.showEquatorialPlane(self.eqpcb.GetValue())
+
+	def OnDrawLongitudeLines(self, e):
+		self.Earth.PlanetWidgets.showLongitudes(self.mrcb.GetValue())
+
+	def OnDrawTZLines(self, e):
+		self.Earth.PlanetWidgets.showTimezones(self.tzcb.GetValue())
+
+	def OnDrawLatitudeLines(self, e):
+		self.Earth.PlanetWidgets.showLatitudes(self.latcb.GetValue())
+
+	def OnLocalRef(self, e):
+		self.parentFrame.focusTab.cb.SetValue(self.lrcb.GetValue())
+		self.SolarSystem.setFeature(LOCAL_REFERENTIAL, self.lrcb.GetValue())
+		orbit3D.glbRefresh(self.SolarSystem, self.parentFrame.orbitalTab.AnimationInProgress)
+
+
