@@ -28,6 +28,7 @@ import datetime
 from random import *
 
 import numpy as np
+from vpython_interface import Canvas, Color
 from visual import *
 
 #import spice
@@ -70,7 +71,8 @@ class makeSolarSystem:
 		self.cameraPOV = None
 		self.LocalRef = False
 		self.cameraPOVselection = "SUN"
-		self.Scene = display(title = 'Solar System', width = self.SCENE_WIDTH, height =self.SCENE_HEIGHT, range=3, visible=True, center = (0,0,0))
+#		self.Scene = display(title = 'Solar System', width = self.SCENE_WIDTH, height =self.SCENE_HEIGHT, range=3, visible=True, center = (0,0,0))
+		self.Scene = Canvas(title = 'Solar System', width = self.SCENE_WIDTH, height =self.SCENE_HEIGHT, range=3, visible=True, center = (0,0,0))
 
 		self.MT = self.Scene.getMouseTracker()
 		#self.MT.SetMouseStateReporter(self.Scene)
@@ -119,8 +121,8 @@ class makeSolarSystem:
 		self.sizeType = SCALE_OVERSIZED
 
 		# make all light coming from origin
-		self.sunLight = local_light(pos=(0,0,0), color=color.white)
-		self.Scene.ambient = color.black
+		self.sunLight = local_light(pos=(0,0,0), color=Color.white)
+		self.Scene.ambient = Color.black
 
 		if THREE_D:
 			self.Scene.stereo='redcyan'
@@ -143,7 +145,7 @@ class makeSolarSystem:
 
 		self.toggleSize(False)
 
-		self.BodyShape = sphere(pos=vector(0,0,0), radius=self.radiusToShow/self.SizeCorrection[self.sizeType], color=color.yellow)
+		self.BodyShape = sphere(pos=vector(0,0,0), radius=self.radiusToShow/self.SizeCorrection[self.sizeType], color=Color.yellow)
 		self.BodyShape.material = materials.emissive
 
 		# make referential
@@ -203,7 +205,7 @@ class makeSolarSystem:
 			# adjust celestial Sphere position
 			self.ConstellationOrigin = frame(pos=vector(0,0,0))
 			#self.UniversRadius = CELESTIAL_RADIUS * AU * DIST_FACTOR
-			self.Constellations = sphere(frame=self.ConstellationOrigin, pos=vector(0,0,0), visible = False, radius=self.UniversRadius, color=color.white, opacity=0.2)
+			self.Constellations = sphere(frame=self.ConstellationOrigin, pos=vector(0,0,0), visible = False, radius=self.UniversRadius, color=Color.white, opacity=0.2)
 			self.Constellations.material = materials.texture(data=materials.loadTGA(file), mapping="spherical", interpolate=False)
 #			self.Constellations.rotate(angle=(pi/2+deg2rad(5)), 	axis=self.XdirectionUnit, origin=(0,0,0))
 			self.Constellations.rotate(angle=(pi/2+deg2rad(10)), 	axis=self.XdirectionUnit, origin=(0,0,0))
@@ -225,7 +227,7 @@ class makeSolarSystem:
 			# adjust celestial Sphere position
 			self.CelestialSphereOrigin = frame(pos=vector(0,0,0))
 			self.UniversRadius = CELESTIAL_RADIUS * AU * DIST_FACTOR
-			self.Universe = sphere(frame=self.CelestialSphereOrigin, pos=vector(0,0,0), visible = False, radius=self.UniversRadius, color=color.white, opacity=1.0) #0.8)
+			self.Universe = sphere(frame=self.CelestialSphereOrigin, pos=vector(0,0,0), visible = False, radius=self.UniversRadius, color=Color.white, opacity=1.0) #0.8)
 			self.Universe.material = materials.texture(data=materials.loadTGA(file), mapping="spherical", interpolate=False)
 #			self.Universe.rotate(angle=(pi/2+deg2rad(5)), 	axis=self.XdirectionUnit, origin=(0,0,0))
 			self.Universe.rotate(angle=(pi/2+deg2rad(10)), 	axis=self.XdirectionUnit, origin=(0,0,0))
@@ -286,20 +288,20 @@ class makeSolarSystem:
 		ve = 0.2
 		for i in range (3): # Each direction
 
-#			self.RefAxis[i] = simpleArrow(color.white, 300, pos, axisp = refDirections[i])
-			self.RefAxis[i] = simpleArrow(color.white, 0, 50, pos, axisp = refDirections[i])
-			#self.RefAxis[i] = curve( frame = None, color = color.white, pos= [ pos, pos+refDirections[i]], material=materials.emissive, visible=False, radius=300)
+#			self.RefAxis[i] = simpleArrow(Color.white, 300, pos, axisp = refDirections[i])
+			self.RefAxis[i] = simpleArrow(Color.white, 0, 50, pos, axisp = refDirections[i])
+			#self.RefAxis[i] = curve( frame = None, Color = Color.white, pos= [ pos, pos+refDirections[i]], material=materials.emissive, visible=False, radius=300)
 			
-			self.RefAxisLabel[i] = label( frame = None, color = color.white,  text = refText[i],
+			self.RefAxisLabel[i] = label( frame = None, color = Color.white,  text = refText[i],
 										pos = pos+refDirections[i]*(1.07+ve), opacity = 0, box = True, visible=False )
 
 			A = np.matrix([[relDirections[i][0]],[relDirections[i][1]],[relDirections[i][2]]], np.float64)
 			relDirections[i] = self.Rotation_Obliquity * A
 
 			#self.Axis[i] = curve( frame = None, color = color.white, pos= [ pos, pos+relDirections[i]], visible=False)
-			self.Axis[i] = simpleArrow(color.white, 0, 20, pos, axisp = relDirections[i])
+			self.Axis[i] = simpleArrow(Color.white, 0, 20, pos, axisp = relDirections[i])
 
-			self.AxisLabel[i] = label( frame = None, color = color.white,  text = relText[i],
+			self.AxisLabel[i] = label( frame = None, color = Color.white,  text = relText[i],
 										pos = pos+relDirections[i]*(1.04+ve), opacity = 0, box = False, visible=False )
 			ve = 0.07
 
@@ -408,12 +410,12 @@ class makeSolarSystem:
 		
 
 		if self.ShowFeatures & LIT_SCENE != 0:
-			self.Scene.ambient = color.white
+			self.Scene.ambient = Color.white
 			self.sunLight.visible = False
 			self.BodyShape.material = materials.texture(data=materials.loadTGA("./img/sun"), mapping="spherical", interpolate=False)
 			self.BodyShape.opacity = 1.0
 		else:
-			self.Scene.ambient = color.nightshade #color.black
+			self.Scene.ambient = Color.nightshade #Color.black
 			self.sunLight.visible = True
 			self.BodyShape.material = materials.emissive
 
@@ -494,7 +496,7 @@ class makeEcliptic:
 		self.Lines = []
 		self.BodyType = ECLIPTIC_PLANE
 		# bogus bodyShape
-		#self.BodyShape = curve(pos=(0, 0, 0), size=1, color=(color[0]*0.5, color[1]*0.5, color[2]*0.5))
+		#self.BodyShape = curve(pos=(0, 0, 0), size=1, color=(Color[0]*0.5, Color[1]*0.5, Color[2]*0.5))
 		self.Origin = frame()
 		self.Labels.append(label(pos=(250*AU*DIST_FACTOR, 250*AU*DIST_FACTOR, 0), text=self.Name, xoffset=20, yoffset=12, space=0, height=10, border=6, box=false, font='sans', visible = False))
 
@@ -516,23 +518,23 @@ class makeEcliptic:
 		#self.Origin = frame()
 
 #		self.BodyShape = cylinder(frame=self.Origin, pos=vector(0,0,0), radius=250*AU*DIST_FACTOR, color=self.Color, length=10, opacity=self.Opacity, axis=(0,0,1))
-#		self.BodyShape = box(frame=self.Origin, pos=vector(0,0,0), length=250*AU*DIST_FACTOR, width=10, height=250*AU*DIST_FACTOR, color=self.Color, opacity=self.Opacity, axis=(1,0,0))
+#		self.BodyShape = box(frame=self.Origin, pos=vector(0,0,0), length=250*AU*DIST_FACTOR, width=10, height=250*AU*DIST_FACTOR, Color=self.Color, opacity=self.Opacity, axis=(1,0,0))
 		side = 250*AU*DIST_FACTOR
 		#side = 0.5*AU*DIST_FACTOR
 		#earth = self.SolarSystem.getBodyFromName('earth')
 
 ##		self.BodyShape = box(frame=self.Origin, pos=vector(0,0,0), length=side, width=10, height=side, color=self.Color, opacity=self.Opacity, axis=(1,0,0))
-#		self.BodyShape = box(frame=self.SolarSystem.getBodyFromName('earth').Origin, pos=vector(earth.Position[0],earth.Position[1], 0), length=side, width=10, height=side, color=self.Color, opacity=self.Opacity, axis=(1,0,0))
+#		self.BodyShape = box(frame=self.SolarSystem.getBodyFromName('earth').Origin, pos=vector(earth.Position[0],earth.Position[1], 0), length=side, width=10, height=side, Color=self.Color, opacity=self.Opacity, axis=(1,0,0))
 		
 		
 		self.BodyShape = box(frame=self.Origin, pos=vector(0, 0, 0), length=side, width=0.0001, height=side, material=materials.emissive, color=self.Color, opacity=1.0) #, axis=(0, 0, 1), opacity=0.8) #opacity=self.Opacity)
 		self.Origin.visible = False
-		#self.BodyShape = cylinder(frame=earth.Origin, pos=vector(0,0,0), radius=side/2, color=self.Color, length=10, opacity=self.Opacity, axis=(0,0,1), material=materials.emissive)
+		#self.BodyShape = cylinder(frame=earth.Origin, pos=vector(0,0,0), radius=side/2, color=self.color, length=10, opacity=self.Opacity, axis=(0,0,1), material=materials.emissive)
 		#self.BodyShape.rotate(angle=earth.TiltAngle, axis=earth.XdirectionUnit, origin=(0,0,0))
 
-		#self.cucu = box(frame=self.Origin, pos=vector(0, 0, 0), length=side*3, width=10, height=side*3, color=color.yellow)
+		#self.cucu = box(frame=self.Origin, pos=vector(0, 0, 0), length=side*3, width=10, height=side*3, color=Color.yellow)
 		#self.cucu = cylinder(frame=self.Origin, pos=vector(0,0,0), radius=250*AU*DIST_FACTOR, color=self.Color, length=10, opacity=self.Opacity, axis=(0,0,1))
-		#self.cucu = cylinder(frame=self.Origin, pos=vector(0,0,0), radius=250*AU*DIST_FACTOR, color=color.red, length=10, opacity=0.2, axis=(0,0,1))
+		#self.cucu = cylinder(frame=self.Origin, pos=vector(0,0,0), radius=250*AU*DIST_FACTOR, color=Color.red, length=10, opacity=0.2, axis=(0,0,1))
 
 
 		#self.BodyShape.rotate(angle=(-self.SolarSystem.getBodyFromName('earth').TiltAngle), axis=self.SolarSystem.getBodyFromName('earth').ZdirectionUnit, origin=(0,0,0))
@@ -550,10 +552,10 @@ class makeEcliptic:
 			source2=vector( l/2-i,  l/2, 0)
 			target2=vector( l/2-i, -l/2, 0)
 
-#			self.Lines.append(curve( frame = self.Origin, color = color.white, pos= [source1+position, target1+position], visible=true, radius=0, material=materials.emissive))
-#			self.Lines.append(curve( frame = self.Origin, color = color.white, pos= [source2+position, target2+position], visible=true, radius=0, material=materials.emissive))
-			self.Lines.append(curve( frame = self.SolarSystem.getBodyFromName('earth').Origin, color = color.white, pos= [source1+position, target1+position], visible=true, radius=0, material=materials.emissive))
-			self.Lines.append(curve( frame = self.SolarSystem.getBodyFromName('earth').Origin, color = color.white, pos= [source2+position, target2+position], visible=true, radius=0, material=materials.emissive))
+#			self.Lines.append(curve( frame = self.Origin, color = Color.white, pos= [source1+position, target1+position], visible=true, radius=0, material=materials.emissive))
+#			self.Lines.append(curve( frame = self.Origin, color = Color.white, pos= [source2+position, target2+position], visible=true, radius=0, material=materials.emissive))
+			self.Lines.append(curve( frame = self.SolarSystem.getBodyFromName('earth').Origin, color = Color.white, pos= [source1+position, target1+position], visible=true, radius=0, material=materials.emissive))
+			self.Lines.append(curve( frame = self.SolarSystem.getBodyFromName('earth').Origin, color = Color.white, pos= [source2+position, target2+position], visible=true, radius=0, material=materials.emissive))
 			i = i + increment
 
 		self.Origin.visible = False
@@ -568,7 +570,7 @@ class makeEcliptic:
 
 		for E in np.arange(increment, 2*pi+increment, increment):
 			# draw a line outward from center with length = radius of ecliptic disk
-			self.Lines.append(curve( frame = self.Origin, color = color.dirtyYellow, pos= [ pos, pos+refDirections[i]], visible=False)
+			self.Lines.append(curve( frame = self.Origin, color = Color.dirtyYellow, pos= [ pos, pos+refDirections[i]], visible=False)
 		"""
 
 	def refresh(self):
@@ -824,7 +826,7 @@ class makeBody:
 
 		# attach a curve to the object to display its orbit
 		if self.BodyShape != None:
-			self.Trail = curve(color=(self.Color[0]*0.6, self.Color[1]*0.6, self.Color[2]*0.6))
+			self.Trail = curve(Color=(self.Color[0]*0.6, self.Color[1]*0.6, self.Color[2]*0.6))
 			self.Trail.append(pos=self.Origin.pos)
 		else:
 			print "Failed to draw body", self.Name
@@ -886,10 +888,10 @@ class makeBody:
 			A = np.matrix([[self.directions[i][0]],[self.directions[i][1]],[self.directions[i][2]]], np.float64)
 			self.directions[i] = self.Rotation_Obliquity * A
 
-#			self.Axis[i] = curve( frame = None, color = color.white, pos= [ pos, pos+self.directions[i]], visible=False)
-			self.Axis[i] = simpleArrow(color.white, 0, 20, pos, axisp = self.directions[i])
+#			self.Axis[i] = curve( frame = None, color = Color.white, pos= [ pos, pos+self.directions[i]], visible=False)
+			self.Axis[i] = simpleArrow(Color.white, 0, 20, pos, axisp = self.directions[i])
 			
-			self.AxisLabel[i] = label( frame = None, color = color.white,  text = texts[i],
+			self.AxisLabel[i] = label( frame = None, color = Color.white,  text = texts[i],
 										pos = pos+self.directions[i]*(1.07+ve), opacity = 0, box = False, visible=False )
 			#ve = 0.07
 
@@ -1168,7 +1170,7 @@ class makeBody:
 		self.setCartesianCoordinates()
 		self.Origin.pos = vector(self.Position[X_COOR]+self.Foci[X_COOR],self.Position[Y_COOR]+self.Foci[Y_COOR],self.Position[Z_COOR]+self.Foci[Z_COOR])
 		if trace:
-			# display orbit in brighter color when above ecliptic
+			# display orbit in brighter Color when above ecliptic
 			if self.Position[Z_COOR]+self.Foci[Z_COOR] < 0:
 				"""
 				self.Interval += 1
@@ -1176,7 +1178,7 @@ class makeBody:
 					#self.Trail.append(pos=self.BodyShape.pos, color=self.Color) #, interval=50)
 					self.Trail.append(pos=self.BodyShape.pos, color=(self.Color[0]*0.3, self.Color[1]*0.3, self.Color[2]*0.3))			
 				else:
-					self.Trail.append(pos=self.BodyShape.pos, color=color.black) #, interval=50)
+					self.Trail.append(pos=self.BodyShape.pos, color=Color.black) #, interval=50)
 				"""
 				# new
 				self.Trail.append(pos=self.Origin.pos, color=(self.Color[0]*0.3, self.Color[1]*0.3, self.Color[2]*0.3))
@@ -1260,8 +1262,8 @@ class makeBody:
 # CLASS PLANET ----------------------------------------------------------------
 class planet(makeBody):
 	
-	def __init__(self, system, key, color, ptype, sizeCorrectionType, defaultSizeCorrection):
-		makeBody.__init__(self, system, key, color, ptype, sizeCorrectionType, defaultSizeCorrection, system)
+	def __init__(self, system, key, Color, ptype, sizeCorrectionType, defaultSizeCorrection):
+		makeBody.__init__(self, system, key, Color, ptype, sizeCorrectionType, defaultSizeCorrection, system)
 		#self.BodyShape.visible = False
 		self.setRings()
 
@@ -1416,10 +1418,10 @@ class makeEarth(planet):
 			A = np.matrix([[self.directions[i][0]],[self.directions[i][1]],[self.directions[i][2]]], np.float64)
 			self.directions[i] = self.Rotation_Obliquity * A
 
-#			self.Axis[i] = curve( frame = None, color = color.white, pos= [ pos, pos+self.directions[i]], visible=False)
-			self.Axis[i] = simpleArrow(color.white, 0, 20, pos, axisp = self.directions[i])
+#			self.Axis[i] = curve( frame = None, Color = Color.white, pos= [ pos, pos+self.directions[i]], visible=False)
+			self.Axis[i] = simpleArrow(Color.white, 0, 20, pos, axisp = self.directions[i])
 			
-			self.AxisLabel[i] = label( frame = None, color = color.white,  text = texts[i],
+			self.AxisLabel[i] = label( frame = None, color = Color.white,  text = texts[i],
 										pos = pos+self.directions[i]*(1.07+ve), opacity = 0, box = False, visible=False )
 			ve = 0.07
 
@@ -1939,23 +1941,23 @@ class genericSpacecraft(makeBody):
 		# create aft tank
 		self.AFT_TANK_RADIUS = self.radius
 		self.AFT_TANK_CENTER_XCOOR = self.BARYCENTER_XCOOR + self.length/9
-		sphere(frame=self.Origin, pos=(self.AFT_TANK_CENTER_XCOOR, 0, 0), radius=self.AFT_TANK_RADIUS, color=color.white, np=64)		
+		sphere(frame=self.Origin, pos=(self.AFT_TANK_CENTER_XCOOR, 0, 0), radius=self.AFT_TANK_RADIUS, color=Color.white, np=64)		
 
 		# create forward Platform
 		self.FWD_TANK_RADIUS = self.radius
 		self.FWD_TANK_CENTER_XCOOR = self.BARYCENTER_XCOOR + self.length - self.radius/1.5
-		sphere(frame=self.Origin, pos=(self.FWD_TANK_CENTER_XCOOR, 0, 0), radius=self.FWD_TANK_RADIUS, color=color.white)		
+		sphere(frame=self.Origin, pos=(self.FWD_TANK_CENTER_XCOOR, 0, 0), radius=self.FWD_TANK_RADIUS, color=Color.white)		
 
 		# create engine
 		self.makeEngine()
 		"""
 		self.ENGINE_HEIGHT = self.length/13
 		self.ENGINE_TOP_XCOOR = self.AFT_TANK_CENTER_XCOOR - self.AFT_TANK_RADIUS - self.ENGINE_HEIGHT/2 - self.length/30
-		cylinder(frame=self.BodyShape, pos=(self.ENGINE_TOP_XCOOR,0,0), radius=self.AFT_TANK_RADIUS/5, length=self.length/13, color=color.darkgrey)
+		cylinder(frame=self.BodyShape, pos=(self.ENGINE_TOP_XCOOR,0,0), radius=self.AFT_TANK_RADIUS/5, length=self.length/13, color=Color.darkgrey)
 
 		# create COPV
 		self.COPV_RADIUS = self.length/17
-		sphere(frame=self.BodyShape, pos=(self.ENGINE_TOP_XCOOR + self.length/31, self.length/9, 0), radius=self.COPV_RADIUS, color=color.grey)		
+		sphere(frame=self.BodyShape, pos=(self.ENGINE_TOP_XCOOR + self.length/31, self.length/9, 0), radius=self.COPV_RADIUS, color=Color.grey)		
 	
 		nozzle = self.makeNozzle()
 		nozzle.frame = self.BodyShape
@@ -1981,11 +1983,11 @@ class genericSpacecraft(makeBody):
 			self.NOZZLE_LENGTH = self.length/6
 			self.NOZZLE_THROAT = self.radius * 0.01
 			self.ENGINE_TOP_XCOOR = self.AFT_TANK_CENTER_XCOOR - self.AFT_TANK_RADIUS - self.ENGINE_HEIGHT/2 - self.length/30
-			cylinder(frame=self.Origin, axis=(0,1,0), pos=(self.ENGINE_TOP_XCOOR + (self.ENGINE_HEIGHT*0.8), -self.length/12, 0), radius=self.ENGINE_RADIUS, length=self.length/6, color=color.darkgrey)
+			cylinder(frame=self.Origin, axis=(0,1,0), pos=(self.ENGINE_TOP_XCOOR + (self.ENGINE_HEIGHT*0.8), -self.length/12, 0), radius=self.ENGINE_RADIUS, length=self.length/6, color=Color.darkgrey)
 
 		k = -1
 		for i in range(self.engine):
-			cylinder(frame=self.Origin, pos=(self.ENGINE_TOP_XCOOR, self.ENGINE_YOFFSET * k, 0), radius=self.ENGINE_RADIUS, length=self.ENGINE_HEIGHT, color=color.darkgrey)
+			cylinder(frame=self.Origin, pos=(self.ENGINE_TOP_XCOOR, self.ENGINE_YOFFSET * k, 0), radius=self.ENGINE_RADIUS, length=self.ENGINE_HEIGHT, color=Color.darkgrey)
 			nozzle = self.makeNozzle(self.ENGINE_YOFFSET * k)
 			nozzle.frame = self.Origin
 			k = -k
@@ -1993,7 +1995,7 @@ class genericSpacecraft(makeBody):
 		for i in range(self.COPV):
 			# create COPV
 			self.COPV_RADIUS = self.length/18 - i*(self.length/100)
-			sphere(frame=self.Origin, pos=(self.ENGINE_TOP_XCOOR + self.length/31, 0, self.length/11 * k), radius=self.COPV_RADIUS, color=color.grey)		
+			sphere(frame=self.Origin, pos=(self.ENGINE_TOP_XCOOR + self.length/31, 0, self.length/11 * k), radius=self.COPV_RADIUS, color=Color.grey)		
 			k = -k
 
 	def makeEngineSAVE(self):
@@ -2005,11 +2007,11 @@ class genericSpacecraft(makeBody):
 			self.ENGINE_HEIGHT = self.length/16
 
 		self.ENGINE_TOP_XCOOR = self.AFT_TANK_CENTER_XCOOR - self.AFT_TANK_RADIUS - self.ENGINE_HEIGHT/2 - self.length/30
-		cylinder(frame=self.Origin, pos=(self.ENGINE_TOP_XCOOR,0,0), radius=self.AFT_TANK_RADIUS/5, length=self.length/13, color=color.darkgrey)
+		cylinder(frame=self.Origin, pos=(self.ENGINE_TOP_XCOOR,0,0), radius=self.AFT_TANK_RADIUS/5, length=self.length/13, color=Color.darkgrey)
 
 		# create COPV
 		self.COPV_RADIUS = self.length/17
-		sphere(frame=self.Origin, pos=(self.ENGINE_TOP_XCOOR + self.length/31, self.length/9, 0), radius=self.COPV_RADIUS, color=color.grey)		
+		sphere(frame=self.Origin, pos=(self.ENGINE_TOP_XCOOR + self.length/31, self.length/9, 0), radius=self.COPV_RADIUS, color=Color.grey)		
 	
 		nozzle = self.makeNozzle()
 		nozzle.frame = self.Origin
@@ -2029,7 +2031,7 @@ class genericSpacecraft(makeBody):
 		circle = paths.arc(radius=self.ENGINE_THROAT, angle2=2*pi, up=(-1,0,0), pos=(-self.length/6, 0, 0))
 		return extrusion(pos=circle,
 				shape=section,
-				color=color.yellow)
+				color=Color.yellow)
 
 	def makeNozzle(self, yoffset):
 		# to create a nozzle, we need to start from a polygon representing the cross section of
@@ -2056,7 +2058,7 @@ class genericSpacecraft(makeBody):
 		circle = paths.arc(radius=self.NOZZLE_THROAT, angle2=2*pi, up=(-1,0,0), pos=(self.BARYCENTER_XCOOR -self.length/6, yoffset, 0))
 		return extrusion(pos=circle,
 				shape=section,
-				color=color.grey)
+				color=Color.grey)
 
 	def initRotation(self):
 		self.RotAngle = pi/400
@@ -2137,7 +2139,7 @@ class starman(makeBody):
 		# make car body from 2D polygones set
 		body = extrusion(pos=straight, 
 						shape=carbody2D-rearwheelWell-frontwheelWell,
-						color=color.red)
+						color=Color.red)
 
 
 		body.frame = roadster
@@ -2150,7 +2152,7 @@ class starman(makeBody):
 		HL1 = Polygon([(0, 0),(5*HL_SCALE, 0),(0, 3*HL_SCALE)])
 		LeftHL = extrusion(	pos=[(0,-0.1,0),(0,0.4,0)], 
 							shape=HL1,
-							color=color.white,
+							color=Color.white,
 							material=materials.emissive)
 		LeftHL.x = -self.carlength * 0.94
 		LeftHL.z = LeftHL.z + self.carwidth * 0.1
@@ -2159,7 +2161,7 @@ class starman(makeBody):
 		HL2 = Polygon([(0, self.carwidth),(5*HL_SCALE, self.carwidth),(0, self.carwidth - 3*HL_SCALE)])
 		RightHL = extrusion(pos=[(0,-0.1,0),(0,0.4,0)], 
 							shape=HL2,
-							color=color.white,
+							color=Color.white,
 							material=materials.emissive)
 		RightHL.x = -self.carlength * 0.94
 		RightHL.z = RightHL.z - self.carwidth * 0.1
@@ -2169,7 +2171,7 @@ class starman(makeBody):
 		WS = Polygon([(0, 0), (0.2,0), (self.carheight*0.6, -self.carheight*0.4), (self.carheight*0.6 - 0.2, -self.carheight*0.4)])
 		windshield = extrusion(	pos=[(0, 0, 0),(0, 0, -self.carwidth * 0.90)], 
 								shape=WS, material=materials.glass,
-								color=color.cyan)
+								color=Color.cyan)
 		windshield.x = -self.carlength * 0.6
 		windshield.z = windshield.z + self.carwidth * 0.95
 		windshield.frame = body.frame
@@ -2177,21 +2179,21 @@ class starman(makeBody):
 		# make starman
 		sphere(frame=body.frame, radius=self.carheight * 0.2, 
 								 pos=(-self.carlength * 0.41, -self.carheight/5, 2 * self.carwidth/7), 
-								 color=color.white)
+								 color=Color.white)
 
 	def makeWheels(self, body, front, rear):
 		
-		cylinder(frame=body.frame, axis=(0,0,1), pos=(-front[0], front[1], 0), 					radius=front[2]*0.90, length=self.carwidth * 0.15, color=color.darkgrey)
-		cylinder(frame=body.frame, axis=(0,0,1), pos=(-front[0], front[1], -0.1), 				radius=front[2]*0.60, length=self.carwidth * 0.10, color=color.white)
+		cylinder(frame=body.frame, axis=(0,0,1), pos=(-front[0], front[1], 0), 					radius=front[2]*0.90, length=self.carwidth * 0.15, color=Color.darkgrey)
+		cylinder(frame=body.frame, axis=(0,0,1), pos=(-front[0], front[1], -0.1), 				radius=front[2]*0.60, length=self.carwidth * 0.10, color=Color.white)
 
-		cylinder(frame=body.frame, axis=(0,0,1), pos=(-front[0], front[1], (self.carwidth * (1 - 0.15))),  radius=front[2]*0.90, length=self.carwidth * 0.15, color=color.darkgrey)
-		cylinder(frame=body.frame, axis=(0,0,1), pos=(-front[0], front[1], self.carwidth*0.91),	radius=front[2]*0.60, length=self.carwidth * 0.10, color=color.white)
+		cylinder(frame=body.frame, axis=(0,0,1), pos=(-front[0], front[1], (self.carwidth * (1 - 0.15))),  radius=front[2]*0.90, length=self.carwidth * 0.15, Color=Color.darkgrey)
+		cylinder(frame=body.frame, axis=(0,0,1), pos=(-front[0], front[1], self.carwidth*0.91),	radius=front[2]*0.60, length=self.carwidth * 0.10, color=Color.white)
 
-		cylinder(frame=body.frame, axis=(0,0,1), pos=(-rear[0], rear[1], 0), 					radius=rear[2]*0.90, length=self.carwidth * 0.15, color=color.darkgrey)
-		cylinder(frame=body.frame, axis=(0,0,1), pos=(-rear[0], rear[1], -0.1), 				radius=rear[2]*0.60, length=self.carwidth * 0.10, color=color.white)
+		cylinder(frame=body.frame, axis=(0,0,1), pos=(-rear[0], rear[1], 0), 					radius=rear[2]*0.90, length=self.carwidth * 0.15, color=Color.darkgrey)
+		cylinder(frame=body.frame, axis=(0,0,1), pos=(-rear[0], rear[1], -0.1), 				radius=rear[2]*0.60, length=self.carwidth * 0.10, color=Color.white)
 
-		cylinder(frame=body.frame, axis=(0,0,1), pos=(-rear[0], rear[1], (self.carwidth * (1 - 0.15))), 	radius=rear[2]*0.90, length=self.carwidth * 0.15, color=color.darkgrey)
-		cylinder(frame=body.frame, axis=(0,0,1), pos=(-rear[0], rear[1], self.carwidth*0.91), 	radius=rear[2]*0.60, length=self.carwidth * 0.10, color=color.white)
+		cylinder(frame=body.frame, axis=(0,0,1), pos=(-rear[0], rear[1], (self.carwidth * (1 - 0.15))), 	radius=rear[2]*0.90, length=self.carwidth * 0.15, color=Color.darkgrey)
+		cylinder(frame=body.frame, axis=(0,0,1), pos=(-rear[0], rear[1], self.carwidth*0.91), 	radius=rear[2]*0.60, length=self.carwidth * 0.10, color=Color.white)
 
 
 # CLASS SPACECRAFT ------------------------------------------------------------
@@ -2472,7 +2474,7 @@ def showBelt(beltname):
 	beltname.Labels[0].visible = true
 
 def getColor():
-	return { 0: color.white, 1: color.red, 2: color.orange, 3: color.yellow, 4: color.cyan, 5: color.magenta, 6: color.green}[randint(0,6)]
+	return { 0: Color.white, 1: Color.red, 2: Color.orange, 3: Color.yellow, 4: Color.cyan, 5: Color.magenta, 6: Color.green}[randint(0,6)]
 
 # Calculates Eccentric Anomaly (E) given the mean anomaly (M) and the depth of the Bessel first kind functions
 def bessel_E(M, e, depth):

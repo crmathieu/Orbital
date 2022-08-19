@@ -55,6 +55,7 @@ SATELLITE_M = 100
 THREE_D = False
 MAX_P_D = 1.1423e13
 MIN_P_D = 46.0e9
+
 LEGEND = True
 
 SUN_M = 1.989e+30 # in Kg
@@ -209,7 +210,8 @@ DWARFPLANET_SZ_CORRECTION = 1e-2/(DIST_FACTOR * 5)
 ADJUSTMENT_FACTOR_PLANETS = 0 # 1.95
 ADJUSTMENT_FACTOR = 0 #1.72 #1.80
 
-from visual import color
+#from visual import color
+from vpython_interface import Color
 
 objects_data = {
 	"moon" :{
@@ -719,17 +721,17 @@ rings_data = {
 			{	"name": "Mu",
 				"radius": 103000e3,
 				"width": 17000e3,
-				"color": color.darkblue
+				"color": Color.darkblue
 			},
 			{	"name": "Nu",
 				"radius": 69900e3,
 				"width": 3800e3,
-				"color": color.darkblue
+				"color": Color.darkblue
 			},
 			{	"name": "Tau",
 				"radius": 41350e3,
 				"width": 3500e3,
-				"color": color.blueish
+				"color": Color.blueish
 			}
 		]
 	},
@@ -738,27 +740,27 @@ rings_data = {
 			{	"name": "F",
 				"radius": 140180e3,
 				"width":100e3,
-				"color": color.whiteish
+				"color": Color.whiteish
 			},
 			{	"name": "A",
 				"radius": 136775e3,
 				"width": 14600e3,
-				"color": color.lightgrey
+				"color": Color.lightgrey
 			},
 			{	"name": "B",
 				"radius": 117580e3,
 				"width": 25500e3,
-				"color": color.whiteish
+				"color": Color.whiteish
 			},
 			{	"name": "C",
 				"radius": 92000e3,
 				"width": 17500e3,
-				"color": color.grey
+				"color": Color.grey
 			},
 			{	"name": "D",
 				"radius": 74510e3,
 				"width": 7500e3,
-				"color": color.darkgrey
+				"color": Color.darkgrey
 			}		
 		]
 	}
