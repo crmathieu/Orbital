@@ -8,24 +8,21 @@ class Canvas(display):
     def __init__(self, **keywords):
         super(Canvas, self).__init__(**keywords)
 
-        # CM addition. Indicates when an animation automatically zooms in an pans around a focus point
+        # Indicates when an animation automatically zooms in an pans around a focus point
         self._auto_movement = False 
         self.plat = platform.system()
 
 
-    # new method to change the status of _auto_movement
+    # method to change the status of _auto_movement
     def _set_autoMovement(self, is_movement):
         self._auto_movement = is_movement
         if is_movement == False:
-            #self._mt.resetMouse()
             self.resetMouse()
 
-    def _OnFakeMouseMotion(self, evt):
-        #x, y = evt.GetPosition()
-        #if x != self._lastx or y != self._lasty:
-            self._report_mouse_state(evt)
-        #    self._dispatch_event('mousemove', self.mouse)
-        #evt.Skip() # to permit setting focus
+    def resetMouse(self):
+        self._mt.leftIsDown = self._mt.rightIsDown = self._mt.middleIsDown = 0
+        self._mt.lastSpinning = self._mt.lastZooming = 0
+        self._mt.macCtrl = 0
 
     def _report_mouse_state(self, evt, defx=20, defy=20): # wx gives x,y relative to upper left corner
 
@@ -49,7 +46,6 @@ class Canvas(display):
             else:
                 # cursor is based on (0,0) of the window; our (x,y) is based on (0,0) of the 3D display
                 self._cursorx, self._cursory = (int(self._x)+x, int(self._y)+y)
-            #print ("Capture Mouse!")
             self._canvas.CaptureMouse()
             self._captured = True
         elif self._captured and not (spinning or zooming):
@@ -57,7 +53,6 @@ class Canvas(display):
             self._lastx = x = self._cursorx
             self._lasty = y = self._cursory
             set_cursor(self.canvas, self.cursor_state)
-            #print ("Release Mouse!")
             self._canvas.ReleaseMouse()          
             self._captured = False
         
@@ -103,9 +98,8 @@ class Canvas(display):
         # CM: whenever there is an auto_movement, do not call report_mouse_state as it 
         # could interfer with camera methods that also call the "report_mouse_state"
         # from the display class 
-        #print ("Mouse state -> x=", x, ", y=", y) #, ", cmd=", cmd, ", left=", left, ", right=", right, ", middle=", middle, ", shift=", shift, ", ctrl=", ctrl, ", alt=", alt)
+
         if self._auto_movement == True:
-#            self._mt.resetMouse()
             self.resetMouse()
             return 
 
@@ -133,12 +127,6 @@ class Canvas(display):
             self._lastx = x
             self._lasty = y
         
-        #print("_report_mouse_state - Free Mouse location x=",self._lastx, ", y=", self._lasty)
-
-    def resetMouse(self):
-        self._mt.leftIsDown = self._mt.rightIsDown = self._mt.middleIsDown = 0
-        self._mt.lastSpinning = self._mt.lastZooming = 0
-        self._mt.macCtrl = 0
 
 
 class Color:

@@ -1,3 +1,4 @@
+from __future__ import print_function, division
 import sys
 from inspect import getmembers, isclass
 """
