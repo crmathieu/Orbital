@@ -134,7 +134,8 @@ class Color:
     white = (1,1,1)
     whiteish = (0.9, 0.9, 0.9)
     grey = (0.5,0.5,0.5)
-    darkgrey = (0.32, 0.32, 0.32)
+    deepgrey = (0.32, 0.32, 0.32)
+    darkgrey = (0.12, 0.12, 0.12)
     lightgrey = (0.75,0.75,0.75)
 
     red = (1,0,0)

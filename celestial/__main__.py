@@ -28,15 +28,13 @@ import planetsdata as pd
 from controls import *
 from celestial.orbitalLIB import Api
 
-def solarSystemLoader(story, recorder): 
+def bootLoader(story, recorder): 
 	
 	solSystem = makeSolarSystem()
 
 	# set what is displayed by default
 	bodySet = pd.INNERPLANET|pd.ORBITS|pd.SATELLITE|pd.LABELS|pd.OUTERPLANET
-	solSystem.setDefaultFeatures(bodySet) #pd.INNERPLANET|pd.OUTERPLANET|pd.ORBITS|pd.SATELLITE|pd.KUIPER_BELT|pd.ASTEROID_BELT|pd.JTROJANS|pd.LABELS|pd.CELESTIAL_SPHERE)
-#	solSystem.setDefaultFeatures(pd.INNERPLANET|pd.OUTERPLANET|pd.ORBITS|pd.SATELLITE|pd.KUIPER_BELT|pd.ASTEROID_BELT|pd.JTROJANS|pd.LABELS|pd.CELESTIAL_SPHERE)
-#	solSystem.setDefaultFeatures(pd.INNERPLANET|pd.OUTERPLANET|pd.ORBITS)
+	solSystem.setDefaultFeatures(bodySet) 
 
 	# make bodyies we have satellites for
 	earth = makeEarth(solSystem, color.cyan, pd.INNERPLANET, pd.INNERPLANET, pd.PLANET_SZ_CORRECTION)
@@ -87,9 +85,6 @@ def solarSystemLoader(story, recorder):
 	print "FINISHED ..."
 	
 	solSystem.drawAllBodiesTrajectory()
-	
-	#solSystem.makeCelestialSphere()
-
 	glbRefresh(solSystem, False)
 
 	# Start control window

@@ -718,49 +718,57 @@ Tau			37 850 - 41 350			3500				1
 rings_data = {
 	"uranus": {
 		"rings":[
-			{	"name": "Mu",
-				"radius": 103000e3,
-				"width": 17000e3,
-				"color": Color.darkblue
+			{	"name"		: "Mu",
+				"radius"	: 103000e3,
+				"width"		: 17000e3,
+				"color"		: Color.darkblue,
+				"opacity"	: 1.0
 			},
-			{	"name": "Nu",
-				"radius": 69900e3,
-				"width": 3800e3,
-				"color": Color.darkblue
+			{	"name"		: "Nu",
+				"radius"	: 69900e3,
+				"width"		: 3800e3,
+				"color"		: Color.darkblue,
+				"opacity"	: 1.0
 			},
-			{	"name": "Tau",
-				"radius": 41350e3,
-				"width": 3500e3,
-				"color": Color.blueish
+			{	"name"		: "Tau",
+				"radius"	: 41350e3,
+				"width"		: 3500e3,
+				"color"		: Color.darkgrey, #Color.blueish,
+				"opacity"	: 0.2
 			}
 		]
 	},
 	"saturn": {
 		"rings": [
-			{	"name": "F",
-				"radius": 140180e3,
-				"width":100e3,
-				"color": Color.whiteish
+			{	"name"		: "F",
+				"radius"	: 140180e3,
+				"width"		:100e3,
+				"color"		: Color.whiteish,
+				"opacity"	: 1.0
 			},
-			{	"name": "A",
-				"radius": 136775e3,
-				"width": 14600e3,
-				"color": Color.lightgrey
+			{	"name"		: "A",
+				"radius"	: 136775e3,
+				"width"		: 14600e3,
+				"color"		: Color.lightgrey,
+				"opacity"	: 1.0
 			},
-			{	"name": "B",
-				"radius": 117580e3,
-				"width": 25500e3,
-				"color": Color.whiteish
+			{	"name"		: "B",
+				"radius"	: 117580e3,
+				"width"		: 25300e3, #25500e3,
+				"color"		: Color.whiteish,
+				"opacity"	: 1.0
 			},
-			{	"name": "C",
-				"radius": 92000e3,
-				"width": 17500e3,
-				"color": Color.grey
+			{	"name"		: "C",
+				"radius"	: 92000e3,
+				"width"		: 17200e3, #17500e3,
+				"color"		: Color.grey,
+				"opacity"	: 1.0
 			},
-			{	"name": "D",
-				"radius": 74510e3,
-				"width": 7500e3,
-				"color": Color.darkgrey
+			{	"name"		: "D",
+				"radius"	: 74510e3,
+				"width"		: 7500e3,
+				"color"		: Color.deepgrey,
+				"opacity"	: 1.0
 			}		
 		]
 	}

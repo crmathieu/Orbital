@@ -386,7 +386,8 @@ class FOCUSpanel(AbstractUI):
 
 	def resetPOV(self):
 		if self.smoothTransition == True:
-			self.smoothFocus("sun")
+			#self.smoothFocus("sun")
+			self.SolarSystem.camera.smoothFocus("sun")
 		else: 
 			self.SolarSystem.resetView()
 		self.rbox.SetSelection(1)

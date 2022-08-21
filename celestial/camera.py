@@ -10,7 +10,7 @@ from video import *
 # current object
 #
 # in this module, fake mouse events are generated to induce camera movements.
-# Then, the vpython report_mouse_state method is called to update the view 
+# Then, the vpython "report_mouse_state" method is called to update the view 
 # based on mouse/keyboard events provided as parameters
 #
 # Examples:
@@ -114,6 +114,7 @@ class camera3D:
 		# The default rotation path is: from RIGHT -> LEFT and UP -> DOWN
 		# for camera rotation motion, the right mouse button must be held down
 		# y stays constant
+
 		x, y, lastx, lasty = 500,500,500,500
 		left, right, middle = False, True, False
 		shift, ctrl, alt, cmd = False, False, False, False
@@ -126,6 +127,7 @@ class camera3D:
 		# allow for vertical traveling from current position to ecliptic
 		# forward[2] represents the z coordinate of the camera vector. Originally,
 		# the camera points down using vector (2,0,-1). 
+
 		if (direction & self.ROT_VER) and (self.view.forward[2] < 0):
 			if direction & self.ROT_UP:
 				lasty = 499
@@ -141,6 +143,7 @@ class camera3D:
 		# for camera combination motion, we alternate rotation and zoom 
 		# for zoom both right and left mouse buttons must be held down
         # default is 10 seconds
+
 		self.oneTickCameraRotationWithDirection(rot_direction)
 		if zoom and self.view.forward[2] < 0:
 			self.oneTickCameraZoom(zoom_forward)
@@ -165,7 +168,7 @@ class camera3D:
 	# will look natural. 
 
 	def cameraZoom(self, duration, velocity = 1, recorder = False, zoom = ZOOM_IN, ratefunc = there_and_back):
-		print "ZOB ", ratefunc
+
 		# for camera zoom motion, both right and left mouse buttons must be held down
 		left, right, middle = True, True, False
 		shift, ctrl, alt, cmd = False, False, False, False
@@ -179,12 +182,9 @@ class camera3D:
 #				self.parentFrame.orbitalTab.VideoRecorder = setVideoRecording(25, "output.avi")
 
 		# calculate number of ticks
-		#### ticks = duration * 70 # duration / sleep time which is 0.01
-#		ticks = int(duration * 70 * self.SolarSystem.Dashboard.focusTab.transitionVelocityFactor)
 		ticks = int(duration * 70 * self.transitionVelocityFactor)
 		for i in range(ticks):
 			# calculate rate of velocity as a function of time
-			##### r = there_and_back(float(i)/ticks)
 			r = ratefunc(float(i)/ticks)
 
 			# calculate instant zoom velocity value as a function of time and max velocity
@@ -196,6 +196,7 @@ class camera3D:
 			self.view.report_mouse_state([left, right, middle],
 			lastx, lasty, x, y,
 			[shift, ctrl, alt, cmd])
+
 			sleep(1e-2)
 			if recorder == True:
 				recOneFrame(self.SolarSystem.Dashboard.orbitalTab.VideoRecorder)
@@ -210,13 +211,11 @@ class camera3D:
 	# that starts at its maximum value, such as "1 - rush_into",  to ensure a continuous flow.
 
 	def cameraRotationAxis(self, angle, axis, recorder, direction, ratefunc = ease_in_out):
-#		total_steps = int(100 * self.SolarSystem.Dashboard.focusTab.transitionVelocityFactor)
 		total_steps = int(100 * self.transitionVelocityFactor)
 
 		rangle = deg2rad(angle) * (-1 if direction == self.ROT_CLKW else 1)
 		dangle = 0.0
 		for i in np.arange(0, total_steps+1, 1):
-#			r = ease_in_out(float(i)/total_steps)
 			r = ratefunc(float(i)/total_steps)
 			iAngle = rangle * r
 			self.view.forward = rotate(self.view.forward, angle=(iAngle-dangle), axis=axis)
@@ -227,7 +226,7 @@ class camera3D:
 
 
 	def cameraRotateDown(self, angle, recorder):
-#		vangle = self.getAngleBetweenVectors(self.view.forward, vector(0,0,-1))
+		# find vector orthogonal to forward vector
 		axis = getOrthogonalVector(self.view.forward)
 
 		# if angle between vertical anf forward is smaller than
@@ -392,7 +391,7 @@ class camera3D:
 		self.B =  simpleArrow(color.green, 0, 20, nextPos, axisp = self.Loc[nextLocation].Grad/10, context = self.Loc[nextLocation].Origin)
 		self.B.display(True)
 
-		# build radial vector vertical to location in ecliptic coordinate
+		# build radial vector vertical to location in ecliptic coordinates
 		dest = self.Loc[nextLocation].getEclipticPosition()
 		A = dest[0] - self.SolarSystem.EarthRef.Origin.pos[0] #self.Planet.Origin.pos[0]
 		B = dest[1] - self.SolarSystem.EarthRef.Origin.pos[1] #self.Planet.Origin.pos[1]
@@ -403,7 +402,6 @@ class camera3D:
 		Xc = self.SolarSystem.Scene.center[0]
 		Yc = self.SolarSystem.Scene.center[1]
 		Zc = self.SolarSystem.Scene.center[2]
-        #print ("Xc=", Xc, ", Yc=", Yc,", Zc=", Zc)
         
 		# calculate distance between current location and 
 		# destination for each coordinate 
@@ -415,8 +413,6 @@ class camera3D:
 			if self.SolarSystem.Dashboard.orbitalTab.VideoRecorder == None:
 				self.SolarSystem.Dashboard.orbitalTab.VideoRecorder = setVideoRecording(25, "output.avi")
 
-        # Calculate number of steps based on current transition velocity factor (default is 1.0)
-		total_steps = int(100) * self.transitionVelocityFactor
 
 		# radialToCamera (vector between center of earth and camera location)
 		radialToCamera = -self.SolarSystem.Scene.forward
@@ -424,12 +420,26 @@ class camera3D:
 		# determine axis of rotation. We do that by obtaining a vector orthogonal 
 		# to the plane defined our 2 radial vectors
 		rotAxis = getVectorOrthogonalToPlane(radialToCamera, radialToLocation)
-		#self.K =  simpleArrow(color.cyan, 0, 20, self.Planet.SolarSystem.Scene.mouse.camera, axisp = 1e4*rotAxis, context = None) #self.Loc[locationID].Origin)
-		#self.K.display(True)
+		if False:
+			self.K =  simpleArrow(color.cyan, 0, 20, self.Planet.SolarSystem.Scene.mouse.camera, axisp = 1e4*rotAxis, context = None) #self.Loc[locationID].Origin)
+			self.K.display(True)
+
+		# calculate angle between rot axis and vertical
+		vAngle = getAngleBetweenVectors(rotAxis, vector(0,0,1))
+		velocityF = self.transitionVelocityFactor
+
+		# when the rotation plane is nearly vertical, we need to add more steps
+		# to slow down possible vpython jerky rotation.
+		if abs(vAngle - float(90)) < 5:
+			#print "Close enough to vertical!!!", vAngle
+			velocityF = velocityF * 1.7
 
 		# determine angle between 2 radial vectors
 		rotAngle = deg2rad(getAngleBetweenVectors(radialToCamera, radialToLocation))
-        
+
+        # Calculate number of steps based on current transition velocity factor (default is 1.0)
+		total_steps = int(100) * velocityF
+
 		accumulated_rot = 0.0
 		for i in np.arange(0, total_steps+1, 1):
 			# incrementally, change center focus and rotate

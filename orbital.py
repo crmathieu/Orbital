@@ -13,7 +13,7 @@ from inspect import getmembers, isclass
     iscoroutine(): Return True if the object is a coroutine.
 """
 import importlib
-from celestial.__main__ import solarSystemLoader
+from celestial.__main__ import bootLoader
 
 # extracts class names found in module
 def getAll_classes(story_module):
@@ -76,5 +76,5 @@ if __name__ == "__main__":
          recorder = True 
       
    # pass a story object to boot-loader (story is not instantiated yet)
-   solarSystemLoader(storyObj, recorder)
+   bootLoader(storyObj, recorder)
    
