@@ -49,8 +49,8 @@ class makeSolarSystem:
 	INNER_RING_COEF = 1.3
 	OUTER_RING_COEF = 1.9
 	RING_INCREMENT = 0.6
-	SCENE_WIDTH = 1920
-	SCENE_HEIGHT = 1080
+	SCENE_WIDTH = 1000 #1920
+	SCENE_HEIGHT = 500 #1080
 	bodies = []
 
 	def __init__(self):
@@ -74,7 +74,7 @@ class makeSolarSystem:
 #		self.Scene = display(title = 'Solar System', width = self.SCENE_WIDTH, height =self.SCENE_HEIGHT, range=3, visible=True, center = (0,0,0))
 		self.Scene = Canvas(title = 'Solar System', width = self.SCENE_WIDTH, height =self.SCENE_HEIGHT, range=3, visible=True, center = (0,0,0))
 
-		self.MT = self.Scene.getMouseTracker()
+		#self.MT = self.Scene.getMouseTracker()
 		#self.MT.SetMouseStateReporter(self.Scene)
 		self.camera = camera3D(self)
 		self.Scene.lights = []
