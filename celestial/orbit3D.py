@@ -74,21 +74,20 @@ class makeSolarSystem:
 #		self.Scene = display(title = 'Solar System', width = self.SCENE_WIDTH, height =self.SCENE_HEIGHT, range=3, visible=True, center = (0,0,0))
 		self.Scene = Canvas(title = 'Solar System', width = self.SCENE_WIDTH, height =self.SCENE_HEIGHT, range=3, visible=True, center = (0,0,0))
 
-		#self.MT = self.Scene.getMouseTracker()
-		#self.MT.SetMouseStateReporter(self.Scene)
-		self.camera = camera3D(self)
-		self.Scene.lights = []
-		
 		# the scene camera is a read only vector whose coordinates can be changed 
 		# only through mouse events and/or resetting the scene Center
+		self.camera = camera3D(self)
+		self.Scene.lights = []
+		"""
 		self.Scene.forward = vector(2,0,-1) #(0,0,-1)
 		self.Scene.fov = deg2rad(40) 
-		#self.Scene.range = 6  ####### NEW NEW
+		
 		self.Scene.userspin = True
 		self.Scene.userzoom = True
 		self.Scene.autoscale = True
 		self.Scene.autocenter = False
 		self.Scene.up = (0,0,1)
+		"""
 		self.RefAxis = [0,0,0]
 		self.RefAxisLabel = ["","",""]
 		self.Axis = [0,0,0]

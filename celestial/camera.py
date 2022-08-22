@@ -69,6 +69,16 @@ class camera3D:
 		self.MAX_ZOOM_VELOCITY = 100
 		self.transitionVelocityFactor = 1.0  # normal speed. speed can go as slow as 1/100 and as fast as 4 times the normal speed
 		
+		self.view.lights = []
+		self.view.forward = vector(2,0,-1) #(0,0,-1)
+		self.view.fov = deg2rad(40) 
+		
+		self.view.userspin = True
+		self.view.userzoom = True
+		self.view.autoscale = True
+		self.view.autocenter = False
+		self.view.up = (0,0,1)
+
 	def setEarthLocations(self):
 		self.Loc = self.SolarSystem.EarthRef.PlanetWidgets.Loc
 

@@ -17,9 +17,9 @@ class Canvas(display):
     def _set_autoMovement(self, is_movement):
         self._auto_movement = is_movement
         if is_movement == False:
-            self.resetMouse()
+            self._resetMouse()
 
-    def resetMouse(self):
+    def _resetMouse(self):
         self._mt.leftIsDown = self._mt.rightIsDown = self._mt.middleIsDown = 0
         self._mt.lastSpinning = self._mt.lastZooming = 0
         self._mt.macCtrl = 0
@@ -100,7 +100,7 @@ class Canvas(display):
         # from the display class 
 
         if self._auto_movement == True:
-            self.resetMouse()
+            self._resetMouse()
             return 
 
         self.report_mouse_state([left, right, middle],
