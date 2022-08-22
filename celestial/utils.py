@@ -10,22 +10,37 @@ def rad2deg(rad):
 
 def getAngleBetweenVectors(v1, v2):
 	dotProduct = v1[0]*v2[0]+v1[1]*v2[1]+v1[2]*v2[2]
-	print "getAngleBetweenVectors, cos(theta)=", dotProduct/(mag(v1)*mag(v2))
+	#print "getAngleBetweenVectors, cos(theta)=", dotProduct/(mag(v1)*mag(v2))
 	theta = np.arccos(dotProduct/(mag(v1)*mag(v2)))
 	return rad2deg(theta)
 
 def getXYprojection(vec):
-	return getVectorProjection(vec, [1,1,0])
+	return getVectorProjection(vec, vector(1,0,0), vector(0,1,0))
 
 def getXZprojection(vec):
-	return getVectorProjection(vec, [1,0,1])
+	return getVectorProjection(vec, vector(1,0,0), vector(0,0,1))
 
 def getYZprojection(vec):
-	return getVectorProjection(vec, [0,1,1])
+	return getVectorProjection(vec, vector(0,1,0), vector(0,0,1))
 
-def getVectorProjection(vec, plane):
-	# plane can be either the (0,1,1), (1,0,1) or (1,1,0) planes
-	return vec[0]*plane[0], vec[1]*plane[1], vec[2]*plane[2] 
+def getVectorProjection(vec, p1, p2):
+	# get vector orthogonal to plane defined by 2 vectors p1 and p2
+	# Recall that the vector projection of a vector u onto another vector v is given by 
+	# 
+	# projv(u) = (u.v/||v||^2) x v
+	# 
+	# The projection of u onto a plane can be calculated by subtracting the component of  
+	# u that is orthogonal to the plane from  u.  If you think of the plane as being horizontal, 
+	# this means computing  u minus the vertical component of u, leaving the horizontal component. 
+	# This "vertical" component is calculated as the projection of  u onto the plane normal vector n.
+	#
+	# projPlane(u) = u - projn(u) = u - (u.n/||n||^2) x n
+	#
+	n = getVectorOrthogonalToPlane(p1, p2)
+	vec = (1/mag(vec)) * vec
+	projn_vec = (vec[0]*n[0] + vec[1]*n[1] + vec[2]*n[2]) * n
+	return projn_vec
+	return vector(vec[0]-n[0], vec[1]-n[1], vec[2]-n[2])
 
 
 def getOrthogonalVector(vec):
@@ -42,7 +57,6 @@ def getOrthogonalVector(vec):
 		x = 1
 		y = -vec[0]*x/vec[1]
 	else:
-		
 		y = 1
 		x = 0
 
@@ -66,4 +80,5 @@ def getVectorOrthogonalToPlane(A, B):
 
 	# return a unit vector
 	norm = mag((x, y, z))
-	return vector(x/norm, y/norm, z/norm)
+	return (1/norm) * vector(x, y, z)
+	#return vector(x/norm, y/norm, z/norm)

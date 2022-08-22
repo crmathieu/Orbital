@@ -311,14 +311,21 @@ class Timeloc:
 		self.solarT = self.setSolarTime(self.datetime_to_StructTime(self.localdatetime), self.longitude)
 
 	def computeUTCSolarTime(self, UTCdatetime):
-		# calculate a solar time for a given date time. we need a struct of type time.struct_time, 
+		# calculate a solar time for a given date and time. we need a struct of type time.struct_time, 
 		# hence we pass time.localtime()
-		return self.setSolarTime(self.datetime_to_StructTime(UTCdatetime), 0)
+		# return self.setSolarTime(self.datetime_to_StructTime(UTCdatetime), 0)
+		return self.computeSolarTime(UTCdatetime, 0)
 
-	def computeSolarTime(self, localdatetime):
+	def computeLocalSolarTime(self, localdatetime):
 		# calculate a solar time for a given date time. we need a struct of type time.struct_time, 
 		# hence we pass time.localtime()
-		return self.setSolarTime(self.datetime_to_StructTime(localdatetime), self.longitude)
+		# return self.setSolarTime(self.datetime_to_StructTime(localdatetime), self.longitude)
+		return self.computeSolarTime(localdatetime, self.longitude)
+
+	def computeSolarTime(self, a_datetime, longitude):
+		# calculate a solar time for a given date time. we need a struct of type time.struct_time, 
+		# hence we pass time.localtime()
+		return self.setSolarTime(self.datetime_to_StructTime(a_datetime), longitude)
 
 	def setSolarTime(self, localtime, longitude):
 

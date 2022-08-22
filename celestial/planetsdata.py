@@ -721,13 +721,13 @@ rings_data = {
 			{	"name"		: "Mu",
 				"radius"	: 103000e3,
 				"width"		: 17000e3,
-				"color"		: Color.darkblue,
+				"color"		: Color.darkgrey,
 				"opacity"	: 1.0
 			},
 			{	"name"		: "Nu",
 				"radius"	: 69900e3,
 				"width"		: 3800e3,
-				"color"		: Color.darkblue,
+				"color"		: Color.darkgrey,
 				"opacity"	: 1.0
 			},
 			{	"name"		: "Tau",

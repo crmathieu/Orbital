@@ -49,8 +49,8 @@ class makeSolarSystem:
 	INNER_RING_COEF = 1.3
 	OUTER_RING_COEF = 1.9
 	RING_INCREMENT = 0.6
-	SCENE_WIDTH = 1000 #1920
-	SCENE_HEIGHT = 500 #1080
+	SCENE_WIDTH = 1920
+	SCENE_HEIGHT = 1080
 	bodies = []
 
 	def __init__(self):
@@ -1111,9 +1111,9 @@ class makeBody:
 		increment = self.getIncrement()
 #		print("draw: X = ", self.a * (cos(rad_E) - self.e), "Y =", self.a * sqrt(1 - self.e**2) * sin(rad_E))
 
-		for E in np.arange(increment, 2*pi+increment, increment):
+#		for E in np.arange(increment, 2*pi+increment, increment):
 #		for E in np.arange(0, 2*pi, increment):
-#		for E in np.arange(0, 2*pi+increment, increment):
+		for E in np.arange(0, 2*pi+increment, increment):
 			self.setPolarCoordinates(E+rad_E)
 			# from R and Nu, calculate 3D coordinates and update current position
 			self.drawSegment(trace = True) #E*180/pi)
@@ -1482,7 +1482,7 @@ class makeEarth(planet):
 		Omega = Beta - self.Alpha
 
 		# calculate rotation necessary to position texture properly for this local time
-		Psi = Theta + deg2rad(self.locationInfo.computeSolarTime(localDatetime)) - Omega
+		Psi = Theta + deg2rad(self.locationInfo.computeLocalSolarTime(localDatetime)) - Omega
 
 		if False:
 			print "adjust "+self.Name+": Alpha .............  ", self.Alpha
@@ -1537,7 +1537,7 @@ class makeEarth(planet):
 		Omega = Beta - self.Alpha
 
 		# calculate rotation necessary to position texture properly for this local time
-		Psi = Theta + deg2rad(self.locationInfo.computeSolarTime(localDatetime)) - Omega
+		Psi = Theta + deg2rad(self.locationInfo.computeLocalSolarTime(localDatetime)) - Omega
 
 		if False:
 			print "adjust "+self.Name+": Alpha .............  ", self.Alpha

@@ -431,7 +431,7 @@ class camera3D:
 		# when the rotation plane is nearly vertical, we need to add more steps
 		# to slow down possible vpython jerky rotation.
 		if abs(vAngle - float(90)) < 5:
-			#print "Close enough to vertical!!!", vAngle
+			print "Close enough to vertical!!!", vAngle
 			velocityF = velocityF * 1.7
 
 		# determine angle between 2 radial vectors
