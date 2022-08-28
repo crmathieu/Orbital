@@ -16,6 +16,7 @@ class makePlanetWidgets():
         self.Planet = planet
         self.visible = True
         self.makeECEFref()
+        self.makeECIref()
         self.Eq = self.eqPlane = self.Lons = self.Lats = None
         self.Psi = 0.0
         self.NumberOfSiderealDaysPerYear = 0.0
@@ -45,6 +46,29 @@ class makePlanetWidgets():
         self.ECEF = frame()     
         self.ECEF.pos = self.Planet.Origin.pos
 
+    def makeECIref(self):
+		# This is the ECI referential (the "Earth-Centered Inertial" is fixed to the stars, in other words, 
+		# it doesn't rotate with the earth). ECI coordinate frames have their origins at the center of mass of Earth 
+		# and are fixed with respect to the stars. "I" in "ECI" stands for inertial (i.e. "not accelerating"), in 
+		# contrast to the "Earth-centered - Earth-fixed" (ECEF) frames, which remains fixed with respect to 
+		# Earth's surface in its rotation, and then rotates with respect to stars.
+		#
+		# For objects in space, the equations of motion that describe orbital motion are simpler in a non-rotating 
+		# frame such as ECI. The ECI frame is also useful for specifying the direction toward celestial objects:
+		#
+		# To represent the positions and velocities of terrestrial objects, it is convenient to use ECEF coordinates 
+		# or latitude, longitude, and altitude.
+		#
+		# In a nutshell: 
+    	#		ECI: inertial, not rotating, with respect to the stars; useful to describe motion of 
+		# 		celestial bodies and spacecraft.
+		#
+    	#		ECEF: not inertial, accelerated, rotating w.r.t stars; useful to describe motion of 
+		# 		objects on Earth surface.
+
+        self.ECI = frame() #self.Planet.ECI   
+        self.ECI.pos = self.Planet.Origin.pos
+        self.ECI.rotate(angle=(-self.Planet.TiltAngle), axis=self.Planet.XdirectionUnit)
 
     def resetWidgetsRefFromSolarTime(self):
 
@@ -128,7 +152,7 @@ class makePlanetWidgets():
 
         if self.Planet.SolarSystem.Dashboard.orbitalTab.RecorderOn == True:
             if self.Planet.SolarSystem.Dashboard.orbitalTab.VideoRecorder == None:
-                self.Planet.SolarSystem.Dashboard.orbitalTab.VideoRecorder = setVideoRecording(25, "output.avi")
+                self.Planet.SolarSystem.Dashboard.orbitalTab.VideoRecorder = setVideoRecording(framerate = 20, filename = "output.avi")
 
 
         # Calculate number of steps based on current transition velocity factor (default is 1.0)
@@ -232,7 +256,7 @@ class makePlanetWidgets():
 
         if self.Planet.SolarSystem.Dashboard.orbitalTab.RecorderOn == True:
             if self.Planet.SolarSystem.Dashboard.orbitalTab.VideoRecorder == None:
-                self.Planet.SolarSystem.Dashboard.orbitalTab.VideoRecorder = setVideoRecording(25, "output.avi")
+                self.Planet.SolarSystem.Dashboard.orbitalTab.VideoRecorder = setVideoRecording(framerate = 20, filename = "output.avi")
 
         # Calculate number of steps based on current transition velocity factor (default is 1.0)
         total_steps = int(100) * self.Planet.SolarSystem.camera.transitionVelocityFactor
@@ -280,7 +304,7 @@ class makePlanetWidgets():
         #    lat_angle = - lat_angle
 
         la_rangle = deg2rad(Vangle) #* (-1 if lat_direction == self.ROT_CLKW else 1)
-        la_dangle = 0.0
+        la_dangle = 0.0rotatemakeECI
         return 
 
         for i in np.arange(0, total_steps+1, 1):
@@ -310,7 +334,7 @@ class makePlanetWidgets():
             print "Auto shifting to default location ..."
             self.Planet.SolarSystem.Dashboard.widgetTab.centerToDefaultLocation()
 
-        # set current and next coordinates in ICE referential
+        # set current and next coordinates in ECI referential
 
         curPos = self.Loc[self.defaultLocation].getGeoPosition()
         nextPos = self.Loc[locationID].getGeoPosition()
@@ -428,36 +452,35 @@ class makePlanetWidgets():
         #self.currentLocation = 0
         self.Loc.append(makeEarthLocation(self, locIndex))
 
-    def updateWidgetsFrameRotation(self, timeIncrement):
+    def update_ECEF_Rotation(self):
         # here we rotate the widgets by the same amount the earth texture is rotated
         ti = self.Planet.SolarSystem.getTimeIncrement()
         RotAngle = (2*pi/self.Planet.Rotation)*ti
-        #RotAngle = (2*pi/self.Planet.Rotation)*timeIncrement
+
         # if polar axis inverted, reverse rotational direction
         if self.Planet.ZdirectionUnit[2] < 0:
             RotAngle *= -1
 
         # follow planet rotation
-        self.ECEF.rotate(angle=RotAngle, axis=self.Planet.RotAxis, origin=self.ECEF.pos) #(self.Position[X_COOR]+self.Foci[X_COOR],self.Position[Y_COOR]+self.Foci[Y_COOR],self.Position[Z_COOR]+self.Foci[Z_COOR]))
+        self.ECEF.rotate(angle=RotAngle, axis=self.Planet.RotAxis, origin=self.ECEF.pos) #(self.Position[0]+self.Foci[0],self.Position[1]+self.Foci[1],self.Position[2]+self.Foci[2]))
 
 
-    def updateWidgetsFramePosition(self):
-        self.ECEF.pos = self.Planet.Origin.pos
+    def update_ECI_ECEF_Position(self):
+        self.ECEF.pos = self.ECI.pos = self.Planet.Origin.pos
 
     def updateCurrentLocationEcliptic(self):
         if self.currentLocation >= 0: 
             self.Loc[self.currentLocation].updateEclipticPosition()
 
-    def animate(self, timeIncrement):
-        self.updateWidgetsFramePosition()
-        self.updateWidgetsFrameRotation(timeIncrement)
-        self.Eq.updateNodesPosition()
+    def animate(self):
+        self.update_ECI_ECEF_Position()
+        self.update_ECEF_Rotation()
+        #### self.Eq.updateNodesPosition()
         self.updateCurrentLocationEcliptic()
-        self.EqPlane.updateEquatorialPlanePosition()	
+        ### self.EqPlane.updateEquatorialPlanePosition()	
 
     def showEquatorialPlane(self, value):
         self.EqPlane.display(value)
-
 
     def showEquator(self, value):
         self.Eq.display(value)
@@ -490,7 +513,7 @@ class makeEarthLocation():
         self.Color = color.red
         self.EclipticPosition = vector(0,0,0)
         self.lat = self.long = 0
-        self.GeoLoc = sphere(frame=self.Origin, pos=(0,0,0), np=32, radius=20, material = materials.emissive, make_trail=false, color=self.Color, visible=True) 
+        self.GeoLoc = sphere(frame=self.Origin, pos=(0,0,0), np=32, radius=5, material = materials.emissive, make_trail=false, color=self.Color, visible=True) 
         #self.GeoLoc = cylinder(frame=self.Origin, pos=vector(0,0,0), radius=10, color=self.Color, material = materials.emissive, opacity=1.0, axis=(0,0,1))
 
 
@@ -521,9 +544,9 @@ class makeEarthLocation():
         # deduct (x,y) from eqPlane. Note, we need to extend the longitude 
         # value by 180 degrees to take into account the way the earth texture
         # was applied on the sphere
-        self.GeoLoc.pos[X_COOR] = eqPlane * cos(deg2rad(locInfo["long"])+pi)
-        self.GeoLoc.pos[Y_COOR] = eqPlane * sin(deg2rad(locInfo["long"])+pi)
-        self.GeoLoc.pos[Z_COOR] = radius * sin(deg2rad(locInfo["lat"]))
+        self.GeoLoc.pos[0] = eqPlane * cos(deg2rad(locInfo["long"])+pi)
+        self.GeoLoc.pos[1] = eqPlane * sin(deg2rad(locInfo["long"])+pi)
+        self.GeoLoc.pos[2] = radius * sin(deg2rad(locInfo["lat"]))
     """
 
     def setPosition(self):
@@ -595,14 +618,15 @@ class makeNode():
         # why their position needs to be updated by an external animation
         # routine using the "updateNodesPosition" method.
 
-        self.Node = sphere(pos=(0,0,0), np=32, radius=100, make_trail=false, color=self.Color, visible=False) 
-        self.updatePosition()
+        self.Node = sphere(frame=widgets.ECI, pos=(0,0,0), np=32, radius=100, make_trail=False, color=self.Color, visible=False, material=materials.emissive) 
+#        self.Node = sphere(frame=widgets.ECI, pos=(0,0,0), np=32, radius=3000, make_trail=False, color=self.Color, visible=False, material=materials.emissive) 
+        self.setPosition()
 
 
-    def updatePosition(self):
-        self.Node.pos[X_COOR] = self.ascending * self.Planet.radiusToShow/self.Planet.SizeCorrection[self.Planet.sizeType] + self.Planet.Position[X_COOR]
-        self.Node.pos[Y_COOR] = self.Planet.Position[Y_COOR]
-        self.Node.pos[Z_COOR] = self.Planet.Position[Z_COOR]
+    def setPosition(self):
+        self.Node.pos[0] = self.ascending * self.Planet.radiusToShow/self.Planet.SizeCorrection[self.Planet.sizeType]
+        self.Node.pos[1] = 0 #self.Planet.Position[1]
+        self.Node.pos[2] = 0 #self.Planet.Position[2]
 
 
     def display(self, trueFalse):
@@ -623,6 +647,18 @@ class makeEquator():
         self.AscNode = makeNode(widgets, color.green, ascending=True)
         self.DesNode = makeNode(widgets, color.red, ascending=False)
 
+#        self.NodesAxis = curve(frame=self.Planet.ECI, pos=[ (2 * self.DesNode.Node.pos[0], 
+#                                        self.DesNode.Node.pos[1], 
+#                                        self.DesNode.Node.pos[2]), 
+#                                    (2 * self.AscNode.Node.pos[0],
+#                                        self.AscNode.Node.pos[1],
+#                                        self.AscNode.Node.pos[2])], color=Color.cyan, visible=True, radius=0, material=materials.emissive)
+        self.NodesAxis = curve( frame=widgets.ECI, 
+#                                pos=[(2 * (self.DesNode.Node.pos[0] - self.Planet.Position[0]), 0, 0), 
+#                                     (2 * (self.AscNode.Node.pos[0] - self.Planet.Position[0]), 0, 0)], 
+                                pos = [(-2*self.Planet.radiusToShow/self.Planet.SizeCorrection[self.Planet.sizeType],0,0),
+                                       (2*self.Planet.radiusToShow/self.Planet.SizeCorrection[self.Planet.sizeType],0,0)],
+                                     color=Color.cyan, visible=True, radius=0, material=materials.emissive)
         self.draw()
 
 
@@ -640,26 +676,29 @@ class makeEquator():
         self.setCartesianCoordinates(E)
 
         # add angular portion of equator
-        self.Trail.append(pos= vector(self.Position[X_COOR],self.Position[Y_COOR],self.Position[Z_COOR]), color=(self.Color[0]*0.6, self.Color[1]*0.6, self.Color[2]*0.6))
+        self.Trail.append(pos= vector(self.Position[0],self.Position[1],self.Position[2]), color=(self.Color[0]*0.6, self.Color[1]*0.6, self.Color[2]*0.6))
 
 
     def setCartesianCoordinates(self, angleIncr):
         radius = self.Planet.radiusToShow/self.Planet.SizeCorrection[self.Planet.sizeType]
 
-        self.Position[X_COOR] = radius * cos(angleIncr) 
-        self.Position[Y_COOR] = radius * sin(angleIncr)
-        self.Position[Z_COOR] = 0
+        self.Position[0] = radius * cos(angleIncr) 
+        self.Position[1] = radius * sin(angleIncr)
+        self.Position[2] = 0
 
 
     def showNodes(self, trueFalse):
         self.AscNode.display(trueFalse)
         self.DesNode.display(trueFalse)
+        self.NodesAxis.visible = trueFalse
 
+    #def updateNodesAxisPosition(self):
 
     def updateNodesPosition(self):
-        self.AscNode.updatePosition()
-        self.DesNode.updatePosition()
-
+        pass
+        #self.AscNode.updatePosition()
+        #self.DesNode.updatePosition()
+        #self.updateNodesAxisPosition()
 
 class makeEquatorialPlane():
 
@@ -669,15 +708,9 @@ class makeEquatorialPlane():
         self.Opacity = opacity
         self.Color = color 
 
-        side = 2.5*AU*DIST_FACTOR
-        self.eqPlane = box(pos=self.Planet.Position, length=side, width=0.0001, height=side, material=materials.emissive, visible=True, color=self.Color, opacity=0) #, axis=(0, 0, 1), opacity=0.8) #opacity=self.Opacity)
-        self.eqPlane.rotate(angle=(-self.Planet.TiltAngle), axis=self.Planet.XdirectionUnit) #, origin=(0,0,0))
-
-
-    def updateEquatorialPlanePosition(self):
-        self.eqPlane.pos[X_COOR] = self.Planet.Position[X_COOR]
-        self.eqPlane.pos[Y_COOR] = self.Planet.Position[Y_COOR]
-        self.eqPlane.pos[Z_COOR] = self.Planet.Position[Z_COOR]
+        side = 0.1*AU*DIST_FACTOR
+        # define plane in fix referential ECI
+        self.eqPlane = box(frame=widgets.ECI, pos=(0,0,0), length=side, width=0.0001, height=side, material=materials.emissive, visible=True, color=self.Color, opacity=0) #, axis=(0, 0, 1), opacity=0.8) #opacity=self.Opacity)
 
 
     def display(self, trueFalse):
@@ -688,7 +721,7 @@ class makeEquatorialPlane():
             bound = STEPS-1
         
         for i in range(STEPS):
-            self.eqPlane.opacity = float(abs(bound-i))/STEPS
+            self.eqPlane.opacity = float(abs(bound-i))/(3*STEPS)
             sleep(1e-2)
 
 
@@ -700,7 +733,8 @@ class doMeridian():
 
         self.Planet = widgets.Planet
         #Radius = 25 if longitudeAngle == 0 else 0
-        self.Trail = curve(frame=self.Origin, color=colr, visible=False,  material=materials.emissive, radius=(25 if longitudeAngle == 0 else 0))
+        # define meridian in rotating referential ECEF
+        self.Trail = curve(frame=widgets.ECEF, color=colr, visible=False,  material=materials.emissive, radius=(25 if longitudeAngle == 0 else 0))
         self.Position = np.matrix([[0],[0],[0]], np.float64)
         self.Color = colr #color.cyan
         self.draw()
@@ -719,14 +753,14 @@ class doMeridian():
     def setCartesianCoordinates(self, angleIncr):
         radius = self.Planet.radiusToShow/self.Planet.SizeCorrection[self.Planet.sizeType]
         projectionOnXYplane = radius * cos(angleIncr)
-        self.Position[X_COOR] = projectionOnXYplane * cos(self.longAngle)
-        self.Position[Y_COOR] = projectionOnXYplane * sin(self.longAngle)
-        self.Position[Z_COOR] = radius * sin(angleIncr)
+        self.Position[0] = projectionOnXYplane * cos(self.longAngle)
+        self.Position[1] = projectionOnXYplane * sin(self.longAngle)
+        self.Position[2] = radius * sin(angleIncr)
 
 
     def drawSegment(self, E, trace = True):
         self.setCartesianCoordinates(E)
-        newpos = vector(self.Position[X_COOR],self.Position[Y_COOR],self.Position[Z_COOR])
+        newpos = vector(self.Position[0],self.Position[1],self.Position[2])
 
         # add angular portion of longitude curve
         self.Trail.append(pos=newpos, color=(self.Color[0]*0.6, self.Color[1]*0.6, self.Color[2]*0.6))
@@ -772,11 +806,12 @@ class doLatitude():
 
     def __init__(self, widgets, latitudeAngle, colr, thickness=0):
         self.latAngle = latitudeAngle
+        self.Planet = widgets.Planet
         self.Origin = widgets.ECEF
         self.Color = colr
 
-        self.Planet = widgets.Planet
-        self.Trail = curve(frame=self.Origin, color=self.Color, material=materials.emissive, visible=False, radius=thickness)
+        # define latitude in rotating referential ECEF
+        self.Trail = curve(frame=widgets.ECEF, color=self.Color, material=materials.emissive, visible=False, radius=thickness)
         self.Position = np.matrix([[0],[0],[0]], np.float64)
         self.draw()
 
@@ -796,14 +831,14 @@ class doLatitude():
         radius = self.Planet.radiusToShow/self.Planet.SizeCorrection[self.Planet.sizeType]
         projection = radius * cos(self.latAngle)
 
-        self.Position[X_COOR] = projection * sin(angleIncr)
-        self.Position[Y_COOR] = projection * cos(angleIncr)
-        self.Position[Z_COOR] = radius * sin(self.latAngle)
+        self.Position[0] = projection * sin(angleIncr)
+        self.Position[1] = projection * cos(angleIncr)
+        self.Position[2] = radius * sin(self.latAngle)
 
 
     def drawSegment(self, E):
         self.setCartesianCoordinates(E)
-        newpos = vector(self.Position[X_COOR],self.Position[Y_COOR],self.Position[Z_COOR])
+        newpos = vector(self.Position[0],self.Position[1],self.Position[2])
 
         # add angular portion of latitude curve
         self.Trail.append(pos=newpos, color=(self.Color[0]*0.6, self.Color[1]*0.6, self.Color[2]*0.6))

@@ -70,9 +70,9 @@ EPOCH_2000_JD = 2451545.0	# number of days ellapsed from 01-01-4713 BC GMT to 01
 EPOCH_2000_MJD = 51544.0
 EPOCH_1970_JD = 2440587.5 # number of days ellapsed from 01-01-4713 BC GMT to 01-01-1970 AD GMT
 
-X_COOR = 0
-Y_COOR = 1
-Z_COOR = 2
+#X_COOR = 0
+#Y_COOR = 1
+#Z_COOR = 2
 
 TYPE_STAR = 0
 TYPE_PLANET = 1
@@ -82,7 +82,24 @@ TYPE_COMET = 4
 TYPE_TRANS_N = 5
 TYPE_SATELLITE = 6
 
+CURRENT_BODY = "current_body"
 EARTH_NAME = "earth"
+SUN_NAME = "sun"
+
+index_to_bodyname = {
+	0: CURRENT_BODY, 	1: SUN_NAME, 	2: EARTH_NAME,	3: "mercury", 	4:"venus",		
+	5:"mars", 			6:"jupiter",	7:"saturn", 	8:"uranus", 	9:"neptune",
+	10:"pluto", 		11:"sedna",		12:"makemake", 	13:"haumea", 	14:"eris", 
+	15:"charon",		16:"phobos",	17:"deimos", 	18:"moon"
+}
+
+bodyname_to_index = {
+	index_to_bodyname[0]: 0, 	index_to_bodyname[1]: 1, 	index_to_bodyname[2]: 2, 	index_to_bodyname[3]: 3, 	
+	index_to_bodyname[4]: 4,	index_to_bodyname[5]: 5, 	index_to_bodyname[6]: 6, 	index_to_bodyname[7]: 7, 	
+	index_to_bodyname[8]: 8, 	index_to_bodyname[9]: 9,	index_to_bodyname[10]: 10, 	index_to_bodyname[11]: 11, 	
+	index_to_bodyname[12]: 12, 	index_to_bodyname[13]: 13, 	index_to_bodyname[14]: 14, 	index_to_bodyname[15]: 15, 		
+	index_to_bodyname[16]: 16, 	index_to_bodyname[17]: 17, 	index_to_bodyname[18]: 18
+}
 
 AU = 149597870691
 DEFAULT_RADIUS = 2.0

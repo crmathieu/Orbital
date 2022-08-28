@@ -70,7 +70,7 @@ class camera3D:
 		self.transitionVelocityFactor = 1.0  # normal speed. speed can go as slow as 1/100 and as fast as 4 times the normal speed
 		
 		self.view.lights = []
-		self.view.forward = vector(2,0,-1) #(0,0,-1)
+		self.view.forward = vector(2, 0, -1)
 		self.view.fov = deg2rad(40) 
 		
 		self.view.userspin = True
@@ -189,7 +189,7 @@ class camera3D:
 
 #		if recorder == True:
 #			if self.parentFrame.orbitalTab.VideoRecorder == None:
-#				self.parentFrame.orbitalTab.VideoRecorder = setVideoRecording(25, "output.avi")
+#				self.parentFrame.orbitalTab.VideoRecorder = setVideoRecording(framerate = 20, filename = "output.avi")
 
 		# calculate number of ticks
 		ticks = int(duration * 70 * self.transitionVelocityFactor)
@@ -208,6 +208,8 @@ class camera3D:
 			[shift, ctrl, alt, cmd])
 
 			sleep(1e-2)
+			if self.SolarSystem.Dashboard.orbitalTab.AnimationInProgress == True:
+				self.SolarSystem.Dashboard.orbitalTab.OneTimeIncrement()
 			if recorder == True:
 				recOneFrame(self.SolarSystem.Dashboard.orbitalTab.VideoRecorder)
 
@@ -217,10 +219,10 @@ class camera3D:
 ############################ GOOD FROM HERE DOWN
 
 	# for normal rotation operation, a rate function such as "ease_in_out" creates a smooth panoramic. If the rotation
-	# was preceded by a zoom that ended at its ratefunc maximum value (1), the rotation could use a rate function
+	# was preceded by a zoom that ended at its ratefunc maximum throughput, the rotation could use a rate function
 	# that starts at its maximum value, such as "1 - rush_into",  to ensure a continuous flow.
 
-	def cameraRotationAxis(self, angle, axis, recorder, direction, ratefunc = ease_in_out):
+	def cameraRotationAxis(self, angle, axis, recorder, direction, ratefunc):
 		total_steps = int(100 * self.transitionVelocityFactor)
 
 		rangle = deg2rad(angle) * (-1 if direction == self.ROT_CLKW else 1)
@@ -231,11 +233,13 @@ class camera3D:
 			self.view.forward = rotate(self.view.forward, angle=(iAngle-dangle), axis=axis)
 			dangle = iAngle
 			sleep(1e-2)
+			if self.SolarSystem.Dashboard.orbitalTab.AnimationInProgress == True:
+				self.SolarSystem.Dashboard.orbitalTab.OneTimeIncrement()
 			if recorder == True:
 				recOneFrame(self.SolarSystem.Dashboard.orbitalTab.VideoRecorder)
 
 
-	def cameraRotateDown(self, angle, recorder):
+	def cameraRotateDown(self, angle, recorder, ratefunc = ease_in_out):
 		# find vector orthogonal to forward vector
 		axis = getOrthogonalVector(self.view.forward)
 
@@ -245,9 +249,9 @@ class camera3D:
 		if vangle < angle:
 			angle = vangle - 1
 
-		self.cameraRotationAxis(angle, axis, recorder, direction=self.ROT_CLKW)
+		self.cameraRotationAxis(angle, axis, recorder, direction=self.ROT_CLKW, ratefunc = ratefunc)
 
-	def cameraRotateUp(self, angle, recorder):
+	def cameraRotateUp(self, angle, recorder, ratefunc = ease_in_out):
 		# find vector orthogonal to forward vector
 		axis = getOrthogonalVector(self.view.forward)
 
@@ -257,26 +261,26 @@ class camera3D:
 		if vangle < angle:
 			angle = vangle - 1
 
-		self.cameraRotationAxis(angle, axis, recorder, direction=self.ROT_CCLKW)
+		self.cameraRotationAxis(angle, axis, recorder, direction=self.ROT_CCLKW, ratefunc = ratefunc)
 
-	def cameraRotateLeft(self, angle, recorder):
-		self.cameraRotationAxis(angle, vector(0,0,1), recorder, direction=self.ROT_CLKW)
+	def cameraRotateLeft(self, angle, recorder, axis=vector(0,0,1), ratefunc = ease_in_out):
+		self.cameraRotationAxis(angle, axis, recorder, direction=self.ROT_CLKW, ratefunc = ratefunc)
 
 
-	def cameraRotateRight(self, angle, recorder):
-		self.cameraRotationAxis(angle, vector(0,0,1), recorder, direction=self.ROT_CCLKW)
+	def cameraRotateRight(self, angle, recorder, axis=vector(0,0,1), ratefunc = ease_in_out):
+		self.cameraRotationAxis(angle, axis, recorder, direction=self.ROT_CCLKW, ratefunc = ratefunc)
 
 ######################
 
-	def updateCameraPOV(self, loc = None):
+	def updateCameraViewTarget(self, loc = None):
 		if loc != None:
 			print "Location is", loc.Name
 
-		if self.SolarSystem.cameraPOV == None:
+		if self.SolarSystem.cameraViewTargetBody == None:
 			print "no curent object"
 			return
 
-		if self.SolarSystem.cameraPOV.Name.lower() == EARTH_NAME:
+		if self.SolarSystem.cameraViewTargetBody.Name.lower() == EARTH_NAME:
 			earthLocPos = None
 			w = self.SolarSystem.EarthRef.PlanetWidgets
 			if loc == None:
@@ -308,17 +312,17 @@ class camera3D:
 		# For a planet, Foci(x, y, z) is (0,0,0). For a moon, Foci represents the 
 		# position of the planet the moon orbits around in the ecliptic referential
 
-		######self.surfaceRadius = (1.1 * self.SolarSystem.cameraPOV.BodyShape.radius) if self.SolarSystem.SurfaceView == True else 0
-		#print "UPDATING Scene Center with POV origin"
+		######self.surfaceRadius = (1.1 * self.SolarSystem.cameraViewTargetBody.BodyShape.radius) if self.SolarSystem.SurfaceView == True else 0
+		#print "UPDATING Scene Center with ViewTarget origin"
 		self.SolarSystem.Scene.center = (
-			self.SolarSystem.cameraPOV.Position[0] + self.SolarSystem.cameraPOV.Foci[0],
-			self.SolarSystem.cameraPOV.Position[1] + self.SolarSystem.cameraPOV.Foci[1],
-			self.SolarSystem.cameraPOV.Position[2] + self.SolarSystem.cameraPOV.Foci[2]
+			self.SolarSystem.cameraViewTargetBody.Position[0] + self.SolarSystem.cameraViewTargetBody.Foci[0],
+			self.SolarSystem.cameraViewTargetBody.Position[1] + self.SolarSystem.cameraViewTargetBody.Foci[1],
+			self.SolarSystem.cameraViewTargetBody.Position[2] + self.SolarSystem.cameraViewTargetBody.Foci[2]
 		)
 		#print "----------"
-		#print "updateCameraPOV: position:",self.SolarSystem.cameraPOV.Position
-		##print "label coordinates:",self.SolarSystem.cameraPOV.Labels[0].pos
-		#print "updateCameraPOV: label=", self.SolarSystem.cameraPOV.Labels[0].pos, "origin=", self.SolarSystem.cameraPOV.Origin.pos
+		#print "updateCameraViewTarget: position:",self.SolarSystem.cameraViewTargetBody.Position
+		##print "label coordinates:",self.SolarSystem.cameraViewTargetBody.Labels[0].pos
+		#print "updateCameraViewTarget: label=", self.SolarSystem.cameraViewTargetBody.Labels[0].pos, "origin=", self.SolarSystem.cameraViewTargetBody.Origin.pos
 		#print "----------"
 
 	def setTransitionVelocity(self, velocity):
@@ -349,7 +353,7 @@ class camera3D:
 
 		if self.SolarSystem.Dashboard.orbitalTab.RecorderOn == True:
 			if self.SolarSystem.Dashboard.orbitalTab.VideoRecorder == None:
-				self.SolarSystem.Dashboard.orbitalTab.VideoRecorder = setVideoRecording(25, "output.avi")
+				self.SolarSystem.Dashboard.orbitalTab.VideoRecorder = setVideoRecording(framerate = 20, filename = "output.avi")
 
 
 		# Calculate number of steps based on current transition velocity factor (default is 1.0)
@@ -370,8 +374,8 @@ class camera3D:
 													(Yc + r*deltaY),
 													(Zc + r*deltaZ))
 			sleep(2e-2)
-			#if self.parentFrame.orbitalTab.RecorderOn == True:
-			#	recOneFrame(self.parentFrame.orbitalTab.VideoRecorder)
+			if self.SolarSystem.Dashboard.orbitalTab.AnimationInProgress == True:
+				self.SolarSystem.Dashboard.orbitalTab.OneTimeIncrement()
 			if self.SolarSystem.Dashboard.orbitalTab.RecorderOn == True:
 				recOneFrame(self.SolarSystem.Dashboard.orbitalTab.VideoRecorder)
 
@@ -398,15 +402,15 @@ class camera3D:
 		nextPos = self.Loc[nextLocation].getGeoPosition()
 
 
-		self.B =  simpleArrow(color.green, 0, 20, nextPos, axisp = self.Loc[nextLocation].Grad/10, context = self.Loc[nextLocation].Origin)
-		self.B.display(True)
+		#self.B =  simpleArrow(color.green, 0, 20, nextPos, axisp = self.Loc[nextLocation].Grad/10, context = self.Loc[nextLocation].Origin)
+		#self.B.display(True)
 
 		# build radial vector vertical to location in ecliptic coordinates
 		dest = self.Loc[nextLocation].getEclipticPosition()
 		A = dest[0] - self.SolarSystem.EarthRef.Origin.pos[0] #self.Planet.Origin.pos[0]
 		B = dest[1] - self.SolarSystem.EarthRef.Origin.pos[1] #self.Planet.Origin.pos[1]
 		C = dest[2] - self.SolarSystem.EarthRef.Origin.pos[2] #self.Planet.Origin.pos[2] 
-		radialToLocation = vector(A, B, C)
+		radialToLocation = vector(A, B, C)/np.sqrt(A**2 + B**2 + C**2)
 
         # (Xc, Yc, Zc) is the current location of center (before transition)
 		Xc = self.SolarSystem.Scene.center[0]
@@ -421,7 +425,7 @@ class camera3D:
 
 		if self.SolarSystem.Dashboard.orbitalTab.RecorderOn == True:
 			if self.SolarSystem.Dashboard.orbitalTab.VideoRecorder == None:
-				self.SolarSystem.Dashboard.orbitalTab.VideoRecorder = setVideoRecording(25, "output.avi")
+				self.SolarSystem.Dashboard.orbitalTab.VideoRecorder = setVideoRecording(framerate = 20, filename = "output.avi")
 
 
 		# radialToCamera (vector between center of earth and camera location)
@@ -464,6 +468,8 @@ class camera3D:
 			accumulated_rot = iAngle
 
 			sleep(2e-2)
+			if self.SolarSystem.Dashboard.orbitalTab.AnimationInProgress == True:
+				self.SolarSystem.Dashboard.orbitalTab.OneTimeIncrement()
 			if self.SolarSystem.Dashboard.orbitalTab.RecorderOn == True:
 				recOneFrame(self.SolarSystem.Dashboard.orbitalTab.VideoRecorder)
 

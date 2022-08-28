@@ -22,7 +22,7 @@ class userLIBXX:
         if self.recorder == True:
             self.solSystem.Dashboard.orbitalTab.RecorderOn = True
             if self.solSystem.Dashboard.orbitalTab.VideoRecorder == None:
-                self.solSystem.Dashboard.orbitalTab.VideoRecorder = setVideoRecording(25, "output.avi")
+                self.solSystem.Dashboard.orbitalTab.VideoRecorder = setVideoRecording(framerate = 20, filename = "output.avi")
         else:
             self.solSystem.Dashboard.orbitalTab.RecorderOn = False
             if self.solSystem.Dashboard.orbitalTab.VideoRecorder != None:
@@ -238,7 +238,7 @@ class Api():
         if self.recorder == True:
             self.solSystem.Dashboard.orbitalTab.RecorderOn = True
             if self.solSystem.Dashboard.orbitalTab.VideoRecorder == None:
-                self.solSystem.Dashboard.orbitalTab.VideoRecorder = setVideoRecording(25, "output.avi")
+                self.solSystem.Dashboard.orbitalTab.VideoRecorder = setVideoRecording(framerate = 20, filename = "output.avi")
         else:
             self.solSystem.Dashboard.orbitalTab.RecorderOn = False
             if self.solSystem.Dashboard.orbitalTab.VideoRecorder != None:

@@ -1,13 +1,15 @@
 from visual import display, set_cursor
 import platform
 
-# Canvas, a subclass of cvisual.display, is provided as a way to override certain
+# ViewPort, a subclass of cvisual.display, is provided as a way to override certain
 # display methods related to mouse event handling, when it comes to interacting with 
 # the scene elements (zoom, rotations etc...)
-class Canvas(display):
+class ViewPort(display):
     def __init__(self, **keywords):
-        super(Canvas, self).__init__(**keywords)
+        # invoke normal display constructor ...
+        super(ViewPort, self).__init__(**keywords)
 
+        # ... and add a few more information:
         # Indicates when an animation automatically zooms in an pans around a focus point
         self._auto_movement = False 
         self.plat = platform.system()
@@ -25,7 +27,7 @@ class Canvas(display):
         self._mt.macCtrl = 0
 
     def _report_mouse_state(self, evt, defx=20, defy=20): # wx gives x,y relative to upper left corner
-
+        # this method is directly taken from the display class and modified to get the desired effect
         x, y = defx, defy
         if evt != None:
             x, y = evt.GetPosition()
