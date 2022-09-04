@@ -88,9 +88,9 @@ SUN_NAME = "sun"
 
 index_to_bodyname = {
 	0: CURRENT_BODY,	1: SUN_NAME,	2: EARTH_NAME,	3: "mercury",	4:"venus",		
-	5:"mars",			6:"jupiter",	7:"saturn",		8:"uranus",		9:"neptune",
-	10:"pluto",			11:"sedna",		12:"makemake",	13:"haumea",	14:"eris", 
-	15:"charon",		16:"phobos",	17:"deimos",	18:"moon"
+	5:"mars",       	6:"jupiter",	7:"saturn",   	8:"uranus", 	9:"neptune",
+	10:"pluto",     	11:"sedna", 	12:"makemake",	13:"haumea",	14:"eris", 
+	15:"charon",    	16:"phobos",	17:"deimos",	18:"moon"
 }
 
 bodyname_to_index = {
