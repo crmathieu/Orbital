@@ -94,10 +94,7 @@ def bootLoader(story, recorder):
 
 	# start wxPython application
 	ex = wx.App(False)
-	dashboard = DashBoard(solSystem)
-	solSystem.finalSetup(dashboard)
-	#solSystem.setDashboard(dashboard)
-	#solSystem.camera.setEarthLocations()
+	solSystem.setEarthLocations(makeDashBoard(solSystem))
 
 	# play story when provided
 	api = Api(solSystem, recorder = recorder)
@@ -121,7 +118,8 @@ def bootLoader(story, recorder):
 
 	# we only show the dashboard after the story has finished.
 	print "DASHBOARD SHOW!!!"
-	dashboard.Show()
+	#dashboard.Show()
+	solSystem.getDashboard().Show()
 	solSystem.setAutoScale(False)
 
 	while True:

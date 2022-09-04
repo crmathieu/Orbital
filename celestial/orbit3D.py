@@ -54,6 +54,8 @@ class makeSolarSystem:
 	bodies = []
 
 	def __init__(self):
+		print "### vpython v"+version[0]+"-"+version[1]+" ###"
+
 		self.locationInfo = Timeloc()
 		self.todayUTCdatetime = self.locationInfo.getUTCDateTime()
 		self.SurfaceView = False
@@ -73,8 +75,11 @@ class makeSolarSystem:
 		self.cameraViewTargetBody = None
 		self.LocalRef = False
 		self.cameraViewTargetSelection = SUN_NAME
-#		self.Scene = display(title = 'Solar System', width = self.SCENE_WIDTH, height =self.SCENE_HEIGHT, range=3, visible=True, center = (0,0,0))
 		self.Scene = ViewPort(title = 'Solar System', width = self.SCENE_WIDTH, height =self.SCENE_HEIGHT, range=3, visible=True, center = (0,0,0))
+		self.Scene.fullscreen = True
+		#self.AltScene = ViewPort(title = 'XXXXXXXXXX', width = self.SCENE_WIDTH, height =self.SCENE_HEIGHT, range=3, visible=True, center = (0,0,0))
+		#self.AltScene.fullscreen = True
+		#self.Scene.select()
 
 		# the scene camera is a read only vector whose coordinates can be changed 
 		# only through mouse events and/or resetting the scene Center
@@ -171,9 +176,12 @@ class makeSolarSystem:
 			self.sizeType = x
 		self.BodyShape.radius = self.radiusToShow  / self.SizeCorrection[self.sizeType]
 
-	def finalSetup(self, db):
+	def setEarthLocations(self, db):
 		self.setDashboard(db)
 		self.camera.setEarthLocations()
+
+	def getDashboard(self):
+		return self.Dashboard
 
 	def setDashboard(self, db):
 		self.Dashboard = db

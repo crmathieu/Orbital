@@ -1,5 +1,6 @@
 from celestial.utils import getAngleBetweenVectors, getOrthogonalVector, getVectorOrthogonalToPlane, getXYprojection, getYZprojection
 from orbit3D import *
+from vpython_interface import ViewPort, Color
 from visual import *
 #from objects import circle
 from location import locList
@@ -101,7 +102,7 @@ class makePlanetWidgets():
         self.NumberOfSiderealDaysPerYear = self.Planet.NumberOfSiderealDaysPerYear
         self.Eq = makeEquator(self)
         self.Tr = makeTropics(self)
-        self.EqPlane = makeEquatorialPlane(self, color.orange, opacity=self.Planet.Opacity)
+        self.EqPlane = makeEquatorialPlane(self, Color.orange, opacity=self.Planet.Opacity)
         self.Lons = makeLongitudes(self)
         self.Lats = makeLatitudes(self)
         self.tz = makeTimezones(self)
@@ -110,6 +111,7 @@ class makePlanetWidgets():
         self.defaultLocation = -1
         #self.makeLocation(TZ_US_CAPE)
         self.makeMultipleLocations(locList.TZ_US_CAPE)
+        self.AnaLemma = makeAnalemma(self, locList.TZ_US_CAPE)
          
         # align widgets origin with planet tilt
         self.ECEF.rotate(angle=(-self.Planet.TiltAngle), axis=self.Planet.XdirectionUnit) #, origin=(0,0,0))
@@ -213,23 +215,23 @@ class makePlanetWidgets():
         nextPos = self.Loc[locationID].getGeoPosition()
 
         if False:
-            self.C =  simpleArrow(color.yellow, 0, 20, self.Loc[self.defaultLocation].getEclipticPosition(), axisp = 0.1*vector(x,y,z), context = self.Loc[locationID].Origin) #, context = self.Planet.Origin) #self.Loc[self.defaultLocation].Origin)
-            self.C =  simpleArrow(color.yellow, 0, 20, self.Planet.SolarSystem.Scene.mouse.camera, axisp = 1e4*self.Planet.SolarSystem.Scene.forward, context = None) #self.Loc[locationID].Origin) #, context = self.Planet.Origin) #self.Loc[self.defaultLocation].Origin)
+            self.C =  simpleArrow(Color.yellow, 0, 20, self.Loc[self.defaultLocation].getEclipticPosition(), axisp = 0.1*vector(x,y,z), context = self.Loc[locationID].Origin) #, context = self.Planet.Origin) #self.Loc[self.defaultLocation].Origin)
+            self.C =  simpleArrow(Color.yellow, 0, 20, self.Planet.SolarSystem.Scene.mouse.camera, axisp = 1e4*self.Planet.SolarSystem.Scene.forward, context = None) #self.Loc[locationID].Origin) #, context = self.Planet.Origin) #self.Loc[self.defaultLocation].Origin)
             self.C.display(True)
 
             ortho = getOrthogonalVector(self.Planet.SolarSystem.Scene.forward)
-            self.C =  simpleArrow(color.red, 0, 20, self.Planet.SolarSystem.Scene.mouse.camera, axisp = 1e4*ortho, context = None) #self.Loc[locationID].Origin)
+            self.C =  simpleArrow(Color.red, 0, 20, self.Planet.SolarSystem.Scene.mouse.camera, axisp = 1e4*ortho, context = None) #self.Loc[locationID].Origin)
             self.C.display(True)
             x = self.Planet.SolarSystem.Scene.forward[0]
             y = self.Planet.SolarSystem.Scene.forward[1]
             z = self.Planet.SolarSystem.Scene.forward[2]
             print "(XF,YF,ZF)=(",x,",",y,",",z,")"
 
-            self.C =  simpleArrow(color.red, 0, 20, curPos, axisp = 20*vector(x,y,z), context = self.Planet.Origin) #, context = self.Loc[self.defaultLocation].Origin)
+            self.C =  simpleArrow(Color.red, 0, 20, curPos, axisp = 20*vector(x,y,z), context = self.Planet.Origin) #, context = self.Loc[self.defaultLocation].Origin)
             self.C.display(True)
 
 
-        self.V =  simpleArrow(color.green, 0, 20, nextPos, axisp = self.Loc[locationID].Grad/10, context = self.Loc[locationID].Origin) #self.Loc[self.defaultLocation].Origin)
+        self.V =  simpleArrow(Color.green, 0, 20, nextPos, axisp = self.Loc[locationID].Grad/10, context = self.Loc[locationID].Origin) #self.Loc[self.defaultLocation].Origin)
         self.V.display(True)
 
         EC = self.Loc[locationID].getEclipticPosition()
@@ -237,7 +239,7 @@ class makePlanetWidgets():
         B = EC[1] - self.Planet.Origin.pos[1] #self.Planet.Origin.pos[1]
         C = EC[2] - self.Planet.Origin.pos[2] #self.Planet.Origin.pos[2] 
 
-        #self.D =  simpleArrow(color.white, 0, 20, self.Planet.Origin.pos, axisp = 5*vector(A,B,C), context = None) #self.Loc[locationID].Origin) #self.Loc[self.defaultLocation].Origin)
+        #self.D =  simpleArrow(Color.white, 0, 20, self.Planet.Origin.pos, axisp = 5*vector(A,B,C), context = None) #self.Loc[locationID].Origin) #self.Loc[self.defaultLocation].Origin)
         #self.D.display(True)
 
         # (Xc, Yc, Zc) is the current location of camera (before transition)
@@ -269,7 +271,7 @@ class makePlanetWidgets():
 
 
         rotAxis = getVectorOrthogonalToPlane(Initial, vector(A,B,C))
-        self.K =  simpleArrow(color.cyan, 0, 20, self.Planet.SolarSystem.Scene.mouse.camera, axisp = 1e4*rotAxis, context = None) #self.Loc[locationID].Origin)
+        self.K =  simpleArrow(Color.cyan, 0, 20, self.Planet.SolarSystem.Scene.mouse.camera, axisp = 1e4*rotAxis, context = None) #self.Loc[locationID].Origin)
         self.K.display(True)
 
         rotAngle = deg2rad(getAngleBetweenVectors(Initial, vector(A,B,C)))
@@ -348,17 +350,17 @@ class makePlanetWidgets():
 
         long_diff = getAngleBetweenVectors(self.Loc[locationID].Grad, -vector(x,y,z))
 
-        self.B =  simpleArrow(color.green, 0, 20, nextPos, axisp = self.Loc[locationID].Grad/10, context = self.Loc[locationID].Origin) #self.Loc[self.defaultLocation].Origin)
+        self.B =  simpleArrow(Color.green, 0, 20, nextPos, axisp = self.Loc[locationID].Grad/10, context = self.Loc[locationID].Origin) #self.Loc[self.defaultLocation].Origin)
         self.B.display(True)
 
         if False:
-            self.Z =  simpleArrow(color.magenta, 20, 20, self.Planet.Origin.pos, axisp = vector(x,y,z), context =None)
+            self.Z =  simpleArrow(Color.magenta, 20, 20, self.Planet.Origin.pos, axisp = vector(x,y,z), context =None)
             if self.Z != None:
                 self.Z.display(True)
 
-            self.A =  simpleArrow(color.yellow, 0, 20, nextPos, axisp = self.Loc[self.defaultLocation].Grad/10, context = self.Loc[self.defaultLocation].Origin) #self.Loc[self.defaultLocation].Origin)
+            self.A =  simpleArrow(Color.yellow, 0, 20, nextPos, axisp = self.Loc[self.defaultLocation].Grad/10, context = self.Loc[self.defaultLocation].Origin) #self.Loc[self.defaultLocation].Origin)
             self.A.display(True)
-            self.B =  simpleArrow(color.green, 0, 20, nextPos, axisp = self.Loc[locationID].Grad/10, context = self.Loc[locationID].Origin) #self.Loc[self.defaultLocation].Origin)
+            self.B =  simpleArrow(Color.green, 0, 20, nextPos, axisp = self.Loc[locationID].Grad/10, context = self.Loc[locationID].Origin) #self.Loc[self.defaultLocation].Origin)
             self.B.display(True)
 
             # calculate angle between (x,y,z) and default location Nomal vector
@@ -453,7 +455,7 @@ class makePlanetWidgets():
         self.Loc.append(makeEarthLocation(self, locIndex))
 
     def update_ECEF_Rotation(self):
-        # here we rotate the widgets by the same amount the earth texture is rotated
+        # here the widgets rotates by the same amount the earth texture is rotated
         ti = self.Planet.SolarSystem.getTimeIncrement()
         RotAngle = (2*pi/self.Planet.Rotation)*ti
 
@@ -477,6 +479,8 @@ class makePlanetWidgets():
         self.update_ECEF_Rotation()
         #### self.Eq.updateNodesPosition()
         self.updateCurrentLocationEcliptic()
+        self.AnaLemma.updateAnalemmaPosition()
+
         ### self.EqPlane.updateEquatorialPlanePosition()	
 
     def showEquatorialPlane(self, value):
@@ -510,7 +514,7 @@ class makeEarthLocation():
     def __init__(self, widgets, tz_index):
         self.Origin = widgets.ECEF
         self.Planet = widgets.Planet
-        self.Color = color.red
+        self.Color = Color.red
         self.EclipticPosition = vector(0,0,0)
         self.lat = self.long = 0
         self.GeoLoc = sphere(frame=self.Origin, pos=(0,0,0), np=32, radius=5, material = materials.emissive, make_trail=false, color=self.Color, visible=True) 
@@ -595,7 +599,7 @@ class makeEarthLocation():
         self.GradientZ = 2*(self.EclipticPosition[2]-self.Origin.pos[2])
         self.Grad = vector(self.GradientX, self.GradientY, self.GradientZ)
         
-        self.NormalVec = simpleArrow(color.white, 0, 10, self.GeoLoc.pos, axisp = (self.Grad/10), context = self.Origin)
+        self.NormalVec = simpleArrow(Color.white, 0, 10, self.GeoLoc.pos, axisp = (self.Grad/10), context = self.Origin)
         self.NormalVec.display(False)
 
     def setOrientation(self, axis):
@@ -637,29 +641,36 @@ class makeEquator():
 
     def __init__(self, widgets): #planet):
         self.Origin = widgets.ECEF
+        self.ECI = widgets.ECI
         self.Planet = widgets.Planet
-        self.Color = color.red
+        self.Color = Color.red
 
         self.Trail = curve(frame=self.Origin, color=self.Color, visible=False, radius=25, material=materials.emissive)
         self.Position = np.matrix([[0],[0],[0]], np.float64)
 
         # The equator holds the Asc and Des objects as they are always along the equator line
-        self.AscNode = makeNode(widgets, color.green, ascending=True)
-        self.DesNode = makeNode(widgets, color.red, ascending=False)
+        self.AscNode = makeNode(widgets, Color.green, ascending=True)
+        self.DesNode = makeNode(widgets, Color.red, ascending=False)
 
-#        self.NodesAxis = curve(frame=self.Planet.ECI, pos=[ (2 * self.DesNode.Node.pos[0], 
-#                                        self.DesNode.Node.pos[1], 
-#                                        self.DesNode.Node.pos[2]), 
-#                                    (2 * self.AscNode.Node.pos[0],
-#                                        self.AscNode.Node.pos[1],
-#                                        self.AscNode.Node.pos[2])], color=Color.cyan, visible=True, radius=0, material=materials.emissive)
+        """
         self.NodesAxis = curve( frame=widgets.ECI, 
 #                                pos=[(2 * (self.DesNode.Node.pos[0] - self.Planet.Position[0]), 0, 0), 
 #                                     (2 * (self.AscNode.Node.pos[0] - self.Planet.Position[0]), 0, 0)], 
                                 pos = [(-2*self.Planet.radiusToShow/self.Planet.SizeCorrection[self.Planet.sizeType],0,0),
                                        (2*self.Planet.radiusToShow/self.Planet.SizeCorrection[self.Planet.sizeType],0,0)],
                                      color=Color.cyan, visible=True, radius=0, material=materials.emissive)
+        """
+        self.makeNodeAxis()
+        #self.Analemma = makeAnalemma(widgets)
         self.draw()
+
+    def makeNodeAxis(self):
+        self.NodesAxis = curve( frame=self.ECI, 
+                                #pos=[(2 * (self.DesNode.Node.pos[0] - self.Planet.Position[0]), 0, 0), 
+                                #    (2 * (self.AscNode.Node.pos[0] - self.Planet.Position[0]), 0, 0)], 
+                                pos = [ (-2*self.Planet.radiusToShow/self.Planet.SizeCorrection[self.Planet.sizeType],0,0),
+                                        (2*self.Planet.radiusToShow/self.Planet.SizeCorrection[self.Planet.sizeType],0,0)],
+                                color=Color.cyan, visible=False, radius=0, material=materials.emissive)
 
 
     def display(self, trueFalse):
@@ -736,7 +747,7 @@ class doMeridian():
         # define meridian in rotating referential ECEF
         self.Trail = curve(frame=widgets.ECEF, color=colr, visible=False,  material=materials.emissive, radius=(25 if longitudeAngle == 0 else 0))
         self.Position = np.matrix([[0],[0],[0]], np.float64)
-        self.Color = colr #color.cyan
+        self.Color = colr #Color.cyan
         self.draw()
 
 
@@ -780,7 +791,7 @@ class makeMeridians():
 
 
     def draw(self, angle, origColr):
-        colr = origColr #color.red
+        colr = origColr #Color.red
         for i in np.arange(0, pi, deg2rad(angle)):
             # build Meridians by longitude circles
             self.Meridians.append(doMeridian(self.Widgets, colr, i))
@@ -791,16 +802,125 @@ class makeLongitudes(makeMeridians):
         
     def __init__(self, widgets):
 
-        makeMeridians.__init__(self, widgets, color.cyan)
-        self.draw(10, color.red)
+        makeMeridians.__init__(self, widgets, Color.cyan)
+        self.draw(10, Color.red)
 
 
 class makeTimezones(makeMeridians):
         
     def __init__(self, widgets):
-        makeMeridians.__init__(self, widgets, color.white)
-        self.draw(15, color.white)
+        makeMeridians.__init__(self, widgets, Color.white)
+        self.draw(15, Color.white)
 
+
+class makeAnalemma():
+
+    def __init__(self, widgets, locIndex = -1):
+        # draw earth sun segment between center 
+        # of sun and a point at a given latitude
+
+        self.Origin = widgets.ECI #ECEF
+        #self.ECI = widgets.ECI
+        self.Planet = widgets.Planet
+        self.Color = Color.red
+        self.Widgets = widgets
+        self.NoonGeoLoc = sphere(frame=self.Origin, pos=(0,0,0), np=32, radius=50, material = materials.emissive, make_trail=True, color=self.Color, visible=True) 
+
+        # compute semi-latus Rectum: L = a(1 - e**2)
+        self.semiLactusRectum = widgets.Planet.a * (1 - widgets.Planet.e**2)
+
+        #self.Trail = curve(frame=self.Origin, color=self.Color, visible=False, radius=25, material=materials.emissive)
+        #self.Position = np.matrix([[0],[0],[0]], np.float64)
+
+        # The equator holds the Asc and Des objects as they are always along the equator line
+        #self.AnaLemmaNode = makeNode(widgets, Color.green, ascending=True)
+        #self.DesNode = makeNode(widgets, Color.red, ascending=False)
+
+        self.makeSunAxis(locIndex)
+        self.display(True)
+
+    def setNoonPosition(self, loc):
+
+        lat = 0.0
+        long = 0.0
+        if loc != None:
+            lat = loc["lat"]
+ 
+        # set the Geo position
+        self.radius = (self.Planet.radiusToShow/self.Planet.SizeCorrection[self.Planet.sizeType])*0.999
+        
+        # calculate distance from z-axis to latitude line
+        self.eqPlane = self.radius * cos(deg2rad(lat))
+
+        # deduct (x,y) from eqPlane. Note, we need to extend the longitude 
+        # value by 180 degrees to take into account the way the earth texture
+        # was applied on the sphere
+        self.NoonGeoLoc.pos[0] = 0 #self.eqPlane * cos(deg2rad(long)+pi)
+        self.NoonGeoLoc.pos[1] = 0 #self.eqPlane * sin(deg2rad(long)+pi)
+        self.NoonGeoLoc.pos[2] = self.radius * sin(deg2rad(lat))
+
+    def makeSunAxis(self, locIndex):
+        loc = None
+        if locIndex != -1:
+            loc = self.Planet.SolarSystem.locationInfo.getLocationInfo(locIndex)
+
+        self.setNoonPosition(None) #loc)
+        self.SunAxis = curve(pos=[(0,0,0)], color=Color.green, visible=False,  material=materials.emissive, radius=0)
+        self.SunAxis.append(pos=self.Origin.frame_to_world(self.NoonGeoLoc.pos), color=Color.green)
+        #self.SunAxis.append(pos=self.Planet.Position, color=Color.green)
+
+        """
+        self.NodesAxis = curve( #frame=self.ECI, 
+                                #pos=[(2 * (self.DesNode.Node.pos[0] - self.Planet.Position[0]), 0, 0), 
+                                #    (2 * (self.AscNode.Node.pos[0] - self.Planet.Position[0]), 0, 0)], 
+                                pos = [(self.Planet.Position[0],self.Planet.Position[1],self.Planet.Position[2]), (0,0,0)], 
+                                color=Color.green, visible=True, radius=0, material=materials.emissive)
+        """
+
+    def updateAnalemmaPosition(self):
+        self.NoonGeoLoc.pos[0] = 0 #self.eqPlane * cos(deg2rad(0)+pi)
+        self.NoonGeoLoc.pos[1] = 0 #self.eqPlane * sin(deg2rad(0)+pi)
+        self.SunAxis.pos[1] = self.Origin.frame_to_world(self.NoonGeoLoc.pos)
+
+        self.Planet.SolarSystem.Dashboard.orbitalTab.TimeIncrement = TI_24_HOURS #EARTH_DAILY_MEAN_MOTION #EPHEMERIS_DAY # * 10 * 6
+        self.Planet.SolarSystem.setTimeIncrement(self.Planet.SolarSystem.Dashboard.orbitalTab.TimeIncrement)
+
+        print self.Planet.Origin.pos
+
+        #angle = EARTH_MEAN_MOTION * self.Planet.SolarSystem.Dashboard.orbitalTab.TimeIncrement
+
+#        self.Planet.SolarSystem.Scene.forward = rotate(self.Planet.SolarSystem.Scene.forward, angle=-angle, axis=(0,0,1))
+        self.Planet.SolarSystem.Scene.forward = vector(self.Planet.Origin.pos)
+
+
+    def updateAnalemmaPosition2(self):
+        """
+        The angular precession per orbit for an Earth orbiting satellite is given by
+
+        delta = -(3*pi.J2.RE^2/p^2).cos(i)
+
+        where
+            J2 = 1.08263e-3 is the coefficient for the second zonal term related to the oblateness of the Earth,
+            RE ~ 6378 km is the mean radius of the Earth,
+            p is the semi-latus rectum of the orbit,
+            i is the inclination of the orbit to the equator.        
+        """
+        J2 = 1.08263e-3
+        precession = -3 * pi * cos(self.Planet.Inclination) * J2 * ((self.radius**2)/(self.semiLactusRectum**2)) 
+        angle = precession * self.Planet.SolarSystem.Dashboard.orbitalTab.TimeIncrement/5400     
+        print "increment = ", self.Planet.SolarSystem.Dashboard.orbitalTab.TimeIncrement
+
+        self.NoonGeoLoc.pos[0] = 0 #self.eqPlane * cos(deg2rad(0)+pi)
+        self.NoonGeoLoc.pos[1] = 0 #self.eqPlane * sin(deg2rad(0)+pi)
+        self.SunAxis.pos[1] = self.Origin.frame_to_world(self.NoonGeoLoc.pos)
+        #self.SunAxis.append(pos=self.Origin.frame_to_world(self.NoonGeoLoc.pos), color=Color.green)
+        self.Planet.SolarSystem.Scene.forward = rotate(self.Planet.SolarSystem.Scene.forward, angle=-angle, axis=(0,0,1))
+        
+        #self.Planet.SolarSystem.Scene.forward = vector(self.Planet.SolarSystem.Scene.center)
+
+    def display(self, trueFalse):
+        self.SunAxis.visible = trueFalse
+        self.NoonGeoLoc.visible = trueFalse
 
 class doLatitude():
 
@@ -850,7 +970,7 @@ class makeLatitudes():
         self.Origin = widgets.ECEF
         self.Widgets = widgets
         self.lats = []
-        self.Color = color.cyan
+        self.Color = Color.cyan
         self.draw()
 
 
@@ -862,7 +982,7 @@ class makeLatitudes():
     def draw(self):
         for i in np.arange(-pi/2, pi/2, deg2rad(10)):
             # build latitudes levels every 10deg from -90 to +90            
-            self.lats.append(doLatitude(self.Widgets, i, color.cyan))
+            self.lats.append(doLatitude(self.Widgets, i, Color.cyan))
 
 
 class makeTropics():
@@ -871,7 +991,7 @@ class makeTropics():
         self.Origin = widgets.ECEF
         self.Widgets = widgets
         self.Tropics = []
-        self.Color = color.cyan
+        self.Color = Color.cyan
         self.TROPIC_ABS_LATITUDES = deg2rad(23.5)
         self.draw()
 
@@ -883,5 +1003,5 @@ class makeTropics():
 
     def draw(self):
         # build latitudes levels every 10deg from -90 to +90            
-        self.Tropics.append(doLatitude(self.Widgets, -self.TROPIC_ABS_LATITUDES, color.yellow, thickness=25))
-        self.Tropics.append(doLatitude(self.Widgets, +self.TROPIC_ABS_LATITUDES, color.yellow, thickness=25))
+        self.Tropics.append(doLatitude(self.Widgets, -self.TROPIC_ABS_LATITUDES, Color.yellow, thickness=25))
+        self.Tropics.append(doLatitude(self.Widgets, +self.TROPIC_ABS_LATITUDES, Color.yellow, thickness=25))

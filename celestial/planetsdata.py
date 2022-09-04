@@ -160,18 +160,43 @@ JPL_EARTH_MOID_LD = 44
 JPL_JUPITER_MOID_AU = 45
 JPL_ORBIT_CLASS = 58
 
+# a few facts about earth rotation:
+# - A sidereal period is the time required for a given body to return to the same position
+#   relative to the stars. It is 86164.0905 seconds (23 h 56 min 4.0905 s or 23.9344696 h)
+# - A synodic period, the time required for a body within the solar system, such as a planet, 
+#   the Moon, or an artificial Earth satellite, to return to the same or approximately the same 
+#   position relative to the Sun as seen by an observer on the Earth. It is 86400 seconds (24h)
+#
+# The Earth rotation angle (ERA) measures the rotation of the Earth from an origin on the celestial 
+# equator, the Celestial Intermediate Origin (CIO), that has no instantaneous motion along the equator; 
+# it was originally referred to as the non-rotating origin.
+#
+# ERA, measured in radians, is related to UT1 by a simple linear polynomial:
+#
+# Theta (tU) = 2 PI (0.779 057 273 2640 + 1.002 737 811 911 354 48 x tU) 
+# where tU=JD-J2000 is the Julian UT1 date (JD) relative to the J2000 epoch (JD 2451545.0). The linear 
+# coefficient represents the Earth's rotation speed. 
+
 # time increments in day unit
 
-TI_ONE_SECOND 	= 1.157407e-5			# 1d -> 86400 sec => 1sec = 1/86400 day
+#TI_ONE_SECOND 	= 1.157407e-5			# 1d -> 86400 sec => 1sec = 1/86400 day
+TI_ONE_SECOND 	= 1.160576284e-5 		# 1d -> 86164.0905 sec +> 1 sec = 1/86164.0905 day
+
 TI_10_SECONDS 	= TI_ONE_SECOND * 10
 TI_30_SECONDS 	= TI_ONE_SECOND * 30
 TI_ONE_MINUTE 	= TI_ONE_SECOND * 60
 TI_FIVE_MINUTES = TI_ONE_MINUTE * 5 
 TI_TEN_MINUTES 	= TI_ONE_MINUTE * 10 
-TI_ONE_HOUR 	= 0.0416666666
-TI_SIX_HOURS 	= 0.25
-TI_TWELVE_HOURS = 0.5
-TI_24_HOURS 	= 1
+
+TI_ONE_HOUR 	= TI_TEN_MINUTES * 6
+TI_SIX_HOURS 	= TI_TEN_MINUTES * 36
+TI_TWELVE_HOURS = TI_TEN_MINUTES * 72
+TI_24_HOURS 	= TI_TEN_MINUTES * 144
+
+#TI_ONE_HOUR 	= 0.0416666666
+#TI_SIX_HOURS 	= 0.25
+#TI_TWELVE_HOURS = 0.5
+#TI_24_HOURS 	= 1
 
 
 Frame_IntervalsXX = { 
@@ -227,6 +252,27 @@ DWARFPLANET_SZ_CORRECTION = 1e-2/(DIST_FACTOR * 5)
 ADJUSTMENT_FACTOR_PLANETS = 0 # 1.95
 ADJUSTMENT_FACTOR = 0 #1.72 #1.80
 
+# sun synchronous precession rate per second (calculated using
+# the 360 deg per sidereal year) using the formula:
+# rate = 360 /(SIDEREAL_YEAR * EPHEMERIS_DAY)) degrees/s -or- 
+#        (PI * 2) / (SIDEREAL_YEAR * EPHEMERIS_DAY) rad/s
+#  
+EPHEMERIS_DAY = 86400 # in seconds
+MEAN_SOLARDAY = 86400 # in seconds
+SIDEREAL_DAY = 86164.0905 # in seconds
+
+SIDEREAL_YEAR = 365.256363004  # in ephemeris days
+TROPICAL_YEAR = 365.2421871    # in ephemeris days
+
+EARTH_MEAN_MOTION_WIKI = 1.99096871e-7  	# in rad/s according to wikipedia
+								 	# but = 1.9909865927683785320224459427387e-7 rd/s according to calculation
+
+EARTH_DAILY_MEAN_MOTION = 0.01720212416151879051667393294526 # in rd/day
+EARTH_MEAN_MOTION = 1.9909865927683785320224459427387e-7 # in rd/s
+
+def getEarthMeanMotion():
+	return (pi * 2)/(SIDEREAL_YEAR * EPHEMERIS_DAY)
+	
 #from visual import color
 from vpython_interface import Color
 

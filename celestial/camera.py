@@ -238,14 +238,28 @@ class camera3D:
 			if recorder == True:
 				recOneFrame(self.SolarSystem.Dashboard.orbitalTab.VideoRecorder)
 
+	def slideToSurface(self, angle, recorder, ratefunc = ease_in_out):
+		# find vector orthogonal to forward vector
+		axis = getOrthogonalVector(self.view.forward)
+
+		# if angle between vertical and forward is smaller than
+		# desired rotation angle, adjust rotation angle accordingly.
+		vangle = getAngleBetweenVectors(self.view.forward, vector(0,0,1))
+		print "ROT ANGLE=", angle, "angle with vertical =", vangle
+		if vangle < angle:
+			angle = vangle - 1
+
+		self.cameraRotationAxis(angle, axis, recorder, direction=self.ROT_CLKW, ratefunc = ratefunc)
+
 
 	def cameraRotateDown(self, angle, recorder, ratefunc = ease_in_out):
 		# find vector orthogonal to forward vector
 		axis = getOrthogonalVector(self.view.forward)
 
-		# if angle between vertical anf forward is smaller than
+		# if angle between vertical and forward is smaller than
 		# desired rotation angle, adjust rotation angle accordingly.
 		vangle = getAngleBetweenVectors(self.view.forward, vector(0,0,1))
+		print "ROT ANGLE=", angle, "angle with vertical =", vangle
 		if vangle < angle:
 			angle = vangle - 1
 

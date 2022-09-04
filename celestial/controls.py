@@ -152,9 +152,9 @@ class AbstractUI(wx.Panel):
 		self.checkboxList[type] = cb
 
 
-# CLASS DashBoard ---------------------------------------------------------
+# CLASS makeDashBoard ---------------------------------------------------------
 # This is the GUI entry point
-class DashBoard(wx.Frame):
+class makeDashBoard(wx.Frame):
 
 	def __init__(self, solarsystem):
 		newHeight = INFO1_Y+300 # +220
@@ -167,7 +167,7 @@ class DashBoard(wx.Frame):
 		self.Notebook = wx.Notebook(self.Panel, size=(500, newHeight))
 
 		# create subpanels to be used with tabs
-		self.orbitalTab = ORBITALCtrlPanel(self, self.Notebook, solarsystem)
+		self.orbitalTab = ORBITALPanel(self, self.Notebook, solarsystem)
 		self.searchTab = SEARCHpanel(self, self.Notebook, solarsystem)
 		self.focusTab = FOCUSpanel(self, self.Notebook, solarsystem)
 		self.widgetsTab = WIDGETSpanel(self, self.Notebook, solarsystem)
@@ -958,9 +958,9 @@ class SEARCHpanel(AbstractUI):
 		return entry["neo_reference_id"]
 
 
-# CLASS ORBITALCtrlPanel ------------------------------------------------------
+# CLASS ORBITALPanel ------------------------------------------------------
 # Orbital control tab
-class ORBITALCtrlPanel(AbstractUI):
+class ORBITALPanel(AbstractUI):
 
 	def InitVariables(self):
 		self.Earth = self.SolarSystem.getBodyFromName(EARTH_NAME)
@@ -1845,7 +1845,7 @@ class WIDGETSpanel(AbstractUI):
 	def OnSelectLocation(self, e):
 		if self.parentFrame.orbitalTab.AnimationInProgress == False:
 			locationID = self.locIndexes[e.GetSelection()]
-			self.comb.Dismiss()
+			self.comb.Dismiss() # this will close the combo 
 			self.SolarSystem.camera.gotoEarthLocation(locationID)
 		else:
 			print ">> Earth Location motion are disabled when animation is in progress"
@@ -1863,11 +1863,11 @@ class WIDGETSpanel(AbstractUI):
 	def OnShowNormal(self, e):
 
 		self.SolarSystem.camera.cameraZoom(1, 50) #, velocity = 1, recorder = False, zoom = ZOOM_IN, ratefunc = there_and_back)
-#		axis = getOrthogonalVector(self.SolarSystem.camera.view.forward)
+		#axis = getOrthogonalVector(self.SolarSystem.camera.view.forward)
 
-#		self.SolarSystem.camera.cameraRotateLeft(85, False, axis=-axis)
-		self.SolarSystem.camera.cameraRotateDown(-80, False)
-		#self.SolarSystem.camera.cameraRotateUp(-80, False)
+		#self.SolarSystem.camera.cameraRotateLeft(85, False, axis=-axis)
+#		self.SolarSystem.camera.cameraRotateLeft(80, False)
+		self.SolarSystem.camera.cameraRotateDown(90, False)
 		#self.SolarSystem.camera.cameraZoom(1, 50, recorder = False, zoom = self.SolarSystem.camera.ZOOM_OUT) #, ratefunc = there_and_back)
 
 

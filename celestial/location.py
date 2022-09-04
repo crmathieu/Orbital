@@ -25,16 +25,22 @@ class locList:
 	TZ_AUS_SYD = 6
 	TZ_CHL_SAN = 7
 	TZ_US_HONO = 8
+
+	# spaceports start here
 	TZ_US_CAPE = 9
 	TZ_FR_KOUR = 10
 	TZ_RUS_BAIK = 11
-	TZ_CHN_WE = 12
-	TZ_IND_THI = 13
-	TZ_US_VDBERG = 14
-	TZ_NZ_MAH = 15
-	TZ_JP_TAN = 16
-	TZ_CHN_XI = 17
-
+	TZ_IND_THI = 12
+	TZ_US_VDBERG = 13
+	TZ_NZ_MAH = 14
+	TZ_JP_TAN = 15
+	TZ_CHN_XI = 16
+	TZ_CHN_WE = 17
+	TZ_CHN_JIU = 18
+	TZ_CHN_TAI = 19
+	TZ_CHN_JIN = 20
+	TZ_US_KOD = 21
+	TZ_US_WAL = 22
 
 class Timeloc:
 	tzEarthLocations = [
@@ -42,111 +48,140 @@ class Timeloc:
         "tzname": "Africa/Abidjan",
         "lat": 51.4934,
         "long": 0.0098,
-        "name": "Greenwich"
+        "name": "UK - Greenwich"
     },
     {
         "tzname": "Africa/Cairo",
         "lat": 30.0444,
         "long": 31.2357,
-        "name": "Cairo"
+        "name": "EG - Cairo"
     },
     {
         "tzname": "Europe/Paris",
         "lat": 48.8566,
         "long": 2.3522,
-        "name": "Paris"
+        "name": "FR - Paris"
     },
     {
         "tzname": "America/Los_Angeles",
         "lat": 45.6418,
         "long": -122.6801,
-        "name": "Vancouver"
+        "name": "US - Vancouver"
     },
     {
         "tzname": "Iceland",
         "lat": 64.1466,
         "long": -21.9426,
-        "name": "Reykjavik"
+        "name": "ICE - Reykjavik"
     },
     {
         "tzname": "Hongkong",
         "lat": 22.3193,
         "long": 114.1694,
-        "name": "Hong Kong"
+        "name": "CHN - Hong Kong"
     },
     {
         "tzname": "Australia/Sydney",
         "lat": -33.8688,
         "long": 151.2093,
-        "name": "Sydney"
+        "name": "AUS - Sydney"
     },
     {
         "tzname": "America/Santiago",
         "lat": -33.4489,
         "long": -70.6693,
-        "name": "Santiago"
+        "name": "CHI - Santiago"
     },
     {
         "tzname": "Pacific/Honolulu",
         "lat": 19.8968,
         "long": -155.5828,
-        "name": "Honolulu"
+        "name": "US - Honolulu"
     },
 	{
         "tzname": "America/New_York",
-        "lat": 28.3922,
-        "long": -80.6077,
-        "name": "Cape Canaveral"
+        "lat": 28.40584, # 28.3922,
+        "long":  -80.6077,
+        "name": "US - Cape Canaveral"
     },
  	{
         "tzname": "America/Guyana",
         "lat": 5.1611,
         "long": -52.6493,
-        "name": "Kourou Spaceport"
+        "name": "FR - Kourou Spaceport"
     },
  	{
         "tzname": "Asia/Oral",
         "lat": 45.6232,
         "long": 63.3140,
-        "name": "Baikonur Cosmodrome"
-    },
-	{
-        "tzname": "Asia/Chungking",
-        "lat": 19.614492,
-        "long": 110.951133,
-        "name": "Wenchang Spaceport"
+        "name": "RUS - Baikonur Cosmodrome"
     },
 	{
         "tzname": "Asia/Kolkata",
         "lat": 8.5241,
         "long": 76.9366,
-        "name": "Thiruvananthapuram IND Spaceport"
+        "name": "IND - Thiruvananthapuram Spaceport"
     },
 	{
         "tzname": "America/Los_Angeles",
         "lat": 34.7420,
         "long": -120.5724,
-        "name": "Vandenberg Air Force Base"
+        "name": "US - Vandenberg Air Force Base"
     },
 	{
         "tzname": "Pacific/Auckland",
         "lat": -39.0806,
         "long": 177.8749,
-        "name": "Mahia NZL Spaceport"
+        "name": "NZL - Mahia Spaceport"
     },
 	{
         "tzname": "Japan",
         "lat": 30.3999984,
         "long": 130.968662792,
-        "name": "Tanegashima JPN Spaceport"
+        "name": "JPN - Tanegashima Spaceport"
     },
 	{
         "tzname": "Asia/Shanghai",
         "lat": 27.8945,
         "long": 102.2631,
-        "name": "Xichang CHN Spaceport"
+        "name": "CHN - Xichang Spaceport"
     },
-
+	{
+        "tzname": "Asia/Chungking",
+        "lat": 19.614492,
+        "long": 110.951133,
+        "name": "CHN - Wenchang Spaceport"
+    },
+	{
+        "tzname": "Asia/Shanghai",
+        "lat": 40.95,
+        "long": 100.2833,
+        "name": "CHN - Jiuquan Spaceport"
+    },
+	{
+        "tzname": "Asia/Chungking",
+        "lat": 38.83,
+        "long": 111.6,
+        "name": "CHN - Taiyuan Spaceport"
+    },
+	{
+        "tzname": "Asia/Chungking",
+        "lat": 42.0,
+        "long": 126.5,
+        "name": "CHN - Jingyu Spaceport"
+    },
+	{
+        "tzname": "America/Juneau",
+        "lat": 57.433,
+        "long": -152.33,
+        "name": "US - Kodiak Spaceport"
+    },
+	{
+        "tzname": "America/New_York",
+        "lat": 37.85,
+        "long": -75.46667,
+        "name": "US - Wallops Spaceport"
+    },
 ]
 	def __init__(self, index = -1):
 		#index = TZ_COUVE
@@ -187,13 +222,13 @@ class Timeloc:
 			return
 
 		url = 'http://ipinfo.io/json'
-		print url+"\n"
 		try:
 			opener = urllib2.build_opener()
 			opener.addheaders = [('User-Agent', 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_12_2) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/55.0.2883.95 Safari/537.36')]
 			response = opener.open(url)
-			print response
+			#print response
 		except urllib2.HTTPError as err:
+			print url+"\n"
 			print "Exception...\n\nError: " + str(err.code)
 			raise
 
@@ -216,10 +251,13 @@ class Timeloc:
 		self.localTZ 	 = pytz.timezone(self.timezoneStr)
 		 
 		#print 'UTC tz: {0}\nLOCAL tz: {1}\n\n'.format(self.utcTZ, self.localTZ)
-		print 'Your IP detail\n '
-		print 'IP : {4} \nRegion : {1} \nCountry : {2} \nCity : {3} \nOrg : {0} \ncoordinates : {5} \nTimeZone : {6}'.format(self.org,self.region,self.country,self.city,self.IP,self.coordinates,self.timezoneStr)
-		print 'Latitude={0}'.format(self.latitude)
-		print 'Longitude={0}'.format(self.longitude)
+		print "\n------------------------------------"
+		print ' Your IP detail '
+		print "------------------------------------"
+		print 'IP ............ {4} \nRegion ........ {1} \nCountry ....... {2} \nCity .......... {3} \nISP ........... {0} \nCoordinates ... {5} \nTimeZone ...... {6}'.format(self.org,self.region,self.country,self.city,self.IP,self.coordinates,self.timezoneStr)
+		print 'Latitude ...... {0}'.format(self.latitude)
+		print 'Longitude ..... {0}'.format(self.longitude)
+		print 'Timezone ...... {0}'.format(self.timezoneStr)
 
 
 	def InitLocalTimezoneData(self):
@@ -236,7 +274,7 @@ class Timeloc:
 		self.dst = bool(self.localdatetime.dst())
 
 		print "------------------------------------"
-		print "Local Timezone data for ", self.city
+		print " Local Timezone data for", self.city
 		print "------------------------------------"
 		print "UTC datetime: .............. ", self.UTCtime
 		print "Local datetime: ............ ", self.localdatetime, "DST=", self.dst
@@ -308,7 +346,8 @@ class Timeloc:
 
 	def initSolarTime(self):
 		# to set solar time, we need a struct of type time.struct_time, hence we pass time.localtime()
-		self.solarT = self.setSolarTime(self.datetime_to_StructTime(self.localdatetime), self.longitude)
+		# self.solarT = self.setSolarTime(self.datetime_to_StructTime(self.localdatetime), self.longitude)
+		self.solarT = self.computeLocalSolarTime(self.localdatetime)
 
 	def computeUTCSolarTime(self, UTCdatetime):
 		# calculate a solar time for a given date and time. we need a struct of type time.struct_time, 
