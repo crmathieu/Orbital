@@ -1,25 +1,3 @@
-"""
-	Copyright (c) 2017 Charles Mathieu
-
-Permission is hereby granted, free of charge, to any person obtaining a copy
-of this software and associated documentation files (the "Software"), to deal
-in the Software without restriction, including without limitation the rights
-to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-copies of the Software, and to permit persons to whom the Software is
-furnished to do so, subject to the following conditions:
-
-The above copyright notice and this permission notice shall be included in all
-copies or substantial portions of the Software.
-
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-SOFTWARE.
-
-"""
 """ main module  """
 
 from rate_func import *	
@@ -89,7 +67,6 @@ def bootLoader(story, recorder):
 
 	# Start control window
 	print (wx.version())
-	#print julian(1, 1, 2000)
 
 
 	# start wxPython application
@@ -100,7 +77,7 @@ def bootLoader(story, recorder):
 	api = Api(solSystem, recorder = recorder)
 	if story != None:
 		try:
-			# instantiate story
+			# instantiate story and play it
 			st = story(solSystem, api)
 			del st
 		except RuntimeError as err:
@@ -110,15 +87,9 @@ def bootLoader(story, recorder):
 		solSystem.setAutoScale(False)
 		api.camera.setCameraTarget(EARTH_NAME)
 		solSystem.displaySolarSystem()
-		
-		#body = solSystem.getBodyFromName(EARTH_NAME)
-		#inx = solSystem.Dashboard.focusTab.getBodyIndexInList(EARTH_NAME)
-		#solSystem.Dashboard.focusTab.setCurrentBodyFocusManually(body, inx)
 		solSystem.introZoomIn(75)
 
 	# we only show the dashboard after the story has finished.
-	print "DASHBOARD SHOW!!!"
-	#dashboard.Show()
 	solSystem.getDashboard().Show()
 	solSystem.setAutoScale(False)
 
