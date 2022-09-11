@@ -326,7 +326,8 @@ class FOCUSpanel(AbstractUI):
 			mass = setPrecision(str(Body.Mass), 3)
 
 		radius = Body.BodyRadius/1000 if Body.BodyRadius != 0 and Body.BodyRadius != DEFAULT_RADIUS else 0
-		rev = round(float(Body.Revolution / 365.25) * 1000)/1000
+#		rev = round(float(Body.Revolution / 365.25) * 1000)/1000
+		rev = round(float(Body.Revolution / EARTH_PERIOD) * 1000)/1000
 
 		i = round(float(Body.Inclination) * 1000)/1000
 		N = round(float(Body.Longitude_of_ascendingnode) * 1000)/1000
@@ -342,7 +343,7 @@ class FOCUSpanel(AbstractUI):
 				"Perihelion(AU) ", q,
 				"Aphelion(AU) ", a,
 				"Orb.Period(days) ", Body.Revolution,
-				"Orb.Period(yrs)  ", Body.Revolution/365.25,
+				"Orb.Period(yrs)  ", Body.Revolution/EARTH_PERIOD, #365.25,
 				"Rot.Period(days) ", Body.Rotation,
 				"Orb.Incli.(deg) ", i,
 				"Lg.of Asc Node(deg) ", N,
@@ -1517,7 +1518,8 @@ class ORBITALPanel(AbstractUI):
 
 		radius = round(float(body.BodyRadius) * 1000)/1000 if body.BodyRadius != 0 and body.BodyRadius != DEFAULT_RADIUS else 0
 		moid = round(float(body.Moid/AU) * 10000)/10000 if body.Moid != 0 else 0
-		rev = round(float(body.Revolution / 365.25) * 1000)/1000
+#		rev = round(float(body.Revolution / 365.25) * 1000)/1000
+		rev = round(float(body.Revolution / EARTH_PERIOD) * 1000)/1000
 		H = body.Absolute_mag if body.Absolute_mag != 0 else 0
 
 		i = round(float(body.Inclination) * 1000)/1000

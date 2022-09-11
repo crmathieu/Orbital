@@ -5,7 +5,7 @@ import urllib2
 import json
 #import sys
 import math
-
+from planetsdata import EARTH_PERIOD
 import pytz
 import datetime as dt
 import time
@@ -373,7 +373,8 @@ class Timeloc:
 		The fundamental unit of solar time is the day, based on the synodic rotation period. Two types 
 		of solar time are apparent solar time (sundial time) and mean solar time (clock time).		
 		"""
-		gamma = 2 * math.pi / 365 * (localtime.tm_yday - 1 + float(localtime.tm_hour - 12) / 24)
+#		gamma = 2 * math.pi / 365 * (localtime.tm_yday - 1 + float(localtime.tm_hour - 12) / 24)
+		gamma = 2 * math.pi / EARTH_PERIOD * (localtime.tm_yday - 1 + float(localtime.tm_hour - 12) / 24)
 		eqtime = 229.18 * (0.000075 + 0.001868 * math.cos(gamma) - 0.032077 * math.sin(gamma) \
 				- 0.014615 * math.cos(2 * gamma) - 0.040849 * math.sin(2 * gamma))
 		decl = 0.006918 - 0.399912 * math.cos(gamma) + 0.070257 * math.sin(gamma) \

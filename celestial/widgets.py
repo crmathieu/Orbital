@@ -18,7 +18,9 @@ class makePlanetWidgets():
         self.visible = True
         self.makeECEFref()
         self.makeECIref()
+        self.makeECSSref()
         self.Eq = self.eqPlane = self.Lons = self.Lats = None
+
         self.Psi = 0.0
         self.NumberOfSiderealDaysPerYear = 0.0
         self.SiderealCorrectionAngle = 0.0
@@ -44,11 +46,17 @@ class makePlanetWidgets():
         # Conversions between ECEF and geodetic coordinates (latitude and longitude) are discussed at 
         # geographic coordinate conversion. 
 
-        self.ECEF = frame()     
-        self.ECEF.pos = self.Planet.Origin.pos
+        #self.ECEF = frame()     
+        #self.ECEF.pos = self.Planet.Origin.pos
+        
+        #### self.ECEF = makeReferential(self.Planet, tilt=True, color=Color.red)
+        #### self.ECEF.referential.rotate(angle=(-self.Planet.TiltAngle), axis=self.ECEF.XdirectionUnit) #, origin=(0,0,0))
+        
+        self.ECEF = self.Planet.ECEF # has been done already 
+        #self.ECEF.display(True)
 
     def makeECIref(self):
-		# This is the ECI referential (the "Earth-Centered Inertial" is fixed to the stars, in other words, 
+		# The ECI referential (the "Earth-Centered Inertial" is fixed to the stars, in other words, 
 		# it doesn't rotate with the earth). ECI coordinate frames have their origins at the center of mass of Earth 
 		# and are fixed with respect to the stars. "I" in "ECI" stands for inertial (i.e. "not accelerating"), in 
 		# contrast to the "Earth-centered - Earth-fixed" (ECEF) frames, which remains fixed with respect to 
@@ -67,9 +75,40 @@ class makePlanetWidgets():
     	#		ECEF: not inertial, accelerated, rotating w.r.t stars; useful to describe motion of 
 		# 		objects on Earth surface.
 
-        self.ECI = frame() #self.Planet.ECI   
-        self.ECI.pos = self.Planet.Origin.pos
-        self.ECI.rotate(angle=(-self.Planet.TiltAngle), axis=self.Planet.XdirectionUnit)
+        #self.ECI = frame() #self.Planet.ECI   
+        #self.ECI.pos = self.Planet.Origin.pos
+
+        #self.ECI = makeReferential(self.Planet, tilt=True)
+        self.ECI = self.Planet.ECI # has been done already 
+        #self.ECI.referential.rotate(angle=(-self.Planet.TiltAngle), axis=self.ECI.XdirectionUnit)
+
+    def makeECSSref(self):
+
+        # The ECSS referential (the "Earth-Centered Sun Synchronous") always has its x-axis
+        # tangent to the earth orbit and its y-axis pointing towards the sun. Its z-axis
+        # is always aligned with the ecliptic's z-axis
+        self.ECSS = makeReferential(self.Planet, tilt=False, color=Color.yellow, legend = ["ecss-x","ecss-y","ecss-z"])
+        """
+        self.ECSS = frame()     
+        self.ECSS.pos = self.Planet.Origin.pos
+        self.Axis = [None,None,None]
+        self.radius = (self.Planet.radiusToShow/self.Planet.SizeCorrection[self.Planet.sizeType])*0.999
+        """
+
+        # compute rotation
+        self.ECSSangle = atan2(self.Planet.Position[1], self.Planet.Position[0])
+#        self.ECSS.referential.rotate(angle=(pi/2 + self.ECSSangle), axis=(0,0,self.ECSS.Axis[2])) #self.Planet.SolarSystem.ZdirectionUnit)
+#        self.ECSS.referential.rotate(angle=(pi/2 + self.ECSSangle), axis=(0,0,self.ECSS.ZdirectionUnit)) #self.Planet.SolarSystem.ZdirectionUnit)
+        self.ECSS.referential.rotate(angle=(pi/2 + self.ECSSangle), axis=self.ECSS.ZdirectionUnit) #self.Planet.SolarSystem.ZdirectionUnit)
+        self.ECSS.display(True)
+        return 
+
+        pos = vector(self.ECSS.pos)
+        directions = [vector(2*self.radius,0,0), vector(0,2*self.radius,0), vector(0,0,2*self.radius)]
+
+        for i in [0,1,2]:
+            self.Axis[i] = simpleArrow(Color.white, 0, 20, self.ECSS.pos, axisp = directions[i])
+            self.Axis[i].display(True)
 
     def resetWidgetsRefFromSolarTime(self):
 
@@ -80,7 +119,7 @@ class makePlanetWidgets():
 
         print "Planet.Psi ....... ", self.Planet.Psi
         print "widgets.Psi ...... ", self.Psi
-        self.ECEF.rotate(angle=(self.Planet.Psi-self.Psi), axis=self.Planet.RotAxis) #, origin=(0,0,0))
+        self.ECEF.referential.rotate(angle=(self.Planet.Psi-self.Psi), axis=self.Planet.RotAxis) #, origin=(0,0,0))
 
 
         # Psi is the initial rotation to apply on the sphere texture to match the solar Time
@@ -93,10 +132,10 @@ class makePlanetWidgets():
         if self.SiderealCorrectionAngle != 0.0:
             # there has been a previous manual reset of the UTC date which has resulted in a sidereal 
             # correction. We need to undo it prior to reposition the texture for the new date
-            self.ECEF.rotate(angle=(-self.SiderealCorrectionAngle), axis=self.Planet.RotAxis)
+            self.ECEF.referential.rotate(angle=(-self.SiderealCorrectionAngle), axis=self.Planet.RotAxis)
 
         self.SiderealCorrectionAngle = self.Planet.SiderealCorrectionAngle #(2 * pi / self.NumberOfSiderealDaysPerYear) * fl_diff_in_days
-        self.ECEF.rotate(angle=(self.SiderealCorrectionAngle), axis=self.Planet.RotAxis) #, origin=(0,0,0))
+        self.ECEF.referential.rotate(angle=(self.SiderealCorrectionAngle), axis=self.Planet.RotAxis) #, origin=(0,0,0))
 
     def initWidgets(self):
         self.NumberOfSiderealDaysPerYear = self.Planet.NumberOfSiderealDaysPerYear
@@ -111,10 +150,10 @@ class makePlanetWidgets():
         self.defaultLocation = -1
         #self.makeLocation(TZ_US_CAPE)
         self.makeMultipleLocations(locList.TZ_US_CAPE)
-        self.AnaLemma = makeAnalemma(self, locList.TZ_US_CAPE)
+        self.AnaLemma = makeAnalemma(self, locList.TZ_US_COUVE)
          
         # align widgets origin with planet tilt
-        self.ECEF.rotate(angle=(-self.Planet.TiltAngle), axis=self.Planet.XdirectionUnit) #, origin=(0,0,0))
+        #self.ECEF.rotate(angle=(-self.Planet.TiltAngle), axis=self.Planet.XdirectionUnit) #, origin=(0,0,0))
 
         # align longitude to greenwich when the planet is Earth
         if self.Planet.Name.lower() == EARTH_NAME:
@@ -124,7 +163,7 @@ class makePlanetWidgets():
              
             # align GMT: the initial position of the GMT meridian on the texture is 6 hours
             # off its normal position. Ajusting by 6 hours x 15 degres = 90 degres
-            self.ECEF.rotate(angle=(deg2rad(6*15)), axis=self.Planet.RotAxis) #ZdirectionUnit)
+            self.ECEF.referential.rotate(angle=(deg2rad(6*15)), axis=self.Planet.RotAxis) #ZdirectionUnit)
             
             # init position in ecliptic referential
             #self.updateCurrentLocationEcliptic()
@@ -454,29 +493,35 @@ class makePlanetWidgets():
         #self.currentLocation = 0
         self.Loc.append(makeEarthLocation(self, locIndex))
 
-    def update_ECEF_Rotation(self):
+    def update_ECEF_RotationXX(self):
         # here the widgets rotates by the same amount the earth texture is rotated
         ti = self.Planet.SolarSystem.getTimeIncrement()
         RotAngle = (2*pi/self.Planet.Rotation)*ti
 
         # if polar axis inverted, reverse rotational direction
-        if self.Planet.ZdirectionUnit[2] < 0:
+        if self.ECEF.ZdirectionUnit[2] < 0:
             RotAngle *= -1
 
         # follow planet rotation
-        self.ECEF.rotate(angle=RotAngle, axis=self.Planet.RotAxis, origin=self.ECEF.pos) #(self.Position[0]+self.Foci[0],self.Position[1]+self.Foci[1],self.Position[2]+self.Foci[2]))
+        self.ECEF.referential.rotate(angle=RotAngle, axis=self.Planet.RotAxis, origin=self.ECEF.referential.pos) #(self.Position[0]+self.Foci[0],self.Position[1]+self.Foci[1],self.Position[2]+self.Foci[2]))
+
+    def update_ECSS_Rotation(self):
+        angle = atan2(self.Planet.Position[1], self.Planet.Position[0])
+        self.ECSS.referential.rotate(angle=(angle-self.ECSSangle), axis=self.ECSS.ZdirectionUnit)
+        self.ECSSangle = angle
 
 
-    def update_ECI_ECEF_Position(self):
-        self.ECEF.pos = self.ECI.pos = self.Planet.Origin.pos
+    def update_ECI_ECEF_ECSS_Position(self):
+        self.ECSS.referential.pos = self.ECEF.referential.pos = self.ECI.referential.pos = self.Planet.Origin.pos
 
     def updateCurrentLocationEcliptic(self):
         if self.currentLocation >= 0: 
             self.Loc[self.currentLocation].updateEclipticPosition()
 
     def animate(self):
-        self.update_ECI_ECEF_Position()
-        self.update_ECEF_Rotation()
+        self.update_ECI_ECEF_ECSS_Position()
+        ### self.update_ECEF_Rotation()
+        self.update_ECSS_Rotation()
         #### self.Eq.updateNodesPosition()
         self.updateCurrentLocationEcliptic()
         self.AnaLemma.updateAnalemmaPosition()
@@ -512,7 +557,7 @@ class makePlanetWidgets():
 
 class makeEarthLocation():
     def __init__(self, widgets, tz_index):
-        self.Origin = widgets.ECEF
+        self.Origin = widgets.ECEF.referential
         self.Planet = widgets.Planet
         self.Color = Color.red
         self.EclipticPosition = vector(0,0,0)
@@ -622,7 +667,7 @@ class makeNode():
         # why their position needs to be updated by an external animation
         # routine using the "updateNodesPosition" method.
 
-        self.Node = sphere(frame=widgets.ECI, pos=(0,0,0), np=32, radius=100, make_trail=False, color=self.Color, visible=False, material=materials.emissive) 
+        self.Node = sphere(frame=widgets.ECI.referential, pos=(0,0,0), np=32, radius=100, make_trail=False, color=self.Color, visible=False, material=materials.emissive) 
 #        self.Node = sphere(frame=widgets.ECI, pos=(0,0,0), np=32, radius=3000, make_trail=False, color=self.Color, visible=False, material=materials.emissive) 
         self.setPosition()
 
@@ -640,7 +685,7 @@ class makeNode():
 class makeEquator():
 
     def __init__(self, widgets): #planet):
-        self.Origin = widgets.ECEF
+        self.Origin = widgets.ECEF.referential
         self.ECI = widgets.ECI
         self.Planet = widgets.Planet
         self.Color = Color.red
@@ -661,11 +706,10 @@ class makeEquator():
                                      color=Color.cyan, visible=True, radius=0, material=materials.emissive)
         """
         self.makeNodeAxis()
-        #self.Analemma = makeAnalemma(widgets)
         self.draw()
 
     def makeNodeAxis(self):
-        self.NodesAxis = curve( frame=self.ECI, 
+        self.NodesAxis = curve( frame=self.ECI.referential, 
                                 #pos=[(2 * (self.DesNode.Node.pos[0] - self.Planet.Position[0]), 0, 0), 
                                 #    (2 * (self.AscNode.Node.pos[0] - self.Planet.Position[0]), 0, 0)], 
                                 pos = [ (-2*self.Planet.radiusToShow/self.Planet.SizeCorrection[self.Planet.sizeType],0,0),
@@ -684,7 +728,7 @@ class makeEquator():
 
 
     def drawSegment(self, E, trace = True):
-        self.setCartesianCoordinates(E)
+        self.Position = self.setCartesianCoordinates(E)
 
         # add angular portion of equator
         self.Trail.append(pos= vector(self.Position[0],self.Position[1],self.Position[2]), color=(self.Color[0]*0.6, self.Color[1]*0.6, self.Color[2]*0.6))
@@ -693,9 +737,12 @@ class makeEquator():
     def setCartesianCoordinates(self, angleIncr):
         radius = self.Planet.radiusToShow/self.Planet.SizeCorrection[self.Planet.sizeType]
 
-        self.Position[0] = radius * cos(angleIncr) 
-        self.Position[1] = radius * sin(angleIncr)
-        self.Position[2] = 0
+#        self.Position[0] = radius * cos(angleIncr) 
+#        self.Position[1] = radius * sin(angleIncr)
+#        self.Position[2] = 0
+        return (radius * cos(angleIncr),
+                radius * sin(angleIncr),
+                0)
 
 
     def showNodes(self, trueFalse):
@@ -721,7 +768,7 @@ class makeEquatorialPlane():
 
         side = 0.1*AU*DIST_FACTOR
         # define plane in fix referential ECI
-        self.eqPlane = box(frame=widgets.ECI, pos=(0,0,0), length=side, width=0.0001, height=side, material=materials.emissive, visible=True, color=self.Color, opacity=0) #, axis=(0, 0, 1), opacity=0.8) #opacity=self.Opacity)
+        self.eqPlane = box(frame=widgets.ECI.referential, pos=(0,0,0), length=side, width=0.0001, height=side, material=materials.emissive, visible=True, color=self.Color, opacity=0) #, axis=(0, 0, 1), opacity=0.8) #opacity=self.Opacity)
 
 
     def display(self, trueFalse):
@@ -740,12 +787,12 @@ class doMeridian():
 
     def __init__(self, widgets, colr, longitudeAngle):
         self.longAngle = longitudeAngle
-        self.Origin = widgets.ECEF
+        self.Origin = widgets.ECEF.referential
 
         self.Planet = widgets.Planet
         #Radius = 25 if longitudeAngle == 0 else 0
         # define meridian in rotating referential ECEF
-        self.Trail = curve(frame=widgets.ECEF, color=colr, visible=False,  material=materials.emissive, radius=(25 if longitudeAngle == 0 else 0))
+        self.Trail = curve(frame=self.Origin, color=colr, visible=False,  material=materials.emissive, radius=(25 if longitudeAngle == 0 else 0))
         self.Position = np.matrix([[0],[0],[0]], np.float64)
         self.Color = colr #Color.cyan
         self.draw()
@@ -764,13 +811,17 @@ class doMeridian():
     def setCartesianCoordinates(self, angleIncr):
         radius = self.Planet.radiusToShow/self.Planet.SizeCorrection[self.Planet.sizeType]
         projectionOnXYplane = radius * cos(angleIncr)
-        self.Position[0] = projectionOnXYplane * cos(self.longAngle)
-        self.Position[1] = projectionOnXYplane * sin(self.longAngle)
-        self.Position[2] = radius * sin(angleIncr)
+#        self.Position[0] = projectionOnXYplane * cos(self.longAngle)
+#        self.Position[1] = projectionOnXYplane * sin(self.longAngle)
+#        self.Position[2] = radius * sin(angleIncr)
+
+        return (projectionOnXYplane * cos(self.longAngle),
+                projectionOnXYplane * sin(self.longAngle),
+                radius * sin(angleIncr))
 
 
     def drawSegment(self, E, trace = True):
-        self.setCartesianCoordinates(E)
+        self.Position = self.setCartesianCoordinates(E)
         newpos = vector(self.Position[0],self.Position[1],self.Position[2])
 
         # add angular portion of longitude curve
@@ -778,7 +829,7 @@ class doMeridian():
 
 class makeMeridians():
     def __init__(self, widgets, colr):
-        self.Origin = widgets.ECEF
+        self.Origin = widgets.ECEF.referential
         self.Widgets = widgets
         self.Origin.visible = True
         self.Color = colr
@@ -814,13 +865,148 @@ class makeTimezones(makeMeridians):
 
 
 class makeAnalemma():
+    SUN_VERTEX = 0
+    EARTH_VERTEX = 1
+
+    def __init__(self, widgets, locIndex = -1):
+        # draw earth sun segment between center 
+        # of sun and a point at a given latitude
+        self.ECSS = widgets.ECSS
+        self.Origin = widgets.ECSS.referential  # let's use the sun synchrnous referential
+        self.Planet = widgets.Planet
+        self.ECSSangle = widgets.ECSSangle
+        self.Color = Color.red
+        self.Widgets = widgets
+#        self.NoonGeoLoc = sphere(frame=self.Origin, pos=(0,0,0), np=32, radius=50, material = materials.emissive, make_trail=True, color=self.Color, visible=True) 
+        
+        # attach a sphere to "Earth-Centered Earth Fix" rotating reference frame
+        self.NoonGeoLoc = sphere(frame=self.Origin, pos=(0,0,0), np=32, radius=50, material = materials.emissive, make_trail=True, color=self.Color, visible=True) 
+
+        # set the radius
+        self.radius = (self.Planet.radiusToShow/self.Planet.SizeCorrection[self.Planet.sizeType])*0.999
+
+        # compute semi-latus Rectum: L = a(1 - e**2)
+#        self.semiLactusRectum = widgets.Planet.a * (1 - widgets.Planet.e**2)
+
+        #self.Trail = curve(frame=self.Origin, color=self.Color, visible=False, radius=25, material=materials.emissive)
+        #self.Position = np.matrix([[0],[0],[0]], np.float64)
+
+        # The equator holds the Asc and Desc objects as they are always along the equator line
+        #self.AnaLemmaNode = makeNode(widgets, Color.green, ascending=True)
+        #self.DesNode = makeNode(widgets, Color.red, ascending=False)
+
+        # make plane
+        ### self.makeAnalemmaPlane()
+        self.makeSunAxis(locIndex)
+        self.display(True)
+
+    def makeAnalemmaPlane(self):
+        self.ECSS.display(True)
+        self.analemmaPlane = box(frame=self.Origin, pos=(0,self.radius,0), length=2*self.radius, width=0.0001, height=2*self.radius, material=materials.emissive, visible=True, color=self.Color, opacity=0.1)
+        self.analemmaPlane.rotate(angle=pi/2, axis=self.ECSS.XdirectionUnit) #(self.Axis[0], 0, 0))
+
+    def makeSunAxis(self, locIndex):
+        loc = None
+        if locIndex != -1:
+            loc = self.Planet.SolarSystem.locationInfo.getLocationInfo(locIndex)
+
+        self.setNoonPosition(loc)
+#        self.SunAxisFrame = frame()
+#        self.SunAxisFrame.pos = self.Origin.frame_to_world(self.NoonGeoLoc.pos)
+        # create first vertex in sun at z coordinate = earth latitude to create an axis parallel to ecliptic
+        self.SunAxis = curve(pos=[(0,0,self.NoonGeoLoc.pos[2])], color=Color.green, visible=False,  material=materials.emissive, radius=0)
+#        self.SunAxis = curve(pos=self.Origin.frame_to_world(self.NoonGeoLoc.pos), color=Color.green, visible=False,  material=materials.emissive, radius=0)
+
+        # add point at latitude (0,0, self.radius * sin(lat)) in ECI, converted into fixed referential (frame_to_world)
+#        self.SunAxis.append(pos=self.Origin.frame_to_world(self.NoonGeoLoc.pos), color=Color.green)
+        self.SunAxis.append(pos=self.Origin.frame_to_world(self.NoonGeoLoc.pos), color=Color.green)
+    
+
+        """
+        self.NodesAxis = curve( #frame=self.ECI, 
+                                #pos=[(2 * (self.DesNode.Node.pos[0] - self.Planet.Position[0]), 0, 0), 
+                                #    (2 * (self.AscNode.Node.pos[0] - self.Planet.Position[0]), 0, 0)], 
+                                pos = [(self.Planet.Position[0],self.Planet.Position[1],self.Planet.Position[2]), (0,0,0)], 
+                                color=Color.green, visible=True, radius=0, material=materials.emissive)
+        """
+        ##### self.analemma = curve(frame=self.Origin, pos=[(2*self.radius,2*self.radius,self.NoonGeoLoc.pos[2])], color=Color.red, visible=True,  material=materials.emissive, radius=1000)
+
+    def setNoonPosition(self, loc):
+
+        lat = 0.0
+        #long = 0.0
+        if loc != None:
+            lat = loc["lat"]
+            lat = 0.0
+            #long = loc["long"]
+
+        
+        # calculate distance from z-axis to latitude line
+        self.latPlane = self.radius * cos(deg2rad(lat))
+
+        # deduct (x,y) from latPlane. Note, we need to extend the longitude 
+        # value by 180 degrees to take into account the way the earth texture
+        # was applied on the sphere
+        self.NoonGeoLoc.pos[0] = 0 #self.latPlane * cos(deg2rad(long)) #+pi)
+        self.NoonGeoLoc.pos[1] = 0 #self.latPlane * sin(deg2rad(long)) #+pi)
+        self.NoonGeoLoc.pos[2] = self.radius * sin(deg2rad(lat))
+
+    def updateAnalemmaPosition(self):
+        return
+        #self.sunPerspective = vector(0,0, self.radius)
+        self.NoonGeoLoc.pos[0] = 0 #self.latPlane * cos(deg2rad(0)+pi)
+        self.NoonGeoLoc.pos[1] = 0 #self.latPlane * sin(deg2rad(0)+pi)
+        
+        # update 2nd vertex position (earth)
+        self.SunAxis.pos[self.EARTH_VERTEX] = self.Origin.frame_to_world(self.NoonGeoLoc.pos)
+
+        self.Planet.SolarSystem.Dashboard.orbitalTab.TimeIncrement = TI_24_HOURS * 10 #EARTH_DAILY_MEAN_MOTION #EPHEMERIS_DAY # * 10 * 6
+        self.Planet.SolarSystem.setTimeIncrement(self.Planet.SolarSystem.Dashboard.orbitalTab.TimeIncrement)
+
+#        self.Planet.SolarSystem.Scene.forward = vector(self.Planet.Origin.pos - (0, 0, self.sunPerspective[2] + self.NoonGeoLoc.pos[2]))
+        self.Planet.SolarSystem.Scene.forward = vector(self.Planet.Origin.pos - (0, 0, self.NoonGeoLoc.pos[2] + 5*self.radius))
+
+        ####  self.analemma.append(pos=self.NoonGeoLoc.pos, color=Color.red)
+
+
+    def updateAnalemmaPosition2(self):
+        """
+        The angular precession per orbit for an Earth orbiting satellite is given by
+
+        delta = -(3*pi.J2.RE^2/p^2).cos(i)
+
+        where
+            J2 = 1.08263e-3 is the coefficient for the second zonal term related to the oblateness of the Earth,
+            RE ~ 6378 km is the mean radius of the Earth,
+            p is the semi-latus rectum of the orbit,
+            i is the inclination of the orbit to the equator.        
+        """
+        J2 = 1.08263e-3
+        precession = -3 * pi * cos(self.Planet.Inclination) * J2 * ((self.radius**2)/(self.semiLactusRectum**2)) 
+        angle = precession * self.Planet.SolarSystem.Dashboard.orbitalTab.TimeIncrement/5400     
+        print "increment = ", self.Planet.SolarSystem.Dashboard.orbitalTab.TimeIncrement
+
+        self.NoonGeoLoc.pos[0] = 0 #self.latPlane * cos(deg2rad(0)+pi)
+        self.NoonGeoLoc.pos[1] = 0 #self.latPlane * sin(deg2rad(0)+pi)
+        self.SunAxis.pos[1] = self.Origin.frame_to_world(self.NoonGeoLoc.pos)
+        #self.SunAxis.append(pos=self.Origin.frame_to_world(self.NoonGeoLoc.pos), color=Color.green)
+        self.Planet.SolarSystem.Scene.forward = rotate(self.Planet.SolarSystem.Scene.forward, angle=-angle, axis=(0,0,1))
+        
+        #self.Planet.SolarSystem.Scene.forward = vector(self.Planet.SolarSystem.Scene.center)
+
+    def display(self, trueFalse):
+        self.SunAxis.visible = trueFalse
+        self.NoonGeoLoc.visible = trueFalse
+
+class makeAnalemmaSAVE():
 
     def __init__(self, widgets, locIndex = -1):
         # draw earth sun segment between center 
         # of sun and a point at a given latitude
 
-        self.Origin = widgets.ECI #ECEF
-        #self.ECI = widgets.ECI
+#        self.Origin = widgets.ECINT
+#        self.Origin = widgets.ECI
+        self.Origin = widgets.ECEF.referential
         self.Planet = widgets.Planet
         self.Color = Color.red
         self.Widgets = widgets
@@ -832,20 +1018,25 @@ class makeAnalemma():
         #self.Trail = curve(frame=self.Origin, color=self.Color, visible=False, radius=25, material=materials.emissive)
         #self.Position = np.matrix([[0],[0],[0]], np.float64)
 
-        # The equator holds the Asc and Des objects as they are always along the equator line
+        # The equator holds the Asc and Desc objects as they are always along the equator line
         #self.AnaLemmaNode = makeNode(widgets, Color.green, ascending=True)
         #self.DesNode = makeNode(widgets, Color.red, ascending=False)
 
+        # make plane
         self.makeSunAxis(locIndex)
+        self.eqPlane = box(pos=self.Origin.pos, length=2*self.radius, width=0.0001, height=2*self.radius, material=materials.emissive, visible=True, color=self.Color, opacity=1)
+        self.zob = False
         self.display(True)
 
     def setNoonPosition(self, loc):
 
         lat = 0.0
-        long = 0.0
+        #long = 0.0
         if loc != None:
             lat = loc["lat"]
- 
+            #lat = 85
+            #long = loc["long"]
+
         # set the Geo position
         self.radius = (self.Planet.radiusToShow/self.Planet.SizeCorrection[self.Planet.sizeType])*0.999
         
@@ -855,19 +1046,26 @@ class makeAnalemma():
         # deduct (x,y) from eqPlane. Note, we need to extend the longitude 
         # value by 180 degrees to take into account the way the earth texture
         # was applied on the sphere
-        self.NoonGeoLoc.pos[0] = 0 #self.eqPlane * cos(deg2rad(long)+pi)
-        self.NoonGeoLoc.pos[1] = 0 #self.eqPlane * sin(deg2rad(long)+pi)
+        self.NoonGeoLoc.pos[0] = 0 #self.eqPlane * cos(deg2rad(long)) #+pi)
+        self.NoonGeoLoc.pos[1] = 0 #self.eqPlane * sin(deg2rad(long)) #+pi)
         self.NoonGeoLoc.pos[2] = self.radius * sin(deg2rad(lat))
 
-    def makeSunAxis(self, locIndex):
+    def makeSunAxisNEW(self, locIndex):
         loc = None
         if locIndex != -1:
             loc = self.Planet.SolarSystem.locationInfo.getLocationInfo(locIndex)
 
-        self.setNoonPosition(None) #loc)
-        self.SunAxis = curve(pos=[(0,0,0)], color=Color.green, visible=False,  material=materials.emissive, radius=0)
-        self.SunAxis.append(pos=self.Origin.frame_to_world(self.NoonGeoLoc.pos), color=Color.green)
-        #self.SunAxis.append(pos=self.Planet.Position, color=Color.green)
+        self.setNoonPosition(loc)
+        self.SunAxisFrame = frame()
+        self.SunAxisFrame.pos = self.Origin.frame_to_world(self.NoonGeoLoc.pos)
+        # create first vertex in sun at z coordinate = eareth latitude to create an axis parallel to ecliptic
+#        self.SunAxis = curve(frame=self.SunAxisFrame, pos=[(0,0,self.NoonGeoLoc.pos[2])], color=Color.green, visible=False,  material=materials.emissive, radius=0)
+        self.SunAxis = curve(frame=self.SunAxisFrame, color=Color.green, visible=False,  material=materials.emissive, radius=0)
+
+        # add point at latitude (0,0, self.radius * sin(lat)) in ECI, converted into fixed referential (frame_to_world)
+#        self.SunAxis.append(pos=self.Origin.frame_to_world(self.NoonGeoLoc.pos), color=Color.green)
+        self.SunAxis.append(pos=[(0,0,self.NoonGeoLoc.pos[2])], color=Color.green)
+       
 
         """
         self.NodesAxis = curve( #frame=self.ECI, 
@@ -876,21 +1074,56 @@ class makeAnalemma():
                                 pos = [(self.Planet.Position[0],self.Planet.Position[1],self.Planet.Position[2]), (0,0,0)], 
                                 color=Color.green, visible=True, radius=0, material=materials.emissive)
         """
+        self.analemma = curve(frame=self.SunAxisFrame, pos=[(0,0,self.NoonGeoLoc.pos[2])], color=Color.red, visible=False,  material=materials.emissive, radius=0)
+
+    def makeSunAxis(self, locIndex):
+        loc = None
+        if locIndex != -1:
+            loc = self.Planet.SolarSystem.locationInfo.getLocationInfo(locIndex)
+
+        self.setNoonPosition(loc)
+#        self.SunAxisFrame = frame()
+#        self.SunAxisFrame.pos = self.Origin.frame_to_world(self.NoonGeoLoc.pos)
+        # create first vertex in sun at z coordinate = earth latitude to create an axis parallel to ecliptic
+        self.SunAxis = curve(pos=[(0,0,self.NoonGeoLoc.pos[2])], color=Color.green, visible=False,  material=materials.emissive, radius=0)
+#        self.SunAxis = curve(pos=self.Origin.frame_to_world(self.NoonGeoLoc.pos), color=Color.green, visible=False,  material=materials.emissive, radius=0)
+
+        # add point at latitude (0,0, self.radius * sin(lat)) in ECI, converted into fixed referential (frame_to_world)
+#        self.SunAxis.append(pos=self.Origin.frame_to_world(self.NoonGeoLoc.pos), color=Color.green)
+        self.SunAxis.append(pos=self.Origin.frame_to_world(self.NoonGeoLoc.pos), color=Color.green)
+    
+
+        """
+        self.NodesAxis = curve( #frame=self.ECI, 
+                                #pos=[(2 * (self.DesNode.Node.pos[0] - self.Planet.Position[0]), 0, 0), 
+                                #    (2 * (self.AscNode.Node.pos[0] - self.Planet.Position[0]), 0, 0)], 
+                                pos = [(self.Planet.Position[0],self.Planet.Position[1],self.Planet.Position[2]), (0,0,0)], 
+                                color=Color.green, visible=True, radius=0, material=materials.emissive)
+        """
+        self.analemma = curve(frame=self.Origin, pos=[(2*self.radius,2*self.radius,self.NoonGeoLoc.pos[2])], color=Color.red, visible=True,  material=materials.emissive, radius=1000)
+#        self.analemma = curve(frame=self.Origin, pos=[(0,0,self.NoonGeoLoc.pos[2])], color=Color.red, visible=False,  material=materials.emissive, radius=0)
 
     def updateAnalemmaPosition(self):
+        
+        #self.sunPerspective = vector(0,0, self.radius)
         self.NoonGeoLoc.pos[0] = 0 #self.eqPlane * cos(deg2rad(0)+pi)
         self.NoonGeoLoc.pos[1] = 0 #self.eqPlane * sin(deg2rad(0)+pi)
+        
+        # update 2nd vertex position (earth)
         self.SunAxis.pos[1] = self.Origin.frame_to_world(self.NoonGeoLoc.pos)
+        #self.SunAxisFrame.pos = self.Origin.frame_to_world(self.NoonGeoLoc.pos)
 
-        self.Planet.SolarSystem.Dashboard.orbitalTab.TimeIncrement = TI_24_HOURS #EARTH_DAILY_MEAN_MOTION #EPHEMERIS_DAY # * 10 * 6
+        self.Planet.SolarSystem.Dashboard.orbitalTab.TimeIncrement = TI_24_HOURS * 10 #EARTH_DAILY_MEAN_MOTION #EPHEMERIS_DAY # * 10 * 6
         self.Planet.SolarSystem.setTimeIncrement(self.Planet.SolarSystem.Dashboard.orbitalTab.TimeIncrement)
 
-        print self.Planet.Origin.pos
+#        self.Planet.SolarSystem.Scene.forward = vector(self.Planet.Origin.pos - (0, 0, self.sunPerspective[2] + self.NoonGeoLoc.pos[2]))
+        self.Planet.SolarSystem.Scene.forward = vector(self.Planet.Origin.pos - (0, 0, self.NoonGeoLoc.pos[2] + 5*self.radius))
 
-        #angle = EARTH_MEAN_MOTION * self.Planet.SolarSystem.Dashboard.orbitalTab.TimeIncrement
+        if self.zob == False:
+            self.zob = True
+            self.eqPlane.rotate(angle=90, axis=(getOrthogonalVector(self.Planet.SolarSystem.Scene.forward)))
 
-#        self.Planet.SolarSystem.Scene.forward = rotate(self.Planet.SolarSystem.Scene.forward, angle=-angle, axis=(0,0,1))
-        self.Planet.SolarSystem.Scene.forward = vector(self.Planet.Origin.pos)
+        self.analemma.append(pos=self.NoonGeoLoc.pos, color=Color.red)
 
 
     def updateAnalemmaPosition2(self):
@@ -927,11 +1160,11 @@ class doLatitude():
     def __init__(self, widgets, latitudeAngle, colr, thickness=0):
         self.latAngle = latitudeAngle
         self.Planet = widgets.Planet
-        self.Origin = widgets.ECEF
+        self.Origin = widgets.ECEF.referential
         self.Color = colr
 
         # define latitude in rotating referential ECEF
-        self.Trail = curve(frame=widgets.ECEF, color=self.Color, material=materials.emissive, visible=False, radius=thickness)
+        self.Trail = curve(frame=self.Origin, color=self.Color, material=materials.emissive, visible=False, radius=thickness)
         self.Position = np.matrix([[0],[0],[0]], np.float64)
         self.draw()
 
@@ -951,13 +1184,16 @@ class doLatitude():
         radius = self.Planet.radiusToShow/self.Planet.SizeCorrection[self.Planet.sizeType]
         projection = radius * cos(self.latAngle)
 
-        self.Position[0] = projection * sin(angleIncr)
-        self.Position[1] = projection * cos(angleIncr)
-        self.Position[2] = radius * sin(self.latAngle)
+#        self.Position[0] = projection * sin(angleIncr)
+#        self.Position[1] = projection * cos(angleIncr)
+#        self.Position[2] = radius * sin(self.latAngle)
+        return (projection * sin(angleIncr),
+                projection * cos(angleIncr),
+                radius * sin(self.latAngle))
 
 
     def drawSegment(self, E):
-        self.setCartesianCoordinates(E)
+        self.Position = self.setCartesianCoordinates(E)
         newpos = vector(self.Position[0],self.Position[1],self.Position[2])
 
         # add angular portion of latitude curve
@@ -967,7 +1203,7 @@ class doLatitude():
 class makeLatitudes():
         
     def __init__(self, widgets):
-        self.Origin = widgets.ECEF
+        self.Origin = widgets.ECEF.referential
         self.Widgets = widgets
         self.lats = []
         self.Color = Color.cyan
@@ -988,7 +1224,7 @@ class makeLatitudes():
 class makeTropics():
         
     def __init__(self, widgets):
-        self.Origin = widgets.ECEF
+        self.Origin = widgets.ECEF.referential
         self.Widgets = widgets
         self.Tropics = []
         self.Color = Color.cyan

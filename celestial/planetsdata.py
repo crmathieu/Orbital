@@ -47,9 +47,9 @@ CELESTIAL_SPHERE = 0x400000
 HYPERBOLIC = 0x800000
 SPACECRAFT = 0x1000000
 CONSTELLATIONS = 0x2000000
+SUN = 0x4000000
 
 TYPE_MASK = 0xFFFFFFF
-
 
 SATELLITE_M = 100
 THREE_D = False
@@ -60,6 +60,7 @@ LEGEND = True
 
 SUN_M = 1.989e+30 # in Kg
 SUN_R = 696e+3 # in km
+
 G = 6.67384e-11	# Universal gravitational constant
 Mu = G * SUN_M
 DIST_FACTOR = 10e-7
@@ -70,9 +71,6 @@ EPOCH_2000_JD = 2451545.0	# number of days ellapsed from 01-01-4713 BC GMT to 01
 EPOCH_2000_MJD = 51544.0
 EPOCH_1970_JD = 2440587.5 # number of days ellapsed from 01-01-4713 BC GMT to 01-01-1970 AD GMT
 
-#X_COOR = 0
-#Y_COOR = 1
-#Z_COOR = 2
 
 TYPE_STAR = 0
 TYPE_PLANET = 1
@@ -180,7 +178,7 @@ JPL_ORBIT_CLASS = 58
 # time increments in day unit
 
 #TI_ONE_SECOND 	= 1.157407e-5			# 1d -> 86400 sec => 1sec = 1/86400 day
-TI_ONE_SECOND 	= 1.160576284e-5 		# 1d -> 86164.0905 sec +> 1 sec = 1/86164.0905 day
+TI_ONE_SECOND 	= 1.160576284e-5 		# 1d -> 86164.0905 sec => 1 sec = 1/86164.0905 day
 
 TI_10_SECONDS 	= TI_ONE_SECOND * 10
 TI_30_SECONDS 	= TI_ONE_SECOND * 30
@@ -262,7 +260,17 @@ MEAN_SOLARDAY = 86400 # in seconds
 SIDEREAL_DAY = 86164.0905 # in seconds
 
 SIDEREAL_YEAR = 365.256363004  # in ephemeris days
+
+"""
+The value of 365.2425 days is an exact value; it is the average number of days per year per the Gregorian calendar. 
+The Gregorian calendar repeats over a 400 span. In any 400 span, there will be 97 leap years (96 non-century leap 
+years, plus one century leap year) with 366 days and 303 years with 365 days. That results in 146097/400 days in a 
+year on average, or exactly 365.2425 days.
+"""
 TROPICAL_YEAR = 365.2421871    # in ephemeris days
+
+EARTH_PERIOD = TROPICAL_YEAR #SIDEREAL_YEAR
+EARTH_CENTURY = 36525
 
 EARTH_MEAN_MOTION_WIKI = 1.99096871e-7  	# in rad/s according to wikipedia
 								 	# but = 1.9909865927683785320224459427387e-7 rd/s according to calculation
@@ -270,8 +278,9 @@ EARTH_MEAN_MOTION_WIKI = 1.99096871e-7  	# in rad/s according to wikipedia
 EARTH_DAILY_MEAN_MOTION = 0.01720212416151879051667393294526 # in rd/day
 EARTH_MEAN_MOTION = 1.9909865927683785320224459427387e-7 # in rd/s
 
-def getEarthMeanMotion():
+def getEarthMeanMotion2():
 	return (pi * 2)/(SIDEREAL_YEAR * EPHEMERIS_DAY)
+
 	
 #from visual import color
 from vpython_interface import Color
@@ -574,12 +583,12 @@ objects_data = {
 		"material":1,
 		"name": "Earth",
 		"iau_name": "EARTH",
-		"jpl_designation": "earth",
+		"jpl_designation": EARTH_NAME,
 		"mass":5.972e24,
 		"radius":6371e3,
 		"QR_perihelion":147.09e9,
 		"EC_e":0.01671022,
-		"PR_revolution":365.256,
+		"PR_revolution": EARTH_PERIOD, #365.256,
 		"rotation":	1,
 		"IN_orbital_inclination":0,
 		"OM_longitude_of_ascendingnode":-11.26064,
@@ -728,6 +737,29 @@ objects_data = {
 		"axial_tilt": 0,
 		"tga_name": "Haumea"
 		},
+	"sun" : {
+		"type": TYPE_STAR,
+		"material":1,
+		"name": "Sun",
+		"iau_name": "SUN",
+		"jpl_designation": SUN_NAME,
+		"mass":SUN_M,
+		"radius":SUN_R,
+		"QR_perihelion":0.0,
+		"EC_e":0.0,
+		"PR_revolution": 0,
+		"rotation":	25.05,
+		"IN_orbital_inclination":0,
+		"OM_longitude_of_ascendingnode":0.0,
+		"longitude_of_perihelion":0.0,
+		"axial_tilt": 7.25,
+		"absolute_mag": 0.0,
+		"RA_1": 0.00,
+		"RA_2": -0.641,
+		"kep_elt":{'a' : 1.00000018, 'ar': -3e-08, 'EC_e' : 0.01673163, 'er':-3.661e-05, 'i' :-0.00054346, 'ir':-0.01337178, 'L' :100.46691572, 'Lr':35999.3730633, 'W' :102.93005885, 'Wr':0.3179526, 'N' :-5.11260389, 'Nr':-0.24123856, 'b' :0.0, 'c' :0.0, 's':0.0, 'f' :0.0},
+		"tga_name": "sun"
+		},
+
 }
 
 belt_data = {

@@ -5,6 +5,7 @@ from orbit3D import *
 import planetsdata as pd
 from controls import *
 from celestial.orbitalLIB import Api
+from eqsols_calculator import Vernal
 
 def bootLoader(story, recorder): 
 	
@@ -14,7 +15,9 @@ def bootLoader(story, recorder):
 	bodySet = pd.INNERPLANET|pd.ORBITS|pd.SATELLITE|pd.LABELS|pd.OUTERPLANET
 	solSystem.setDefaultFeatures(bodySet) 
 
-	# make bodyies we have satellites for
+	### solSystem.addTo(makeSun(solSystem, color.yellow, pd.SUN, pd.SUN, pd.SUN_SZ_CORRECTION))
+
+	# make first the bodies we have satellites defined for
 	earth = makeEarth(solSystem, color.cyan, pd.INNERPLANET, pd.INNERPLANET, pd.PLANET_SZ_CORRECTION)
 	solSystem.addTo(earth)
 
@@ -54,13 +57,14 @@ def bootLoader(story, recorder):
 
 	MAX_OBJECTS = 1000
 
-	print "LOADING bodies orbital elements and trajectories ..."
-	loadBodies(solSystem, PHA, "data/200m+PHA_orbital_elements.txt.json", MAX_OBJECTS)
-	loadBodies(solSystem, BIG_ASTEROID,"data/200km+asteroids_orbital_elements.txt.json", MAX_OBJECTS)
-	loadBodies(solSystem, COMET, "data/200m+comets_orbital_elements.txt.json", MAX_OBJECTS)
-	loadBodies(solSystem, TRANS_NEPT, "data/transNeptunian_objects.txt.json", MAX_OBJECTS)
-	loadBodies(solSystem, SPACECRAFT, "data/spacecrafts_orbital_elements.txt.json", MAX_OBJECTS)
-	print "FINISHED ..."
+	if False:
+		print "LOADING bodies orbital elements and trajectories ..."
+		loadBodies(solSystem, PHA, "data/200m+PHA_orbital_elements.txt.json", MAX_OBJECTS)
+		loadBodies(solSystem, BIG_ASTEROID,"data/200km+asteroids_orbital_elements.txt.json", MAX_OBJECTS)
+		loadBodies(solSystem, COMET, "data/200m+comets_orbital_elements.txt.json", MAX_OBJECTS)
+		loadBodies(solSystem, TRANS_NEPT, "data/transNeptunian_objects.txt.json", MAX_OBJECTS)
+		loadBodies(solSystem, SPACECRAFT, "data/spacecrafts_orbital_elements.txt.json", MAX_OBJECTS)
+		print "FINISHED ..."
 	
 	solSystem.drawAllBodiesTrajectory()
 	glbRefresh(solSystem, False)
@@ -92,6 +96,8 @@ def bootLoader(story, recorder):
 	# we only show the dashboard after the story has finished.
 	solSystem.getDashboard().Show()
 	solSystem.setAutoScale(False)
+	Vernal(2023) ### a test ...
+	
 
 	while True:
 		sleep(2)
