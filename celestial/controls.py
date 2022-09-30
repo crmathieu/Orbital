@@ -27,7 +27,7 @@ from planetsdata import *
 from visual import *
 import threading
 import pytz
-from utils import getOrthogonalVector
+from utils import getOrthogonalVector #, sleep
 
 #from concurrent.futures import ThreadPoolExecutor, ProcessPoolExecutor, as_completed
 
@@ -157,9 +157,10 @@ class AbstractUI(wx.Panel):
 class makeDashBoard(wx.Frame):
 
 	def __init__(self, solarsystem):
+		
 		newHeight = INFO1_Y+300 # +220
 		wx.Frame.__init__(self, None, wx.ID_ANY, title="Orbits Control", size=(500, newHeight))
-
+		
 		# create parent panel
 		self.Panel = wx.Panel(self, size=(500, newHeight))
 
@@ -177,6 +178,7 @@ class makeDashBoard(wx.Frame):
 		self.Notebook.AddPage(self.focusTab, "Focus")
 		self.Notebook.AddPage(self.searchTab, "Search")
 		self.Notebook.AddPage(self.widgetsTab, "Widgets")
+
 		#self.getLocationFromIPaddress()
 
 		# if we want flyOver animation
@@ -291,7 +293,7 @@ class FOCUSpanel(AbstractUI):
 		self.setLocalRef()
 
 	def setLocalRef(self):
-		self.parentFrame.widgetsTab.lrcb.SetValue(self.cb.GetValue())
+		#### self.parentFrame.widgetsTab.lrcb.SetValue(self.cb.GetValue())
 		self.SolarSystem.setFeature(LOCAL_REFERENTIAL, self.cb.GetValue())
 		orbit3D.glbRefresh(self.SolarSystem, self.parentFrame.orbitalTab.AnimationInProgress)
 
@@ -387,16 +389,17 @@ class FOCUSpanel(AbstractUI):
 		return self.setBodyFocus(planetBody)
 
 	def setSunFocus(self):
-		mass = setPrecision(str(self.SolarSystem.Mass), 3)
+		if self.SolarSystem.Sun != None:
+			mass = setPrecision(str(self.SolarSystem.Sun.Mass), 3)
 
-		self.Title.SetLabel(self.SolarSystem.Name)
-		self.Info.SetLabel("{:<17}{:>10}\n{:<19}{:>6.1f}\n{:<14}{:>10.2f}\n{:<20}{:>7.2f}".
-		format(	"Mass(kg) ", mass,
-				"Radius(km) ", self.SolarSystem.BodyRadius,
-				"Rot.Period(days) ", self.SolarSystem.Rotation,
-				"Axial Tilt(deg) ", self.SolarSystem.AxialTilt))
+			self.Title.SetLabel(self.SolarSystem.Sun.Name)
+			self.Info.SetLabel("{:<17}{:>10}\n{:<19}{:>6.1f}\n{:<14}{:>10.2f}\n{:<20}{:>7.2f}".
+			format(	"Mass(kg) ", mass,
+					"Radius(km) ", self.SolarSystem.Sun.BodyRadius,
+					"Rot.Period(days) ", self.SolarSystem.Sun.Rotation,
+					"Axial Tilt(deg) ", self.SolarSystem.Sun.AxialTilt))
 
-		self.resetCameraViewTarget()
+			self.resetCameraViewTarget()
 
 	def resetCameraViewTarget(self):
 		if self.smoothTransition == True:
@@ -1304,7 +1307,7 @@ class ORBITALPanel(AbstractUI):
 		self.refreshDate()
 		self.SolarSystem.animate(self.DeltaT)
 		for body in self.SolarSystem.bodies:
-			if body.BodyType in [SPACECRAFT, OUTERPLANET, INNERPLANET, SATELLITE, ASTEROID, \
+			if body.BodyType in [SUN, SPACECRAFT, OUTERPLANET, INNERPLANET, SATELLITE, ASTEROID, \
 								 COMET, DWARFPLANET, PHA, BIG_ASTEROID, TRANS_NEPT]:
 				if body.Origin.visible == True or body.Name.lower() == EARTH_NAME:
 					velocity, distance = body.animate(self.DeltaT)
@@ -1401,14 +1404,16 @@ class ORBITALPanel(AbstractUI):
 		orbit3D.glbRefresh(self.SolarSystem, self.AnimationInProgress)
 
 	def updateJTrojans(self):
+		##print "TROJAN INDEX=",self.SolarSystem.JTrojansIndex
 		curTrojans = self.SolarSystem.getJTrojans()
-		JupiterBody = self.SolarSystem.getBodyFromName(self.SolarSystem.objects_data[curTrojans.PlanetName]['jpl_designation'])
-		# if Jupiter coordinates haven't changed since this Trojans were generated, don't do anything
-		if JupiterBody.Position[0] == curTrojans.JupiterX and JupiterBody.Position[1] == curTrojans.JupiterY:
-			return
+		if curTrojans != None:
+			JupiterBody = self.SolarSystem.getBodyFromName(self.SolarSystem.objects_data[curTrojans.PlanetName]['jpl_designation'])
+			# if Jupiter coordinates haven't changed since this Trojans were generated, don't do anything
+			if JupiterBody.Position[0] == curTrojans.JupiterX and JupiterBody.Position[1] == curTrojans.JupiterY:
+				return
 
-		# otherwise, generate a new set of Trojans corresponding to Jupiter's new location
-		self.SolarSystem.addJTrojans(orbit3D.makeJtrojan(self.SolarSystem, 'jupiterTrojan', 'Jupiter Trojans', JTROJANS, color.green, 2, 5, 'jupiter'))
+			# otherwise, generate a new set of Trojans corresponding to Jupiter's new location
+			self.SolarSystem.addJTrojans(orbit3D.makeJtrojan(self.SolarSystem, 'jupiterTrojan', 'Jupiter Trojans', JTROJANS, color.green, 2, 5, 'jupiter'))
 
 	def OnRadioBox(self, e):
 		if self.ResumeSlideShowLabel == True or self.SolarSystem.SlideShowInProgress == True:

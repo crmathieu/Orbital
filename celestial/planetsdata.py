@@ -59,7 +59,8 @@ MIN_P_D = 46.0e9
 LEGEND = True
 
 SUN_M = 1.989e+30 # in Kg
-SUN_R = 696e+3 # in km
+#SUN_R = 696e+3 # in km
+SUN_R = 6.957e8 # in m
 
 G = 6.67384e-11	# Universal gravitational constant
 Mu = G * SUN_M
@@ -83,6 +84,7 @@ TYPE_SATELLITE = 6
 CURRENT_BODY = "current_body"
 EARTH_NAME = "earth"
 SUN_NAME = "sun"
+JUPITER_PERIHELION = 740.52e9
 
 index_to_bodyname = {
 	0: CURRENT_BODY,	1: SUN_NAME,	2: EARTH_NAME,	3: "mercury",	4:"venus",		
@@ -233,11 +235,18 @@ INITIAL_TIMEINCR = Frame_Intervals[INITIAL_INCREMENT_KEY]["incr"] #TI_ONE_SECOND
 SCALE_OVERSIZED = 0
 SCALE_NORMALIZED = 1
 
+# scale per body type
+bodyScaler = { SUN: 40000, SPACECRAFT: 1, INNERPLANET: 1200, SATELLITE:1400, GASGIANT: 3500, DWARFPLANET: 100, ASTEROID:1, COMET:0.02, SMALL_ASTEROID: 0.1, BIG_ASTEROID:0.1, PHA: 0.007, TRANS_NEPT: 0.001}
+
+# body shapes
+bodyShaper = { SUN: "sphere", SPACECRAFT: "cylinder", INNERPLANET: "sphere", OUTERPLANET: "sphere", SATELLITE: "sphere", DWARFPLANET: "sphere", ASTEROID:"cube", COMET:"cone", SMALL_ASTEROID:"cube", BIG_ASTEROID:"sphere", PHA:"cube", TRANS_NEPT: "cube"}
+
 # size corrections...
 SMALLBODY_SZ_CORRECTION = 1e-6/(DIST_FACTOR*5) #(default)
 #SMALLBODY_SZ_CORRECTION = 5e-5/(DIST_FACTOR * 5) #(default)
 
-SUN_SZ_CORRECTION = 1e-2/(DIST_FACTOR * 20)
+#SUN_SZ_CORRECTION = 1e-2/(DIST_FACTOR * 20)
+SUN_SZ_CORRECTION = 1/(DIST_FACTOR * 5)
 PLANET_SZ_CORRECTION = 1/(DIST_FACTOR * 5)
 SATELLITE_SZ_CORRECTION = 1/(DIST_FACTOR * 5)
 HYPERBOLIC_SZ_CORRECTION = 1/(DIST_FACTOR * 5)
@@ -811,6 +820,40 @@ Nu			66 100 - 69 900			3800				0.012
 Tau			37 850 - 41 350			3500				1
 """
 rings_data = {
+	"neptune": {
+		"rings":[
+			{	"name"		: "Galle",
+				"radius"	: 41000e3,
+				"width"		: 2000e3,
+				"color"		: Color.darkgrey,
+				"opacity"	: 1.0
+			},
+			{	"name"		: "LeVerrier",
+				"radius"	: 53200e3,
+				"width"		: 113e3,
+				"color"		: Color.grey,
+				"opacity"	: 1.0
+			},
+			{	"name"		: "Lassell",
+				"radius"	: 55000e3,
+				"width"		: 4000e3,
+				"color"		: Color.darkgrey, #Color.blueish,
+				"opacity"	: 0.9
+			},
+			{	"name"		: "Arago",
+				"radius"	: 57200e3,
+				"width"		: 100e3,
+				"color"		: Color.darkgrey, #Color.blueish,
+				"opacity"	: 0.8
+			},
+			{	"name"		: "Adams",
+				"radius"	: 62932e3,
+				"width"		: 50e3,
+				"color"		: Color.grey, #Color.blueish,
+				"opacity"	: 0.2
+			}
+		]
+	},
 	"uranus": {
 		"rings":[
 			{	"name"		: "Mu",

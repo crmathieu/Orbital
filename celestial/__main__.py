@@ -1,105 +1,126 @@
 """ main module  """
 
+from re import I
 from rate_func import *	
 from orbit3D import *
 import planetsdata as pd
 from controls import *
 from celestial.orbitalLIB import Api
 from eqsols_calculator import Vernal
+#from utils import sleep
 
 def bootLoader(story, recorder): 
 	
-	solSystem = makeSolarSystem()
-
+	ssys = makeSolarSystem()
+	
 	# set what is displayed by default
-	bodySet = pd.INNERPLANET|pd.ORBITS|pd.SATELLITE|pd.LABELS|pd.OUTERPLANET
-	solSystem.setDefaultFeatures(bodySet) 
+	ssys.setDefaultFeatures(pd.INNERPLANET|pd.ORBITS|pd.SATELLITE|pd.LABELS|pd.OUTERPLANET|pd.SUN) 
 
-	### solSystem.addTo(makeSun(solSystem, color.yellow, pd.SUN, pd.SUN, pd.SUN_SZ_CORRECTION))
+	sun = makeSun(ssys, color.yellow, pd.SUN, pd.SUN, pd.SUN_SZ_CORRECTION)
+	ssys.register(sun)
 
+
+	#glbRefresh(ssys, False)
+
+	#raw_input("type something ...")
+
+	#ssys.addTo(sun)
+	
 	# make first the bodies we have satellites defined for
-	earth = makeEarth(solSystem, color.cyan, pd.INNERPLANET, pd.INNERPLANET, pd.PLANET_SZ_CORRECTION)
-	solSystem.addTo(earth)
+	earth = makeEarth(ssys, color.cyan, pd.INNERPLANET, pd.INNERPLANET, pd.PLANET_SZ_CORRECTION)
+	ssys.addTo(earth)
+	
+	mars = makePlanet(ssys, 'mars', color.red, pd.INNERPLANET, pd.INNERPLANET, pd.PLANET_SZ_CORRECTION)
+	ssys.addTo(mars)
 
-	pluto = planet(solSystem, 'pluto', color.green, pd.DWARFPLANET, pd.DWARFPLANET, pd.DWARFPLANET_SZ_CORRECTION) #pd.OUTERPLANET, DWARFPLANET)
-	solSystem.addTo(pluto)
-
-	mars = planet(solSystem, 'mars', color.red, pd.INNERPLANET, pd.INNERPLANET, pd.PLANET_SZ_CORRECTION)
-	solSystem.addTo(mars)
+	pluto = makePlanet(ssys, 'pluto', color.green, pd.DWARFPLANET, pd.DWARFPLANET, pd.DWARFPLANET_SZ_CORRECTION) #pd.OUTERPLANET, DWARFPLANET)
+	ssys.addTo(pluto)
 
 	# generate pd.SATELLITE
-	#solSystem.addTo(satellite(solSystem, 'charon', color.white, pluto))
-	#solSystem.addTo(satellite(solSystem, 'moon', color.white, earth))
-	solSystem.addTo(satellite(solSystem, 'phobos', color.red, mars))
-	solSystem.addTo(satellite(solSystem, 'deimos', color.white, mars))
+	#ssys.addTo(makeSatellite(ssys, 'charon', color.white, pluto))
+	#ssys.addTo(makeSatellite(ssys, 'moon', color.white, earth))
+	#ssys.addTo(makeSatellite(ssys, 'phobos', color.red, mars))
+	#ssys.addTo(makeSatellite(ssys, 'deimos', color.white, mars))
 
-	solSystem.addTo(makeEcliptic(solSystem, color.cyan, 0.4))
+	ssys.addTo(makeEcliptic(ssys, color.cyan, 0.4))
 
-	solSystem.addTo(planet(solSystem, 'mercury', color.green, pd.INNERPLANET, pd.INNERPLANET, pd.PLANET_SZ_CORRECTION))
-	solSystem.addTo(planet(solSystem, 'venus', color.yellow, pd.INNERPLANET, pd.INNERPLANET, pd.PLANET_SZ_CORRECTION))
-	solSystem.addTo(planet(solSystem, 'jupiter', color.magenta, pd.OUTERPLANET, pd.GASGIANT, pd.PLANET_SZ_CORRECTION))
-	solSystem.addTo(planet(solSystem, 'saturn', color.cyan, pd.OUTERPLANET, pd.GASGIANT, pd.PLANET_SZ_CORRECTION))
-	solSystem.addTo(planet(solSystem, 'uranus', color.yellow, pd.OUTERPLANET, pd.GASGIANT, pd.PLANET_SZ_CORRECTION))
-	solSystem.addTo(planet(solSystem, 'neptune', color.orange, pd.OUTERPLANET, pd.GASGIANT, pd.PLANET_SZ_CORRECTION))
+	ssys.addTo(makePlanet(ssys, 'mercury', color.green, pd.INNERPLANET, pd.INNERPLANET, pd.PLANET_SZ_CORRECTION))
+	ssys.addTo(makePlanet(ssys, 'venus', color.yellow, pd.INNERPLANET, pd.INNERPLANET, pd.PLANET_SZ_CORRECTION))
+	ssys.addTo(makePlanet(ssys, 'jupiter', color.magenta, pd.OUTERPLANET, pd.GASGIANT, pd.PLANET_SZ_CORRECTION))
+	ssys.addTo(makePlanet(ssys, 'saturn', color.cyan, pd.OUTERPLANET, pd.GASGIANT, pd.PLANET_SZ_CORRECTION))
+	ssys.addTo(makePlanet(ssys, 'uranus', color.yellow, pd.OUTERPLANET, pd.GASGIANT, pd.PLANET_SZ_CORRECTION))
+	ssys.addTo(makePlanet(ssys, 'neptune', color.orange, pd.OUTERPLANET, pd.GASGIANT, pd.PLANET_SZ_CORRECTION))
 	
 	# generate DWARF planets
-	solSystem.addTo(dwarfPlanet(solSystem, 'eris', color.yellow))
-	solSystem.addTo(dwarfPlanet(solSystem, 'makemake', color.magenta))
-	solSystem.addTo(dwarfPlanet(solSystem, 'sedna', color.orange))
-	solSystem.addTo(dwarfPlanet(solSystem, 'haumea', color.white))
+	ssys.addTo(makeDwarfPlanet(ssys, 'eris', color.yellow))
+	ssys.addTo(makeDwarfPlanet(ssys, 'makemake', color.magenta))
+	ssys.addTo(makeDwarfPlanet(ssys, 'sedna', color.orange))
+	ssys.addTo(makeDwarfPlanet(ssys, 'haumea', color.white))
 
 	# generate Belts
-	solSystem.addTo(makeBelt(solSystem, 'kuiper', 'Kuiper Belt', pd.KUIPER_BELT, color.cyan, 2, 4))
-	solSystem.addTo(makeBelt(solSystem, 'asteroid', 'Asteroid Belt', pd.ASTEROID_BELT, color.white, 2, 2))
-	solSystem.addTo(makeBelt(solSystem, 'inneroort', 'Inner Oort Cloud', pd.INNER_OORT_CLOUD, color.white, 2, 5))
+	ssys.addTo(makeBelt(ssys, 'kuiper', 'Kuiper Belt', pd.KUIPER_BELT, color.cyan, 2, 4))
+	ssys.addTo(makeBelt(ssys, 'asteroid', 'Asteroid Belt', pd.ASTEROID_BELT, color.white, 2, 2))
+	ssys.addTo(makeBelt(ssys, 'inneroort', 'Inner Oort Cloud', pd.INNER_OORT_CLOUD, color.white, 2, 5))
 
-	solSystem.addJTrojans(makeJtrojan(solSystem, 'jupiterTrojan', 'Jupiter Trojans', pd.JTROJANS, color.green, 2, 5, 'jupiter'))
+	ssys.addJTrojans(makeJtrojan(ssys, 'jupiterTrojan', 'Jupiter Trojans', pd.JTROJANS, color.green, 2, 5, 'jupiter'))
+	
 
+	
 	MAX_OBJECTS = 1000
 
 	if False:
 		print "LOADING bodies orbital elements and trajectories ..."
-		loadBodies(solSystem, PHA, "data/200m+PHA_orbital_elements.txt.json", MAX_OBJECTS)
-		loadBodies(solSystem, BIG_ASTEROID,"data/200km+asteroids_orbital_elements.txt.json", MAX_OBJECTS)
-		loadBodies(solSystem, COMET, "data/200m+comets_orbital_elements.txt.json", MAX_OBJECTS)
-		loadBodies(solSystem, TRANS_NEPT, "data/transNeptunian_objects.txt.json", MAX_OBJECTS)
-		loadBodies(solSystem, SPACECRAFT, "data/spacecrafts_orbital_elements.txt.json", MAX_OBJECTS)
+		loadBodies(ssys, PHA, "data/200m+PHA_orbital_elements.txt.json", MAX_OBJECTS)
+		loadBodies(ssys, BIG_ASTEROID,"data/200km+asteroids_orbital_elements.txt.json", MAX_OBJECTS)
+		loadBodies(ssys, COMET, "data/200m+comets_orbital_elements.txt.json", MAX_OBJECTS)
+		loadBodies(ssys, TRANS_NEPT, "data/transNeptunian_objects.txt.json", MAX_OBJECTS)
+		loadBodies(ssys, SPACECRAFT, "data/spacecrafts_orbital_elements.txt.json", MAX_OBJECTS)
 		print "FINISHED ..."
 	
-	solSystem.drawAllBodiesTrajectory()
-	glbRefresh(solSystem, False)
+	ssys.drawAllBodiesTrajectory()
+	glbRefresh(ssys, False)
 
 	# Start control window
 	print (wx.version())
-
+	
 
 	# start wxPython application
-	ex = wx.App(False)
-	solSystem.setEarthLocations(makeDashBoard(solSystem))
+	try:
+		ex = wx.App(False)
+		ssys.setEarthLocations(makeDashBoard(ssys))
+
+	except RuntimeError as err:
+		print ("Exception...\n\nError: " + str(err.code))
+		raise
 
 	# play story when provided
-	api = Api(solSystem, recorder = recorder)
+	api = Api(ssys, recorder = recorder)
 	if story != None:
 		try:
 			# instantiate story and play it
-			st = story(solSystem, api)
+			st = story(ssys, api)
 			del st
 		except RuntimeError as err:
 			print ("Exception...\n\nError: " + str(err.code))
 			raise
 	else:
-		solSystem.setAutoScale(False)
+		ssys.setAutoScale(False)
 		api.camera.setCameraTarget(EARTH_NAME)
-		solSystem.displaySolarSystem()
-		solSystem.introZoomIn(75)
+		ssys.displaySolarSystem()
+		ssys.introZoomIn(75)
 
 	# we only show the dashboard after the story has finished.
-	solSystem.getDashboard().Show()
-	solSystem.setAutoScale(False)
-	Vernal(2023) ### a test ...
-	
+	ssys.getDashboard().Show()
+	ssys.setAutoScale(False)
 
+	print "Calculate equinox/solstyce"
+	Vernal(2023) ### a test ...
+
+	I = 0
 	while True:
+		#print I
+		#I += 1
+		#rate(1)
 		sleep(2)
 	#	earth.updateStillPosition(cw.orbitalBox, 2)
 

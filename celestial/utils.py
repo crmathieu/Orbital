@@ -87,3 +87,8 @@ def getVectorOrthogonalToPlane(A, B):
 	norm = mag((x, y, z))
 	return (1/norm) * vector(x, y, z)
 	#return vector(x/norm, y/norm, z/norm)
+
+def sleepThis(delay): # delay in seconds
+	if delay > 1:
+		return rate(1)
+	return rate(1/delay)

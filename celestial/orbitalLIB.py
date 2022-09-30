@@ -8,6 +8,7 @@ import time
 from video import *
 import orbit3D
 from planetsdata import LIT_SCENE, LABELS
+#from utils import sleep
 
 """
 
@@ -172,7 +173,9 @@ class camera():
         ticks = int(seconds * 25) # 25 = frames / sec
         #print "PAUSE ticks=", ticks, ", param was: ",seconds
         for i in range(ticks):
-            time.sleep(1e-2)
+            #time.sleep(1e-2)
+            sleep(1e-2)
+
             if self.recorder == True:
                 #print "Pause: Record Frame"
                 recOneFrame(self.solSystem.Dashboard.orbitalTab.VideoRecorder)

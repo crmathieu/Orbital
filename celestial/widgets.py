@@ -2,6 +2,7 @@ from celestial.utils import getAngleBetweenVectors, getOrthogonalVector, getVect
 from orbit3D import *
 from vpython_interface import ViewPort, Color
 from visual import *
+#from utils import sleep
 #from objects import circle
 from location import locList
 from video import *
@@ -15,7 +16,9 @@ class makePlanetWidgets():
     def __init__(self, planet):
 
         self.Planet = planet
+        self.Origin = planet.Origin
         self.visible = True
+        self.makeOverlayRef()
         self.makeECEFref()
         self.makeECIref()
         self.makeECSSref()
@@ -27,6 +30,12 @@ class makePlanetWidgets():
         self.zoomToLocation = False
         self.Loc = []
         self.initWidgets()
+
+    def makeOverlayRef(self):
+        # the overlay referential will display meridians, latitudes and earth locations
+        self.OVRL = frame()
+        self.OVRL.frame = self.Planet.ECEF.referential
+        self.OVRL.pos = (0,0,0)
 
     def makeECEFref(self):
         # this is the ECEF referential or GeoCentric referential 
@@ -87,7 +96,21 @@ class makePlanetWidgets():
         # The ECSS referential (the "Earth-Centered Sun Synchronous") always has its x-axis
         # tangent to the earth orbit and its y-axis pointing towards the sun. Its z-axis
         # is always aligned with the ecliptic's z-axis
-        self.ECSS = makeReferential(self.Planet, tilt=False, color=Color.yellow, legend = ["ecss-x","ecss-y","ecss-z"])
+        params = {
+            'body': self.Planet,
+            'radius': 0,
+            'tiltangle': 0,
+            'show':	False,
+            'color': Color.yellow,
+            'ratio': [1,1,1],
+            'legend': ["ecss-x","ecss-y","ecss-z"],
+            'axislock': True
+        }
+
+        self.ECSS = makeReferential(params) #self.Planet, 0, 0, show=False, color=Color.yellow, ratio=[1,1,1], legend = ["ecss-x","ecss-y","ecss-z"], axisLock=True)
+        self.ECSS.initTilt()
+        #def  __init__(self, body, radius, tiltAngle, show = False, color = Color.white, ratio = [1,1,1], legend = ["x", "y", "z"], axisLock = False):
+
         """
         self.ECSS = frame()     
         self.ECSS.pos = self.Planet.Origin.pos
@@ -99,8 +122,12 @@ class makePlanetWidgets():
         self.ECSSangle = atan2(self.Planet.Position[1], self.Planet.Position[0])
 #        self.ECSS.referential.rotate(angle=(pi/2 + self.ECSSangle), axis=(0,0,self.ECSS.Axis[2])) #self.Planet.SolarSystem.ZdirectionUnit)
 #        self.ECSS.referential.rotate(angle=(pi/2 + self.ECSSangle), axis=(0,0,self.ECSS.ZdirectionUnit)) #self.Planet.SolarSystem.ZdirectionUnit)
-        self.ECSS.referential.rotate(angle=(pi/2 + self.ECSSangle), axis=self.ECSS.ZdirectionUnit) #self.Planet.SolarSystem.ZdirectionUnit)
-        self.ECSS.display(True)
+
+        self.ECSS.referential.rotate(angle=(self.ECSSangle + pi/2), axis=self.ECSS.ZdirectionUnit) #self.Planet.SolarSystem.ZdirectionUnit)
+
+        #self.ECSS.referential.rotate(angle=(self.ECSSangle), axis=self.ECSS.ZdirectionUnit) #self.Planet.SolarSystem.ZdirectionUnit)
+
+        self.ECSS.display(False)
         return 
 
         pos = vector(self.ECSS.pos)
@@ -114,12 +141,14 @@ class makePlanetWidgets():
 
         print "RESET WIDGET FROM SOLAR-TIME"
         if self.SiderealCorrectionAngle != 0.0:
-            self.ECEF.rotate(angle=(-self.SiderealCorrectionAngle), axis=self.Planet.RotAxis) #, origin=(0,0,0))
+            self.OVRL.rotate(angle=(-self.SiderealCorrectionAngle), axis=self.Planet.RotAxis) #, origin=(0,0,0))
+            #self.Origin.rotate(angle=(-self.SiderealCorrectionAngle), axis=self.Planet.RotAxis) #, origin=(0,0,0))
             self.SiderealCorrectionAngle = 0.0
 
         print "Planet.Psi ....... ", self.Planet.Psi
         print "widgets.Psi ...... ", self.Psi
-        self.ECEF.referential.rotate(angle=(self.Planet.Psi-self.Psi), axis=self.Planet.RotAxis) #, origin=(0,0,0))
+        self.OVRL.rotate(angle=(self.Planet.Psi-self.Psi), axis=self.Planet.RotAxis) #, origin=(0,0,0))
+#        self.Origin.rotate(angle=(self.Planet.Psi-self.Psi), axis=self.Planet.RotAxis) #, origin=(0,0,0))
 
 
         # Psi is the initial rotation to apply on the sphere texture to match the solar Time
@@ -132,10 +161,12 @@ class makePlanetWidgets():
         if self.SiderealCorrectionAngle != 0.0:
             # there has been a previous manual reset of the UTC date which has resulted in a sidereal 
             # correction. We need to undo it prior to reposition the texture for the new date
-            self.ECEF.referential.rotate(angle=(-self.SiderealCorrectionAngle), axis=self.Planet.RotAxis)
+            self.OVRL.rotate(angle=(-self.SiderealCorrectionAngle), axis=self.Planet.RotAxis)
+#            self.Origin.rotate(angle=(-self.SiderealCorrectionAngle), axis=self.Planet.RotAxis)
 
         self.SiderealCorrectionAngle = self.Planet.SiderealCorrectionAngle #(2 * pi / self.NumberOfSiderealDaysPerYear) * fl_diff_in_days
-        self.ECEF.referential.rotate(angle=(self.SiderealCorrectionAngle), axis=self.Planet.RotAxis) #, origin=(0,0,0))
+        self.OVRL.rotate(angle=(self.SiderealCorrectionAngle), axis=self.Planet.RotAxis) #, origin=(0,0,0))
+#        self.Origin.rotate(angle=(self.SiderealCorrectionAngle), axis=self.Planet.RotAxis) #, origin=(0,0,0))
 
     def initWidgets(self):
         self.NumberOfSiderealDaysPerYear = self.Planet.NumberOfSiderealDaysPerYear
@@ -159,11 +190,12 @@ class makePlanetWidgets():
         if self.Planet.Name.lower() == EARTH_NAME:
 
             # adjust widgets positions in relation with earth texture at current time
-            self.resetWidgetsRefFromSolarTime()
+            ##### self.resetWidgetsRefFromSolarTime()
              
             # align GMT: the initial position of the GMT meridian on the texture is 6 hours
             # off its normal position. Ajusting by 6 hours x 15 degres = 90 degres
-            self.ECEF.referential.rotate(angle=(deg2rad(6*15)), axis=self.Planet.RotAxis) #ZdirectionUnit)
+            #### self.ECEF.referential.rotate(angle=(deg2rad(6*15)), axis=self.Planet.RotAxis) #ZdirectionUnit)
+            self.OVRL.rotate(angle=(deg2rad(6*15)), axis=(0,0,1)) #self.Planet.ECEF.ZdirectionUnit) #ZdirectionUnit)
             
             # init position in ecliptic referential
             #self.updateCurrentLocationEcliptic()
@@ -512,7 +544,8 @@ class makePlanetWidgets():
 
 
     def update_ECI_ECEF_ECSS_Position(self):
-        self.ECSS.referential.pos = self.ECEF.referential.pos = self.ECI.referential.pos = self.Planet.Origin.pos
+#        self.ECSS.referential.pos = self.ECEF.referential.pos = self.ECI.referential.pos = self.Planet.Origin.pos
+        self.ECSS.referential.pos = self.Planet.Origin.pos
 
     def updateCurrentLocationEcliptic(self):
         if self.currentLocation >= 0: 
@@ -557,13 +590,15 @@ class makePlanetWidgets():
 
 class makeEarthLocation():
     def __init__(self, widgets, tz_index):
-        self.Origin = widgets.ECEF.referential
+#        self.Origin = widgets.Planet.ECEF.referential
+        self.Origin = widgets.OVRL
+        self.Widgets = widgets
         self.Planet = widgets.Planet
         self.Color = Color.red
         self.EclipticPosition = vector(0,0,0)
         self.lat = self.long = 0
-        self.GeoLoc = sphere(frame=self.Origin, pos=(0,0,0), np=32, radius=5, material = materials.emissive, make_trail=false, color=self.Color, visible=True) 
-        #self.GeoLoc = cylinder(frame=self.Origin, pos=vector(0,0,0), radius=10, color=self.Color, material = materials.emissive, opacity=1.0, axis=(0,0,1))
+        #self.GeoLoc = sphere(frame=self.Origin, pos=(0,0,0), np=32, radius=5, material = materials.emissive, make_trail=false, color=self.Color, visible=True) 
+        self.GeoLoc = sphere(frame=self.Origin, pos=vector(0,0,0), radius=15, color=self.Color, material = materials.emissive, opacity=1.0, axis=(0,0,1))
 
 
         #self.GeoLoc = circle(color=self.Color, radius=10, pos=(0,0,0), normalAxis=(0,0,1), context=self.Origin)        
@@ -617,7 +652,11 @@ class makeEarthLocation():
 
     def updateEclipticPosition(self):
         # init position in ecliptic referential
-        self.EclipticPosition = self.Origin.frame_to_world(self.GeoLoc.pos)
+        # It is calculated by first getting the position of OVRL objects 
+        # in the ECEF referential, and then convert it from ECEF to absolute
+        self.EclipticPosition = self.Widgets.ECEF.referential.frame_to_world(self.Widgets.OVRL.frame_to_world(self.GeoLoc.pos))
+#        self.EclipticPosition = self.Origin.frame_to_world(self.GeoLoc.pos)
+#        self.EclipticPosition = self.Origin.frame.frame_to_world(self.GeoLoc.pos)
 
     def getEclipticPosition(self):
         # return ecliptic coordinates
@@ -658,7 +697,12 @@ class makeEarthLocation():
 class makeNode():
     def __init__(self, widgets, colr, ascending = true):
         #self.Origin = widgets.ECEF
+
+        # Nodes do not rotate with the planet. They are fixed to the stars, 
+        # hence must be relative to the ECI referential
+
         self.Planet = widgets.Planet
+        self.Origin = widgets.Planet.ECI.referential
         self.Color = colr
         self.ascending = -1 if ascending else 1
 
@@ -667,7 +711,7 @@ class makeNode():
         # why their position needs to be updated by an external animation
         # routine using the "updateNodesPosition" method.
 
-        self.Node = sphere(frame=widgets.ECI.referential, pos=(0,0,0), np=32, radius=100, make_trail=False, color=self.Color, visible=False, material=materials.emissive) 
+        self.Node = sphere(frame=self.Origin, pos=(0,0,0), np=32, radius=100, make_trail=False, color=self.Color, visible=False, material=materials.emissive) 
 #        self.Node = sphere(frame=widgets.ECI, pos=(0,0,0), np=32, radius=3000, make_trail=False, color=self.Color, visible=False, material=materials.emissive) 
         self.setPosition()
 
@@ -685,12 +729,16 @@ class makeNode():
 class makeEquator():
 
     def __init__(self, widgets): #planet):
-        self.Origin = widgets.ECEF.referential
-        self.ECI = widgets.ECI
         self.Planet = widgets.Planet
+#        self.Origin = self.Planet.Origin #widgets.ECEF.referential
+        self.Origin = widgets.OVRL
+        print "ORIGIN=", self.Origin.pos
+        #self.ECI = widgets.ECI
         self.Color = Color.red
 
         self.Trail = curve(frame=self.Origin, color=self.Color, visible=False, radius=25, material=materials.emissive)
+#        self.Trail = curve(frame=self.Planet.ECEF.referential, color=self.Color, visible=False, radius=25, material=materials.emissive)
+#        self.Trail = curve(frame=self.Planet.ECI.referential, color=self.Color, visible=False, radius=25, material=materials.emissive)
         self.Position = np.matrix([[0],[0],[0]], np.float64)
 
         # The equator holds the Asc and Des objects as they are always along the equator line
@@ -709,7 +757,9 @@ class makeEquator():
         self.draw()
 
     def makeNodeAxis(self):
-        self.NodesAxis = curve( frame=self.ECI.referential, 
+        # Nodes axis is fixed to the stars and therefore 
+        # must be relative to the ECI referential
+        self.NodesAxis = curve( frame=self.Planet.ECI.referential, #self.ECI.referential, 
                                 #pos=[(2 * (self.DesNode.Node.pos[0] - self.Planet.Position[0]), 0, 0), 
                                 #    (2 * (self.AscNode.Node.pos[0] - self.Planet.Position[0]), 0, 0)], 
                                 pos = [ (-2*self.Planet.radiusToShow/self.Planet.SizeCorrection[self.Planet.sizeType],0,0),
@@ -761,14 +811,17 @@ class makeEquator():
 class makeEquatorialPlane():
 
     def __init__(self, widgets, color, opacity): #planet, color, opacity):
+        # Equatorial Plane is fixed to the stars and therefore 
+        # must be relative to the ECI referential
         
         self.Planet = widgets.Planet
+        self.Origin = widgets.Planet.ECI.referential #widgets.Planet.Origin
         self.Opacity = opacity
         self.Color = color 
 
         side = 0.1*AU*DIST_FACTOR
         # define plane in fix referential ECI
-        self.eqPlane = box(frame=widgets.ECI.referential, pos=(0,0,0), length=side, width=0.0001, height=side, material=materials.emissive, visible=True, color=self.Color, opacity=0) #, axis=(0, 0, 1), opacity=0.8) #opacity=self.Opacity)
+        self.eqPlane = box(frame=self.Origin, pos=(0,0,0), length=side, width=0.0001, height=side, material=materials.emissive, visible=True, color=self.Color, opacity=0) #, axis=(0, 0, 1), opacity=0.8) #opacity=self.Opacity)
 
 
     def display(self, trueFalse):
@@ -787,8 +840,8 @@ class doMeridian():
 
     def __init__(self, widgets, colr, longitudeAngle):
         self.longAngle = longitudeAngle
-        self.Origin = widgets.ECEF.referential
-
+        self.Origin = widgets.OVRL
+#        self.Origin = widgets.Planet.Origin
         self.Planet = widgets.Planet
         #Radius = 25 if longitudeAngle == 0 else 0
         # define meridian in rotating referential ECEF
@@ -829,9 +882,10 @@ class doMeridian():
 
 class makeMeridians():
     def __init__(self, widgets, colr):
-        self.Origin = widgets.ECEF.referential
-        self.Widgets = widgets
+        self.Origin = widgets.OVRL
+#        self.Origin = widgets.Planet.Origin
         self.Origin.visible = True
+        self.Widgets = widgets
         self.Color = colr
         self.Meridians = []
 
@@ -864,6 +918,99 @@ class makeTimezones(makeMeridians):
         self.draw(15, Color.white)
 
 
+
+class doLatitude():
+
+    def __init__(self, widgets, latitudeAngle, colr, thickness=0):
+        self.latAngle = latitudeAngle
+        self.Origin = widgets.OVRL
+#        self.Origin = widgets.Planet.Origin
+        self.Planet = widgets.Planet
+        self.Color = colr
+
+        # define latitude in rotating referential ECEF
+        self.Trail = curve(frame=self.Origin, color=self.Color, material=materials.emissive, visible=False, radius=thickness)
+        self.Position = np.matrix([[0],[0],[0]], np.float64)
+        self.draw()
+
+
+    def display(self, trueFalse):
+        self.Trail.visible = trueFalse
+
+
+    def draw(self):
+        increment = pi/180
+        for E in np.arange(0, 2*pi+increment, increment):
+            # build latitude level using angular segments of E increments degres
+            self.drawSegment(E)
+
+
+    def setCartesianCoordinates(self, angleIncr):
+        radius = self.Planet.radiusToShow/self.Planet.SizeCorrection[self.Planet.sizeType]
+        projection = radius * cos(self.latAngle)
+
+#        self.Position[0] = projection * sin(angleIncr)
+#        self.Position[1] = projection * cos(angleIncr)
+#        self.Position[2] = radius * sin(self.latAngle)
+        return (projection * sin(angleIncr),
+                projection * cos(angleIncr),
+                radius * sin(self.latAngle))
+
+
+    def drawSegment(self, E):
+        self.Position = self.setCartesianCoordinates(E)
+        newpos = vector(self.Position[0],self.Position[1],self.Position[2])
+
+        # add angular portion of latitude curve
+        self.Trail.append(pos=newpos, color=(self.Color[0]*0.6, self.Color[1]*0.6, self.Color[2]*0.6))
+
+
+class makeLatitudes():
+        
+    def __init__(self, widgets):
+        self.Origin = widgets.OVRL
+#        self.Origin = widgets.Planet.Origin
+        self.Origin.visible = True
+        self.Widgets = widgets
+        self.Color = Color.cyan
+        self.lats = []
+        self.draw()
+
+
+    def display(self, trueFalse):
+        for lat in self.lats:
+            lat.display(trueFalse)
+
+
+    def draw(self):
+        for i in np.arange(-pi/2, pi/2, deg2rad(10)):
+            # build latitudes levels every 10deg from -90 to +90            
+            self.lats.append(doLatitude(self.Widgets, i, Color.cyan))
+
+
+class makeTropics():
+        
+    def __init__(self, widgets):
+#        self.Origin = widgets.ECI.referential
+        self.Origin = widgets.OVRL
+        self.Widgets = widgets
+        self.Tropics = []
+        self.Color = Color.cyan
+        self.TROPIC_ABS_LATITUDES = deg2rad(23.5)
+        self.draw()
+
+
+    def display(self, trueFalse):
+        for trop in self.Tropics:
+            trop.display(trueFalse)
+
+
+    def draw(self):
+        # build latitudes levels every 10deg from -90 to +90            
+        self.Tropics.append(doLatitude(self.Widgets, -self.TROPIC_ABS_LATITUDES, Color.yellow, thickness=25))
+        self.Tropics.append(doLatitude(self.Widgets, +self.TROPIC_ABS_LATITUDES, Color.yellow, thickness=25))
+
+
 class makeAnalemma():
     SUN_VERTEX = 0
     EARTH_VERTEX = 1
@@ -872,7 +1019,7 @@ class makeAnalemma():
         # draw earth sun segment between center 
         # of sun and a point at a given latitude
         self.ECSS = widgets.ECSS
-        self.Origin = widgets.ECSS.referential  # let's use the sun synchrnous referential
+        self.Origin = widgets.Planet.Origin #widgets.ECSS.referential  # let's use the sun synchrnous referential
         self.Planet = widgets.Planet
         self.ECSSangle = widgets.ECSSangle
         self.Color = Color.red
@@ -1006,7 +1153,7 @@ class makeAnalemmaSAVE():
 
 #        self.Origin = widgets.ECINT
 #        self.Origin = widgets.ECI
-        self.Origin = widgets.ECEF.referential
+        self.Origin = widgets.Planet.Origin #widgets.ECEF.referential
         self.Planet = widgets.Planet
         self.Color = Color.red
         self.Widgets = widgets
@@ -1154,90 +1301,3 @@ class makeAnalemmaSAVE():
     def display(self, trueFalse):
         self.SunAxis.visible = trueFalse
         self.NoonGeoLoc.visible = trueFalse
-
-class doLatitude():
-
-    def __init__(self, widgets, latitudeAngle, colr, thickness=0):
-        self.latAngle = latitudeAngle
-        self.Planet = widgets.Planet
-        self.Origin = widgets.ECEF.referential
-        self.Color = colr
-
-        # define latitude in rotating referential ECEF
-        self.Trail = curve(frame=self.Origin, color=self.Color, material=materials.emissive, visible=False, radius=thickness)
-        self.Position = np.matrix([[0],[0],[0]], np.float64)
-        self.draw()
-
-
-    def display(self, trueFalse):
-        self.Trail.visible = trueFalse
-
-
-    def draw(self):
-        increment = pi/180
-        for E in np.arange(0, 2*pi+increment, increment):
-            # build latitude level using angular segments of E increments degres
-            self.drawSegment(E)
-
-
-    def setCartesianCoordinates(self, angleIncr):
-        radius = self.Planet.radiusToShow/self.Planet.SizeCorrection[self.Planet.sizeType]
-        projection = radius * cos(self.latAngle)
-
-#        self.Position[0] = projection * sin(angleIncr)
-#        self.Position[1] = projection * cos(angleIncr)
-#        self.Position[2] = radius * sin(self.latAngle)
-        return (projection * sin(angleIncr),
-                projection * cos(angleIncr),
-                radius * sin(self.latAngle))
-
-
-    def drawSegment(self, E):
-        self.Position = self.setCartesianCoordinates(E)
-        newpos = vector(self.Position[0],self.Position[1],self.Position[2])
-
-        # add angular portion of latitude curve
-        self.Trail.append(pos=newpos, color=(self.Color[0]*0.6, self.Color[1]*0.6, self.Color[2]*0.6))
-
-
-class makeLatitudes():
-        
-    def __init__(self, widgets):
-        self.Origin = widgets.ECEF.referential
-        self.Widgets = widgets
-        self.lats = []
-        self.Color = Color.cyan
-        self.draw()
-
-
-    def display(self, trueFalse):
-        for lat in self.lats:
-            lat.display(trueFalse)
-
-
-    def draw(self):
-        for i in np.arange(-pi/2, pi/2, deg2rad(10)):
-            # build latitudes levels every 10deg from -90 to +90            
-            self.lats.append(doLatitude(self.Widgets, i, Color.cyan))
-
-
-class makeTropics():
-        
-    def __init__(self, widgets):
-        self.Origin = widgets.ECEF.referential
-        self.Widgets = widgets
-        self.Tropics = []
-        self.Color = Color.cyan
-        self.TROPIC_ABS_LATITUDES = deg2rad(23.5)
-        self.draw()
-
-
-    def display(self, trueFalse):
-        for trop in self.Tropics:
-            trop.display(trueFalse)
-
-
-    def draw(self):
-        # build latitudes levels every 10deg from -90 to +90            
-        self.Tropics.append(doLatitude(self.Widgets, -self.TROPIC_ABS_LATITUDES, Color.yellow, thickness=25))
-        self.Tropics.append(doLatitude(self.Widgets, +self.TROPIC_ABS_LATITUDES, Color.yellow, thickness=25))
