@@ -29,7 +29,7 @@ def bootLoader(story, recorder):
 	# make first the bodies we have satellites defined for
 	earth = makeEarth(ssys, color.cyan, pd.INNERPLANET, pd.INNERPLANET, pd.PLANET_SZ_CORRECTION)
 	ssys.addTo(earth)
-	
+
 	mars = makePlanet(ssys, 'mars', color.red, pd.INNERPLANET, pd.INNERPLANET, pd.PLANET_SZ_CORRECTION)
 	ssys.addTo(mars)
 
@@ -47,9 +47,9 @@ def bootLoader(story, recorder):
 	ssys.addTo(makePlanet(ssys, 'mercury', color.green, pd.INNERPLANET, pd.INNERPLANET, pd.PLANET_SZ_CORRECTION))
 	ssys.addTo(makePlanet(ssys, 'venus', color.yellow, pd.INNERPLANET, pd.INNERPLANET, pd.PLANET_SZ_CORRECTION))
 	ssys.addTo(makePlanet(ssys, 'jupiter', color.magenta, pd.OUTERPLANET, pd.GASGIANT, pd.PLANET_SZ_CORRECTION))
-	ssys.addTo(makePlanet(ssys, 'saturn', color.cyan, pd.OUTERPLANET, pd.GASGIANT, pd.PLANET_SZ_CORRECTION))
 	ssys.addTo(makePlanet(ssys, 'uranus', color.yellow, pd.OUTERPLANET, pd.GASGIANT, pd.PLANET_SZ_CORRECTION))
 	ssys.addTo(makePlanet(ssys, 'neptune', color.orange, pd.OUTERPLANET, pd.GASGIANT, pd.PLANET_SZ_CORRECTION))
+	ssys.addTo(makePlanet(ssys, 'saturn', color.cyan, pd.OUTERPLANET, pd.GASGIANT, pd.PLANET_SZ_CORRECTION))
 	
 	# generate DWARF planets
 	ssys.addTo(makeDwarfPlanet(ssys, 'eris', color.yellow))
@@ -104,8 +104,10 @@ def bootLoader(story, recorder):
 			print ("Exception...\n\nError: " + str(err.code))
 			raise
 	else:
+		print "0-0"
 		ssys.setAutoScale(False)
 		api.camera.setCameraTarget(EARTH_NAME)
+		print "1-1"
 		ssys.displaySolarSystem()
 		ssys.introZoomIn(75)
 

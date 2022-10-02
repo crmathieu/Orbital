@@ -96,7 +96,7 @@ class makePlanetWidgets():
         # The ECSS referential (the "Earth-Centered Sun Synchronous") always has its x-axis
         # tangent to the earth orbit and its y-axis pointing towards the sun. Its z-axis
         # is always aligned with the ecliptic's z-axis
-        params = {
+        self.ECSS = makeReferential({
             'body': self.Planet,
             'radius': 0,
             'tiltangle': 0,
@@ -104,11 +104,9 @@ class makePlanetWidgets():
             'color': Color.yellow,
             'ratio': [1,1,1],
             'legend': ["ecss-x","ecss-y","ecss-z"],
-            'axislock': True
-        }
-
-        self.ECSS = makeReferential(params) #self.Planet, 0, 0, show=False, color=Color.yellow, ratio=[1,1,1], legend = ["ecss-x","ecss-y","ecss-z"], axisLock=True)
-        self.ECSS.initTilt()
+   			'make_axis': True
+        })
+        self.ECSS.initiateReferentialTilt()
         #def  __init__(self, body, radius, tiltAngle, show = False, color = Color.white, ratio = [1,1,1], legend = ["x", "y", "z"], axisLock = False):
 
         """
@@ -1027,7 +1025,8 @@ class makeAnalemma():
 #        self.NoonGeoLoc = sphere(frame=self.Origin, pos=(0,0,0), np=32, radius=50, material = materials.emissive, make_trail=True, color=self.Color, visible=True) 
         
         # attach a sphere to "Earth-Centered Earth Fix" rotating reference frame
-        self.NoonGeoLoc = sphere(frame=self.Origin, pos=(0,0,0), np=32, radius=50, material = materials.emissive, make_trail=True, color=self.Color, visible=True) 
+        #self.NoonGeoLoc = sphere(frame=self.Origin, pos=(0,0,0), np=32, radius=50, material = materials.emissive, make_trail=True, color=self.Color, visible=True) 
+        self.NoonGeoLoc = sphere(frame=self.Origin, pos=(0,0,0), np=32, radius=0, material = materials.emissive, make_trail=True, color=Color.green, visible=True) 
 
         # set the radius
         self.radius = (self.Planet.radiusToShow/self.Planet.SizeCorrection[self.Planet.sizeType])*0.999

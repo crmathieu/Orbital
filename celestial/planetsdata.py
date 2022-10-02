@@ -236,7 +236,7 @@ SCALE_OVERSIZED = 0
 SCALE_NORMALIZED = 1
 
 # scale per body type
-bodyScaler = { SUN: 40000, SPACECRAFT: 1, INNERPLANET: 1200, SATELLITE:1400, GASGIANT: 3500, DWARFPLANET: 100, ASTEROID:1, COMET:0.02, SMALL_ASTEROID: 0.1, BIG_ASTEROID:0.1, PHA: 0.007, TRANS_NEPT: 0.001}
+bodyScaler = { SUN: 55000, SPACECRAFT: 1, INNERPLANET: 1200, SATELLITE:1400, GASGIANT: 3500, DWARFPLANET: 100, ASTEROID:1, COMET:0.02, SMALL_ASTEROID: 0.1, BIG_ASTEROID:0.1, PHA: 0.007, TRANS_NEPT: 0.001}
 
 # body shapes
 bodyShaper = { SUN: "sphere", SPACECRAFT: "cylinder", INNERPLANET: "sphere", OUTERPLANET: "sphere", SATELLITE: "sphere", DWARFPLANET: "sphere", ASTEROID:"cube", COMET:"cone", SMALL_ASTEROID:"cube", BIG_ASTEROID:"sphere", PHA:"cube", TRANS_NEPT: "cube"}
@@ -860,13 +860,13 @@ rings_data = {
 				"radius"	: 103000e3,
 				"width"		: 17000e3,
 				"color"		: Color.darkgrey,
-				"opacity"	: 1.0
+				"opacity"	: 0.6
 			},
 			{	"name"		: "Nu",
 				"radius"	: 69900e3,
 				"width"		: 3800e3,
 				"color"		: Color.darkgrey,
-				"opacity"	: 1.0
+				"opacity"	: 0.3
 			},
 			{	"name"		: "Tau",
 				"radius"	: 41350e3,
