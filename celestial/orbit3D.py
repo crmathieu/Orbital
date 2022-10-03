@@ -40,7 +40,7 @@ from utils import deg2rad, rad2deg #, sleep
 
 from camera import camera3D
 from objects import simpleArrow
-from referentials import makeReferential
+from referentials import make3DaxisReferential
 
 import json
 
@@ -132,7 +132,7 @@ class makeSolarSystem:
 
 		######################################################
 		self.CenterRef = self.makeSolarSystemReferential()
-		self.CenterRef.initiateReferentialTilt()
+		self.CenterRef.setAxisTilt()
 		######################################################
 		self.makeCelestialSphere()
 		self.makeConstellations()
@@ -143,7 +143,7 @@ class makeSolarSystem:
 
 	def makeSolarSystemReferential(self):
 		print "building Solar System Referential"
-		return makeReferential({
+		return make3DaxisReferential({
 					'body':			None,
 					'radius': 		5*AU*DIST_FACTOR,
 					'tiltangle': 	0,
@@ -154,7 +154,7 @@ class makeSolarSystem:
 					#'axislock': 	False,
 					'make_axis': 	True
 				})		
-		#return makeReferential(params)
+		#return make3DaxisReferential(params)
 
 	def displaySolarSystem(self):
 		sleep(1e-2)
@@ -747,23 +747,33 @@ class makeBody:
 		self.w = deg2rad(self.Argument_of_perihelion)
 		self.i = deg2rad(self.Inclination)
 
+		# determine axis of rotation
+		self.setRotAxis(self.TiltAngle)
+
 		# convert polar to Cartesian in Sun referential
 		self.Position = self.setCartesianCoordinates()
-		self.shape = bodyShaper[bodyType]
+		##### self.shape = bodyShaper[bodyType]
 		
 		# set fixed-to-the-stars referential (ECI)
-		self.ECI = self.make_ECI_referential(self.TiltAngle)  # this referential is fixed to the stars and moves with the planet   ####self.radiusToShow/self.SizeCorrection[self.sizeType], self.Position) #(self.Position[0],self.Position[1],self.Position[2]))
-		self.ECI.initiateReferentialTilt()
-		self.ECI.display(False)
+		#self.ECI = self.make_ECI_referential(self.TiltAngle)  # this referential is fixed to the stars and moves with the planet   ####self.radiusToShow/self.SizeCorrection[self.sizeType], self.Position) #(self.Position[0],self.Position[1],self.Position[2]))
+		#self.ECI.setAxisTilt()
+		#self.ECI.display(False)
+
+		# default ECI is just None. Planets and Sun must override this 
+		# method with a make3DaxisReferential call as they display the referential
+		# upon user demand 
+		self.make_ECI_referential(self.TiltAngle)
 
 		# set fixed-to-the-planet referential (ECEF)
-		self.ECEF 					= self.make_ECEF_referential(self.TiltAngle, defaultaxis=self.ECI.RotAxis) # this referential moves and rotates with the planet  ####self.radiusToShow/self.SizeCorrection[self.sizeType], self.Position) #(self.Position[0],self.Position[1],self.Position[2]))
+		#self.ECEF 					= self.make_ECEF_referential(self.TiltAngle, defaultaxis=self.ECI.RotAxis) # this referential moves and rotates with the planet  ####self.radiusToShow/self.SizeCorrection[self.sizeType], self.Position) #(self.Position[0],self.Position[1],self.Position[2]))
 		# set planet origin as the ECEF referential (rotates with the planet)
-		self.Origin 				= self.ECEF.referential #frame()
-		self.Origin.visible			= True
+		#self.Origin 				= self.ECEF.referential #frame()
+		#self.Origin.visible			= True
 
 		# the tilt will be initiated after loading the body texture
-		self.ECEF.display(True)
+		#self.ECEF.display(True)
+
+		self.make_ECEF_referential(self.TiltAngle) #, defaultaxis=self.ECI.RotAxis) # this referential moves and rotates with the planet  ####self.radiusToShow/self.SizeCorrection[self.sizeType], self.Position) #(self.Position[0],self.Position[1],self.Position[2]))
 
 		# create body shape ...
 		self.makeShape()
@@ -771,8 +781,8 @@ class makeBody:
 		self.setAspect(key)
 
 		# finally get the planet reference (Origin) tilted by rotating the referential attached to it (ECEF)
-		self.ECEF.initiateReferentialTilt()
-
+#		self.ECEF.setAxisTilt()
+		self.setECEFAxisTilt()
 
 		# create planet orbit curve and 1st vertex as the current position
 		if self.makeOrbit() == False:
@@ -789,21 +799,11 @@ class makeBody:
 		#	print self.Name+" <============ Should be visible"
 			
 
-		self.RotAxis 				= self.ECI.RotAxis
+		#self.RotAxis 				= self.ECI.RotAxis
 		self.initRotation()
 
-	def initECEFtiltXXX(self):
-		self.ECEF.initiateReferentialTilt()
-		#self.ECEF.referential.rotate(angle=(self.TiltAngle), axis=(1,0,0))
-
-
-	def setECEFreferentialXX(self):
-		self.ECEF = frame()
-
-		# set planet referential as an ECEF referential (rotates with the planet)
-		self.Origin 				= self.ECEF
-		self.Origin.visible			= True
-
+	def setECEFAxisTilt(self):
+		self.ECEF.setAxisTilt()
 
 	def getSemiMinor(self, semimajor, eccentricity):
 		# knowing the perihelion, the formula is given by rp = a(1-e)
@@ -813,7 +813,6 @@ class makeBody:
 		print "loading"+"./img/"+self.Tga
 		self.Texture = materials.loadTGA("./img/"+self.Tga) if self.SolarSystem.objects_data[key]["material"] != 0 else materials.loadTGA("./img/asteroid")
 		self.BodyShape.material = materials.texture(data=self.Texture, mapping="spherical", interpolate=False)
-
 
 		# align texture with tilt angle 
 		#self.BodyShape.rotate(angle=(self.TiltAngle), axis=self.ECI.XdirectionUnit, origin=(0,0,0))
@@ -865,7 +864,7 @@ class makeBody:
 		# then further rotation will apply to Z axis
 		#print "axis for "+self.Name+" is ", self.ECEF.ZdirectionUnit
 
-		self.RotAxis = self.ECI.ZdirectionUnit
+##########		self.RotAxis = self.ECI.ZdirectionUnit
 #		print self.RotAxis , "for", self.Name
 
 		#self.RotAxis = self.ECEF.referential.frame_to_world(self.ECEF.ZdirectionUnit)
@@ -881,35 +880,71 @@ class makeBody:
 		#else:
 		#	print "No RA for " +self.Name
 
-	def make_ECEF_referential(self, tiltAngle, defaultaxis=None): #, size, position):
+	def make_ECI_referential(self, tiltAngle): ###, size, position):
+		self.ECI = None 
+
+	def setObliquity(self, tiltAngle):
+		cosv = cos(tiltAngle)
+		sinv = sin(tiltAngle)
+		
+		self.Rotation_Obliquity = np.matrix([
+			[1,			0,		0	],
+			[0,			cosv,   sinv],
+			[0,			-sinv, 	cosv]]
+		)
+#		directions = [vector(1, 0, 0), vector(0, 1, 0), vector(0, 0, 1)]
+#		for i in range (3)
+#			A = np.matrix([[directions[i][0]],[directions[i][1]],directions[i][2]]], np.float64)
+#			directions[i] = self.Rotation_Obliquity * A
+
+#		return directions[2]
+		A = np.matrix([[0],[0],[1]], np.float64)
+		return self.Rotation_Obliquity * A
+
+	def setRotAxis(self, tiltAngle):
+		self.RotAxis = self.setObliquity(tiltAngle)
+
+	def getRotAxis(self):
+		return self.RotAxis
+
+	# default ECEF  referential: just a frame
+	def make_ECEF_referential(self, tiltAngle): #, size, position):
 		# This is the referential that rotates with the body
 		print "build ECEF ref for", self.Name
-		return makeReferential({
-			'body': self,
-			'radius': 0,
-			'tiltangle': -tiltAngle,
-			'show':	False,
-			'color': Color.cyan,
-			'ratio': [1,1,1],
-			'legend': ["x", "y", "z"],
-			'make_axis': False,
-			"default_zaxis": defaultaxis
-		})
 
-	def make_ECI_referential(self, tiltAngle): ###, size, position):
-		# This is the referential that doesn't rotate with the planet and is fixed to the stars.
-		# in other words, it always points to the same direction
-		print "build ECI ref for", self.Name
-		return makeReferential({
+		self.ECEF = makeBasicReferential({
 			'body': self,
-			'radius': 0,
 			'tiltangle': -tiltAngle,
 			'show':	False,
-			'color': Color.white,
-			'ratio': [1,1,1],
-			'legend': ["x", "y", "z"],
-			'make_axis': True
-		})
+			'color': Color.cyan
+#			"default_zaxis": self.RotAxis #defaultaxis
+		})# this referential moves and rotates with the planet  ####self.radiusToShow/self.SizeCorrection[self.sizeType], self.Position) #(self.Position[0],self.Position[1],self.Position[2]))
+		# set planet origin as the ECEF referential (rotates with the planet)
+		self.Origin 				= self.ECEF.referential #frame()
+		self.Origin.visible			= True
+
+		# the tilt will be initiated after loading the body texture
+		self.ECEF.display(True)
+
+		#return makeBasicReferential({
+		#	'body': self,
+		#	'tiltangle': -tiltAngle,
+		#	'show':	False,
+		#	'color': Color.cyan,
+		#	"default_zaxis": defaultaxis
+		#})
+#		return make3DaxisReferential({
+#			'body': self,
+#			'radius': 0,
+#			'tiltangle': -tiltAngle,
+#			'show':	False,
+#			'color': Color.cyan,
+#			'ratio': [1,1,1],
+#			'legend': ["x", "y", "z"],
+#			'make_axis': False,
+#			"default_zaxis": defaultaxis
+#		})
+
 
 	def updateAxisXX(self):
 		self.ECI.updateAxis() #self) ##################
@@ -1467,6 +1502,28 @@ class makePlanet(makeBody):
 		#self.BodyShape.visible = False
 		self.setRings()
 
+	def make_ECI_referential(self, tiltAngle): ###, size, position):
+		# This is the referential that doesn't rotate with the planet and is fixed to the stars.
+		# in other words, it always points to the same direction
+		print "build ECI ref for", self.Name
+		self.ECI = make3DaxisReferential({
+			'body': self,
+			'radius': 0,
+			'tiltangle': -tiltAngle,
+			'show':	False,
+			'color': Color.white,
+			'ratio': [1,1,1],
+			'legend': ["x", "y", "z"],
+			'make_axis': True
+		})  # this referential is fixed to the stars and moves with the planet   ####self.radiusToShow/self.SizeCorrection[self.sizeType], self.Position) #(self.Position[0],self.Position[1],self.Position[2]))
+		self.ECI.setAxisTilt()
+		self.ECI.display(False)
+#		self.setRotAxis()
+
+
+#	def setRotAxis(self):
+#		self.RotAxis = self.ECI.RotAxis
+
 	def updateStillPosition(self, timeinsec):
 		return
 
@@ -1589,63 +1646,47 @@ class makeEarth(makePlanet):
 		#self.ECEF.display(True)
 		
 		###################################################
-		self.PlanetWidgets = makePlanetWidgets(self)
+		self.PlanetWidgets = makePlanetWidgets(self)	
 		###################################################
 
 
 	# Called by the superclass __init__ methods. 
-	
-	def initECEFtiltXX(self):
-		self.ECEF.initiateReferentialTilt()
-
-	def setECEFreferentialXX(self):
-		self.ECEF = self.make_ECEF_referential(self.TiltAngle) # this referential moves and rotates with the planet  ####self.radiusToShow/self.SizeCorrection[self.sizeType], self.Position) #(self.Position[0],self.Position[1],self.Position[2]))
-		self.ECEF.display(True)
-
-		# set planet referential as an ECEF referential (rotates with the planet)
-		self.Origin 				= self.ECEF.referential #frame()
-		self.Origin.visible			= True
-	
-	def setOrigin(self, axis):
-		pass
-
-		# set the origin as its own frame, and rotate it based on body tilt
-#		if self.ECI != None:
-#			self.Origin = self.ECI.referential
-#		return
+		
 
 	# This overrides the default initRotation method provided in the makeBody superclass. 
 	# This create the earth's ECI referential
 	def make_ECI_referential(self, tiltAngle): 
-		print "makeEarth: build ECI"
-		return makeReferential({
+		print "makeEarth: build ECI ref for", self.Name
+		self.ECI = make3DaxisReferential({
 			'body': self,
 			'radius': 0,
 			'tiltangle': -tiltAngle,
-			'show':	True,
+			'show':	False,
 			'color': Color.white,
 			'ratio': [1,1,1],
-			'legend': ["Vernal Eq.", "y", "z"],
-			'make_axis': True
-		})
-		#return makeReferential(params)
+			'legend': ["Vernal Eq.", "y", "z"]
+		})  # this referential is fixed to the stars and moves with the planet   ####self.radiusToShow/self.SizeCorrection[self.sizeType], self.Position) #(self.Position[0],self.Position[1],self.Position[2]))
+		self.ECI.setAxisTilt()
+		self.ECI.display(False)		
 
-	def make_ECEF_referential(self, tiltAngle, defaultaxis=None): #, size, position):
+	def make_ECEF_referential(self, tiltAngle): #, size, position):
 		# This is the referential that rotates with the earth surface
-		print "makeEarth: build ECEF with referential"
-#		return makeReferential(self, 0, tiltAngle, show=False, color=Color.cyan)
-		#params = setReferentialParameters(self, 0, tiltAngle, show=False, color=Color.cyan, ratio=[1,1,1], legend=["x", "y", "z"], axisLock=True)
-		return makeReferential({
+		print "makeEarth: build ECEF ref for", self.Name
+		self.ECEF = make3DaxisReferential({
 			'body': self,
 			'radius': 0,
 			'tiltangle': -tiltAngle,
 			'show':	True,
 			'color': Color.cyan,
 			'ratio': [1,1,1],
-			'legend': ["x", "y", "z-ECEF"],
-			'make_axis': True
-		})
-		return makeReferential(params) #self, 0, tiltAngle, show=False, color=Color.cyan, ratio=[1,1,1], legend=["x", "y", "z"], axisLock=True) # this is the default referential attached to any body (planet, satellite, etc...)
+			'legend': ["x", "y", "z-ECEF"]
+		})# this referential moves and rotates with the planet  ####self.radiusToShow/self.SizeCorrection[self.sizeType], self.Position) #(self.Position[0],self.Position[1],self.Position[2]))
+		# set planet origin as the ECEF referential (rotates with the planet)
+		self.Origin 				= self.ECEF.referential #frame()
+		self.Origin.visible			= True
+
+		# Note: the referential tilt will be initiated after loading the body texture
+		self.ECEF.display(True)
 
 	# This overrides the default initRotation method provided in the makeBody superclass. 
 	# This is where we initially position the earth texture
@@ -1669,7 +1710,7 @@ class makeEarth(makePlanet):
 
 		# then further rotation will apply to Z axis
 		
-		self.RotAxis = self.ECEF.ZdirectionUnit
+		##### self.RotAxis = self.ECEF.ZdirectionUnit
 
 #		planet.initRotation(self)
 		#self.BodyShape.rotate(angle=(pi/2), axis=self.ECEF.XdirectionUnit, origin=(0,0,0))
@@ -2014,13 +2055,6 @@ class makeSatellite(makeBody):
 				self.Labels[0].visible = True
 
 		self.BodyShape.radius = self.radiusToShow  / self.SizeCorrection[self.sizeType]
-
-	def setCartesianCoordinatesXX(self):
-		self.Position[0] = self.R * DIST_FACTOR * ( cos(self.N) * cos(self.Nu+self.w) - sin(self.N) * sin(self.Nu+self.w) * cos(self.i) )
-		self.Position[1] = self.R * DIST_FACTOR * ( sin(self.N) * cos(self.Nu+self.w) + cos(self.N) * sin(self.Nu+self.w) * cos(self.i) )
-		self.Position[2] = self.R * DIST_FACTOR * ( sin(self.Nu+self.w) * sin(self.i) )
-
-		self.Position = self.Rotation_VernalEquinox * self.CentralBody.Rotation_Obliquity_SatCorrection * self.Position
 
 	def draw(self):
 		#print "drawing "+self.Name
@@ -2488,11 +2522,8 @@ class makeComet(makeBody):
 #		self.BodyShape.rotate(angle=self.RotAngle, axis=self.RotAxis, origin=(0,0,0)) #-sin(alpha), cos(alpha)))
 		self.Origin.rotate(angle=self.RotAngle, axis=self.RotAxis, origin=(0,0,0)) #-sin(alpha), cos(alpha)))
 
-	#def make_ECI_referential(self): #, size, position):
-	#	return
-
-	#def setAxisVisibility(self, setTo):
-	#	return
+	def make_ECI_referential(self): #, size, position):
+		return
 
 	def toggleSize(self, realisticSize):
 		x = SCALE_NORMALIZED if realisticSize == True else SCALE_OVERSIZED
@@ -2529,11 +2560,8 @@ class makeAsteroid(makeBody):
 #		self.BodyShape.rotate(angle=self.RotAngle, axis=self.RotAxis, origin=(0,0,0)) #-sin(alpha), cos(alpha)))
 		self.Origin.rotate(angle=self.RotAngle, axis=self.RotAxis, origin=(0,0,0)) #-sin(alpha), cos(alpha)))
 
-	#def make_ECI_referential(self): #, size, position):
-	#	return
-
-	#def setAxisVisibility(self, setTo):
-	#	return
+	def make_ECI_referential(self): #, size, position):
+		return
 
 	def getRealisticSizeCorrectionXX(self):
 		#ASTEROID_SZ_CORRECTION = 1e-2/(DIST_FACTOR*5)
@@ -2615,15 +2643,22 @@ class makeSmallAsteroid(makeBody):
 	def initRotation(self):
 #		self.RotAngle = pi/6
 		self.RotAngle = pi/512
-		self.RotAxis = (1,1,1)
+		#self.RotAxis = (1,1,1)
 
 	def setRotation(self):
 		self.Origin.pos= vector(self.Position[0],self.Position[1],self.Position[2])
 #		self.BodyShape.rotate(angle=self.RotAngle, axis=self.RotAxis, origin=(0,0,0)) #-sin(alpha), cos(alpha)))
 		self.Origin.rotate(angle=self.RotAngle, axis=self.RotAxis, origin=(0,0,0)) #-sin(alpha), cos(alpha)))
 
-	#def make_ECI_referential(self): #, size, position):
-	#	return
+	def make_ECI_referential(self): #, size, position):
+		self.Origin = frame()
+		self.Origin.visible	= True
+
+	def setRotAxis(self):
+		self.RotAxis = (1,1,1)
+
+	def make_ECEF_referential(self): #, size, position):
+		pass
 
 	#def setAxisVisibility(self, setTo):
 	#	return

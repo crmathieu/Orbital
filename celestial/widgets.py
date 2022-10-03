@@ -58,7 +58,7 @@ class makePlanetWidgets():
         #self.ECEF = frame()     
         #self.ECEF.pos = self.Planet.Origin.pos
         
-        #### self.ECEF = makeReferential(self.Planet, tilt=True, color=Color.red)
+        #### self.ECEF = make3DaxisReferential(self.Planet, tilt=True, color=Color.red)
         #### self.ECEF.referential.rotate(angle=(-self.Planet.TiltAngle), axis=self.ECEF.XdirectionUnit) #, origin=(0,0,0))
         
         self.ECEF = self.Planet.ECEF # has been done already 
@@ -87,7 +87,7 @@ class makePlanetWidgets():
         #self.ECI = frame() #self.Planet.ECI   
         #self.ECI.pos = self.Planet.Origin.pos
 
-        #self.ECI = makeReferential(self.Planet, tilt=True)
+        #self.ECI = make3DaxisReferential(self.Planet, tilt=True)
         self.ECI = self.Planet.ECI # has been done already 
         #self.ECI.referential.rotate(angle=(-self.Planet.TiltAngle), axis=self.ECI.XdirectionUnit)
 
@@ -96,14 +96,14 @@ class makePlanetWidgets():
         # The ECSS referential (the "Earth-Centered Sun Synchronous") always has its x-axis
         # tangent to the earth orbit and its y-axis pointing towards the sun. Its z-axis
         # is always aligned with the ecliptic's z-axis
-        self.ECSS = makeReferential({
+        self.ECSS = make3DaxisReferential({
             'body': self.Planet,
             'radius': 0,
             'tiltangle': 0,
             'show':	False,
             'color': Color.yellow,
             'ratio': [1,1,1],
-            'legend': ["ecss-x","ecss-y","ecss-z"],
+            'legend': ["tg","orth","z"],
    			'make_axis': True
         })
         self.ECSS.initiateReferentialTilt()
