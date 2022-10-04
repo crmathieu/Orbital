@@ -24,23 +24,29 @@ class makeBasicReferential:
         #    [0,			-sinv, 	cosv]]
         #)
 
-        cosv = cos(self.tiltAngle)
-        sinv = sin(self.tiltAngle)
-		
-        self.Rotation_Obliquity = np.matrix([
-            [1,			0,		0	],
-            [0,			cosv,   sinv],
-            [0,			-sinv, 	cosv]]
-        )
+        #cosv = cos(self.tiltAngle)
+        #sinv = sin(self.tiltAngle)
+        #self.defaultZaxis = vector(0, sin(self.tiltAngle), cos(self.tiltAngle))
 
-#		directions = [vector(1, 0, 0), vector(0, 1, 0), vector(0, 0, 1)]
-#		for i in range (3)
-#			A = np.matrix([[directions[i][0]],[directions[i][1]],directions[i][2]]], np.float64)
-#			directions[i] = self.Rotation_Obliquity * A
+        if False:
+            # this rotation happens around the x-axis
+            self.Rotation_Obliquity = np.matrix([
+                [1,			0,		0	],
+                [0,			cosv,   sinv],
+                [0,			-sinv, 	cosv]]
+            )
 
-#		return directions[2]
-        A = np.matrix([[0],[0],[1]], np.float64)
-        self.defaultAxis = self.Rotation_Obliquity * A
+    #		directions = [vector(1, 0, 0), vector(0, 1, 0), vector(0, 0, 1)]
+    #		for i in range (3)
+    #			A = np.matrix([[directions[i][0]],[directions[i][1]],directions[i][2]]], np.float64)
+    #			directions[i] = self.Rotation_Obliquity * A
+
+    #		return directions[2]
+            A = np.matrix([[0],[0],[1]], np.float64)
+            self.defaultZaxis = self.Rotation_Obliquity * A
+            self.defaultZaxis = self.defaultZaxis/mag(self.defaultZaxis)
+            print "default Z-AXIS = ", self.defaultZaxis
+            print "MANUALLY: = ",[0, sinv, cosv]
 
         if params['body'] != None:
             self.body               = params['body']
@@ -94,7 +100,7 @@ class makeBasicReferential:
 
     def setAxisTilt(self):
         self.referential.rotate(angle=(self.tiltAngle), axis=(1,0,0))
-        self.ZdirectionUnit = self.RotAxis = self.defaultZAxis
+        self.ZdirectionUnit = self.RotAxis = self.body.getRotAxis() #vector(0, sin(self.tiltAngle), cos(self.tiltAngle))
 
     def updateReferential(self):
         self.referential.pos = self.body.Position
@@ -154,30 +160,30 @@ class make3DaxisReferential:
 #        if tilt:
 #            #self.referential.rotate(angle=(-body.TiltAngle), axis=(1,0,0))
 #            self.referential.rotate(angle=(-body.TiltAngle), axis=(1,0,0))
-        if self.makeAxis ==  True:
+#        if self.makeAxis ==  True:
             #position = vector(0,0,0) 
-            for i in range (3): # Each direction
+        for i in range (3): # Each direction
 
-                self.Axis[i] = simpleArrow(params['color'], 0, 20, vector(0,0,0), axisp = self.directions[i], context=self.referential)
-                self.Axis[i].display(False) # allows axis visibility to be dependent upon their frame visibility when axisLock = True
-                self.AxisLabel[i] = label( frame = self.referential, color = params['color'],  text = params['legend'][i],
-                                            #pos = self.referential.pos+self.directions[i]*(1.07+ve), opacity = 0, box = False, visible=show )
-                                            pos = self.directions[i]*(1.07+ve), opacity = 0, box = False, visible=False )
+            self.Axis[i] = simpleArrow(params['color'], 0, 20, vector(0,0,0), axisp = self.directions[i], context=self.referential)
+            self.Axis[i].display(True) # allows axis visibility to be dependent upon their frame visibility when axisLock = True
+            self.AxisLabel[i] = label( frame = self.referential, color = params['color'],  text = params['legend'][i],
+                                        #pos = self.referential.pos+self.directions[i]*(1.07+ve), opacity = 0, box = False, visible=show )
+                                        pos = self.directions[i]*(1.07+ve), opacity = 0, box = False, visible=True )
 
 #                self.Axis[i] = simpleArrow(params['color'], 0, 20, position, axisp = self.directions[i], context=self.referential)
 #                self.Axis[i].display(False) # allows axis visibility to be dependent upon their frame visibility when axisLock = True
 #                self.AxisLabel[i] = label( frame = self.referential, color = params['color'],  text = params['legend'][i],
 #                                            #pos = self.referential.pos+self.directions[i]*(1.07+ve), opacity = 0, box = False, visible=show )
 #                                            pos = position+self.directions[i]*(1.07+ve), opacity = 0, box = False, visible=False )
-                ve = 0.07 #####
+            ve = 0.07 #####
 
         self.display(params['show'])
 
     def display(self, trueFalse):
-        self.referential.visible = trueFalse
-        #for i in range(3):
-        #    self.Axis[i].display(trueFalse)
-        #    self.AxisLabel[i].visible = trueFalse
+        #self.referential.visible = trueFalse
+        for i in range(3):
+            self.Axis[i].display(trueFalse)
+            self.AxisLabel[i].visible = trueFalse
 
     def setAxisTilt(self):
         # rotate referential first
@@ -203,7 +209,7 @@ class make3DaxisReferential:
         
 #        self.updateAxis()
 #        if self.makeAxis == True:
-#            ve = 0.2
+        ve = 0.2
         for i in range (3): # Each direction
             self.Axis[i].setPosition((0,0,0), self.directions[i])
             self.AxisLabel[i].pos = self.directions[i]*(1.07+ve)

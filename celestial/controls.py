@@ -869,7 +869,7 @@ class SEARCHpanel(AbstractUI):
 		print (self.SolarSystem.objects_data[spkid])
 
 		# for now let's consider "search" bodies as PHAs
-		body = orbit3D.pha(self.SolarSystem, spkid, color.white) #orbit3D.getColor())
+		body = orbit3D.makePha(self.SolarSystem, spkid, color.white) #orbit3D.getColor())
 		self.SolarSystem.addTo(body)
 		return spkid
 
@@ -945,7 +945,7 @@ class SEARCHpanel(AbstractUI):
  		print ">>> Local Time of approach: ", self.SolarSystem.objects_data[entry["neo_reference_id"]]["local_dt"]
 
 		# CLose approach objects are considered as PHAs
-		body = orbit3D.pha(self.SolarSystem, entry["neo_reference_id"], orbit3D.getColor())
+		body = orbit3D.makePha(self.SolarSystem, entry["neo_reference_id"], orbit3D.getColor())
 		self.SolarSystem.addTo(body)
 
 		print "UTC time of approach   =========>", utcNewdatetime

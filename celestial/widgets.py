@@ -106,7 +106,7 @@ class makePlanetWidgets():
             'legend': ["tg","orth","z"],
    			'make_axis': True
         })
-        self.ECSS.initiateReferentialTilt()
+        self.ECSS.setAxisTilt() #initiateReferentialTilt()
         #def  __init__(self, body, radius, tiltAngle, show = False, color = Color.white, ratio = [1,1,1], legend = ["x", "y", "z"], axisLock = False):
 
         """
