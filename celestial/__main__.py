@@ -67,6 +67,7 @@ def bootLoader(story, recorder):
 
 	
 	MAX_OBJECTS = 1000
+	loadBodies(ssys, PHA, "data/test.json", MAX_OBJECTS)
 
 	if False:
 		print "LOADING bodies orbital elements and trajectories ..."

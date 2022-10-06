@@ -141,7 +141,7 @@ class make3DaxisReferential:
         if params['body'] != None:
             self.body               = params['body']
             radius                  = self.body.radiusToShow/self.body.SizeCorrection[self.body.sizeType]
-            self.referential.pos    = self.body.Position
+            self.referential.pos    = (self.body.Position[0]+self.body.Foci[0], self.body.Position[1]+self.body.Foci[1], self.body.Position[2]+self.body.Foci[2])
             #if body.Name.lower() not in objects_data.keys():
             #    return
 
@@ -201,7 +201,7 @@ class make3DaxisReferential:
         self.RotAxis = self.ZdirectionUnit
 
     def updateReferential(self):
-        self.referential.pos = self.body.Position
+        self.referential.pos = (self.body.Position[0]+self.body.Foci[0], self.body.Position[1]+self.body.Foci[1], self.body.Position[2]+self.body.Foci[2])
 
         # based on whether or not our 3 axis is locked with frame, set position absolutely or relatively
         #position = self.referential.pos #if self.frame == None else vector(0,0,0)

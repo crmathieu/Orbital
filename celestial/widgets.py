@@ -125,7 +125,7 @@ class makePlanetWidgets():
 
         #self.ECSS.referential.rotate(angle=(self.ECSSangle), axis=self.ECSS.ZdirectionUnit) #self.Planet.SolarSystem.ZdirectionUnit)
 
-        self.ECSS.display(False)
+        self.ECSS.display(True)
         return 
 
         pos = vector(self.ECSS.pos)
@@ -1017,7 +1017,8 @@ class makeAnalemma():
         # draw earth sun segment between center 
         # of sun and a point at a given latitude
         self.ECSS = widgets.ECSS
-        self.Origin = widgets.Planet.Origin #widgets.ECSS.referential  # let's use the sun synchrnous referential
+#        self.Origin = widgets.Planet.Origin #widgets.ECSS.referential  # let's use the sun synchrnous referential
+        self.Origin = widgets.ECSS.referential  # let's use the sun synchrnous referential
         self.Planet = widgets.Planet
         self.ECSSangle = widgets.ECSSangle
         self.Color = Color.red
@@ -1052,6 +1053,8 @@ class makeAnalemma():
         self.analemmaPlane.rotate(angle=pi/2, axis=self.ECSS.XdirectionUnit) #(self.Axis[0], 0, 0))
 
     def makeSunAxis(self, locIndex):
+        
+        print "make Sun Axis"
         loc = None
         if locIndex != -1:
             loc = self.Planet.SolarSystem.locationInfo.getLocationInfo(locIndex)
@@ -1098,7 +1101,7 @@ class makeAnalemma():
         self.NoonGeoLoc.pos[2] = self.radius * sin(deg2rad(lat))
 
     def updateAnalemmaPosition(self):
-        return
+        
         #self.sunPerspective = vector(0,0, self.radius)
         self.NoonGeoLoc.pos[0] = 0 #self.latPlane * cos(deg2rad(0)+pi)
         self.NoonGeoLoc.pos[1] = 0 #self.latPlane * sin(deg2rad(0)+pi)
@@ -1141,9 +1144,9 @@ class makeAnalemma():
         #self.Planet.SolarSystem.Scene.forward = vector(self.Planet.SolarSystem.Scene.center)
 
     def display(self, trueFalse):
-        self.SunAxis.visible = trueFalse
+        #self.SunAxis.visible = trueFalse
         self.NoonGeoLoc.visible = trueFalse
-
+"""
 class makeAnalemmaSAVE():
 
     def __init__(self, widgets, locIndex = -1):
@@ -1213,13 +1216,13 @@ class makeAnalemmaSAVE():
         self.SunAxis.append(pos=[(0,0,self.NoonGeoLoc.pos[2])], color=Color.green)
        
 
-        """
-        self.NodesAxis = curve( #frame=self.ECI, 
-                                #pos=[(2 * (self.DesNode.Node.pos[0] - self.Planet.Position[0]), 0, 0), 
-                                #    (2 * (self.AscNode.Node.pos[0] - self.Planet.Position[0]), 0, 0)], 
-                                pos = [(self.Planet.Position[0],self.Planet.Position[1],self.Planet.Position[2]), (0,0,0)], 
-                                color=Color.green, visible=True, radius=0, material=materials.emissive)
-        """
+        
+        #self.NodesAxis = curve( #frame=self.ECI, 
+        #                        #pos=[(2 * (self.DesNode.Node.pos[0] - self.Planet.Position[0]), 0, 0), 
+        #                        #    (2 * (self.AscNode.Node.pos[0] - self.Planet.Position[0]), 0, 0)], 
+        #                        pos = [(self.Planet.Position[0],self.Planet.Position[1],self.Planet.Position[2]), (0,0,0)], 
+        #                        color=Color.green, visible=True, radius=0, material=materials.emissive)
+        #
         self.analemma = curve(frame=self.SunAxisFrame, pos=[(0,0,self.NoonGeoLoc.pos[2])], color=Color.red, visible=False,  material=materials.emissive, radius=0)
 
     def makeSunAxis(self, locIndex):
@@ -1239,13 +1242,13 @@ class makeAnalemmaSAVE():
         self.SunAxis.append(pos=self.Origin.frame_to_world(self.NoonGeoLoc.pos), color=Color.green)
     
 
-        """
-        self.NodesAxis = curve( #frame=self.ECI, 
-                                #pos=[(2 * (self.DesNode.Node.pos[0] - self.Planet.Position[0]), 0, 0), 
-                                #    (2 * (self.AscNode.Node.pos[0] - self.Planet.Position[0]), 0, 0)], 
-                                pos = [(self.Planet.Position[0],self.Planet.Position[1],self.Planet.Position[2]), (0,0,0)], 
-                                color=Color.green, visible=True, radius=0, material=materials.emissive)
-        """
+        
+        #self.NodesAxis = curve( #frame=self.ECI, 
+        #                        #pos=[(2 * (self.DesNode.Node.pos[0] - self.Planet.Position[0]), 0, 0), 
+        #                        #    (2 * (self.AscNode.Node.pos[0] - self.Planet.Position[0]), 0, 0)], 
+        #                        pos = [(self.Planet.Position[0],self.Planet.Position[1],self.Planet.Position[2]), (0,0,0)], 
+        #                        color=Color.green, visible=True, radius=0, material=materials.emissive)
+        #
         self.analemma = curve(frame=self.Origin, pos=[(2*self.radius,2*self.radius,self.NoonGeoLoc.pos[2])], color=Color.red, visible=True,  material=materials.emissive, radius=1000)
 #        self.analemma = curve(frame=self.Origin, pos=[(0,0,self.NoonGeoLoc.pos[2])], color=Color.red, visible=False,  material=materials.emissive, radius=0)
 
@@ -1273,17 +1276,17 @@ class makeAnalemmaSAVE():
 
 
     def updateAnalemmaPosition2(self):
-        """
-        The angular precession per orbit for an Earth orbiting satellite is given by
-
-        delta = -(3*pi.J2.RE^2/p^2).cos(i)
-
-        where
-            J2 = 1.08263e-3 is the coefficient for the second zonal term related to the oblateness of the Earth,
-            RE ~ 6378 km is the mean radius of the Earth,
-            p is the semi-latus rectum of the orbit,
-            i is the inclination of the orbit to the equator.        
-        """
+        
+        #The angular precession per orbit for an Earth orbiting satellite is given by
+        #
+        #delta = -(3*pi.J2.RE^2/p^2).cos(i)
+        #
+        #where
+        #    J2 = 1.08263e-3 is the coefficient for the second zonal term related to the oblateness of the Earth,
+        #    RE ~ 6378 km is the mean radius of the Earth,
+        #    p is the semi-latus rectum of the orbit,
+        #    i is the inclination of the orbit to the equator.        
+        #
         J2 = 1.08263e-3
         precession = -3 * pi * cos(self.Planet.Inclination) * J2 * ((self.radius**2)/(self.semiLactusRectum**2)) 
         angle = precession * self.Planet.SolarSystem.Dashboard.orbitalTab.TimeIncrement/5400     
@@ -1300,3 +1303,4 @@ class makeAnalemmaSAVE():
     def display(self, trueFalse):
         self.SunAxis.visible = trueFalse
         self.NoonGeoLoc.visible = trueFalse
+"""

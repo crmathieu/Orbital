@@ -1039,6 +1039,7 @@ class ORBITALPanel(AbstractUI):
 		self.showObjectDetails(self.currentBody)
 
 	def setCurrentBodyFromId(self, id):
+		print "ZZZZZZZZZZZZZZZZZZZ"
 		if self.currentBody != None:
 			self.currentBody.hide()
 
@@ -1049,6 +1050,7 @@ class ORBITALPanel(AbstractUI):
 			#print "Current body SET-1 with ", self.currentBody.Name, "Origin=",self.currentBody.Origin.pos
 			#print ""
 			self.showObjectDetails(self.currentBody)
+			print "\nBODY:",body.Name, "\nposition=",body.Position, "\nbody.pos=",body.BodyShape.pos, "\nlabels.pos=", body.Labels[0].pos, "\norigin.pos=",body.Origin.pos
 		else:
 			print "SetCurrentBodyFromId: could not find", id
 		#print "Current body SET-2 with ", self.currentBody.Name, "Origin=",self.currentBody.Origin.pos
@@ -1515,6 +1517,7 @@ class ORBITALPanel(AbstractUI):
 	def showObjectDetails(self, body):
 		self.InfoTitle.SetLabel(body.Name)
 
+		print "ANIMATE deltaT=", self.DeltaT
 		self.velocity, self.distance = body.animate(self.DeltaT)
 		if body.Mass == 0:
 			mass = "???"
@@ -1550,7 +1553,7 @@ class ORBITALPanel(AbstractUI):
 		############ self.refreshDate() 
 
 		#for i in range(len(body.BodyShape)):
-
+		print ">>>>DETAILS:\norigin.pos=", body.Origin.pos, "\nlabel.pos", body.Labels[0].pos
 		body.Origin.visible = True
 		for i in range(len(body.Labels)):
 			body.Labels[i].visible = True

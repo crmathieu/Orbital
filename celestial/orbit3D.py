@@ -307,7 +307,7 @@ class makeSolarSystem:
 		self.bodies.append(body)
 		i = len(self.bodies) - 1
 		self.nameIndex[body.JPL_designation.lower()] = i
-		print "Adding", body.Name
+		#print "Adding", body.Name
 		if body.JPL_designation.lower() == EARTH_NAME:
 			self.EarthRef = body
 		return i # this is the index of the added body in the collection
@@ -811,7 +811,7 @@ class makeBody:
 		return semimajor * sqrt(1 - eccentricity**2)
 
 	def setAspect(self, key):
-		print "loading"+"./img/"+self.Tga
+		#print "loading"+"./img/"+self.Tga
 		self.Texture = materials.loadTGA("./img/"+self.Tga) if self.SolarSystem.objects_data[key]["material"] != 0 else materials.loadTGA("./img/asteroid")
 		self.BodyShape.material = materials.texture(data=self.Texture, mapping="spherical", interpolate=False)
 
@@ -918,7 +918,7 @@ class makeBody:
 	# default ECEF  referential: just a frame
 	def make_ECEF_referential(self, tiltAngle): #, size, position):
 		# This is the referential that rotates with the body
-		print "build ECEF ref for", self.Name
+		#print "build ECEF ref for", self.Name
 
 		self.ECEF = makeBasicReferential({
 			'body': self,
@@ -982,44 +982,50 @@ class makeBody:
 			self.sizeType = x
 		self.BodyShape.radius = self.radiusToShow  / self.SizeCorrection[self.sizeType]
 
-	def setTraceAndLabelVisibility(self, value):
+	def setTraceAndLabelVisibility(self, trueFalse):
 #		if self.BodyShape.visible == True:
 		if self.Origin.visible == True:
-			self.Trail.visible = value
+			self.Trail.visible = trueFalse
 			for i in range(len(self.Labels)):
-				self.Labels[i].visible = value
+				self.Labels[i].visible = trueFalse
 
 	def animate(self, timeIncrement):
 		if self.hasRenderedOrbit == False:
 			self.draw()
 
 		self.wasAnimated = true
+		if timeIncrement != 0.0:
+			# update position
+			self.setOrbitalElements(self.ObjectIndex, timeIncrement)
+			self.setPolarCoordinates(deg2rad(self.E))
 
-		# update position
-		self.setOrbitalElements(self.ObjectIndex, timeIncrement)
-		self.setPolarCoordinates(deg2rad(self.E))
+			# initial acceleration
+			#self.Acceleration = vector(0,0,0)
 
-		# initial acceleration
-		#self.Acceleration = vector(0,0,0)
+			# calculate current body position in its orbit knowing
+			# its current distance from Sun (R) and True anomaly (Nu)
+			# that were set in setPolarCoordinates
 
-		# calculate current body position in its orbit knowing
-		# its current distance from Sun (R) and True anomaly (Nu)
-		# that were set in setPolarCoordinates
+			self.N = deg2rad(self.Longitude_of_ascendingnode)
+			self.w = deg2rad(self.Argument_of_perihelion)
+			self.i = deg2rad(self.Inclination)
 
-		self.N = deg2rad(self.Longitude_of_ascendingnode)
-		self.w = deg2rad(self.Argument_of_perihelion)
-		self.i = deg2rad(self.Inclination)
+			# convert polar to Cartesian in Sun referential
+			self.Position = self.setCartesianCoordinates()
+			#print "ANIMATE: position=", self.Position
+			# update foci position
+			if self.CentralBody != None:
+				self.Foci = self.CentralBody.Position
+				#print "central body position", self.Foci
+				#raw_input("type a key...")
 
-		# convert polar to Cartesian in Sun referential
-		self.Position = self.setCartesianCoordinates()
-		# update foci position
-		if self.CentralBody != None:
-			self.Foci = self.CentralBody.Position
-			#self.Trail.pos = self.Foci
+				#self.Trail.pos = self.Foci
 
-		self.Origin.pos = vector(self.Position[0]+self.Foci[0],self.Position[1]+self.Foci[1],self.Position[2]+self.Foci[2])
-		self.Labels[0].pos = vector(self.Position[0]+self.Foci[0],self.Position[1]+self.Foci[1],self.Position[2]+self.Foci[2])
-		self.setRotation()
+			self.Origin.pos = self.Labels[0].pos = vector(self.Position[0]+self.Foci[0],self.Position[1]+self.Foci[1],self.Position[2]+self.Foci[2])
+			#self.Labels[0].pos = vector(self.Position[0]+self.Foci[0],self.Position[1]+self.Foci[1],self.Position[2]+self.Foci[2])
+			#print "ANIMATE-2: Origin.pos=", self.Origin.pos, "labels.pos=", self.Labels[0].pos
+			self.setRotation() # <<<<<<<<< this is fucking things up
+			#print "ANIMATE-3: Origin.pos=", self.Origin.pos, "labels.pos=", self.Labels[0].pos
 		return self.getCurrentVelocity(), self.getCurrentDistanceFromEarth()
 
 	def update_referentials(self):
@@ -1167,7 +1173,7 @@ class makeBody:
 		return pi/180
 
 	def draw(self):
-		#print "Rendering orbit for ", self.Name
+		print "Rendering orbit for ", self.Name
 		self.Trail.visible = False
 		rad_E = deg2rad(self.E)
 		increment = self.getIncrement()
@@ -1186,7 +1192,7 @@ class makeBody:
 			self.Trail.visible = True
 
 		self.hasRenderedOrbit = True
-
+		print "DRAW: origin.pos=",self.Origin.pos, "label.pos=", self.Labels[0].pos
 
 	def setPolarCoordinates(self, E_rad):
 		X = self.a * (cos(E_rad) - self.e)
@@ -2550,9 +2556,9 @@ class makeComet(makeBody):
 
 	def setRotation(self):
 		#self.updateAxis()
-		self.Origin.pos = vector(self.Position[0],self.Position[1],self.Position[2])
+#		self.Origin.pos = vector(self.Position[0],self.Position[1],self.Position[2])
 #		self.BodyShape.rotate(angle=self.RotAngle, axis=self.RotAxis, origin=(0,0,0)) #-sin(alpha), cos(alpha)))
-		self.Origin.rotate(angle=self.RotAngle, axis=self.RotAxis, origin=(0,0,0)) #-sin(alpha), cos(alpha)))
+		self.Origin.rotate(angle=self.RotAngle, axis=self.RotAxis) #, origin=(0,0,0)) #-sin(alpha), cos(alpha)))
 
 	def make_ECI_referential(self): #, size, position):
 		return
@@ -2588,9 +2594,9 @@ class makeAsteroid(makeBody):
 		self.RotAxis = (1,1,1)
 
 	def setRotation(self):
-		self.Origin.pos = vector(self.Position[0],self.Position[1],self.Position[2]) ### !!!!!
+#		self.Origin.pos = vector(self.Position[0],self.Position[1],self.Position[2]) ### !!!!!
 #		self.BodyShape.rotate(angle=self.RotAngle, axis=self.RotAxis, origin=(0,0,0)) #-sin(alpha), cos(alpha)))
-		self.Origin.rotate(angle=self.RotAngle, axis=self.RotAxis, origin=(0,0,0)) #-sin(alpha), cos(alpha)))
+		self.Origin.rotate(angle=self.RotAngle, axis=self.RotAxis) #, origin=(0,0,0)) #-sin(alpha), cos(alpha)))
 
 	def make_ECI_referential(self): #, size, position):
 		return
@@ -2602,10 +2608,29 @@ class makeAsteroid(makeBody):
 # CLASS PHA -------------------------------------------------------------------
 class makePha(makeBody):
 	def __init__(self, system, key, color):
-		makeBody.__init__(self, system, key, color, PHA, PHA, SMALLBODY_SZ_CORRECTION, system.Sun)
+		makeBody.__init__(self, system, key, color, PHA, PHA, SMALLBODY_SZ_CORRECTION, None) #system.Sun)
 
 	def setAxisVisibility(self, setTo):
 		pass
+
+	def make_ECEF_referentialXX(self, tiltAngle): #, size, position):
+		# This is the referential that rotates with the earth surface
+		print "makPHA: build ECEF ref for", self.Name
+		self.ECEF = make3DaxisReferential({
+			'body': self,
+			'radius': 0,
+			'tiltangle': -tiltAngle,
+			'show':	True,
+			'color': Color.cyan,
+			'ratio': [1,1,1],
+			'legend': ["x", "y", "z-ECEF"]
+		})# this referential moves and rotates with the planet  ####self.radiusToShow/self.SizeCorrection[self.sizeType], self.Position) #(self.Position[0],self.Position[1],self.Position[2]))
+		# set planet origin as the ECEF referential (rotates with the planet)
+		self.Origin 				= self.ECEF.referential #frame()
+		self.Origin.visible			= True
+
+		# Note: the referential tilt will be initiated after loading the body texture
+		self.ECEF.display(True)
 
 	def makeShape(self):
 		asteroidRandom = [(1.5, 2, 1), (1.5, 2, 1)]
@@ -2614,6 +2639,8 @@ class makePha(makeBody):
 									length=(self.radiusToShow * asteroidRandom[self.sizeType][0])/self.SizeCorrection[self.sizeType],
 									height=(self.radiusToShow * asteroidRandom[self.sizeType][1])/self.SizeCorrection[self.sizeType],
 									width=(self.radiusToShow * asteroidRandom[self.sizeType][2])/self.SizeCorrection[self.sizeType], make_trail=false)
+		if self.JPL_designation == '4179':
+			print "makePHA:", self.Name,", position=:", self.Position, ", body position=",self.BodyShape.pos, "body Origin=", self.Origin.pos
 
 	def toggleSize(self, realisticSize):
 		x = SCALE_NORMALIZED if realisticSize == True else SCALE_OVERSIZED
@@ -2630,14 +2657,17 @@ class makePha(makeBody):
 		self.BodyShape.width  = self.radiusToShow * asteroidRandom[self.sizeType][2] / self.SizeCorrection[self.sizeType]
 
 	def initRotation(self):
-		self.RotAngle = pi/64
-		self.RotAxis = (0,1,1)
+		self.RotAngle = pi/48
+		self.RotAxis = (1,1,1)
+		print "LABEL position:", self.Labels[0].pos
 
 	def setRotation(self):
+		#print "PHA rotates"
 		#self.updateAxis()
-		self.Origin.pos = vector(self.Position[0],self.Position[1],self.Position[2])
+		#self.Origin.pos = vector(self.Position[0],self.Position[1],self.Position[2])
+
 #		self.BodyShape.rotate(angle=self.RotAngle, axis=self.RotAxis, origin=(0,0,0)) #-sin(alpha), cos(alpha)))
-		self.Origin.rotate(angle=self.RotAngle, axis=self.RotAxis, origin=(0,0,0)) #-sin(alpha), cos(alpha)))
+		self.Origin.rotate(angle=self.RotAngle, axis=self.RotAxis) #, origin=(0,0,0)) #-sin(alpha), cos(alpha)))
 
 	#def make_ECI_referential(self): #, size, position):
 	#	return
@@ -2678,9 +2708,9 @@ class makeSmallAsteroid(makeBody):
 		#self.RotAxis = (1,1,1)
 
 	def setRotation(self):
-		self.Origin.pos= vector(self.Position[0],self.Position[1],self.Position[2])
+#		self.Origin.pos= vector(self.Position[0],self.Position[1],self.Position[2])
 #		self.BodyShape.rotate(angle=self.RotAngle, axis=self.RotAxis, origin=(0,0,0)) #-sin(alpha), cos(alpha)))
-		self.Origin.rotate(angle=self.RotAngle, axis=self.RotAxis, origin=(0,0,0)) #-sin(alpha), cos(alpha)))
+		self.Origin.rotate(angle=self.RotAngle, axis=self.RotAxis) #, origin=(0,0,0)) #-sin(alpha), cos(alpha)))
 
 	def make_ECI_referential(self): #, size, position):
 		self.Origin = frame()
@@ -2745,9 +2775,9 @@ class makeTransNeptunian(makeBody):
 		self.RotAxis = (0,1,1)
 
 	def setRotation(self):
-		self.Origin.pos = vector(self.Position[0],self.Position[1],self.Position[2])
+#		self.Origin.pos = vector(self.Position[0],self.Position[1],self.Position[2])
 #		self.BodyShape.rotate(angle=self.RotAngle, axis=self.RotAxis, origin=(0,0,0)) #-sin(alpha), cos(alpha)))
-		self.Origin.rotate(angle=self.RotAngle, axis=self.RotAxis, origin=(0,0,0)) #-sin(alpha), cos(alpha)))
+		self.Origin.rotate(angle=self.RotAngle, axis=self.RotAxis) #, origin=(0,0,0)) #-sin(alpha), cos(alpha)))
 
 	#def make_ECI_referential(self): #, size, position):
 	#	return
