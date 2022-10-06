@@ -47,9 +47,9 @@ CELESTIAL_SPHERE = 0x400000
 HYPERBOLIC = 0x800000
 SPACECRAFT = 0x1000000
 CONSTELLATIONS = 0x2000000
+SUN = 0x4000000
 
 TYPE_MASK = 0xFFFFFFF
-
 
 SATELLITE_M = 100
 THREE_D = False
@@ -59,7 +59,9 @@ MIN_P_D = 46.0e9
 LEGEND = True
 
 SUN_M = 1.989e+30 # in Kg
-SUN_R = 696e+3 # in km
+#SUN_R = 696e+3 # in km
+SUN_R = 6.957e8 # in m
+
 G = 6.67384e-11	# Universal gravitational constant
 Mu = G * SUN_M
 DIST_FACTOR = 10e-7
@@ -70,9 +72,6 @@ EPOCH_2000_JD = 2451545.0	# number of days ellapsed from 01-01-4713 BC GMT to 01
 EPOCH_2000_MJD = 51544.0
 EPOCH_1970_JD = 2440587.5 # number of days ellapsed from 01-01-4713 BC GMT to 01-01-1970 AD GMT
 
-X_COOR = 0
-Y_COOR = 1
-Z_COOR = 2
 
 TYPE_STAR = 0
 TYPE_PLANET = 1
@@ -82,7 +81,25 @@ TYPE_COMET = 4
 TYPE_TRANS_N = 5
 TYPE_SATELLITE = 6
 
+CURRENT_BODY = "current_body"
 EARTH_NAME = "earth"
+SUN_NAME = "sun"
+JUPITER_PERIHELION = 740.52e9
+
+index_to_bodyname = {
+	0: CURRENT_BODY,	1: SUN_NAME,	2: EARTH_NAME,	3: "mercury",	4:"venus",		
+	5:"mars",       	6:"jupiter",	7:"saturn",   	8:"uranus", 	9:"neptune",
+	10:"pluto",     	11:"sedna", 	12:"makemake",	13:"haumea",	14:"eris", 
+	15:"charon",    	16:"phobos",	17:"deimos",	18:"moon"
+}
+
+bodyname_to_index = {
+	index_to_bodyname[0]: 0, 	index_to_bodyname[1]: 1, 	index_to_bodyname[2]: 2, 	index_to_bodyname[3]: 3, 	
+	index_to_bodyname[4]: 4,	index_to_bodyname[5]: 5, 	index_to_bodyname[6]: 6, 	index_to_bodyname[7]: 7, 	
+	index_to_bodyname[8]: 8, 	index_to_bodyname[9]: 9,	index_to_bodyname[10]: 10, 	index_to_bodyname[11]: 11, 	
+	index_to_bodyname[12]: 12, 	index_to_bodyname[13]: 13, 	index_to_bodyname[14]: 14, 	index_to_bodyname[15]: 15, 		
+	index_to_bodyname[16]: 16, 	index_to_bodyname[17]: 17, 	index_to_bodyname[18]: 18
+}
 
 AU = 149597870691
 DEFAULT_RADIUS = 2.0
@@ -143,18 +160,43 @@ JPL_EARTH_MOID_LD = 44
 JPL_JUPITER_MOID_AU = 45
 JPL_ORBIT_CLASS = 58
 
+# a few facts about earth rotation:
+# - A sidereal period is the time required for a given body to return to the same position
+#   relative to the stars. It is 86164.0905 seconds (23 h 56 min 4.0905 s or 23.9344696 h)
+# - A synodic period, the time required for a body within the solar system, such as a planet, 
+#   the Moon, or an artificial Earth satellite, to return to the same or approximately the same 
+#   position relative to the Sun as seen by an observer on the Earth. It is 86400 seconds (24h)
+#
+# The Earth rotation angle (ERA) measures the rotation of the Earth from an origin on the celestial 
+# equator, the Celestial Intermediate Origin (CIO), that has no instantaneous motion along the equator; 
+# it was originally referred to as the non-rotating origin.
+#
+# ERA, measured in radians, is related to UT1 by a simple linear polynomial:
+#
+# Theta (tU) = 2 PI (0.779 057 273 2640 + 1.002 737 811 911 354 48 x tU) 
+# where tU=JD-J2000 is the Julian UT1 date (JD) relative to the J2000 epoch (JD 2451545.0). The linear 
+# coefficient represents the Earth's rotation speed. 
+
 # time increments in day unit
 
-TI_ONE_SECOND 	= 1.157407e-5			# 1d -> 86400 sec => 1sec = 1/86400 day
+#TI_ONE_SECOND 	= 1.157407e-5			# 1d -> 86400 sec => 1sec = 1/86400 day
+TI_ONE_SECOND 	= 1.160576284e-5 		# 1d -> 86164.0905 sec => 1 sec = 1/86164.0905 day
+
 TI_10_SECONDS 	= TI_ONE_SECOND * 10
 TI_30_SECONDS 	= TI_ONE_SECOND * 30
 TI_ONE_MINUTE 	= TI_ONE_SECOND * 60
 TI_FIVE_MINUTES = TI_ONE_MINUTE * 5 
 TI_TEN_MINUTES 	= TI_ONE_MINUTE * 10 
-TI_ONE_HOUR 	= 0.0416666666
-TI_SIX_HOURS 	= 0.25
-TI_TWELVE_HOURS = 0.5
-TI_24_HOURS 	= 1
+
+TI_ONE_HOUR 	= TI_TEN_MINUTES * 6
+TI_SIX_HOURS 	= TI_TEN_MINUTES * 36
+TI_TWELVE_HOURS = TI_TEN_MINUTES * 72
+TI_24_HOURS 	= TI_TEN_MINUTES * 144
+
+#TI_ONE_HOUR 	= 0.0416666666
+#TI_SIX_HOURS 	= 0.25
+#TI_TWELVE_HOURS = 0.5
+#TI_24_HOURS 	= 1
 
 
 Frame_IntervalsXX = { 
@@ -193,11 +235,18 @@ INITIAL_TIMEINCR = Frame_Intervals[INITIAL_INCREMENT_KEY]["incr"] #TI_ONE_SECOND
 SCALE_OVERSIZED = 0
 SCALE_NORMALIZED = 1
 
+# scale per body type
+bodyScaler = { SUN: 55000, SPACECRAFT: 1, INNERPLANET: 1200, SATELLITE:1400, GASGIANT: 3500, DWARFPLANET: 100, ASTEROID:1, COMET:0.02, SMALL_ASTEROID: 0.1, BIG_ASTEROID:0.1, PHA: 0.007, TRANS_NEPT: 0.001}
+
+# body shapes
+bodyShaper = { SUN: "sphere", SPACECRAFT: "cylinder", INNERPLANET: "sphere", OUTERPLANET: "sphere", SATELLITE: "sphere", DWARFPLANET: "sphere", ASTEROID:"cube", COMET:"cone", SMALL_ASTEROID:"cube", BIG_ASTEROID:"sphere", PHA:"cube", TRANS_NEPT: "cube"}
+
 # size corrections...
 SMALLBODY_SZ_CORRECTION = 1e-6/(DIST_FACTOR*5) #(default)
 #SMALLBODY_SZ_CORRECTION = 5e-5/(DIST_FACTOR * 5) #(default)
 
-SUN_SZ_CORRECTION = 1e-2/(DIST_FACTOR * 20)
+#SUN_SZ_CORRECTION = 1e-2/(DIST_FACTOR * 20)
+SUN_SZ_CORRECTION = 1/(DIST_FACTOR * 5)
 PLANET_SZ_CORRECTION = 1/(DIST_FACTOR * 5)
 SATELLITE_SZ_CORRECTION = 1/(DIST_FACTOR * 5)
 HYPERBOLIC_SZ_CORRECTION = 1/(DIST_FACTOR * 5)
@@ -210,6 +259,38 @@ DWARFPLANET_SZ_CORRECTION = 1e-2/(DIST_FACTOR * 5)
 ADJUSTMENT_FACTOR_PLANETS = 0 # 1.95
 ADJUSTMENT_FACTOR = 0 #1.72 #1.80
 
+# sun synchronous precession rate per second (calculated using
+# the 360 deg per sidereal year) using the formula:
+# rate = 360 /(SIDEREAL_YEAR * EPHEMERIS_DAY)) degrees/s -or- 
+#        (PI * 2) / (SIDEREAL_YEAR * EPHEMERIS_DAY) rad/s
+#  
+EPHEMERIS_DAY = 86400 # in seconds
+MEAN_SOLARDAY = 86400 # in seconds
+SIDEREAL_DAY = 86164.0905 # in seconds
+
+SIDEREAL_YEAR = 365.256363004  # in ephemeris days
+
+"""
+The value of 365.2425 days is an exact value; it is the average number of days per year per the Gregorian calendar. 
+The Gregorian calendar repeats over a 400 span. In any 400 span, there will be 97 leap years (96 non-century leap 
+years, plus one century leap year) with 366 days and 303 years with 365 days. That results in 146097/400 days in a 
+year on average, or exactly 365.2425 days.
+"""
+TROPICAL_YEAR = 365.2421871    # in ephemeris days
+
+EARTH_PERIOD = TROPICAL_YEAR #SIDEREAL_YEAR
+EARTH_CENTURY = 36525
+
+EARTH_MEAN_MOTION_WIKI = 1.99096871e-7  	# in rad/s according to wikipedia
+								 	# but = 1.9909865927683785320224459427387e-7 rd/s according to calculation
+
+EARTH_DAILY_MEAN_MOTION = 0.01720212416151879051667393294526 # in rd/day
+EARTH_MEAN_MOTION = 1.9909865927683785320224459427387e-7 # in rd/s
+
+def getEarthMeanMotion2():
+	return (pi * 2)/(SIDEREAL_YEAR * EPHEMERIS_DAY)
+
+	
 #from visual import color
 from vpython_interface import Color
 
@@ -511,12 +592,12 @@ objects_data = {
 		"material":1,
 		"name": "Earth",
 		"iau_name": "EARTH",
-		"jpl_designation": "earth",
+		"jpl_designation": EARTH_NAME,
 		"mass":5.972e24,
 		"radius":6371e3,
 		"QR_perihelion":147.09e9,
 		"EC_e":0.01671022,
-		"PR_revolution":365.256,
+		"PR_revolution": EARTH_PERIOD, #365.256,
 		"rotation":	1,
 		"IN_orbital_inclination":0,
 		"OM_longitude_of_ascendingnode":-11.26064,
@@ -665,6 +746,29 @@ objects_data = {
 		"axial_tilt": 0,
 		"tga_name": "Haumea"
 		},
+	"sun" : {
+		"type": TYPE_STAR,
+		"material":1,
+		"name": "Sun",
+		"iau_name": "SUN",
+		"jpl_designation": SUN_NAME,
+		"mass":SUN_M,
+		"radius":SUN_R,
+		"QR_perihelion":0.0,
+		"EC_e":0.0,
+		"PR_revolution": 0,
+		"rotation":	25.05,
+		"IN_orbital_inclination":0,
+		"OM_longitude_of_ascendingnode":0.0,
+		"longitude_of_perihelion":0.0,
+		"axial_tilt": 7.25,
+		"absolute_mag": 0.0,
+		"RA_1": 0.00,
+		"RA_2": -0.641,
+		"kep_elt":{'a' : 1.00000018, 'ar': -3e-08, 'EC_e' : 0.01673163, 'er':-3.661e-05, 'i' :-0.00054346, 'ir':-0.01337178, 'L' :100.46691572, 'Lr':35999.3730633, 'W' :102.93005885, 'Wr':0.3179526, 'N' :-5.11260389, 'Nr':-0.24123856, 'b' :0.0, 'c' :0.0, 's':0.0, 'f' :0.0},
+		"tga_name": "sun"
+		},
+
 }
 
 belt_data = {
@@ -716,51 +820,93 @@ Nu			66 100 - 69 900			3800				0.012
 Tau			37 850 - 41 350			3500				1
 """
 rings_data = {
+	"neptune": {
+		"rings":[
+			{	"name"		: "Galle",
+				"radius"	: 41000e3,
+				"width"		: 2000e3,
+				"color"		: Color.darkgrey,
+				"opacity"	: 1.0
+			},
+			{	"name"		: "LeVerrier",
+				"radius"	: 53200e3,
+				"width"		: 113e3,
+				"color"		: Color.grey,
+				"opacity"	: 1.0
+			},
+			{	"name"		: "Lassell",
+				"radius"	: 55000e3,
+				"width"		: 4000e3,
+				"color"		: Color.darkgrey, #Color.blueish,
+				"opacity"	: 0.9
+			},
+			{	"name"		: "Arago",
+				"radius"	: 57200e3,
+				"width"		: 100e3,
+				"color"		: Color.darkgrey, #Color.blueish,
+				"opacity"	: 0.8
+			},
+			{	"name"		: "Adams",
+				"radius"	: 62932e3,
+				"width"		: 50e3,
+				"color"		: Color.grey, #Color.blueish,
+				"opacity"	: 0.2
+			}
+		]
+	},
 	"uranus": {
 		"rings":[
-			{	"name": "Mu",
-				"radius": 103000e3,
-				"width": 17000e3,
-				"color": Color.darkblue
+			{	"name"		: "Mu",
+				"radius"	: 103000e3,
+				"width"		: 17000e3,
+				"color"		: Color.darkgrey,
+				"opacity"	: 0.6
 			},
-			{	"name": "Nu",
-				"radius": 69900e3,
-				"width": 3800e3,
-				"color": Color.darkblue
+			{	"name"		: "Nu",
+				"radius"	: 69900e3,
+				"width"		: 3800e3,
+				"color"		: Color.darkgrey,
+				"opacity"	: 0.3
 			},
-			{	"name": "Tau",
-				"radius": 41350e3,
-				"width": 3500e3,
-				"color": Color.blueish
+			{	"name"		: "Tau",
+				"radius"	: 41350e3,
+				"width"		: 3500e3,
+				"color"		: Color.darkgrey, #Color.blueish,
+				"opacity"	: 0.2
 			}
 		]
 	},
 	"saturn": {
 		"rings": [
-			{	"name": "F",
-				"radius": 140180e3,
-				"width":100e3,
-				"color": Color.whiteish
+			{	"name"		: "F",
+				"radius"	: 140180e3,
+				"width"		:100e3,
+				"color"		: Color.whiteish,
+				"opacity"	: 1.0
 			},
-			{	"name": "A",
-				"radius": 136775e3,
-				"width": 14600e3,
-				"color": Color.lightgrey
+			{	"name"		: "A",
+				"radius"	: 136775e3,
+				"width"		: 14600e3,
+				"color"		: Color.lightgrey,
+				"opacity"	: 1.0
 			},
-			{	"name": "B",
-				"radius": 117580e3,
-				"width": 25500e3,
-				"color": Color.whiteish
+			{	"name"		: "B",
+				"radius"	: 117580e3,
+				"width"		: 25300e3, #25500e3,
+				"color"		: Color.whiteish,
+				"opacity"	: 1.0
 			},
-			{	"name": "C",
-				"radius": 92000e3,
-				"width": 17500e3,
-				"color": Color.grey
+			{	"name"		: "C",
+				"radius"	: 92000e3,
+				"width"		: 17200e3, #17500e3,
+				"color"		: Color.grey,
+				"opacity"	: 1.0
 			},
-			{	"name": "D",
-				"radius": 74510e3,
-				"width": 7500e3,
-				"color": Color.darkgrey
+			{	"name"		: "D",
+				"radius"	: 74510e3,
+				"width"		: 7500e3,
+				"color"		: Color.deepgrey,
+				"opacity"	: 1.0
 			}		
 		]
 	}

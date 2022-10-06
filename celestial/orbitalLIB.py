@@ -8,6 +8,7 @@ import time
 from video import *
 import orbit3D
 from planetsdata import LIT_SCENE, LABELS
+#from utils import sleep
 
 """
 
@@ -22,7 +23,7 @@ class userLIBXX:
         if self.recorder == True:
             self.solSystem.Dashboard.orbitalTab.RecorderOn = True
             if self.solSystem.Dashboard.orbitalTab.VideoRecorder == None:
-                self.solSystem.Dashboard.orbitalTab.VideoRecorder = setVideoRecording(25, "output.avi")
+                self.solSystem.Dashboard.orbitalTab.VideoRecorder = setVideoRecording(framerate = 20, filename = "output.avi")
         else:
             self.solSystem.Dashboard.orbitalTab.RecorderOn = False
             if self.solSystem.Dashboard.orbitalTab.VideoRecorder != None:
@@ -172,7 +173,9 @@ class camera():
         ticks = int(seconds * 25) # 25 = frames / sec
         #print "PAUSE ticks=", ticks, ", param was: ",seconds
         for i in range(ticks):
-            time.sleep(1e-2)
+            #time.sleep(1e-2)
+            sleep(1e-2)
+
             if self.recorder == True:
                 #print "Pause: Record Frame"
                 recOneFrame(self.solSystem.Dashboard.orbitalTab.VideoRecorder)
@@ -238,7 +241,7 @@ class Api():
         if self.recorder == True:
             self.solSystem.Dashboard.orbitalTab.RecorderOn = True
             if self.solSystem.Dashboard.orbitalTab.VideoRecorder == None:
-                self.solSystem.Dashboard.orbitalTab.VideoRecorder = setVideoRecording(25, "output.avi")
+                self.solSystem.Dashboard.orbitalTab.VideoRecorder = setVideoRecording(framerate = 20, filename = "output.avi")
         else:
             self.solSystem.Dashboard.orbitalTab.RecorderOn = False
             if self.solSystem.Dashboard.orbitalTab.VideoRecorder != None:
