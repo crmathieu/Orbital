@@ -19,8 +19,8 @@ class makePlanetWidgets():
         self.Origin = planet.Origin
         self.visible = True
         self.makeOverlayRef()
-        self.makeECEFref()
-        self.makeECIref()
+        self.makePCPFref()
+        self.makePCIref()
         self.makeECSSref()
         self.Eq = self.eqPlane = self.Lons = self.Lats = None
 
@@ -34,11 +34,11 @@ class makePlanetWidgets():
     def makeOverlayRef(self):
         # the overlay referential will display meridians, latitudes and earth locations
         self.OVRL = frame()
-        self.OVRL.frame = self.Planet.ECEF.referential
+        self.OVRL.frame = self.Planet.PCPF.referential
         self.OVRL.pos = (0,0,0)
 
-    def makeECEFref(self):
-        # this is the ECEF referential or GeoCentric referential 
+    def makePCPFref(self):
+        # this is the PCPF referential or GeoCentric referential 
         # The "Earth-centered, Earth-fixed coordinate system": fixed to the earth (moves with its rotation)
         # is a cartesian spatial reference system that represents locations in the vicinity of the 
         # Earth (including its surface, interior, atmosphere, and surrounding outer space) as X, Y, and Z 
@@ -52,44 +52,44 @@ class makePlanetWidgets():
         # altitude defined as the difference between the two aforementioned quantities: h'= R-R0  
         # it is not to be confused for the geodetic altitude.
         #
-        # Conversions between ECEF and geodetic coordinates (latitude and longitude) are discussed at 
+        # Conversions between PCPF and geodetic coordinates (latitude and longitude) are discussed at 
         # geographic coordinate conversion. 
 
-        #self.ECEF = frame()     
-        #self.ECEF.pos = self.Planet.Origin.pos
+        #self.PCPF = frame()     
+        #self.PCPF.pos = self.Planet.Origin.pos
         
-        #### self.ECEF = make3DaxisReferential(self.Planet, tilt=True, color=Color.red)
-        #### self.ECEF.referential.rotate(angle=(-self.Planet.TiltAngle), axis=self.ECEF.XdirectionUnit) #, origin=(0,0,0))
+        #### self.PCPF = make3DaxisReferential(self.Planet, tilt=True, color=Color.red)
+        #### self.PCPF.referential.rotate(angle=(-self.Planet.TiltAngle), axis=self.PCPF.XdirectionUnit) #, origin=(0,0,0))
         
-        self.ECEF = self.Planet.ECEF # has been done already 
-        #self.ECEF.display(True)
+        self.PCPF = self.Planet.PCPF # has been done already 
+        #self.PCPF.display(True)
 
-    def makeECIref(self):
-		# The ECI referential (the "Earth-Centered Inertial" is fixed to the stars, in other words, 
-		# it doesn't rotate with the earth). ECI coordinate frames have their origins at the center of mass of Earth 
-		# and are fixed with respect to the stars. "I" in "ECI" stands for inertial (i.e. "not accelerating"), in 
-		# contrast to the "Earth-centered - Earth-fixed" (ECEF) frames, which remains fixed with respect to 
+    def makePCIref(self):
+		# The PCI referential (the "Earth-Centered Inertial" is fixed to the stars, in other words, 
+		# it doesn't rotate with the earth). PCI coordinate frames have their origins at the center of mass of Earth 
+		# and are fixed with respect to the stars. "I" in "PCI" stands for inertial (i.e. "not accelerating"), in 
+		# contrast to the "Earth-centered - Earth-fixed" (PCPF) frames, which remains fixed with respect to 
 		# Earth's surface in its rotation, and then rotates with respect to stars.
 		#
 		# For objects in space, the equations of motion that describe orbital motion are simpler in a non-rotating 
-		# frame such as ECI. The ECI frame is also useful for specifying the direction toward celestial objects:
+		# frame such as PCI. The PCI frame is also useful for specifying the direction toward celestial objects:
 		#
-		# To represent the positions and velocities of terrestrial objects, it is convenient to use ECEF coordinates 
+		# To represent the positions and velocities of terrestrial objects, it is convenient to use PCPF coordinates 
 		# or latitude, longitude, and altitude.
 		#
 		# In a nutshell: 
-    	#		ECI: inertial, not rotating, with respect to the stars; useful to describe motion of 
+    	#		PCI: inertial, not rotating, with respect to the stars; useful to describe motion of 
 		# 		celestial bodies and spacecraft.
 		#
-    	#		ECEF: not inertial, accelerated, rotating w.r.t stars; useful to describe motion of 
+    	#		PCPF: not inertial, accelerated, rotating w.r.t stars; useful to describe motion of 
 		# 		objects on Earth surface.
 
-        #self.ECI = frame() #self.Planet.ECI   
-        #self.ECI.pos = self.Planet.Origin.pos
+        #self.PCI = frame() #self.Planet.PCI   
+        #self.PCI.pos = self.Planet.Origin.pos
 
-        #self.ECI = make3DaxisReferential(self.Planet, tilt=True)
-        self.ECI = self.Planet.ECI # has been done already 
-        #self.ECI.referential.rotate(angle=(-self.Planet.TiltAngle), axis=self.ECI.XdirectionUnit)
+        #self.PCI = make3DaxisReferential(self.Planet, tilt=True)
+        self.PCI = self.Planet.PCI # has been done already 
+        #self.PCI.referential.rotate(angle=(-self.Planet.TiltAngle), axis=self.PCI.XdirectionUnit)
 
     def makeECSSref(self):
 
@@ -182,7 +182,7 @@ class makePlanetWidgets():
         self.AnaLemma = makeAnalemma(self, locList.TZ_US_COUVE)
          
         # align widgets origin with planet tilt
-        #self.ECEF.rotate(angle=(-self.Planet.TiltAngle), axis=self.Planet.XdirectionUnit) #, origin=(0,0,0))
+        #self.PCPF.rotate(angle=(-self.Planet.TiltAngle), axis=self.Planet.XdirectionUnit) #, origin=(0,0,0))
 
         # align longitude to greenwich when the planet is Earth
         if self.Planet.Name.lower() == EARTH_NAME:
@@ -192,8 +192,8 @@ class makePlanetWidgets():
              
             # align GMT: the initial position of the GMT meridian on the texture is 6 hours
             # off its normal position. Ajusting by 6 hours x 15 degres = 90 degres
-            #### self.ECEF.referential.rotate(angle=(deg2rad(6*15)), axis=self.Planet.RotAxis) #ZdirectionUnit)
-            self.OVRL.rotate(angle=(deg2rad(6*15)), axis=(0,0,1)) #self.Planet.ECEF.ZdirectionUnit) #ZdirectionUnit)
+            #### self.PCPF.referential.rotate(angle=(deg2rad(6*15)), axis=self.Planet.RotAxis) #ZdirectionUnit)
+            self.OVRL.rotate(angle=(deg2rad(6*15)), axis=(0,0,1)) #self.Planet.PCPF.ZdirectionUnit) #ZdirectionUnit)
             
             # init position in ecliptic referential
             #self.updateCurrentLocationEcliptic()
@@ -375,7 +375,7 @@ class makePlanetWidgets():
         #    lat_angle = - lat_angle
 
         la_rangle = deg2rad(Vangle) #* (-1 if lat_direction == self.ROT_CLKW else 1)
-        la_dangle = 0.0rotatemakeECI
+        la_dangle = 0.0rotatemakePCI
         return 
 
         for i in np.arange(0, total_steps+1, 1):
@@ -405,7 +405,7 @@ class makePlanetWidgets():
             print "Auto shifting to default location ..."
             self.Planet.SolarSystem.Dashboard.widgetTab.centerToDefaultLocation()
 
-        # set current and next coordinates in ECI referential
+        # set current and next coordinates in PCI referential
 
         curPos = self.Loc[self.defaultLocation].getGeoPosition()
         nextPos = self.Loc[locationID].getGeoPosition()
@@ -523,17 +523,17 @@ class makePlanetWidgets():
         #self.currentLocation = 0
         self.Loc.append(makeEarthLocation(self, locIndex))
 
-    def update_ECEF_RotationXX(self):
+    def update_PCPF_RotationXX(self):
         # here the widgets rotates by the same amount the earth texture is rotated
         ti = self.Planet.SolarSystem.getTimeIncrement()
         RotAngle = (2*pi/self.Planet.Rotation)*ti
 
         # if polar axis inverted, reverse rotational direction
-        if self.ECEF.ZdirectionUnit[2] < 0:
+        if self.PCPF.ZdirectionUnit[2] < 0:
             RotAngle *= -1
 
         # follow planet rotation
-        self.ECEF.referential.rotate(angle=RotAngle, axis=self.Planet.RotAxis, origin=self.ECEF.referential.pos) #(self.Position[0]+self.Foci[0],self.Position[1]+self.Foci[1],self.Position[2]+self.Foci[2]))
+        self.PCPF.referential.rotate(angle=RotAngle, axis=self.Planet.RotAxis, origin=self.PCPF.referential.pos) #(self.Position[0]+self.Foci[0],self.Position[1]+self.Foci[1],self.Position[2]+self.Foci[2]))
 
     def update_ECSS_Rotation(self):
         angle = atan2(self.Planet.Position[1], self.Planet.Position[0])
@@ -541,8 +541,8 @@ class makePlanetWidgets():
         self.ECSSangle = angle
 
 
-    def update_ECI_ECEF_ECSS_Position(self):
-#        self.ECSS.referential.pos = self.ECEF.referential.pos = self.ECI.referential.pos = self.Planet.Origin.pos
+    def update_PCI_PCPF_ECSS_Position(self):
+#        self.ECSS.referential.pos = self.PCPF.referential.pos = self.PCI.referential.pos = self.Planet.Origin.pos
         self.ECSS.referential.pos = self.Planet.Origin.pos
 
     def updateCurrentLocationEcliptic(self):
@@ -550,8 +550,8 @@ class makePlanetWidgets():
             self.Loc[self.currentLocation].updateEclipticPosition()
 
     def animate(self):
-        self.update_ECI_ECEF_ECSS_Position()
-        ### self.update_ECEF_Rotation()
+        self.update_PCI_PCPF_ECSS_Position()
+        ### self.update_PCPF_Rotation()
         self.update_ECSS_Rotation()
         #### self.Eq.updateNodesPosition()
         self.updateCurrentLocationEcliptic()
@@ -588,7 +588,7 @@ class makePlanetWidgets():
 
 class makeEarthLocation():
     def __init__(self, widgets, tz_index):
-#        self.Origin = widgets.Planet.ECEF.referential
+#        self.Origin = widgets.Planet.PCPF.referential
         self.Origin = widgets.OVRL
         self.Widgets = widgets
         self.Planet = widgets.Planet
@@ -651,8 +651,8 @@ class makeEarthLocation():
     def updateEclipticPosition(self):
         # init position in ecliptic referential
         # It is calculated by first getting the position of OVRL objects 
-        # in the ECEF referential, and then convert it from ECEF to absolute
-        self.EclipticPosition = self.Widgets.ECEF.referential.frame_to_world(self.Widgets.OVRL.frame_to_world(self.GeoLoc.pos))
+        # in the PCPF referential, and then convert it from PCPF to absolute
+        self.EclipticPosition = self.Widgets.PCPF.referential.frame_to_world(self.Widgets.OVRL.frame_to_world(self.GeoLoc.pos))
 #        self.EclipticPosition = self.Origin.frame_to_world(self.GeoLoc.pos)
 #        self.EclipticPosition = self.Origin.frame.frame_to_world(self.GeoLoc.pos)
 
@@ -661,7 +661,7 @@ class makeEarthLocation():
         return self.EclipticPosition
 
     def getGeoPosition(self):
-        # return ECEF coordinates
+        # return PCPF coordinates
         return self.GeoLoc.pos
 
     def display(self, trueFalse):
@@ -694,13 +694,13 @@ class makeEarthLocation():
 
 class makeNode():
     def __init__(self, widgets, colr, ascending = true):
-        #self.Origin = widgets.ECEF
+        #self.Origin = widgets.PCPF
 
         # Nodes do not rotate with the planet. They are fixed to the stars, 
-        # hence must be relative to the ECI referential
+        # hence must be relative to the PCI referential
 
         self.Planet = widgets.Planet
-        self.Origin = widgets.Planet.ECI.referential
+        self.Origin = widgets.Planet.PCI.referential
         self.Color = colr
         self.ascending = -1 if ascending else 1
 
@@ -710,7 +710,7 @@ class makeNode():
         # routine using the "updateNodesPosition" method.
 
         self.Node = sphere(frame=self.Origin, pos=(0,0,0), np=32, radius=100, make_trail=False, color=self.Color, visible=False, material=materials.emissive) 
-#        self.Node = sphere(frame=widgets.ECI, pos=(0,0,0), np=32, radius=3000, make_trail=False, color=self.Color, visible=False, material=materials.emissive) 
+#        self.Node = sphere(frame=widgets.PCI, pos=(0,0,0), np=32, radius=3000, make_trail=False, color=self.Color, visible=False, material=materials.emissive) 
         self.setPosition()
 
 
@@ -728,15 +728,15 @@ class makeEquator():
 
     def __init__(self, widgets): #planet):
         self.Planet = widgets.Planet
-#        self.Origin = self.Planet.Origin #widgets.ECEF.referential
+#        self.Origin = self.Planet.Origin #widgets.PCPF.referential
         self.Origin = widgets.OVRL
         print "ORIGIN=", self.Origin.pos
-        #self.ECI = widgets.ECI
+        #self.PCI = widgets.PCI
         self.Color = Color.red
 
         self.Trail = curve(frame=self.Origin, color=self.Color, visible=False, radius=25, material=materials.emissive)
-#        self.Trail = curve(frame=self.Planet.ECEF.referential, color=self.Color, visible=False, radius=25, material=materials.emissive)
-#        self.Trail = curve(frame=self.Planet.ECI.referential, color=self.Color, visible=False, radius=25, material=materials.emissive)
+#        self.Trail = curve(frame=self.Planet.PCPF.referential, color=self.Color, visible=False, radius=25, material=materials.emissive)
+#        self.Trail = curve(frame=self.Planet.PCI.referential, color=self.Color, visible=False, radius=25, material=materials.emissive)
         self.Position = np.matrix([[0],[0],[0]], np.float64)
 
         # The equator holds the Asc and Des objects as they are always along the equator line
@@ -744,7 +744,7 @@ class makeEquator():
         self.DesNode = makeNode(widgets, Color.red, ascending=False)
 
         """
-        self.NodesAxis = curve( frame=widgets.ECI, 
+        self.NodesAxis = curve( frame=widgets.PCI, 
 #                                pos=[(2 * (self.DesNode.Node.pos[0] - self.Planet.Position[0]), 0, 0), 
 #                                     (2 * (self.AscNode.Node.pos[0] - self.Planet.Position[0]), 0, 0)], 
                                 pos = [(-2*self.Planet.radiusToShow/self.Planet.SizeCorrection[self.Planet.sizeType],0,0),
@@ -756,8 +756,8 @@ class makeEquator():
 
     def makeNodeAxis(self):
         # Nodes axis is fixed to the stars and therefore 
-        # must be relative to the ECI referential
-        self.NodesAxis = curve( frame=self.Planet.ECI.referential, #self.ECI.referential, 
+        # must be relative to the PCI referential
+        self.NodesAxis = curve( frame=self.Planet.PCI.referential, #self.PCI.referential, 
                                 #pos=[(2 * (self.DesNode.Node.pos[0] - self.Planet.Position[0]), 0, 0), 
                                 #    (2 * (self.AscNode.Node.pos[0] - self.Planet.Position[0]), 0, 0)], 
                                 pos = [ (-2*self.Planet.radiusToShow/self.Planet.SizeCorrection[self.Planet.sizeType],0,0),
@@ -810,15 +810,15 @@ class makeEquatorialPlane():
 
     def __init__(self, widgets, color, opacity): #planet, color, opacity):
         # Equatorial Plane is fixed to the stars and therefore 
-        # must be relative to the ECI referential
+        # must be relative to the PCI referential
         
         self.Planet = widgets.Planet
-        self.Origin = widgets.Planet.ECI.referential #widgets.Planet.Origin
+        self.Origin = widgets.Planet.PCI.referential #widgets.Planet.Origin
         self.Opacity = opacity
         self.Color = color 
 
         side = 0.1*AU*DIST_FACTOR
-        # define plane in fix referential ECI
+        # define plane in fix referential PCI
         self.eqPlane = box(frame=self.Origin, pos=(0,0,0), length=side, width=0.0001, height=side, material=materials.emissive, visible=True, color=self.Color, opacity=0) #, axis=(0, 0, 1), opacity=0.8) #opacity=self.Opacity)
 
 
@@ -842,7 +842,7 @@ class doMeridian():
 #        self.Origin = widgets.Planet.Origin
         self.Planet = widgets.Planet
         #Radius = 25 if longitudeAngle == 0 else 0
-        # define meridian in rotating referential ECEF
+        # define meridian in rotating referential PCPF
         self.Trail = curve(frame=self.Origin, color=colr, visible=False,  material=materials.emissive, radius=(25 if longitudeAngle == 0 else 0))
         self.Position = np.matrix([[0],[0],[0]], np.float64)
         self.Color = colr #Color.cyan
@@ -926,7 +926,7 @@ class doLatitude():
         self.Planet = widgets.Planet
         self.Color = colr
 
-        # define latitude in rotating referential ECEF
+        # define latitude in rotating referential PCPF
         self.Trail = curve(frame=self.Origin, color=self.Color, material=materials.emissive, visible=False, radius=thickness)
         self.Position = np.matrix([[0],[0],[0]], np.float64)
         self.draw()
@@ -989,7 +989,7 @@ class makeLatitudes():
 class makeTropics():
         
     def __init__(self, widgets):
-#        self.Origin = widgets.ECI.referential
+#        self.Origin = widgets.PCI.referential
         self.Origin = widgets.OVRL
         self.Widgets = widgets
         self.Tropics = []
@@ -1066,13 +1066,13 @@ class makeAnalemma():
         self.SunAxis = curve(pos=[(0,0,self.NoonGeoLoc.pos[2])], color=Color.green, visible=False,  material=materials.emissive, radius=0)
 #        self.SunAxis = curve(pos=self.Origin.frame_to_world(self.NoonGeoLoc.pos), color=Color.green, visible=False,  material=materials.emissive, radius=0)
 
-        # add point at latitude (0,0, self.radius * sin(lat)) in ECI, converted into fixed referential (frame_to_world)
+        # add point at latitude (0,0, self.radius * sin(lat)) in PCI, converted into fixed referential (frame_to_world)
 #        self.SunAxis.append(pos=self.Origin.frame_to_world(self.NoonGeoLoc.pos), color=Color.green)
         self.SunAxis.append(pos=self.Origin.frame_to_world(self.NoonGeoLoc.pos), color=Color.green)
     
 
         """
-        self.NodesAxis = curve( #frame=self.ECI, 
+        self.NodesAxis = curve( #frame=self.PCI, 
                                 #pos=[(2 * (self.DesNode.Node.pos[0] - self.Planet.Position[0]), 0, 0), 
                                 #    (2 * (self.AscNode.Node.pos[0] - self.Planet.Position[0]), 0, 0)], 
                                 pos = [(self.Planet.Position[0],self.Planet.Position[1],self.Planet.Position[2]), (0,0,0)], 
@@ -1153,9 +1153,9 @@ class makeAnalemmaSAVE():
         # draw earth sun segment between center 
         # of sun and a point at a given latitude
 
-#        self.Origin = widgets.ECINT
-#        self.Origin = widgets.ECI
-        self.Origin = widgets.Planet.Origin #widgets.ECEF.referential
+#        self.Origin = widgets.PCINT
+#        self.Origin = widgets.PCI
+        self.Origin = widgets.Planet.Origin #widgets.PCPF.referential
         self.Planet = widgets.Planet
         self.Color = Color.red
         self.Widgets = widgets
@@ -1211,13 +1211,13 @@ class makeAnalemmaSAVE():
 #        self.SunAxis = curve(frame=self.SunAxisFrame, pos=[(0,0,self.NoonGeoLoc.pos[2])], color=Color.green, visible=False,  material=materials.emissive, radius=0)
         self.SunAxis = curve(frame=self.SunAxisFrame, color=Color.green, visible=False,  material=materials.emissive, radius=0)
 
-        # add point at latitude (0,0, self.radius * sin(lat)) in ECI, converted into fixed referential (frame_to_world)
+        # add point at latitude (0,0, self.radius * sin(lat)) in PCI, converted into fixed referential (frame_to_world)
 #        self.SunAxis.append(pos=self.Origin.frame_to_world(self.NoonGeoLoc.pos), color=Color.green)
         self.SunAxis.append(pos=[(0,0,self.NoonGeoLoc.pos[2])], color=Color.green)
        
 
         
-        #self.NodesAxis = curve( #frame=self.ECI, 
+        #self.NodesAxis = curve( #frame=self.PCI, 
         #                        #pos=[(2 * (self.DesNode.Node.pos[0] - self.Planet.Position[0]), 0, 0), 
         #                        #    (2 * (self.AscNode.Node.pos[0] - self.Planet.Position[0]), 0, 0)], 
         #                        pos = [(self.Planet.Position[0],self.Planet.Position[1],self.Planet.Position[2]), (0,0,0)], 
@@ -1237,13 +1237,13 @@ class makeAnalemmaSAVE():
         self.SunAxis = curve(pos=[(0,0,self.NoonGeoLoc.pos[2])], color=Color.green, visible=False,  material=materials.emissive, radius=0)
 #        self.SunAxis = curve(pos=self.Origin.frame_to_world(self.NoonGeoLoc.pos), color=Color.green, visible=False,  material=materials.emissive, radius=0)
 
-        # add point at latitude (0,0, self.radius * sin(lat)) in ECI, converted into fixed referential (frame_to_world)
+        # add point at latitude (0,0, self.radius * sin(lat)) in PCI, converted into fixed referential (frame_to_world)
 #        self.SunAxis.append(pos=self.Origin.frame_to_world(self.NoonGeoLoc.pos), color=Color.green)
         self.SunAxis.append(pos=self.Origin.frame_to_world(self.NoonGeoLoc.pos), color=Color.green)
     
 
         
-        #self.NodesAxis = curve( #frame=self.ECI, 
+        #self.NodesAxis = curve( #frame=self.PCI, 
         #                        #pos=[(2 * (self.DesNode.Node.pos[0] - self.Planet.Position[0]), 0, 0), 
         #                        #    (2 * (self.AscNode.Node.pos[0] - self.Planet.Position[0]), 0, 0)], 
         #                        pos = [(self.Planet.Position[0],self.Planet.Position[1],self.Planet.Position[2]), (0,0,0)], 
