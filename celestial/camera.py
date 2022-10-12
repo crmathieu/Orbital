@@ -1,10 +1,10 @@
 from visual import *
 from rate_func import *
 #import rate_func
-from utils import deg2rad, rad2deg, getAngleBetweenVectors, getOrthogonalVector, getVectorOrthogonalToPlane #, sleep
+from utils import deg2rad, getAngleBetweenVectors, getOrthogonalVector, getVectorOrthogonalToPlane #, sleep
 from objects import simpleArrow
 from planetsdata import EARTH_NAME
-from video import * 
+from video import recOneFrame # import * 
 
 # All camera movements occur using a focal point centered on the
 # current object
@@ -418,15 +418,16 @@ class camera3D:
 		if self.ssys.EarthRef == None:
 			return
 
-		self.Loc[nextLocation].updateEclipticPosition()
-		nextPos = self.Loc[nextLocation].getGeoPosition()
+		#self.Loc[nextLocation].updateEclipticPosition()
+		#nextPos = self.Loc[nextLocation].getGeoPosition()
 
 
 		#self.B =  simpleArrow(color.green, 0, 20, nextPos, axisp = self.Loc[nextLocation].Grad/10, context = self.Loc[nextLocation].Origin)
 		#self.B.display(True)
 
 		# build radial vector vertical to location in ecliptic coordinates
-		dest = self.Loc[nextLocation].getEclipticPosition()
+		dest = self.Loc[nextLocation].updateEclipticPosition()	# updateEclipticPosition now returns the updated value
+		#dest = self.Loc[nextLocation].getEclipticPosition()
 		A = dest[0] - self.ssys.EarthRef.Origin.pos[0] #self.Planet.Origin.pos[0]
 		B = dest[1] - self.ssys.EarthRef.Origin.pos[1] #self.Planet.Origin.pos[1]
 		C = dest[2] - self.ssys.EarthRef.Origin.pos[2] #self.Planet.Origin.pos[2] 
@@ -478,18 +479,20 @@ class camera3D:
 		for i in np.arange(0, total_steps+1, 1):
 			# incrementally, change center focus and rotate
 			r = ratefunc(float(i)/total_steps)
-			self.ssys.Scene.center = vector( (Xc + r*deltaX),
-													(Yc + r*deltaY),
-													(Zc + r*deltaZ))
-
+			self.ssys.Scene.center = vector((Xc + r*deltaX),
+											(Yc + r*deltaY),
+											(Zc + r*deltaZ))
 			iAngle = rotAngle * r
 
 			self.ssys.Scene.forward = rotate(self.ssys.Scene.forward, angle=(iAngle-accumulated_rot), axis=rotAxis)
 			accumulated_rot = iAngle
 
 			sleep(2e-2)
+
+			# when an animation is in progress, add it to the loop ??????
 			if self.ssys.Dashboard.orbitalTab.AnimationInProgress == True:
 				self.ssys.Dashboard.orbitalTab.OneTimeIncrement()
+
 			if self.ssys.Dashboard.orbitalTab.RecorderOn == True:
 				recOneFrame(self.ssys.Dashboard.orbitalTab.VideoRecorder)
 

@@ -64,9 +64,23 @@ CHK_L11 = CHK_L10 + 20
 CHK_L12 = CHK_L11 + 20
 CHK_L13 = CHK_L12 + 20
 CHK_L14 = CHK_L13 + 20
-CHK_L15 = CHK_L14 + 20
+CHK_L15 = CHK_L14 + 25
+CHK_L16 = CHK_L15 + 20
+CHK_L17 = CHK_L16 + 20
+CHK_L18 = CHK_L17 + 20
+CHK_L19 = CHK_L18 + 20
+CHK_L20 = CHK_L19 + 20
+CHK_L21 = CHK_L20 + 20
+CHK_L22 = CHK_L21 + 20
+CHK_L23 = CHK_L22 + 20
+CHK_L24 = CHK_L23 + 20
+CHK_L25 = CHK_L24 + 20
+CHK_L26 = CHK_L25 + 20
+CHK_L27 = CHK_L26 + 20
+CHK_L28 = CHK_L27 + 20
+CHK_L29 = CHK_L28 + 20
 
-CBBOX_1 = CHK_L8+20
+CBBOX_1 = CHK_L9+30
 
 LSTB_Y = DATE_Y + 60
 SLDS_Y = LSTB_Y + 40
@@ -168,7 +182,7 @@ class makeDashBoard(wx.Frame):
 		self.Notebook = wx.Notebook(self.Panel, size=(500, newHeight))
 
 		# create subpanels to be used with tabs
-		self.orbitalTab = ORBITALPanel(self, self.Notebook, solarsystem)
+		self.orbitalTab = ORBITALpanel(self, self.Notebook, solarsystem)
 		self.searchTab = SEARCHpanel(self, self.Notebook, solarsystem)
 		self.focusTab = FOCUSpanel(self, self.Notebook, solarsystem)
 		self.widgetsTab = WIDGETSpanel(self, self.Notebook, solarsystem)
@@ -962,9 +976,9 @@ class SEARCHpanel(AbstractUI):
 		return entry["neo_reference_id"]
 
 
-# CLASS ORBITALPanel ------------------------------------------------------
+# CLASS ORBITALpanel ------------------------------------------------------
 # Orbital control tab
-class ORBITALPanel(AbstractUI):
+class ORBITALpanel(AbstractUI):
 
 	def InitVariables(self):
 		self.Earth = self.SolarSystem.getBodyFromName(EARTH_NAME)
@@ -1771,6 +1785,7 @@ class WIDGETSpanel(AbstractUI):
 	def InitVariables(self):	
 		self.ca_deltaT = 0
 		self.Earth = self.SolarSystem.EarthRef
+		
 		self.checkboxList = {}
 		self.Locations = []
 		self.locIndexes = []
@@ -1813,7 +1828,7 @@ class WIDGETSpanel(AbstractUI):
 		self.latcb.SetValue(False)
 		self.latcb.Bind(wx.EVT_CHECKBOX,self.OnDrawLatitudeLines)
 
-		self.lrcb = wx.CheckBox(self, label="Local Referential", pos=(50, CHK_L6)) #   CVT_Y+560))
+		self.lrcb = wx.CheckBox(self, label="Planet-Centered-Inertial (PCI) Referential", pos=(50, CHK_L6)) #   CVT_Y+560))
 		self.lrcb.SetValue(False)
 		self.lrcb.Bind(wx.EVT_CHECKBOX,self.OnLocalRef)
 
@@ -1821,8 +1836,8 @@ class WIDGETSpanel(AbstractUI):
 		self.hpcb.SetValue(False)
 		self.hpcb.Bind(wx.EVT_CHECKBOX,self.OnHidePlanet)
 
-		heading = wx.StaticText(self, label='Earth Widgets', pos=(20, MAIN_HEADING_Y))
-		heading.SetFont(self.BoldFont)
+		lheading = wx.StaticText(self, label='Locations', pos=(50, CHK_L9))
+		lheading.SetFont(self.BoldFont)
 
 		self.createLocationList(50, CBBOX_1)
 
@@ -1830,13 +1845,24 @@ class WIDGETSpanel(AbstractUI):
 		#self.flcb.SetValue(False)
 		#self.flcb.Bind(wx.EVT_CHECKBOX,self.OnCenterToSurface)
 
-		self.cpcb = wx.CheckBox(self, label="Center to Cape Canaveral", pos=(50, CHK_L11)) #   CVT_Y+560))
-		self.cpcb.SetValue(False)
-		self.cpcb.Bind(wx.EVT_CHECKBOX,self.OnCenterToLocation)
-
-		self.ncpcb = wx.CheckBox(self, label="Show Normal Vector", pos=(230, CHK_L12)) #   CVT_Y+560))
+		self.ncpcb = wx.CheckBox(self, label="Show Normal Vector", pos=(50, CHK_L12)) #   CVT_Y+560))
 		self.ncpcb.SetValue(False)
 		self.ncpcb.Bind(wx.EVT_CHECKBOX,self.OnShowNormal)
+
+		self.cpcb = wx.CheckBox(self, label="Re-Center to Earth's center", pos=(230, CHK_L12)) #   CVT_Y+560))
+		self.cpcb.SetValue(False)
+		self.cpcb.Bind(wx.EVT_CHECKBOX,self.OnReCenter)
+
+		aheading = wx.StaticText(self, label='Analemma', pos=(50, CHK_L14))
+		aheading.SetFont(self.BoldFont)
+
+		self.acb = wx.CheckBox(self, label="Animate 24h period", pos=(50, CHK_L15)) #   CVT_Y+560))
+		self.acb.SetValue(False)
+		self.acb.Bind(wx.EVT_CHECKBOX,self.OnAnimate24h)
+
+		self.arcb = wx.CheckBox(self, label="Earth-Centered-Syn-Synchronous (ECSS) Referential", pos=(50, CHK_L16)) #   CVT_Y+560))
+		self.arcb.SetValue(False)
+		self.arcb.Bind(wx.EVT_CHECKBOX,self.OnShowECSS)
 
 	def createLocationList(self, xpos, ypos):
 		i = 0
@@ -1862,42 +1888,65 @@ class WIDGETSpanel(AbstractUI):
 
 
 
+	def OnAnimate24h(self, e):
+		if self.acb.GetValue() == True:
+			self.parentFrame.orbitalTab.TimeIncrement = TI_24_HOURS * 2
+			self.parentFrame.orbitalTab.OnAnimate(e)
+		else:
+			self.parentFrame.orbitalTab.OnAnimate(e)
+			self.parentFrame.orbitalTab.OnAnimTimeSlider(e)
 
-
-
-
-
-
+	def OnShowECSS(self, e):
+		self.Earth.PlanetWidgets.ECSS.display(self.arcb.GetValue())
 
 
 	def OnShowNormal(self, e):
+		if False:
+			self.SolarSystem.camera.cameraZoom(1, 50) #, velocity = 1, recorder = False, zoom = ZOOM_IN, ratefunc = there_and_back)
+			#axis = getOrthogonalVector(self.SolarSystem.camera.view.forward)
 
-		self.SolarSystem.camera.cameraZoom(1, 50) #, velocity = 1, recorder = False, zoom = ZOOM_IN, ratefunc = there_and_back)
-		#axis = getOrthogonalVector(self.SolarSystem.camera.view.forward)
+			#self.SolarSystem.camera.cameraRotateLeft(85, False, axis=-axis)
+	#		self.SolarSystem.camera.cameraRotateLeft(80, False)
+			self.SolarSystem.camera.cameraRotateDown(90, False)
+			#self.SolarSystem.camera.cameraZoom(1, 50, recorder = False, zoom = self.SolarSystem.camera.ZOOM_OUT) #, ratefunc = there_and_back)
 
-		#self.SolarSystem.camera.cameraRotateLeft(85, False, axis=-axis)
-#		self.SolarSystem.camera.cameraRotateLeft(80, False)
-		self.SolarSystem.camera.cameraRotateDown(90, False)
-		#self.SolarSystem.camera.cameraZoom(1, 50, recorder = False, zoom = self.SolarSystem.camera.ZOOM_OUT) #, ratefunc = there_and_back)
+			return
 
-
-		return
 		# focus on current location
-		self.Earth.PlanetWidgets.currentLocation = self.Earth.PlanetWidgets.defaultLocation
+		#self.ssys.EarthRef.PlanetWidgets.currentLocation
+		#self.Earth.PlanetWidgets.currentLocation = self.Earth.PlanetWidgets.defaultLocation
 		loc = self.Earth.PlanetWidgets.Loc[self.Earth.PlanetWidgets.currentLocation]
 		loc.show(self.ncpcb.GetValue())
 
-		# testing shifting earth locations
-		self.Earth.PlanetWidgets.shiftLocation(locList.TZ_AUS_SYD)
-		self.Earth.PlanetWidgets.shiftLocation(locList.TZ_FR_PARIS)
-		self.Earth.PlanetWidgets.shiftLocation(locList.TZ_JP_TAN)
-		self.Earth.PlanetWidgets.shiftLocation(locList.TZ_US_VDBERG)
-		self.Earth.PlanetWidgets.shiftLocation(locList.TZ_RUS_BAIK)
-		### self.Earth.SolarSystem.camera.cameraRefresh()
+		if False:
+			# testing shifting earth locations
+			self.Earth.PlanetWidgets.shiftLocation(locList.TZ_AUS_SYD)
+			self.Earth.PlanetWidgets.shiftLocation(locList.TZ_FR_PARIS)
+			self.Earth.PlanetWidgets.shiftLocation(locList.TZ_JP_TAN)
+			self.Earth.PlanetWidgets.shiftLocation(locList.TZ_US_VDBERG)
+			self.Earth.PlanetWidgets.shiftLocation(locList.TZ_RUS_BAIK)
+			### self.Earth.SolarSystem.camera.cameraRefresh()
 
 		
-	def OnCenterToLocation(self, e):
+	def OnReCenter(self, e):
+		# recenter on earth's center
+		print "reccentering in ", self.Earth.Origin.pos
+		# reset current location value
+		self.Earth.PlanetWidgets.currentLocation = -1
+		#self.SolarSystem.camera.updateCameraViewTarget()
+		self.SolarSystem.camera.smoothFocus(self.Earth.JPL_designation)	
+		self.cpcb.SetValue(False)
+	
+		#self.SolarSystem.Scene.center = self.Earth.Origin.pos
+		
+		#(
+		#				self.Earth.Origin.pos[0],
+		#				self.Earth.Origin.pos[1],
+		#				self.Earth.Origin.pos[2]
+		#			)
 		# focus on current location
+		return
+		
 		loc = None
 		if self.cpcb.GetValue() == True:
 			self.centerToDefaultLocation()

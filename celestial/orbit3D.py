@@ -47,7 +47,7 @@ import json
 # CLASS SOLARSYSTEM -----------------------------------------------------------
 class makeSolarSystem:
 
-	CELESTIAL_RADIUS = 2000 #10000
+	CELESTIAL_RADIUS = 500 # 2000 #10000
 	INNER_RING_COEF = 1.3
 	OUTER_RING_COEF = 1.9
 	RING_INCREMENT = 0.6
@@ -1210,7 +1210,7 @@ class makeBody:
 				self.Trail.append(pos=self.Origin.pos, color=(self.Color[0]*0.6, self.Color[1]*0.6, self.Color[2]*0.6))
 
 	def setCartesianCoordinates(self):
-		# from polar coordinates, deduct cartesian coordinates using the current distance to object (R), the 
+		# from polar coordinates, deduct cartesian coordinates in ecliptic referential, using the current distance to object (R), the 
 		# True anomaly (Nu), and the orbital parameters pertaining to the orbit's orientation: (N, i, w) 
 #		self.Position[0] = self.R * DIST_FACTOR * ( cos(self.N) * cos(self.Nu+self.w) - sin(self.N) * sin(self.Nu+self.w) * cos(self.i) )
 #		self.Position[1] = self.R * DIST_FACTOR * ( sin(self.N) * cos(self.Nu+self.w) + cos(self.N) * sin(self.Nu+self.w) * cos(self.i) )
@@ -1398,8 +1398,9 @@ class makePlanet(makeBody):
 	def setOrbitalElements(self, key, timeincrement = 0):
 		# for the Major planets includig Pluto, we have Keplerian elements to calculate 
 		# the body's current approximated position on orbit based on NASA formula <link-to-formula-here>
-		elt = self.SolarSystem.objects_data[key]["kep_elt_1"] if "kep_elt_1" in self.SolarSystem.objects_data[key] else self.SolarSystem.objects_data[key]["kep_elt"]
-		self.computeOrbitalEltFromPlanetPositionApproximation(elt, timeincrement)
+		self.updateOrbitalElements(key, timeincrement)
+		#elt = self.SolarSystem.objects_data[key]["kep_elt_1"] if "kep_elt_1" in self.SolarSystem.objects_data[key] else self.SolarSystem.objects_data[key]["kep_elt"]
+		#self.computeOrbitalEltFromPlanetPositionApproximation(elt, timeincrement)
 
 	# makePlanet::updateOrbitalElements (overrides makeBody::updateOrbitalElements)
 	# Called from the makeBody::animate method
@@ -1669,8 +1670,8 @@ class makeEarth(makePlanet):
 		Theta = math.atan2(self.Position[1], self.Position[0])
 		#print "setTextureFromSolarTime: Initial angle between earth and Ecliptic referential Y is ", Theta, " rd (", Theta * (180/math.pi), "degrees)"
 
-		# calculate angle between location and the dateline
-		Beta =  deg2rad(self.locationInfo.Time2degree(self.locationInfo.TimeToWESTdateline))
+		# calculate angle between location and the antiMeridian
+		Beta =  deg2rad(self.locationInfo.Time2degree(self.locationInfo.TimeToWESTantiMeridian))
 		Omega = Beta - self.Alpha
 
 		# calculate rotation necessary to position texture properly for this local time
@@ -1724,8 +1725,8 @@ class makeEarth(makePlanet):
 		Theta = math.atan2(self.Position[1], self.Position[0])
 		#print "setTextureFromSolarTime: Initial angle between earth and Ecliptic referential Y is ", Theta, " rd (", Theta * (180/math.pi), "degrees)"
 
-		# calculate angle between location and the dateline
-		Beta =  deg2rad(self.locationInfo.Time2degree(self.locationInfo.TimeToWESTdateline))
+		# calculate angle between location and the antiMeridian
+		Beta =  deg2rad(self.locationInfo.Time2degree(self.locationInfo.TimeToWESTantiMeridian))
 		Omega = Beta - self.Alpha
 
 		# calculate rotation necessary to position texture properly for this local time
@@ -1806,11 +1807,11 @@ class makeEarth(makePlanet):
 	def incrementRotation(self):
 		# recalculate the angle of the texture on sphere based on updated time 
 		#newLocalInitialAngle = deg2rad(self.locationInfo.solarT) \
-		#					   - deg2rad(self.locationInfo.Time2degree(self.locationInfo.TimeToEASTdateline)) \
+		#					   - deg2rad(self.locationInfo.Time2degree(self.locationInfo.TimeToEASTantiMeridian)) \
 		#					   - self.Theta 
 
 		newLocalInitialAngle = deg2rad(self.locationInfo.solarT) \
-							   + deg2rad(self.locationInfo.Time2degree(self.locationInfo.TimeToEASTdateline)) \
+							   + deg2rad(self.locationInfo.Time2degree(self.locationInfo.TimeToEASTantiMeridian)) \
 					 		   + self.Theta 
 
 		# rotate for the difference between updated angle and its formal value
