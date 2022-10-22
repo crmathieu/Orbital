@@ -205,7 +205,7 @@ class makePlanetWidgets():
             if self.currentLocation >= 0:
                 self.Loc[self.currentLocation].updateEclipticPosition()
 
-            #####  -> self.AnaLemma = makeAnalemma(self, locList.TZ_NORTH_P) #TZ_US_KOD) #TZ_US_COUVE)
+            self.AnaLemma = makeAnalemma(self, locList.TZ_NORTH_P) #TZ_US_KOD) #TZ_US_COUVE)
     
 
     """
@@ -602,7 +602,7 @@ class makeEarthLocation():
         self.Color = Color.red
         self.EclipticPosition = vector(0,0,0)
         self.lat = self.long = 0
-        self.AnaLemma = makeAnalemma(widgets, tz_index)
+        #self.AnaLemma = makeAnalemma(widgets, tz_index)
 
         self.tgPlane = None
         self.anaLemmaDistanceFactor = 1.5 #1.15
