@@ -42,6 +42,8 @@ class locList:
 	TZ_CHN_JIN = 20
 	TZ_US_KOD = 21
 	TZ_US_WAL = 22
+	TZ_NORTH_P = 23
+	TZ_SOUTH_P = 24
 
 class Timeloc:
 	tzEarthLocations = [
@@ -182,6 +184,18 @@ class Timeloc:
         "lat": 37.85,
         "long": -75.46667,
         "name": "US - Wallops Spaceport"
+    },
+	{
+        "tzname": "",
+        "lat": 90,
+        "long": -135,
+        "name": "North Pole"
+    },
+	{
+        "tzname": "",
+        "lat": -90,
+        "long": 45,
+        "name": "South Pole"
     },
 ]
 	def __init__(self, index = -1):

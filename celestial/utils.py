@@ -66,8 +66,9 @@ def getOrthogonalVector(vec):
 		x = 0
 
 	# return a unit vector
-	norm = mag((x, y, z))
-	return vector(x/norm, y/norm, z/norm)
+	#norm = mag((x, y, z))
+	#return vector(x/norm, y/norm, z/norm)
+	return norm(vector(x,y,z))
 
 def getVectorOrthogonalToPlane(A, B):
 	# Vectors A and B defined a plane. To determined the unit vector that is

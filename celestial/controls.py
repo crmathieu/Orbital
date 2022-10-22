@@ -1320,6 +1320,7 @@ class ORBITALpanel(AbstractUI):
 	
 
 	def updateSolarSystem(self):
+		# animate all visible bodies in the solar system 
 		self.refreshDate()
 		self.SolarSystem.animate(self.DeltaT)
 		for body in self.SolarSystem.bodies:
@@ -1674,6 +1675,7 @@ class ORBITALpanel(AbstractUI):
 #			self.SolarSystem.camera.cameraTest(frame=1)
 			#self.SolarSystem.camera.oneTickCameraCombination(zoom=True, zoom_forward=True)
 			self.SolarSystem.camera.oneTickCameraRotationWithDirection(direction = self.SolarSystem.camera.ROT_HOR|self.SolarSystem.camera.ROT_LEFT)
+		# animate by one TimeIncrement all bodies in the solar system
 		self.updateSolarSystem()
 		sleep(1e-2)
 		#sleep(1e-4)
@@ -1832,7 +1834,11 @@ class WIDGETSpanel(AbstractUI):
 		self.lrcb.SetValue(False)
 		self.lrcb.Bind(wx.EVT_CHECKBOX,self.OnLocalRef)
 
-		self.hpcb = wx.CheckBox(self, label="Hide Planet", pos=(50, CHK_L7)) #   CVT_Y+560))
+		self.lr2cb = wx.CheckBox(self, label="Earth-Centered-Earth-Fixed (ECEF) Referential", pos=(50, CHK_L7)) #   CVT_Y+560))
+		self.lr2cb.SetValue(False)
+		self.lr2cb.Bind(wx.EVT_CHECKBOX,self.OnECEFRef)
+
+		self.hpcb = wx.CheckBox(self, label="Hide Planet", pos=(50, CHK_L8)) #   CVT_Y+560))
 		self.hpcb.SetValue(False)
 		self.hpcb.Bind(wx.EVT_CHECKBOX,self.OnHidePlanet)
 
@@ -1864,6 +1870,11 @@ class WIDGETSpanel(AbstractUI):
 		self.arcb.SetValue(False)
 		self.arcb.Bind(wx.EVT_CHECKBOX,self.OnShowECSS)
 
+		self.racb = wx.CheckBox(self, label="Reset Analemma", pos=(50, CHK_L17)) #   CVT_Y+560))
+		self.racb.SetValue(False)
+		self.racb.Bind(wx.EVT_CHECKBOX,self.OnResetAnalemma)
+
+
 	def createLocationList(self, xpos, ypos):
 		i = 0
 		for loc in self.SolarSystem.locationInfo.tzEarthLocations:
@@ -1886,15 +1897,26 @@ class WIDGETSpanel(AbstractUI):
 		else:
 			print ">> Earth Location motion are disabled when animation is in progress"
 
-
+	def OnResetAnalemma(self, e):
+		if self.racb.GetValue() == True:
+			#self.Earth.PlanetWidgets.AnaLemma.Shape.visible = False
+			#del self.Earth.PlanetWidgets.AnaLemma.Shape
+			#self.Earth.PlanetWidgets.AnaLemma.Shape = None
+			self.Earth.PlanetWidgets.AnaLemma.resetAnalemma()
+			self.racb.SetValue(False)
 
 	def OnAnimate24h(self, e):
 		if self.acb.GetValue() == True:
-			self.parentFrame.orbitalTab.TimeIncrement = TI_24_HOURS * 2
+			self.parentFrame.orbitalTab.TimeIncrement = TI_24_HOURS
+			self.SolarSystem.setTimeIncrement(self.parentFrame.orbitalTab.TimeIncrement)
+			self.Earth.PlanetWidgets.AnaLemma.display(True)
 			self.parentFrame.orbitalTab.OnAnimate(e)
 		else:
+			# 1) stop animation
 			self.parentFrame.orbitalTab.OnAnimate(e)
+			# 2) reset TimeIncrement with proper value from sliders
 			self.parentFrame.orbitalTab.OnAnimTimeSlider(e)
+			self.Earth.PlanetWidgets.AnaLemma.display(False)
 
 	def OnShowECSS(self, e):
 		self.Earth.PlanetWidgets.ECSS.display(self.arcb.GetValue())
@@ -2104,4 +2126,5 @@ class WIDGETSpanel(AbstractUI):
 		self.SolarSystem.setFeature(LOCAL_REFERENTIAL, self.lrcb.GetValue())
 		orbit3D.glbRefresh(self.SolarSystem, self.parentFrame.orbitalTab.AnimationInProgress)
 
-
+	def OnECEFRef(self, e):
+		self.SolarSystem.EarthRef.PCPF.display(self.lr2cb.GetValue())
