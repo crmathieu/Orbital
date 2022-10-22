@@ -643,7 +643,7 @@ class makeEarthLocation():
         self.analemmaIncrement = 0
 
         self.CurrentGeoLoc = self.EclipticPosition
-        self.setTangentPlane()
+        self.setTgPlane()
         self.makeSunAxis() #locIndex)
         self.displayAnalemma(False)
 
@@ -685,7 +685,7 @@ class makeEarthLocation():
         #   - the point of the line P is the Earth vertex self.GeoLoc
         #   - the direction D is Earth Vertex - Sun Vertex
         
-        # first calculate t so that the intersection we are looking for verify the plane eqaution
+        # first calculate t so that the intersection we are looking for verify the plane equation
 
         if self.analemmaIncrement < TI_FULL_YEAR:
             PlaneCenter = self.Widgets.PCPF.referential.frame_to_world(self.Widgets.OVRL.frame_to_world(self.GeoPlaneCenter))
@@ -713,6 +713,63 @@ class makeEarthLocation():
                 self.Shape.append(pos= pos)
                 self.analemmaIncrement = self.analemmaIncrement + self.Planet.SolarSystem.Dashboard.orbitalTab.TimeIncrement
 
+    def getAnalemmaSphereIntersec(self):
+        # The sphere is centered on the earth center and has a radius self.anaLemmaDistanceFactor x self.radius (the sphere 
+        # radius is amplified by a factor self.anaLemmaDistanceFactor so that the sphere distance with the earth surface
+        # can be changed)
+        # 
+        # The equation of a sphere centered on earth is: (x - x0)^2 + (y - y0)^2 + (z - z0)^2 = R^2 where (x0, y0, z0) are
+        # the coordinates of the earth center.
+        #
+        # The parametric equation of the line coming from the sun and going to the earth location is given by:
+        #
+        #       r(t) = P + t.D 
+        #
+        # where P is a point on the line and D is the direction vector. If we have 2 points (x0,y0,z0) (x1,y1,z1)
+        # on the line, then the direction D = (x0 -x1, y0 -y1, z0 -z1). Since this line passes through the sun and
+        # the current location on the earth's surface, the final eq is:
+        #   
+        #       r(t) = (xloc, yloc, zloc) + t * (x0 -x1, y0 -y1, z0 -z1) with r(t) = (x,y,z)
+        #
+        # Soo, to find the line and sphere intersec, we need to replace the coordinate of r(t) in the sphere equation
+        # and find the value of t. We then find r(t) by replacing the value of t in each coordinate.
+        # 
+        # in an EarthLocation context: 
+        #   - the point of the line P is the Earth vertex self.GeoLoc
+        #   - the direction D is Earth Vertex - Sun Vertex
+        
+        # first calculate t so that the intersection we are looking for verifies the sphere equation
+
+        if self.analemmaIncrement < TI_FULL_YEAR:
+            #PlaneCenter = self.Widgets.PCPF.referential.frame_to_world(self.Widgets.OVRL.frame_to_world(self.GeoPlaneCenter))
+            #Normal = self.Widgets.PCPF.referential.frame_to_world(self.Widgets.OVRL.frame_to_world(self.UnitGrad))
+            vk = self.SunAxis.pos[self.SUN_VERTEX] - self.SunAxis.pos[self.EARTH_VERTEX]
+            v0 = self.Planet.Origin.pos
+            A = vk[0]**2 + vk[1]**2 + vk[2])**2
+            B = 2 * (vk[0]*(1 + v0[0]) + vk[1]*(1 + v0[1]) + vk[2]*(1 + v0[2]))
+            C = 2 * (self.SunAxis.pos[self.SUN_VERTEX][0] * v0[0] + \
+                     self.SunAxis.pos[self.SUN_VERTEX][1] * v0[1] +
+                     self.SunAxis.pos[self.SUN_VERTEX][2] * v0[2])
+
+            # for the intersec to be on the sphere, we have 2 possible solutions for t
+            t1 = (-B + math.sqrt(B**2 - 4*A*C))/2*A
+            t2 = (-B - math.sqrt(B**2 - 4*A*C))/2*A      
+
+            # second, deduct the coordinates
+            self.Intersec =       ( self.SunAxis.pos[self.SUN_VERTEX][0] + t1 * (self.SunAxis.pos[self.SUN_VERTEX][0] - self.SunAxis.pos[self.EARTH_VERTEX][0]),
+                                    self.SunAxis.pos[self.SUN_VERTEX][1] + t1 * (self.SunAxis.pos[self.SUN_VERTEX][1] - self.SunAxis.pos[self.EARTH_VERTEX][1]),
+                                    self.SunAxis.pos[self.SUN_VERTEX][2] + t1 * (self.SunAxis.pos[self.SUN_VERTEX][2] - self.SunAxis.pos[self.EARTH_VERTEX][2]))
+            if self.Shape == None:
+                self.Shape = curve(frame=self.Widgets.OVRL, color=Color.red, visible=True, radius=5, material=materials.emissive)
+            
+            # make sure the intersec is allowed (it must be between the sun and the 
+            # earth location. If it's not, it means that the sun is bolow the horizon)
+            if mag(vector(self.Intersec)) < mag(vector(self.EclipticPosition)):
+                # add a point to the analemma shape until a full year is complete
+                pos = self.Widgets.OVRL.world_to_frame(self.Widgets.PCPF.referential.world_to_frame(self.Intersec))
+                self.Shape.append(pos= pos)
+                self.analemmaIncrement = self.analemmaIncrement + self.Planet.SolarSystem.Dashboard.orbitalTab.TimeIncrement
+
     def updateAnalemmaPosition(self):
        
         self.CurrentGeoLoc = self.updateEclipticPosition()
@@ -722,7 +779,9 @@ class makeEarthLocation():
         # if we are in 24h animation mode, update forward vector to face earth from the sun's perspective
         if self.Planet.SolarSystem.Dashboard.widgetsTab.acb.GetValue() == True:
 
-            self.getAnalemmaPlaneIntersec()
+            #self.getAnalemmaPlaneIntersec()
+
+            self.getAnalemmaSphereIntersec()
 
             # set camera forward vector to follow the earth from the sun's perspective
             self.Planet.SolarSystem.Scene.forward = vector(self.Planet.Origin.pos - (0, 0, self.CurrentGeoLoc[2] + 5*self.radius))
@@ -832,9 +891,8 @@ class makeEarthLocation():
         self.NormalVec = simpleArrow(Color.white, 0, 10, self.GeoLoc.pos, axisp = (self.Grad/5), context = self.Origin)
         self.NormalVec.display(False)
 
-    def setTangentPlane(self):
+    def setTgPlane(self):
         self.anaLemmaTgPlane = box(frame=self.Origin, pos=self.anaLemmaDistanceFactor*self.GeoLoc.pos, axis = self.UnitGrad, width=10*self.radius, length=0.0001, height=10*self.radius, material=materials.emissive, visible=False, color=Color.grey, opacity=1)
-
 
     def displayTgPlane(self, trueFalse):
         self.anaLemmaTgPlane.visible = trueFalse
@@ -1211,7 +1269,7 @@ class makeAnalemmaXX():
 
         # make plane
         #self.makeAnalemmaPlane()
-        self.Loc.setTangentPlane()
+        self.Loc.setTgPlane()
         self.makeSunAxis() #locIndex)
         self.display(False)
 
