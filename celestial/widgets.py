@@ -205,7 +205,7 @@ class makePlanetWidgets():
             if self.currentLocation >= 0:
                 self.Loc[self.currentLocation].updateEclipticPosition()
 
-            self.AnaLemma = makeAnalemma(self, locList.TZ_NORTH_P) #TZ_US_KOD) #TZ_US_COUVE)
+            #### -> self.AnaLemma = makeAnalemma(self, locList.TZ_NORTH_P) #TZ_US_KOD) #TZ_US_COUVE)
     
 
     """
@@ -555,13 +555,20 @@ class makePlanetWidgets():
         if self.currentLocation >= 0: 
             self.Loc[self.currentLocation].updateEclipticPosition()
 
+    def updateCurrentLocationAnalemma(self):
+        if self.currentLocation >= 0: 
+            self.Loc[self.currentLocation].updateAnalemmaPosition()
+
+
+
     def animate(self):
         self.update_PCI_PCPF_ECSS_Position()
         ### self.update_PCPF_Rotation()
         self.update_ECSS_Rotation()
         #### self.Eq.updateNodesPosition()
         self.updateCurrentLocationEcliptic()
-        self.AnaLemma.updateAnalemmaPosition()
+        #self.AnaLemma.updateAnalemmaPosition()
+        self.updateCurrentLocationAnalemma()
 
         ### self.EqPlane.updateEquatorialPlanePosition()	
 
@@ -588,6 +595,9 @@ class makePlanetWidgets():
 
 
 class makeEarthLocation():
+    SUN_VERTEX = 0
+    EARTH_VERTEX = 1
+
     #
     # An Earth location is defined in the OVRL referential which 
     # is itself bound to the PCPF referential. This allows to 
@@ -602,10 +612,12 @@ class makeEarthLocation():
         self.Color = Color.red
         self.EclipticPosition = vector(0,0,0)
         self.lat = self.long = 0
-        #self.AnaLemma = makeAnalemma(widgets, tz_index)
+    #    self.AnaLemma = self.makeAnalemma(widgets, tz_index)
 
-        self.tgPlane = None
+        self.anaLemmaTgPlane = None
         self.anaLemmaDistanceFactor = 1.5 #1.15
+        self.anaLemmaShape = None
+        self.anaLemmaIncrement = 0
 
         self.GeoLoc = sphere(frame=self.Origin, pos=vector(0,0,0), radius=10, color=self.Color, material = materials.emissive, opacity=0.5, axis=(0,0,1))
 
@@ -618,14 +630,105 @@ class makeEarthLocation():
             self.Name = earthLoc["name"]
             self.lat = earthLoc["lat"]
             self.long = earthLoc["long"]
-            self.setPosition() #earthLoc)
+            self.setGeoPosition()
             self.updateEclipticPosition()
             self.setNormalToSurface()
             self.setOrientation(self.Grad)
+            self.initAnalemma()
         else:
             self.Name = "None"
 
-    def setPosition(self):
+    def initAnalemma(self):
+        self.Shape = None
+        self.analemmaIncrement = 0
+
+        self.CurrentGeoLoc = self.EclipticPosition
+        self.setTangentPlane()
+        self.makeSunAxis() #locIndex)
+        self.displayAnalemma(False)
+
+    def displayAnalemma(self, trueFalse):
+        self.SunAxis.visible = trueFalse
+        self.CurrentGeoLoc.visible = trueFalse
+        #self.Loc.displayanaLemmaTgPlane(trueFalse)
+
+    def resetAnalemma(self):
+        self.Shape.visible = False
+        del self.Shape
+        self.Shape = None
+        self.analemmaIncrement = 0
+
+    def getAnalemmaPlaneIntersec(self):
+        # given a vector normal to a location, we can deduct the plane equation that is perpendicular to that vector:
+        # The plane is centered on self.anaLemmaDistanceFactor x self.GeoLoc.pos (the earth location amplified by a 
+        # factor self.anaLemmaDistanceFactor so that the plane doesn't touch the earth's surface)
+        # Let be (nX, nY, nZ) a vector normal to the plane, (xo, yo, zo) a known point on the plane, and (x, y, z) a 
+        # random point on the plane. Since the 2 vectors (nX, nY, nZ) and (x-xo, y-y0, z-z0) are perpendicular, the 
+        # scalar product must be zero, hence the equation:
+        #
+        #       (x - xo)*nX + (y - y0)*nY + (z - z0)*nZ = 0 
+        #
+        # The parametric equation of the line coming from the sun and going to the earth location is given by:
+        #
+        #       r(t) = P + t.D 
+        #
+        # where P is a point on the line and D is the direction vector. If we have 2 points (x0,y0,z0) (x1,y1,z1)
+        # on the line, then the direction D = (x0 -x1, y0 -y1, z0 -z1)
+        # the final eq is r(t) = (xloc, yloc, zloc) + t * (x0 -x1, y0 -y1, z0 -z1) with r(t) = (x,y,z)
+        #
+        # Soo, to find the line and plane intersec, we need to replace the coordinate of r(t) in the plane equation
+        # and find the value of t. We then find r(t) by replacing the value of t in each coordinate.
+        # 
+        # in an EarthLocation context: 
+        #   - the point belonging to the plane is self.GeoLoc * self.anaLemmaDistanceFactor
+        #   - the normal vector to the plane is self.UnitGrad
+        #   - the point of the line P is the Earth vertex self.GeoLoc
+        #   - the direction D is Earth Vertex - Sun Vertex
+        
+        # first calculate t so that the intersection we are looking for verify the plane eqaution
+
+        if self.analemmaIncrement < TI_FULL_YEAR:
+            PlaneCenter = self.Widgets.PCPF.referential.frame_to_world(self.Widgets.OVRL.frame_to_world(self.GeoPlaneCenter))
+            Normal = self.Widgets.PCPF.referential.frame_to_world(self.Widgets.OVRL.frame_to_world(self.UnitGrad))
+
+            t = (PlaneCenter[0] - self.SunAxis.pos[self.SUN_VERTEX][0])*Normal[0] + \
+                (PlaneCenter[1] - self.SunAxis.pos[self.SUN_VERTEX][1])*Normal[1] + \
+                (PlaneCenter[2] - self.SunAxis.pos[self.SUN_VERTEX][2])*Normal[2]
+
+            t = t / ((self.SunAxis.pos[self.SUN_VERTEX][0] - self.SunAxis.pos[self.EARTH_VERTEX][0])*Normal[0] +\
+                    (self.SunAxis.pos[self.SUN_VERTEX][1] - self.SunAxis.pos[self.EARTH_VERTEX][1])*Normal[1] + \
+                    (self.SunAxis.pos[self.SUN_VERTEX][2] - self.SunAxis.pos[self.EARTH_VERTEX][2])*Normal[2])
+            # second, deduct the coordinates
+            self.Intersec =       ( self.SunAxis.pos[self.SUN_VERTEX][0] + t * (self.SunAxis.pos[self.SUN_VERTEX][0] - self.SunAxis.pos[self.EARTH_VERTEX][0]),
+                                    self.SunAxis.pos[self.SUN_VERTEX][1] + t * (self.SunAxis.pos[self.SUN_VERTEX][1] - self.SunAxis.pos[self.EARTH_VERTEX][1]),
+                                    self.SunAxis.pos[self.SUN_VERTEX][2] + t * (self.SunAxis.pos[self.SUN_VERTEX][2] - self.SunAxis.pos[self.EARTH_VERTEX][2]))
+            if self.Shape == None:
+                self.Shape = curve(frame=self.Widgets.OVRL, color=Color.red, visible=True, radius=5, material=materials.emissive)
+            
+            # make sure the intersec is allowed (it must be between the sun and the 
+            # earth location. If it's not, it means that the sun is bolow the horizon)
+            if mag(vector(self.Intersec)) < mag(vector(self.EclipticPosition)):
+                # add a point to the analemma shape until a full year is complete
+                pos = self.Widgets.OVRL.world_to_frame(self.Widgets.PCPF.referential.world_to_frame(self.Intersec))
+                self.Shape.append(pos= pos)
+                self.analemmaIncrement = self.analemmaIncrement + self.Planet.SolarSystem.Dashboard.orbitalTab.TimeIncrement
+
+    def updateAnalemmaPosition(self):
+       
+        self.CurrentGeoLoc = self.updateEclipticPosition()
+        self.SunAxis.pos[self.EARTH_VERTEX] = self.CurrentGeoLoc 
+        self.SunAxis.pos[self.SUN_VERTEX] = (0, 0, self.CurrentGeoLoc[2])
+
+        # if we are in 24h animation mode, update forward vector to face earth from the sun's perspective
+        if self.Planet.SolarSystem.Dashboard.widgetsTab.acb.GetValue() == True:
+
+            self.getAnalemmaPlaneIntersec()
+
+            # set camera forward vector to follow the earth from the sun's perspective
+            self.Planet.SolarSystem.Scene.forward = vector(self.Planet.Origin.pos - (0, 0, self.CurrentGeoLoc[2] + 5*self.radius))
+       
+
+    def setGeoPosition(self):
         # set the Geo position based on 
         # latitude/longitude of location
 
@@ -643,8 +746,16 @@ class makeEarthLocation():
 
         self.GeoPlaneCenter = self.anaLemmaDistanceFactor * self.GeoLoc.pos
 
-    def getPosition(self):
-        return self.GeoLoc.pos
+    def makeSunAxis(self):
+
+        # create first vertex in sun at z coordinate = earth latitude to create an axis parallel to ecliptic
+        self.SunAxis = curve(pos=[(0,0,self.CurrentGeoLoc[2])], color=Color.white, visible=False,  material=materials.emissive, radius=0)
+        ## -> self.SunAxis = curve(pos=[(0,0,0)], color=Color.white, visible=False,  material=materials.emissive, radius=0)
+
+        # add point location in ecliptic coordinate
+        self.SunAxis.append(pos=self.CurrentGeoLoc, color=Color.green)
+
+        # we now have a sun-earth line that links a particular latitude to the Sun light direction
 
     def updateEclipticPosition(self):
         # init position in ecliptic referential
@@ -722,11 +833,11 @@ class makeEarthLocation():
         self.NormalVec.display(False)
 
     def setTangentPlane(self):
-        self.tgPlane = box(frame=self.Origin, pos=self.anaLemmaDistanceFactor*self.GeoLoc.pos, axis = self.UnitGrad, width=10*self.radius, length=0.0001, height=10*self.radius, material=materials.emissive, visible=False, color=Color.grey, opacity=1)
+        self.anaLemmaTgPlane = box(frame=self.Origin, pos=self.anaLemmaDistanceFactor*self.GeoLoc.pos, axis = self.UnitGrad, width=10*self.radius, length=0.0001, height=10*self.radius, material=materials.emissive, visible=False, color=Color.grey, opacity=1)
 
 
     def displayTgPlane(self, trueFalse):
-        self.tgPlane.visible = trueFalse
+        self.anaLemmaTgPlane.visible = trueFalse
 
     def setOrientation(self, axis):
         self.GeoLoc.axis = axis * (1 / mag(axis))
@@ -1053,7 +1164,7 @@ class makeTropics():
         self.Tropics.append(doLatitude(self.Widgets, +self.TROPIC_ABS_LATITUDES, Color.yellow, thickness=25))
 
 
-class makeAnalemma():
+class makeAnalemmaXX():
     SUN_VERTEX = 0
     EARTH_VERTEX = 1
 
@@ -1104,7 +1215,7 @@ class makeAnalemma():
         self.makeSunAxis() #locIndex)
         self.display(False)
 
-    def makeAnalemmaPlane(self):
+    def makeAnalemmaPlaneXX(self):
         self.ECSS.display(True)
         self.analemmaPlane = box(frame=self.Origin, pos=(0,self.radius,0), length=2*self.radius, width=0.0001, height=2*self.radius, material=materials.emissive, visible=True, color=Color.yellow, opacity=0.1)
         self.analemmaPlane.rotate(angle=pi/2, axis=self.ECSS.XdirectionUnit) #(self.Axis[0], 0, 0))

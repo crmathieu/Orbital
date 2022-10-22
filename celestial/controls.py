@@ -1902,21 +1902,25 @@ class WIDGETSpanel(AbstractUI):
 			#self.Earth.PlanetWidgets.AnaLemma.Shape.visible = False
 			#del self.Earth.PlanetWidgets.AnaLemma.Shape
 			#self.Earth.PlanetWidgets.AnaLemma.Shape = None
-			self.Earth.PlanetWidgets.AnaLemma.resetAnalemma()
+
+			#self.Earth.PlanetWidgets.AnaLemma.resetAnalemma()
+			self.Earth.PlanetWidgets.Loc[self.Earth.PlanetWidgets.currentLocation].resetAnalemma()
 			self.racb.SetValue(False)
 
 	def OnAnimate24h(self, e):
 		if self.acb.GetValue() == True:
 			self.parentFrame.orbitalTab.TimeIncrement = TI_24_HOURS
 			self.SolarSystem.setTimeIncrement(self.parentFrame.orbitalTab.TimeIncrement)
-			self.Earth.PlanetWidgets.AnaLemma.display(True)
+			self.Earth.PlanetWidgets.Loc[self.Earth.PlanetWidgets.currentLocation].displayAnalemma(True)
+			#self.Earth.PlanetWidgets.AnaLemma.display(True)
 			self.parentFrame.orbitalTab.OnAnimate(e)
 		else:
 			# 1) stop animation
 			self.parentFrame.orbitalTab.OnAnimate(e)
 			# 2) reset TimeIncrement with proper value from sliders
 			self.parentFrame.orbitalTab.OnAnimTimeSlider(e)
-			self.Earth.PlanetWidgets.AnaLemma.display(False)
+			#self.Earth.PlanetWidgets.AnaLemma.display(False)
+			self.Earth.PlanetWidgets.Loc[self.Earth.PlanetWidgets.currentLocation].displayAnalemma(False)
 
 	def OnShowECSS(self, e):
 		self.Earth.PlanetWidgets.ECSS.display(self.arcb.GetValue())
