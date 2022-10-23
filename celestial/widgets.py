@@ -615,7 +615,6 @@ class makeEarthLocation():
     #    self.AnaLemma = self.makeAnalemma(widgets, tz_index)
 
         self.anaLemmaTgPlane = None
-        self.anaLemmaDistanceFactor = 1.5 #1.15
         self.anaLemmaShape = None
         self.anaLemmaIncrement = 0
 
@@ -641,7 +640,9 @@ class makeEarthLocation():
     def initAnalemma(self):
         self.Shape = None
         self.analemmaIncrement = 0
-
+        self.anaLemmaDistanceFactor = 1.5 #1.15
+        self.SphereIntersecRadius = self.Planet.radiusToShow * self.anaLemmaDistanceFactor
+        self.GeoPlaneCenter = self.GeoLoc.pos * self.anaLemmaDistanceFactor
         self.CurrentGeoLoc = self.EclipticPosition
         self.setTgPlane()
         self.makeSunAxis() #locIndex)
@@ -702,6 +703,7 @@ class makeEarthLocation():
             self.Intersec =       ( self.SunAxis.pos[self.SUN_VERTEX][0] + t * (self.SunAxis.pos[self.SUN_VERTEX][0] - self.SunAxis.pos[self.EARTH_VERTEX][0]),
                                     self.SunAxis.pos[self.SUN_VERTEX][1] + t * (self.SunAxis.pos[self.SUN_VERTEX][1] - self.SunAxis.pos[self.EARTH_VERTEX][1]),
                                     self.SunAxis.pos[self.SUN_VERTEX][2] + t * (self.SunAxis.pos[self.SUN_VERTEX][2] - self.SunAxis.pos[self.EARTH_VERTEX][2]))
+            print "intersec=",self.Intersec
             if self.Shape == None:
                 self.Shape = curve(frame=self.Widgets.OVRL, color=Color.red, visible=True, radius=5, material=materials.emissive)
             
@@ -745,20 +747,22 @@ class makeEarthLocation():
             #Normal = self.Widgets.PCPF.referential.frame_to_world(self.Widgets.OVRL.frame_to_world(self.UnitGrad))
             vk = self.SunAxis.pos[self.SUN_VERTEX] - self.SunAxis.pos[self.EARTH_VERTEX]
             v0 = self.Planet.Origin.pos
-            A = vk[0]**2 + vk[1]**2 + vk[2])**2
+            A = vk[0]**2 + vk[1]**2 + vk[2]**2
             B = 2 * (vk[0]*(1 + v0[0]) + vk[1]*(1 + v0[1]) + vk[2]*(1 + v0[2]))
             C = 2 * (self.SunAxis.pos[self.SUN_VERTEX][0] * v0[0] + \
                      self.SunAxis.pos[self.SUN_VERTEX][1] * v0[1] +
-                     self.SunAxis.pos[self.SUN_VERTEX][2] * v0[2])
+                     self.SunAxis.pos[self.SUN_VERTEX][2] * v0[2]) - self.SphereIntersecRadius**2
 
             # for the intersec to be on the sphere, we have 2 possible solutions for t
             t1 = (-B + math.sqrt(B**2 - 4*A*C))/2*A
             t2 = (-B - math.sqrt(B**2 - 4*A*C))/2*A      
 
             # second, deduct the coordinates
-            self.Intersec =       ( self.SunAxis.pos[self.SUN_VERTEX][0] + t1 * (self.SunAxis.pos[self.SUN_VERTEX][0] - self.SunAxis.pos[self.EARTH_VERTEX][0]),
-                                    self.SunAxis.pos[self.SUN_VERTEX][1] + t1 * (self.SunAxis.pos[self.SUN_VERTEX][1] - self.SunAxis.pos[self.EARTH_VERTEX][1]),
-                                    self.SunAxis.pos[self.SUN_VERTEX][2] + t1 * (self.SunAxis.pos[self.SUN_VERTEX][2] - self.SunAxis.pos[self.EARTH_VERTEX][2]))
+            self.Intersec =       ( self.SunAxis.pos[self.SUN_VERTEX][0] + t2 * (self.SunAxis.pos[self.SUN_VERTEX][0] - self.SunAxis.pos[self.EARTH_VERTEX][0]),
+                                    self.SunAxis.pos[self.SUN_VERTEX][1] + t2 * (self.SunAxis.pos[self.SUN_VERTEX][1] - self.SunAxis.pos[self.EARTH_VERTEX][1]),
+                                    self.SunAxis.pos[self.SUN_VERTEX][2] + t2 * (self.SunAxis.pos[self.SUN_VERTEX][2] - self.SunAxis.pos[self.EARTH_VERTEX][2]))
+            print "intersec=",self.Intersec
+            print "geoLocAB=", self.EclipticPosition
             if self.Shape == None:
                 self.Shape = curve(frame=self.Widgets.OVRL, color=Color.red, visible=True, radius=5, material=materials.emissive)
             
@@ -769,6 +773,8 @@ class makeEarthLocation():
                 pos = self.Widgets.OVRL.world_to_frame(self.Widgets.PCPF.referential.world_to_frame(self.Intersec))
                 self.Shape.append(pos= pos)
                 self.analemmaIncrement = self.analemmaIncrement + self.Planet.SolarSystem.Dashboard.orbitalTab.TimeIncrement
+        else:
+            print "full year!"
 
     def updateAnalemmaPosition(self):
        
@@ -803,7 +809,7 @@ class makeEarthLocation():
         self.GeoLoc.pos[1] = eqPlane * sin(deg2rad(self.long)+pi)
         self.GeoLoc.pos[2] = self.radius * sin(deg2rad(self.lat))
 
-        self.GeoPlaneCenter = self.anaLemmaDistanceFactor * self.GeoLoc.pos
+#        self.GeoPlaneCenter = self.anaLemmaDistanceFactor * self.GeoLoc.pos
 
     def makeSunAxis(self):
 
