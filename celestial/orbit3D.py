@@ -767,7 +767,10 @@ class makeBody:
 
 	def makeShape(self):
 		self.Origin.pos=(self.Position[0]+self.Foci[0],self.Position[1]+self.Foci[1],self.Position[2]+self.Foci[2])
-		self.BodyShape = sphere(frame=self.Origin, pos=(0,0,0), np=64, radius=self.radiusToShow/self.SizeCorrection[self.sizeType], make_trail=false, up=(0,0,1))
+		self.BodyShape = sphere(frame=self.Origin, pos=(0,0,0), np=64, radius=self.getBodyRadius(), make_trail=false, up=(0,0,1))
+
+	def getBodyRadius(self):
+		return self.radiusToShow/self.SizeCorrection[self.sizeType]
 
 	def setPCPFAxisTilt(self):
 		self.PCPF.setAxisTilt()

@@ -640,11 +640,12 @@ class makeEarthLocation():
     def initAnalemma(self):
         self.Shape = None
         self.analemmaIncrement = 0
-        self.anaLemmaDistanceFactor = 1.5 #1.15
-        self.SphereIntersecRadius = self.Planet.radiusToShow * self.anaLemmaDistanceFactor
+        self.anaLemmaDistanceFactor = 1.15
+        self.SphereIntersecRadius = self.Planet.getBodyRadius() * self.anaLemmaDistanceFactor
         self.GeoPlaneCenter = self.GeoLoc.pos * self.anaLemmaDistanceFactor
         self.CurrentGeoLoc = self.EclipticPosition
         self.setTgPlane()
+        #self.setAnaLemmaSphere()
         self.makeSunAxis() #locIndex)
         self.displayAnalemma(False)
 
@@ -704,6 +705,7 @@ class makeEarthLocation():
                                     self.SunAxis.pos[self.SUN_VERTEX][1] + t * (self.SunAxis.pos[self.SUN_VERTEX][1] - self.SunAxis.pos[self.EARTH_VERTEX][1]),
                                     self.SunAxis.pos[self.SUN_VERTEX][2] + t * (self.SunAxis.pos[self.SUN_VERTEX][2] - self.SunAxis.pos[self.EARTH_VERTEX][2]))
             print "intersec=",self.Intersec
+            print "geoLocAB=", self.EclipticPosition
             if self.Shape == None:
                 self.Shape = curve(frame=self.Widgets.OVRL, color=Color.red, visible=True, radius=5, material=materials.emissive)
             
@@ -736,6 +738,126 @@ class makeEarthLocation():
         # Soo, to find the line and sphere intersec, we need to replace the coordinate of r(t) in the sphere equation
         # and find the value of t. We then find r(t) by replacing the value of t in each coordinate.
         # 
+        # This results in a quadratic equation for t. Finding a solution means calculating its discriminant D and, after
+        # making sure it's positive, keep the positive solution t1 = (-B + sqrt(D))/(2*A)
+        # Last, but not least, we need to make sure, the line coming from the sun doesn't intersect the earth surface
+        # before reaching the location. In other words, we need to make sure the location has its y coordinate positive
+        # in the ECSS referential.
+        #
+        # in an EarthLocation context: 
+        #   - the point of the line P is the Earth vertex self.GeoLoc
+        #   - the direction D is Earth Vertex - Sun Vertex
+         
+        # first calculate t so that the intersection we are looking for verifies the sphere equation
+
+        if self.analemmaIncrement < TI_FULL_YEAR:
+            sx = self.Planet.Origin.pos[0]
+            sy = self.Planet.Origin.pos[1]
+            sz = self.Planet.Origin.pos[2]
+
+            px = self.SunAxis.pos[self.SUN_VERTEX][0]
+            py = self.SunAxis.pos[self.SUN_VERTEX][1]
+            pz = self.SunAxis.pos[self.SUN_VERTEX][2]
+
+            vx = px - self.SunAxis.pos[self.EARTH_VERTEX][0]
+            vy = py - self.SunAxis.pos[self.EARTH_VERTEX][1]
+            vz = pz - self.SunAxis.pos[self.EARTH_VERTEX][2]
+
+            A = vx*vx + vy*vy + vz*vz
+            B = 2.0 * (px * vx + py * vy + pz * vz - vx * sx - vy * sy - vz * sz)
+            C = px * px - 2 * px * sx + sx * sx + py * py - 2 * py * sy + sy * sy + \
+                   pz * pz - 2 * pz * sz + sz * sz - self.SphereIntersecRadius * self.SphereIntersecRadius 
+            #vk = self.SunAxis.pos[self.SUN_VERTEX] - self.SunAxis.pos[self.EARTH_VERTEX]
+            #v0 = self.Planet.Origin.pos
+            #A = vk[0]**2 + vk[1]**2 + vk[2]**2
+            
+#           # B = 2 * (vk[0]*(1 - v0[0]) + vk[1]*(1 - v0[1]) + vk[2]*(1 - v0[2]))
+            #B = 2 * (vk[0]*(self.SunAxis.pos[self.EARTH_VERTEX][0] - v0[0]) + \
+            #         vk[1]*(self.SunAxis.pos[self.EARTH_VERTEX][1] - v0[1]) + \
+            #         vk[2]*(self.SunAxis.pos[self.EARTH_VERTEX][2] - v0[2])) 
+
+            #C = self.SunAxis.pos[self.SUN_VERTEX][0]**2 + \
+            #    self.SunAxis.pos[self.SUN_VERTEX][1]**2 + \
+            #    self.SunAxis.pos[self.SUN_VERTEX][2]**2 + \
+            ##    self.SunAxis.pos[self.EARTH_VERTEX][0]**2 + \
+             #   self.SunAxis.pos[self.EARTH_VERTEX][1]**2 + \
+            #    self.SunAxis.pos[self.EARTH_VERTEX][2]**2 + \
+            #    -2*(self.SunAxis.pos[self.SUN_VERTEX][0] * v0[0] + \
+            #    self.SunAxis.pos[self.SUN_VERTEX][1] * v0[1] + \
+            #    self.SunAxis.pos[self.SUN_VERTEX][2] * v0[2]) - self.SphereIntersecRadius**2
+
+            # for the intersec to be on the sphere, we have 2 possible solutions for t
+            D = B*B - 4*A*C
+            t1 = 0
+            if D > 0:
+                t1 = (-B + sqrt(D))/(2.0*A)
+            else:
+                print "Negative discriminant: B^2=", B*B, ", 4AC=", 4*C*A
+                return
+
+            #D = math.sqrt(B**2 - 4*A*C)
+            #t1 = (-B + D)/2*A
+            #t2 = (-B - D)/2*A      
+
+            # second, deduct the coordinates
+            self.Intersec =       ( px + (t1 * vx),
+                                    py + (t1 * vy),
+                                    pz + (t1 * vz))
+
+#            print "P(sun)=", vector(px,py,pz)
+#            print "V(sun-loc)=", vector(vx,vy,vz)
+##            print "discriminant D=", D, ", sqrt(D)=", sqrt(D), ", -B=", -B, ", 2A=", 2.0*A, ", t=", t1
+#            print "solution t=", t1
+#            print "intersec=",self.Intersec
+#            print "geoLocAB=", self.EclipticPosition
+#            print "----------------------------"
+            if self.Shape == None:
+                self.Shape = curve(frame=self.Widgets.OVRL, color=Color.red, visible=True, radius=5, material=materials.emissive)
+            
+            # make sure the intersec is allowed (it must be between the sun and the 
+            # earth location. If it's not, it means that the sun is bolow the horizon)
+
+#            if mag(vector(self.Intersec)) < mag(vector(self.EclipticPosition)):
+
+            ECSSgeoLoc = self.Widgets.ECSS.referential.world_to_frame(self.SunAxis.pos[self.EARTH_VERTEX])
+            print "intersecInECSS:", ECSSgeoLoc
+            if ECSSgeoLoc[1] >= 0:
+                # add a point to the analemma shape until a full year is complete
+                pos = self.Widgets.OVRL.world_to_frame(self.Widgets.PCPF.referential.world_to_frame(self.Intersec))
+                #print "inserting ANALEMMA POINT: ", pos
+                self.Shape.append(pos = pos)
+
+            self.analemmaIncrement = self.analemmaIncrement + self.Planet.SolarSystem.Dashboard.orbitalTab.TimeIncrement
+        else:
+            print "full year!"
+
+    def getAnalemmaSphereIntersec_bis(self):
+        # The sphere is centered on the earth center and has a radius self.anaLemmaDistanceFactor x self.radius (the sphere 
+        # radius is amplified by a factor self.anaLemmaDistanceFactor so that the sphere distance with the earth surface
+        # can be changed)
+        # 
+        # The equation of a sphere centered on earth is: (x - x0)^2 + (y - y0)^2 + (z - z0)^2 = R^2 where (x0, y0, z0) are
+        # the coordinates of the earth center.
+        #
+        # The parametric equation of the line coming from the sun and going to the earth location is given by:
+        #
+        #       r(t) = P + t.D 
+        #
+        # where P is a point on the line and D is the direction vector. If we have 2 points (x0,y0,z0) (x1,y1,z1)
+        # on the line, then the direction D = (x0 -x1, y0 -y1, z0 -z1). Since this line passes through the sun and
+        # the current location on the earth's surface, the final eq is:
+        #   
+        #       r(t) = (xloc, yloc, zloc) + t * (x0 -x1, y0 -y1, z0 -z1) with r(t) = (x,y,z)
+        #
+        # Soo, to find the line and sphere intersec, we need to replace the coordinate of r(t) in the sphere equation
+        # and find the value of t. We then find r(t) by replacing the value of t in each coordinate.
+        # 
+        # This results in a quadratic equation for t. Finding a solution means calculating its discriminant D and, after
+        # making sure it's positive, keep the positive solution t1 = (-B + sqrt(D))/(2*A)
+        # Last, but not least, we need to make sure, the line coming from the sun doesn't intersect the earth surface
+        # before reaching the location. In other words, we need to make sure the location has its y coordinate positive
+        # in the ECSS referential.
+        #
         # in an EarthLocation context: 
         #   - the point of the line P is the Earth vertex self.GeoLoc
         #   - the direction D is Earth Vertex - Sun Vertex
@@ -748,19 +870,39 @@ class makeEarthLocation():
             vk = self.SunAxis.pos[self.SUN_VERTEX] - self.SunAxis.pos[self.EARTH_VERTEX]
             v0 = self.Planet.Origin.pos
             A = vk[0]**2 + vk[1]**2 + vk[2]**2
-            B = 2 * (vk[0]*(1 + v0[0]) + vk[1]*(1 + v0[1]) + vk[2]*(1 + v0[2]))
-            C = 2 * (self.SunAxis.pos[self.SUN_VERTEX][0] * v0[0] + \
-                     self.SunAxis.pos[self.SUN_VERTEX][1] * v0[1] +
-                     self.SunAxis.pos[self.SUN_VERTEX][2] * v0[2]) - self.SphereIntersecRadius**2
+            
+            B = 2 * (vk[0]*(1 - v0[0]) + vk[1]*(1 - v0[1]) + vk[2]*(1 - v0[2]))
+#            B = 2 * (vk[0]*(self.SunAxis.pos[self.EARTH_VERTEX][0] - v0[0]) + \
+#                     vk[1]*(self.SunAxis.pos[self.EARTH_VERTEX][1] - v0[1]) + \
+#                     vk[2]*(self.SunAxis.pos[self.EARTH_VERTEX][2] - v0[2])) 
+
+            C = self.SunAxis.pos[self.SUN_VERTEX][0]**2 + \
+                self.SunAxis.pos[self.SUN_VERTEX][1]**2 + \
+                self.SunAxis.pos[self.SUN_VERTEX][2]**2 + \
+                self.SunAxis.pos[self.EARTH_VERTEX][0]**2 + \
+                self.SunAxis.pos[self.EARTH_VERTEX][1]**2 + \
+                self.SunAxis.pos[self.EARTH_VERTEX][2]**2 + \
+                -2*(self.SunAxis.pos[self.SUN_VERTEX][0] * v0[0] + \
+                self.SunAxis.pos[self.SUN_VERTEX][1] * v0[1] + \
+                self.SunAxis.pos[self.SUN_VERTEX][2] * v0[2]) - self.SphereIntersecRadius*self.SphereIntersecRadius
 
             # for the intersec to be on the sphere, we have 2 possible solutions for t
-            t1 = (-B + math.sqrt(B**2 - 4*A*C))/2*A
-            t2 = (-B - math.sqrt(B**2 - 4*A*C))/2*A      
+            D = B*B - 4*A*C
+            t1 = 0
+            if D > 0:
+                t1 = (-B + sqrt(D))/(2.0*A)
+            else:
+                print "Negative discriminant: B^2=", B*B, ", 4AC=", 4*C*A
+                exit()
+
+            #D = math.sqrt(B**2 - 4*A*C)
+            #t1 = (-B + D)/2*A
+            #t2 = (-B - D)/2*A      
 
             # second, deduct the coordinates
-            self.Intersec =       ( self.SunAxis.pos[self.SUN_VERTEX][0] + t2 * (self.SunAxis.pos[self.SUN_VERTEX][0] - self.SunAxis.pos[self.EARTH_VERTEX][0]),
-                                    self.SunAxis.pos[self.SUN_VERTEX][1] + t2 * (self.SunAxis.pos[self.SUN_VERTEX][1] - self.SunAxis.pos[self.EARTH_VERTEX][1]),
-                                    self.SunAxis.pos[self.SUN_VERTEX][2] + t2 * (self.SunAxis.pos[self.SUN_VERTEX][2] - self.SunAxis.pos[self.EARTH_VERTEX][2]))
+            self.Intersec =       ( self.SunAxis.pos[self.SUN_VERTEX][0] + t1 * (self.SunAxis.pos[self.SUN_VERTEX][0] - self.SunAxis.pos[self.EARTH_VERTEX][0]),
+                                    self.SunAxis.pos[self.SUN_VERTEX][1] + t1 * (self.SunAxis.pos[self.SUN_VERTEX][1] - self.SunAxis.pos[self.EARTH_VERTEX][1]),
+                                    self.SunAxis.pos[self.SUN_VERTEX][2] + t1 * (self.SunAxis.pos[self.SUN_VERTEX][2] - self.SunAxis.pos[self.EARTH_VERTEX][2]))
             print "intersec=",self.Intersec
             print "geoLocAB=", self.EclipticPosition
             if self.Shape == None:
@@ -768,10 +910,12 @@ class makeEarthLocation():
             
             # make sure the intersec is allowed (it must be between the sun and the 
             # earth location. If it's not, it means that the sun is bolow the horizon)
-            if mag(vector(self.Intersec)) < mag(vector(self.EclipticPosition)):
+            ECSSgeoLoc = self.Widgets.ECSS.referential.world_to_frame(self.SunAxis.pos[self.EARTH_VERTEX])
+            print "intersecInECSS:", ECSSgeoLoc
+            if ECSSgeoLoc[1] >= 0:
                 # add a point to the analemma shape until a full year is complete
                 pos = self.Widgets.OVRL.world_to_frame(self.Widgets.PCPF.referential.world_to_frame(self.Intersec))
-                self.Shape.append(pos= pos)
+                self.Shape.append(pos = pos)
                 self.analemmaIncrement = self.analemmaIncrement + self.Planet.SolarSystem.Dashboard.orbitalTab.TimeIncrement
         else:
             print "full year!"
@@ -790,8 +934,11 @@ class makeEarthLocation():
             self.getAnalemmaSphereIntersec()
 
             # set camera forward vector to follow the earth from the sun's perspective
-            self.Planet.SolarSystem.Scene.forward = vector(self.Planet.Origin.pos - (0, 0, self.CurrentGeoLoc[2] + 5*self.radius))
-       
+            #self.Planet.SolarSystem.Scene.forward = vector(self.Planet.Origin.pos - (0, 0, self.CurrentGeoLoc[2] + 5*self.radius))
+
+            # alternate view: using the normal vector
+            self.Planet.SolarSystem.Scene.forward = self.Planet.PCPF.referential.frame_to_world(self.Origin.frame_to_world(self.UnitGrad))
+            self.Planet.SolarSystem.Scene.center = (0,0,0)
 
     def setGeoPosition(self):
         # set the Geo position based on 
@@ -899,6 +1046,9 @@ class makeEarthLocation():
 
     def setTgPlane(self):
         self.anaLemmaTgPlane = box(frame=self.Origin, pos=self.anaLemmaDistanceFactor*self.GeoLoc.pos, axis = self.UnitGrad, width=10*self.radius, length=0.0001, height=10*self.radius, material=materials.emissive, visible=False, color=Color.grey, opacity=1)
+
+    def setAnaLemmaSphere(self):
+        self.anaLemmaSphere = sphere(frame=self.Origin, pos=(0,0,0), radius=self.SphereIntersecRadius, material=materials.emissive, visible=True, color=Color.gray, opacity=0.1)
 
     def displayTgPlane(self, trueFalse):
         self.anaLemmaTgPlane.visible = trueFalse
