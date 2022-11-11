@@ -212,14 +212,14 @@ class camera():
     
     def setCameraTarget(self, bodyName):
         body = self.solSystem.getBodyFromName(bodyName)
-        if body != None:
+        if body is not None:
             inx = self.solSystem.Dashboard.focusTab.getBodyIndexInList(bodyName)
             self.solSystem.Dashboard.focusTab.setCurrentBodyFocusManually(body, inx)
         else:
             print ("Unknown Body Name:", bodyName)
 
     def gotoEarthLocation(self, locationID):
-     	return self.solSystem.camera.gotoEarthLocation(locationID)
+     	return self.solSystem.camera.gotoEarthLocationVertical(locationID)
 
 
     ### camera recording ###
@@ -240,10 +240,10 @@ class Api():
         self.recorder = trueFalse
         if self.recorder == True:
             self.solSystem.Dashboard.orbitalTab.RecorderOn = True
-            if self.solSystem.Dashboard.orbitalTab.VideoRecorder == None:
+            if self.solSystem.Dashboard.orbitalTab.VideoRecorder is None:
                 self.solSystem.Dashboard.orbitalTab.VideoRecorder = setVideoRecording(framerate = 20, filename = "output.avi")
         else:
             self.solSystem.Dashboard.orbitalTab.RecorderOn = False
-            if self.solSystem.Dashboard.orbitalTab.VideoRecorder != None:
+            if self.solSystem.Dashboard.orbitalTab.VideoRecorder is not None:
                 stopRecording(self.solSystem.Dashboard.orbitalTab.VideoRecorder)
                 self.solSystem.Dashboard.orbitalTab.VideoRecorder = None

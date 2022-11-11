@@ -20,6 +20,7 @@ class locList:
 	TZ_EG_CAIRO = 1
 	TZ_FR_PARIS = 2
 	TZ_US_COUVE = 3
+	TZ_YOUR_LOCATION = 3
 	TZ_ICE_REK = 4
 	TZ_CHN_HONG = 5
 	TZ_AUS_SYD = 6
@@ -41,6 +42,9 @@ class locList:
 	TZ_CHN_JIN = 20
 	TZ_US_KOD = 21
 	TZ_US_WAL = 22
+	TZ_NORTH_P = 23
+	TZ_SOUTH_P = 24
+	TZ_EQUANT = 25
 
 class Timeloc:
 	tzEarthLocations = [
@@ -182,6 +186,24 @@ class Timeloc:
         "long": -75.46667,
         "name": "US - Wallops Spaceport"
     },
+	{
+        "tzname": "",
+        "lat": 90,
+        "long": -135,
+        "name": "North Pole"
+    },
+	{
+        "tzname": "",
+        "lat": -90,
+        "long": 45,
+        "name": "South Pole"
+    },
+	{
+        "tzname": "",
+        "lat": 0,
+        "long": 180,
+        "name": "Equatorial Antimeridian"
+    },
 ]
 	def __init__(self, index = -1):
 		#index = TZ_COUVE
@@ -276,8 +298,8 @@ class Timeloc:
 		print "------------------------------------"
 		print " Local Timezone data for", self.city
 		print "------------------------------------"
-		print "UTC datetime: .............. ", self.UTCtime
-		print "Local datetime: ............ ", self.localdatetime, "DST=", self.dst
+		print "UTC datetime: .................. ", self.UTCtime
+		print "Local datetime: ................ ", self.localdatetime, "DST=", self.dst
 
 		# determine the difference between local TZ and UTC in seconds. The datetime.now() provides
 		# a naive date from which we can figure out the exact time difference in second depending on 
@@ -310,22 +332,22 @@ class Timeloc:
 		# (here we only care about the true angular difference)
 
 		self.timezoneInSec = self.angTime * 3600
-		self.TimeToWESTdateline = 12 + self.angTime
+		self.TimeToWESTantiMeridian = 12 + self.angTime
 				
 		# establish time to date line in hours, relative and absolute
-		#self.TimeToWESTdateline = 12 - self.timezoneInSec/3600 + (1 if self.dst else 0)
+		#self.TimeToWESTantiMeridian = 12 - self.timezoneInSec/3600 + (1 if self.dst else 0)
 		
-		#self.TimeToEASTdateline = 86400/2 - abs(self.timezoneInSec)
-		self.TimeToEASTdateline = 24 - self.TimeToWESTdateline
+		#self.TimeToEASTantiMeridian = 86400/2 - abs(self.timezoneInSec)
+		self.TimeToEASTantiMeridian = 24 - self.TimeToWESTantiMeridian
 		
 		self.initSolarTime()
 
-		print "Angular time with UTC ...... ", self.angTime, "hours"
-		print "#timezones to UTC .......... ", self.timezoneInSec/3600
-		print "#Timezones to E dateline ... ", self.TimeToEASTdateline
-		print "#Timezones to W dateline ... ", self.TimeToWESTdateline 	#24 - self.TimeToWESTdateline
-		print "Time from E dateline ....... ", 12 - self.timezoneInSec/3600 + (1 if self.dst else 0)
-		print "\nSolar time ................. ", self.getSolarTime(), "This is the angle between vertical and sun current position"
+		print "Angular time with UTC .......... ", self.angTime, "hours"
+		print "#timezones to UTC .............. ", self.timezoneInSec/3600
+		print "#Timezones to E antiMeridian ... ", self.TimeToEASTantiMeridian
+		print "#Timezones to W antiMeridian ... ", self.TimeToWESTantiMeridian 	#24 - self.TimeToWESTantiMeridian
+		print "Time from E antiMeridian ....... ", 12 - self.timezoneInSec/3600 + (1 if self.dst else 0)
+		print "\nSolar time ................... ", self.getSolarTime(), "This is the angle between vertical and sun current position"
 
 
 	def tz_diff(self, date, tz_from, tz_to):

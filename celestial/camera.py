@@ -1,10 +1,10 @@
 from visual import *
 from rate_func import *
 #import rate_func
-from utils import deg2rad, rad2deg, getAngleBetweenVectors, getOrthogonalVector, getVectorOrthogonalToPlane #, sleep
+from utils import deg2rad, getAngleBetweenVectors, getOrthogonalVector, getVectorOrthogonalToPlane #, sleep
 from objects import simpleArrow
 from planetsdata import EARTH_NAME
-from video import * 
+from video import recOneFrame # import * 
 
 # All camera movements occur using a focal point centered on the
 # current object
@@ -81,7 +81,7 @@ class camera3D:
 #		self.view.autocenter = False
 
 	def setEarthLocations(self):
-		if self.ssys.EarthRef != None and self.ssys.EarthRef.PlanetWidgets != None:
+		if self.ssys.EarthRef is not None and self.ssys.EarthRef.PlanetWidgets is not None:
 			self.Loc = self.ssys.EarthRef.PlanetWidgets.Loc
 
 	def getDirection(self):
@@ -190,7 +190,7 @@ class camera3D:
 			delta = -1
 
 #		if recorder == True:
-#			if self.parentFrame.orbitalTab.VideoRecorder == None:
+#			if self.parentFrame.orbitalTab.VideoRecorder is None:
 #				self.parentFrame.orbitalTab.VideoRecorder = setVideoRecording(framerate = 20, filename = "output.avi")
 
 		# calculate number of ticks
@@ -289,18 +289,18 @@ class camera3D:
 ######################
 
 	def updateCameraViewTarget(self, loc = None):
-		if loc != None:
+		if loc is not None:
 			print "Location is", loc.Name
 
-		if self.ssys.cameraViewTargetBody == None:
+		if self.ssys.cameraViewTargetBody is None:
 			print "no curent object"
 			return
 
 		if self.ssys.cameraViewTargetBody.Name.lower() == EARTH_NAME:
 			earthLocPos = None
-			if self.ssys.EarthRef != None and self.ssys.EarthRef.PlanetWidgets != None:
+			if self.ssys.EarthRef is not None and self.ssys.EarthRef.PlanetWidgets is not None:
 				w = self.ssys.EarthRef.PlanetWidgets
-				if loc == None:
+				if loc is None:
 					if w.currentLocation >= 0:
 						#w = self.Earth.PlanetWidgets.Loc[w.currentLocation]
 						earthLocPos = w.Loc[w.currentLocation].getEclipticPosition()
@@ -309,7 +309,7 @@ class camera3D:
 					earthLocPos = loc.getEclipticPosition()
 					print "reading ecliptic from loc", loc.getEclipticPosition()
 
-				if earthLocPos != None:
+				if earthLocPos is not None:
 					#print "centering on loc", earthLocPos.Name
 					self.ssys.Scene.center = (
 						earthLocPos[0],
@@ -369,7 +369,7 @@ class camera3D:
 		print ("X=", deltaX, ", Y=", deltaY,", Z=", deltaZ)
 
 		if self.ssys.Dashboard.orbitalTab.RecorderOn == True:
-			if self.ssys.Dashboard.orbitalTab.VideoRecorder == None:
+			if self.ssys.Dashboard.orbitalTab.VideoRecorder is None:
 				self.ssys.Dashboard.orbitalTab.VideoRecorder = setVideoRecording(framerate = 20, filename = "output.avi")
 
 
@@ -404,7 +404,7 @@ class camera3D:
 		# going from current object to next current object
 		target = None
 		targetBody = self.ssys.getBodyFromName(targetBodyName.lower())
-		if targetBody == None:
+		if targetBody is None:
 			# use sun as target
 			target = vector(0,0,0)
 		else:
@@ -413,20 +413,22 @@ class camera3D:
 		return self._smoothFocus(target, ratefunc)
 
 
-	def gotoEarthLocation(self, nextLocation, ratefunc = ease_in_out_quart):
+	# move the scene center to target location and rotate forward vector to vertical
+	def gotoEarthLocationVertical(self, nextLocation, ratefunc = ease_in_out_quart):
 
-		if self.ssys.EarthRef == None:
+		if self.ssys.EarthRef is None:
 			return
 
-		self.Loc[nextLocation].updateEclipticPosition()
-		nextPos = self.Loc[nextLocation].getGeoPosition()
+		#self.Loc[nextLocation].updateEclipticPosition()
+		#nextPos = self.Loc[nextLocation].getGeoPosition()
 
 
 		#self.B =  simpleArrow(color.green, 0, 20, nextPos, axisp = self.Loc[nextLocation].Grad/10, context = self.Loc[nextLocation].Origin)
 		#self.B.display(True)
 
 		# build radial vector vertical to location in ecliptic coordinates
-		dest = self.Loc[nextLocation].getEclipticPosition()
+		dest = self.Loc[nextLocation].updateEclipticPosition()	# updateEclipticPosition now returns the updated value
+		#dest = self.Loc[nextLocation].getEclipticPosition()
 		A = dest[0] - self.ssys.EarthRef.Origin.pos[0] #self.Planet.Origin.pos[0]
 		B = dest[1] - self.ssys.EarthRef.Origin.pos[1] #self.Planet.Origin.pos[1]
 		C = dest[2] - self.ssys.EarthRef.Origin.pos[2] #self.Planet.Origin.pos[2] 
@@ -444,7 +446,7 @@ class camera3D:
 		deltaZ = (dest[2] - Zc)
 
 		if self.ssys.Dashboard.orbitalTab.RecorderOn == True:
-			if self.ssys.Dashboard.orbitalTab.VideoRecorder == None:
+			if self.ssys.Dashboard.orbitalTab.VideoRecorder is None:
 				self.ssys.Dashboard.orbitalTab.VideoRecorder = setVideoRecording(framerate = 20, filename = "output.avi")
 
 
@@ -452,7 +454,7 @@ class camera3D:
 		radialToCamera = -self.ssys.Scene.forward
 
 		# determine axis of rotation. We do that by obtaining a vector orthogonal 
-		# to the plane defined our 2 radial vectors
+		# to the plane defined with our 2 radial vectors
 		rotAxis = getVectorOrthogonalToPlane(radialToCamera, radialToLocation)
 		if False:
 			self.K =  simpleArrow(color.cyan, 0, 20, self.Planet.SolarSystem.Scene.mouse.camera, axisp = 1e4*rotAxis, context = None) #self.Loc[locationID].Origin)
@@ -478,18 +480,20 @@ class camera3D:
 		for i in np.arange(0, total_steps+1, 1):
 			# incrementally, change center focus and rotate
 			r = ratefunc(float(i)/total_steps)
-			self.ssys.Scene.center = vector( (Xc + r*deltaX),
-													(Yc + r*deltaY),
-													(Zc + r*deltaZ))
-
+			self.ssys.Scene.center = vector((Xc + r*deltaX),
+											(Yc + r*deltaY),
+											(Zc + r*deltaZ))
 			iAngle = rotAngle * r
 
 			self.ssys.Scene.forward = rotate(self.ssys.Scene.forward, angle=(iAngle-accumulated_rot), axis=rotAxis)
 			accumulated_rot = iAngle
 
 			sleep(2e-2)
+
+			# when an animation is in progress, add it to the loop ??????
 			if self.ssys.Dashboard.orbitalTab.AnimationInProgress == True:
 				self.ssys.Dashboard.orbitalTab.OneTimeIncrement()
+
 			if self.ssys.Dashboard.orbitalTab.RecorderOn == True:
 				recOneFrame(self.ssys.Dashboard.orbitalTab.VideoRecorder)
 

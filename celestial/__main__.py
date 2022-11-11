@@ -111,6 +111,8 @@ def bootLoader(story, recorder):
 		print "1-1"
 		ssys.displaySolarSystem()
 		ssys.introZoomIn(75)
+		#ssys.rotateSolarSystemReferential(axis=vector(0,1,0))
+		#ssys.Scene.fov = pi
 
 	# we only show the dashboard after the story has finished.
 	ssys.getDashboard().Show()
