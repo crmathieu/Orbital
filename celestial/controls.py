@@ -275,7 +275,7 @@ class FOCUSpanel(AbstractUI):
 		print ("SMOOTH FOCUS to", destination)
 		#self.SolarSystem.cameraViewTargetBody
 		dest = self.SolarSystem.getBodyFromName(destination.lower())
-		if dest != None:
+		if dest is not None:
 			print ("we got the body info")
 			Xc = self.SolarSystem.Scene.center[0]
 			Yc = self.SolarSystem.Scene.center[1]
@@ -312,7 +312,7 @@ class FOCUSpanel(AbstractUI):
 		orbit3D.glbRefresh(self.SolarSystem, self.parentFrame.orbitalTab.AnimationInProgress)
 
 	def setCurrentBodyFocus(self):
-		if self.parentFrame.orbitalTab.currentBody == None:
+		if self.parentFrame.orbitalTab.currentBody is None:
 			self.rbox.SetSelection(1)
 			#self.SolarSystem.resetView()
 			self.setSunFocus()
@@ -329,7 +329,7 @@ class FOCUSpanel(AbstractUI):
 
 	def getBodyIndexInList(self, bodyName):
 		index = bodyname_to_index[bodyName.lower()]
-		if index != None:
+		if index is not None:
 			return index
 		return bodyname_to_index[SUN_NAME]
 
@@ -403,7 +403,7 @@ class FOCUSpanel(AbstractUI):
 		return self.setBodyFocus(planetBody)
 
 	def setSunFocus(self):
-		if self.SolarSystem.Sun != None:
+		if self.SolarSystem.Sun is not None:
 			mass = setPrecision(str(self.SolarSystem.Sun.Mass), 3)
 
 			self.Title.SetLabel(self.SolarSystem.Sun.Name)
@@ -708,7 +708,6 @@ class SEARCHpanel(AbstractUI):
 
 		# check if there are multiple results or not
 		if type == self.SRCH_BROAD:
-
 			if self.searchListIndex != 0:
 				self.searchList.DeleteAllItems()
 				self.searchListIndex = 0
@@ -735,7 +734,8 @@ class SEARCHpanel(AbstractUI):
 			self.searchListIndex += 1
 			return 0
 
-		# for "DETAILDED" search, load body and draw its orbit
+		# for "DETAILED" search, load body and draw its orbit
+		print "&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&"
 		id = self.loadBodyInfoFromSearch()
 		if id > 0:
 			#self.parentFrame.orbitalTab.refreshDate()
@@ -764,7 +764,6 @@ class SEARCHpanel(AbstractUI):
 	# Note: for spacecraft search, the small objects database won't work. 
 	# Instead the Horizon system web scrapping should be used instead
 	
-#	def searchByName(self, hostt, url, searchtype):
 	def searchByName(self, url, searchtype):
 
 		# add code here
@@ -800,8 +799,8 @@ class SEARCHpanel(AbstractUI):
 		et = spice.str2et(self.fetchDateStr) # 'Apr 13, 2021' );
 		print et
 
-	# 	state, ltime = spice.spkezr( 'EARTH', et, 'ECLIPJ2000', 'LT+S', 'SUN' );
-	 	state, ltime = spice.spkezr( objectId, et, FRAME, 'LT+S', 'SUN' );
+		# 	state, ltime = spice.spkezr( 'EARTH', et, 'ECLIPJ2000', 'LT+S', 'SUN' );
+		state, ltime = spice.spkezr( objectId, et, FRAME, 'LT+S', 'SUN' );
 
 		y = spice.oscltx( state, et, GM_SUN_PRE[0] );
 		print "=========="
@@ -1045,7 +1044,7 @@ class ORBITALpanel(AbstractUI):
 				print "OnSELECT: cameraViewTargetBody is", self.SolarSystem.cameraViewTargetBody.Name, "current ViewTarget selection type is", self.SolarSystem.cameraViewTargetSelection
 
 	def setCurrentBody(self, body):
-		if self.currentBody != None:
+		if self.currentBody is not None:
 			self.currentBody.hide()
 
 		self.currentBody = body
@@ -1054,11 +1053,11 @@ class ORBITALpanel(AbstractUI):
 
 	def setCurrentBodyFromId(self, id):
 		print "ZZZZZZZZZZZZZZZZZZZ"
-		if self.currentBody != None:
+		if self.currentBody is not None:
 			self.currentBody.hide()
 
 		body = self.SolarSystem.getBodyFromName(id)
-		if body != None:
+		if body is not None:
 			self.currentBody = body
 			self.currentBody.Details = True
 			#print "Current body SET-1 with ", self.currentBody.Name, "Origin=",self.currentBody.Origin.pos
@@ -1070,7 +1069,7 @@ class ORBITALpanel(AbstractUI):
 		#print "Current body SET-2 with ", self.currentBody.Name, "Origin=",self.currentBody.Origin.pos
 
 	def setCurrentBodyFromIdSAVE(self, id):
-		if self.currentBody != None:
+		if self.currentBody is not None:
 			self.currentBody.hide()
 
 		self.currentBody = self.SolarSystem.getBodyFromName(id)
@@ -1322,14 +1321,18 @@ class ORBITALpanel(AbstractUI):
 	def updateSolarSystem(self):
 		# animate all visible bodies in the solar system 
 		self.refreshDate()
-		self.SolarSystem.animate(self.DeltaT)
+		#self.SolarSystem.animate(self.DeltaT)
 		for body in self.SolarSystem.bodies:
 			if body.BodyType in [SUN, SPACECRAFT, OUTERPLANET, INNERPLANET, SATELLITE, ASTEROID, \
 								 COMET, DWARFPLANET, PHA, BIG_ASTEROID, TRANS_NEPT]:
 				if body.Origin.visible == True or body.Name.lower() == EARTH_NAME:
 					velocity, distance = body.animate(self.DeltaT)
-					if self.SolarSystem.cameraViewTargetBody != None:
-						if body.JPL_designation == self.SolarSystem.cameraViewTargetBody.JPL_designation and self.SolarSystem.Dashboard.focusTab.smoothTransition == False:
+					if self.SolarSystem.cameraViewTargetBody is not None:
+						# update center position if we are NOT in the middle of a smooth transition and
+						# NOT in a location Referential view mode (point of view from current location)
+						if body.JPL_designation == self.SolarSystem.cameraViewTargetBody.JPL_designation and \
+							(self.SolarSystem.Dashboard.focusTab.smoothTransition == False and \
+							 self.SolarSystem.Dashboard.widgetsTab.Earth.PlanetWidgets.locationEarthEyeView == False):
 							self.SolarSystem.camera.updateCameraViewTarget()
 
 					if body.BodyType == self.Source or body.Details == True:
@@ -1423,7 +1426,7 @@ class ORBITALpanel(AbstractUI):
 	def updateJTrojans(self):
 		##print "TROJAN INDEX=",self.SolarSystem.JTrojansIndex
 		curTrojans = self.SolarSystem.getJTrojans()
-		if curTrojans != None:
+		if curTrojans is not None:
 			JupiterBody = self.SolarSystem.getBodyFromName(self.SolarSystem.objects_data[curTrojans.PlanetName]['jpl_designation'])
 			# if Jupiter coordinates haven't changed since this Trojans were generated, don't do anything
 			if JupiterBody.Position[0] == curTrojans.JupiterX and JupiterBody.Position[1] == curTrojans.JupiterY:
@@ -1501,14 +1504,14 @@ class ORBITALpanel(AbstractUI):
 			if reset == True:
 				self.parentFrame.focusTab.setSunFocus()
 
-			#if self.SolarSystem.cameraViewTargetBody != None and self.SolarSystem.cameraViewTargetBody.BodyType == type:
+			#if self.SolarSystem.cameraViewTargetBody is not None and self.SolarSystem.cameraViewTargetBody.BodyType == type:
 			#		self.parentFrame.focusTab.resetCameraViewTarget()
 			"""
 		for type, cbox in self.checkboxList.iteritems():
 			if cbox.GetValue() == True:
 				self.SolarSystem.ShowFeatures |= type
 			else:
-				if self.SolarSystem.cameraViewTargetBody != None and self.SolarSystem.cameraViewTargetBody.BodyType == type:
+				if self.SolarSystem.cameraViewTargetBody is not None and self.SolarSystem.cameraViewTargetBody.BodyType == type:
 					self.parentFrame.focusTab.resetCameraViewTarget()
 				self.SolarSystem.ShowFeatures = (self.SolarSystem.ShowFeatures & ~type)
 			"""
@@ -1697,13 +1700,15 @@ class ORBITALpanel(AbstractUI):
 		self.StepByStep = False
 		if self.AnimationInProgress == True:
 			self.AnimationInProgress = False
+			self.parentFrame.widgetsTab.comb.Enable()
+
 			# at the end of animation, disable autoMovement to enable 
 			# mouse tracking from display._mouse_tracker method  
 			self.SolarSystem._set_autoMovement(False) ####
 			self.AutoRotation.SetValue(False)
 
 			self.Animate.SetLabel(">")
-			if self.RecorderOn == True and self.VideoRecorder != None:
+			if self.RecorderOn == True and self.VideoRecorder is not None:
 				stopRecording(self.VideoRecorder)
 
 			return
@@ -1713,6 +1718,7 @@ class ORBITALpanel(AbstractUI):
 		self.Animate.SetLabel("||")
 		self.disableBeltsForAnimation()
 		self.AnimationInProgress = True
+		self.parentFrame.widgetsTab.comb.Disable()
 
 		# if we animate for the first time, make sure to initialize 
 		# DaysIncrement with current time as a fraction of day
@@ -1751,7 +1757,7 @@ class ORBITALpanel(AbstractUI):
 
 			self.OneTimeIncrement()
 			if self.RecorderOn == True:
-				if self.VideoRecorder == None:
+				if self.VideoRecorder is None:
 					self.VideoRecorder = setVideoRecording(framerate = 20, filename = "output.avi")
 				recOneFrame(self.VideoRecorder)
 			
@@ -1851,12 +1857,14 @@ class WIDGETSpanel(AbstractUI):
 		#self.flcb.SetValue(False)
 		#self.flcb.Bind(wx.EVT_CHECKBOX,self.OnCenterToSurface)
 
-		self.ncpcb = wx.CheckBox(self, label="Show Normal Vector", pos=(50, CHK_L12)) #   CVT_Y+560))
+		self.ncpcb = wx.CheckBox(self, label="Show TopoCentric Referential", pos=(50, CHK_L12)) #   CVT_Y+560))
 		self.ncpcb.SetValue(False)
-		self.ncpcb.Bind(wx.EVT_CHECKBOX,self.OnShowNormal)
+		self.ncpcb.Disable()
+		self.ncpcb.Bind(wx.EVT_CHECKBOX,self.OnShowTopoCentricRef)
 
 		self.cpcb = wx.CheckBox(self, label="Re-Center to Earth's center", pos=(230, CHK_L12)) #   CVT_Y+560))
 		self.cpcb.SetValue(False)
+		self.cpcb.Disable()
 		self.cpcb.Bind(wx.EVT_CHECKBOX,self.OnReCenter)
 
 		aheading = wx.StaticText(self, label='Analemma', pos=(50, CHK_L14))
@@ -1864,7 +1872,11 @@ class WIDGETSpanel(AbstractUI):
 
 		self.acb = wx.CheckBox(self, label="Animate 24h period", pos=(50, CHK_L15)) #   CVT_Y+560))
 		self.acb.SetValue(False)
+		self.acb.Disable()
+
 		self.acb.Bind(wx.EVT_CHECKBOX,self.OnAnimate24h)
+
+		self.animate24 = False
 
 		self.arcb = wx.CheckBox(self, label="Earth-Centered-Syn-Synchronous (ECSS) Referential", pos=(50, CHK_L16)) #   CVT_Y+560))
 		self.arcb.SetValue(False)
@@ -1872,7 +1884,13 @@ class WIDGETSpanel(AbstractUI):
 
 		self.racb = wx.CheckBox(self, label="Reset Analemma", pos=(50, CHK_L17)) #   CVT_Y+560))
 		self.racb.SetValue(False)
+		self.racb.Disable()
 		self.racb.Bind(wx.EVT_CHECKBOX,self.OnResetAnalemma)
+
+		self.lacb = wx.CheckBox(self, label="Location Referential View", pos=(50, CHK_L18)) #   CVT_Y+560))
+		self.lacb.SetValue(False)
+		self.lacb.Disable()
+		self.lacb.Bind(wx.EVT_CHECKBOX,self.OnEarthEyeView)
 
 
 	def createLocationList(self, xpos, ypos):
@@ -1885,7 +1903,7 @@ class WIDGETSpanel(AbstractUI):
 		self.comb = wx.ComboBox(self, id=wx.ID_ANY, value="Select a location on Earth", size=wx.DefaultSize, pos=(xpos, ypos), choices=self.Locations, style=(wx.CB_DROPDOWN))
 		self.comb.Bind(wx.EVT_COMBOBOX, self.OnSelectLocation)
 
-	def resetBodyList(self):
+	def resetLocationList(self):
 		self.comb.SetSelection(-1)
 		self.comb.SetValue("Select a location on Earth")
 
@@ -1893,11 +1911,42 @@ class WIDGETSpanel(AbstractUI):
 		if self.parentFrame.orbitalTab.AnimationInProgress == False:
 			locationID = self.locIndexes[e.GetSelection()]
 			self.comb.Dismiss() # this will close the combo 
-			self.SolarSystem.camera.gotoEarthLocation(locationID)
+			self.cpcb.Enable()
+			self.SolarSystem.camera.gotoEarthLocationVertical(locationID)
+			self.Earth.PlanetWidgets.Loc[self.Earth.PlanetWidgets.currentLocation].makeTopoCentricRef()
+			self.acb.Enable()
+			self.ncpcb.Enable()
+			self.lacb.Enable()
 		else:
+			self.comb.Dismiss() # this will close the combo 
+			self.resetLocationList()
 			print ">> Earth Location motion are disabled when animation is in progress"
 
 	def OnResetAnalemma(self, e):
+		if self.Earth.PlanetWidgets.currentLocation == -1:
+			self.racb.SetValue(False)
+			return
+
+		if self.racb.GetValue() == True:
+			self.Earth.PlanetWidgets.Loc[self.Earth.PlanetWidgets.currentLocation].resetAnalemma()
+			self.racb.SetValue(False)
+			self.racb.Disable()
+
+	def OnEarthEyeView(self, e):
+		if self.Earth.PlanetWidgets.currentLocation == -1:
+			self.lacb.SetValue(False)
+			return
+
+		if self.lacb.GetValue() == True:
+			self.Earth.PlanetWidgets.Loc[self.Earth.PlanetWidgets.currentLocation].setEarthEyeView(True)
+			#self.lacb.Disable()
+		else:
+			self.Earth.PlanetWidgets.Loc[self.Earth.PlanetWidgets.currentLocation].setEarthEyeView(False)
+			self.lacb.SetValue(False)
+
+
+
+	def OnResetAnalemma_save(self, e):
 		if self.racb.GetValue() == True:
 			#self.Earth.PlanetWidgets.AnaLemma.Shape.visible = False
 			#del self.Earth.PlanetWidgets.AnaLemma.Shape
@@ -1908,15 +1957,40 @@ class WIDGETSpanel(AbstractUI):
 			self.racb.SetValue(False)
 
 	def OnAnimate24h(self, e):
+		if self.Earth.PlanetWidgets.currentLocation == -1:
+			self.acb.SetValue(False)
+			return
+
+		loc = self.Earth.PlanetWidgets.Loc[self.Earth.PlanetWidgets.currentLocation]
 		if self.acb.GetValue() == True:
-			self.parentFrame.orbitalTab.TimeIncrement = TI_24_HOURS
+			self.animate24 = True
+			self.parentFrame.orbitalTab.TimeIncrement = TI_24_HOURS_ANA
 			self.SolarSystem.setTimeIncrement(self.parentFrame.orbitalTab.TimeIncrement)
-			self.Earth.PlanetWidgets.Loc[self.Earth.PlanetWidgets.currentLocation].displayAnalemma(True)
-			#self.Earth.PlanetWidgets.AnaLemma.display(True)
+			loc.createAnalemma()
+			loc.displayAnalemma(True)
 			self.parentFrame.orbitalTab.OnAnimate(e)
+			self.racb.Enable()
 		else:
 			# 1) stop animation
 			self.parentFrame.orbitalTab.OnAnimate(e)
+			# 2) reset TimeIncrement with proper value from sliders
+			self.parentFrame.orbitalTab.OnAnimTimeSlider(e)
+			loc.displayAnalemma(False)
+			self.animate24 = False
+			#self.Earth.PlanetWidgets.AnaLemma.display(False)
+			#loc.displayAnalemma(False)
+
+	def OnAnimate24h_save(self, e):
+		if self.acb.GetValue() == True:
+			self.parentFrame.orbitalTab.TimeIncrement = TI_24_HOURS
+			self.SolarSystem.setTimeIncrement(self.parentFrame.orbitalTab.TimeIncrement)
+			loc = self.Earth.PlanetWidgets.Loc[self.Earth.PlanetWidgets.currentLocation]
+			loc.createAnalemma()
+			loc.displayAnalemma(True)
+			#-> self.parentFrame.orbitalTab.OnAnimate(e)
+		else:
+			# 1) stop animation
+			#-> self.parentFrame.orbitalTab.OnAnimate(e)
 			# 2) reset TimeIncrement with proper value from sliders
 			self.parentFrame.orbitalTab.OnAnimTimeSlider(e)
 			#self.Earth.PlanetWidgets.AnaLemma.display(False)
@@ -1926,7 +2000,7 @@ class WIDGETSpanel(AbstractUI):
 		self.Earth.PlanetWidgets.ECSS.display(self.arcb.GetValue())
 
 
-	def OnShowNormal(self, e):
+	def OnShowTopoCentricRef(self, e):
 		if False:
 			self.SolarSystem.camera.cameraZoom(1, 50) #, velocity = 1, recorder = False, zoom = ZOOM_IN, ratefunc = there_and_back)
 			#axis = getOrthogonalVector(self.SolarSystem.camera.view.forward)
@@ -1941,8 +2015,10 @@ class WIDGETSpanel(AbstractUI):
 		# focus on current location
 		#self.ssys.EarthRef.PlanetWidgets.currentLocation
 		#self.Earth.PlanetWidgets.currentLocation = self.Earth.PlanetWidgets.defaultLocation
-		loc = self.Earth.PlanetWidgets.Loc[self.Earth.PlanetWidgets.currentLocation]
-		loc.show(self.ncpcb.GetValue())
+		if self.Earth.PlanetWidgets.currentLocation != -1:
+			loc = self.Earth.PlanetWidgets.Loc[self.Earth.PlanetWidgets.currentLocation]
+			#loc.show(self.ncpcb.GetValue())
+			loc.displayTopoCentricRef(self.ncpcb.GetValue())
 
 		if False:
 			# testing shifting earth locations
@@ -1956,13 +2032,26 @@ class WIDGETSpanel(AbstractUI):
 		
 	def OnReCenter(self, e):
 		# recenter on earth's center
-		print "reccentering in ", self.Earth.Origin.pos
+		print "re-centering in ", self.Earth.Origin.pos
 		# reset current location value
 		self.Earth.PlanetWidgets.currentLocation = -1
+		self.resetLocationList()
+		self.cpcb.Disable()
+		self.cpcb.SetValue(False)
+		self.acb.Disable()
+		self.acb.SetValue(False)
+		self.ncpcb.Disable()
+		self.ncpcb.SetValue(False)
+
+		# if an anmation is in progress, make sure to stop it.
+		if self.animate24 == True:
+			self.OnAnimate24h(e)
+		elif self.parentFrame.orbitalTab.AnimationInProgress == True:
+			self.parentFrame.orbitalTab.OnAnimate(e)
+
 		#self.SolarSystem.camera.updateCameraViewTarget()
 		self.SolarSystem.camera.smoothFocus(self.Earth.JPL_designation)	
-		self.cpcb.SetValue(False)
-	
+
 		#self.SolarSystem.Scene.center = self.Earth.Origin.pos
 		
 		#(
@@ -1982,13 +2071,13 @@ class WIDGETSpanel(AbstractUI):
 	def centerToDefaultLocation(self):
 
 
-		self.SolarSystem.camera.gotoEarthLocation(locList.TZ_RUS_BAIK)
-		self.SolarSystem.camera.gotoEarthLocation(locList.TZ_CHN_XI)
-		self.SolarSystem.camera.gotoEarthLocation(locList.TZ_FR_KOUR)
-		self.SolarSystem.camera.gotoEarthLocation(locList.TZ_FR_PARIS)
-		self.SolarSystem.camera.gotoEarthLocation(locList.TZ_JP_TAN)
-		self.SolarSystem.camera.gotoEarthLocation(locList.TZ_EG_CAIRO)
-		self.SolarSystem.camera.gotoEarthLocation(locList.TZ_US_VDBERG)
+		self.SolarSystem.camera.gotoEarthLocationVertical(locList.TZ_RUS_BAIK)
+		self.SolarSystem.camera.gotoEarthLocationVertical(locList.TZ_CHN_XI)
+		self.SolarSystem.camera.gotoEarthLocationVertical(locList.TZ_FR_KOUR)
+		self.SolarSystem.camera.gotoEarthLocationVertical(locList.TZ_FR_PARIS)
+		self.SolarSystem.camera.gotoEarthLocationVertical(locList.TZ_JP_TAN)
+		self.SolarSystem.camera.gotoEarthLocationVertical(locList.TZ_EG_CAIRO)
+		self.SolarSystem.camera.gotoEarthLocationVertical(locList.TZ_US_VDBERG)
 		
 		return
 

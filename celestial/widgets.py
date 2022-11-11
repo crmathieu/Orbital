@@ -1,4 +1,4 @@
-from celestial.utils import getAngleBetweenVectors, getOrthogonalVector, getVectorOrthogonalToPlane, getXYprojection, getYZprojection
+from celestial.utils import getAngleBetweenVectors, getVectorProjectionToVector, getVectorOrthogonalToPlane #, getXYprojection, getYZprojection
 from orbit3D import *
 from vpython_interface import ViewPort, Color
 from visual import *
@@ -23,6 +23,7 @@ class makePlanetWidgets():
         self.makePCIref()
         self.makeECSSref()
         self.Eq = self.eqPlane = self.Lons = self.Lats = None
+        self.locationEarthEyeView = False
 
         self.Psi = 0.0
         self.NumberOfSiderealDaysPerYear = 0.0
@@ -206,7 +207,8 @@ class makePlanetWidgets():
                 self.Loc[self.currentLocation].updateEclipticPosition()
 
             #### -> self.AnaLemma = makeAnalemma(self, locList.TZ_NORTH_P) #TZ_US_KOD) #TZ_US_COUVE)
-    
+
+
 
     """
     def shiftFocus(self, dest, long_angle, lat_angle, long_direction, lat_direction, axis = (0,0,1), ratefunc = rate_func.ease_in_out):
@@ -556,10 +558,12 @@ class makePlanetWidgets():
             self.Loc[self.currentLocation].updateEclipticPosition()
 
     def updateCurrentLocationAnalemma(self):
-        if self.currentLocation >= 0: 
-            self.Loc[self.currentLocation].updateAnalemmaPosition()
+        if self.currentLocation >= 0 and self.Loc[self.currentLocation].analemma is not None: 
+            self.Loc[self.currentLocation].analemma.updateAnalemmaPosition()
 
-
+    def updateCurrentLocationTopoCentricView(self):
+        if self.currentLocation >= 0 and self.locationEarthEyeView == True:
+            self.Loc[self.currentLocation].updateEarthEyeView()
 
     def animate(self):
         self.update_PCI_PCPF_ECSS_Position()
@@ -569,6 +573,8 @@ class makePlanetWidgets():
         self.updateCurrentLocationEcliptic()
         #self.AnaLemma.updateAnalemmaPosition()
         self.updateCurrentLocationAnalemma()
+
+        self.updateCurrentLocationTopoCentricView()
 
         ### self.EqPlane.updateEquatorialPlanePosition()	
 
@@ -594,72 +600,84 @@ class makePlanetWidgets():
         self.Eq.showNodes(value)
 
 
-class makeEarthLocation():
+class makeAnalemma():
     SUN_VERTEX = 0
     EARTH_VERTEX = 1
 
-    #
-    # An Earth location is defined in the OVRL referential which 
-    # is itself bound to the PCPF referential. This allows to 
-    # adjust the positions of all overlay objects at once without 
-    # messing with the Planet-Centered-Planet-Fixed referential
-    #
-    def __init__(self, widgets, tz_index):
-#        self.Origin = widgets.Planet.PCPF.referential
-        self.Origin = widgets.OVRL
-        self.Widgets = widgets
-        self.Planet = widgets.Planet
-        self.Color = Color.red
-        self.EclipticPosition = vector(0,0,0)
-        self.lat = self.long = 0
-    #    self.AnaLemma = self.makeAnalemma(widgets, tz_index)
+    def __init__(self, earthLoc, intersecRatio):
+        self.Loc = earthLoc
+        self.Origin = self.Loc.Origin
+        #self.GeoLocPos = self.Loc.GeoLoc.pos
 
-        self.anaLemmaTgPlane = None
-        self.anaLemmaShape = None
+        self.TgPlane = None
+        self.Shape = None
         self.anaLemmaIncrement = 0
+        self.viewAngle = self.Loc.Widgets.ECSSangle
 
-        self.GeoLoc = sphere(frame=self.Origin, pos=vector(0,0,0), radius=10, color=self.Color, material = materials.emissive, opacity=0.5, axis=(0,0,1))
-
-        #self.GeoLoc = circle(color=self.Color, radius=10, pos=(0,0,0), normalAxis=(0,0,1), context=self.Origin)        
-        self.Origin.axis.visible = True
-
-        # obtain location info. Earthloc is a tuple (lat, long, timezone)
-        earthLoc = self.Planet.SolarSystem.locationInfo.getLocationInfo(tz_index)
-        if earthLoc != {}:
-            self.Name = earthLoc["name"]
-            self.lat = earthLoc["lat"]
-            self.long = earthLoc["long"]
-            self.setGeoPosition()
-            self.updateEclipticPosition()
-            self.setNormalToSurface()
-            self.setOrientation(self.Grad)
-            self.initAnalemma()
-        else:
-            self.Name = "None"
-
-    def initAnalemma(self):
         self.Shape = None
         self.analemmaIncrement = 0
-        self.anaLemmaDistanceFactor = 1.15
-        self.SphereIntersecRadius = self.Planet.getBodyRadius() * self.anaLemmaDistanceFactor
-        self.GeoPlaneCenter = self.GeoLoc.pos * self.anaLemmaDistanceFactor
-        self.CurrentGeoLoc = self.EclipticPosition
-        self.setTgPlane()
+        self.distanceFactor = intersecRatio
+        self.IntersecRadius = self.Loc.Planet.getBodyRadius() * self.distanceFactor
+        self.GeoPlaneCenter = self.Loc.GeoLoc.pos * self.distanceFactor
+        self.CurrentGeoLoc = self.Loc.getEclipticPosition()
+        
+        self.AnaFrame = frame()
+        self.AnaFrame.frame = self.Origin
+        self.AnaPositions = []
+        self.days = self.weeks = -1
+
+        #self.setTgPlane()
         #self.setAnaLemmaSphere()
-        self.makeSunAxis() #locIndex)
-        self.displayAnalemma(False)
+        self.makeSunAxis()
 
-    def displayAnalemma(self, trueFalse):
+    def reset(self):
+        if self.Shape is not None:
+            self.Shape.visible = False
+            self.SunAxis.visible = False
+            del self.SunAxis
+            del self.Shape
+            self.Shape = None
+            self.analemmaIncrement = 0
+
+    def display(self, trueFalse):
         self.SunAxis.visible = trueFalse
-        self.CurrentGeoLoc.visible = trueFalse
-        #self.Loc.displayanaLemmaTgPlane(trueFalse)
 
-    def resetAnalemma(self):
-        self.Shape.visible = False
-        del self.Shape
-        self.Shape = None
-        self.analemmaIncrement = 0
+    def makeSunAxis(self):
 
+        # create first vertex in sun at z coordinate = earth latitude to create an axis parallel to ecliptic
+        self.SunAxis = curve(pos=[(0,0,self.Loc.GeoLoc.pos[2])], color=Color.yellow, visible=False,  material=materials.emissive, radius=0)
+
+        # add 2nd vertex as earth location in ecliptic coordinate
+        self.SunAxis.append(pos=self.CurrentGeoLoc, color=Color.yellow)
+
+        # we now have a sun-earth segment that links a particular latitude to the Sun light direction
+
+    def updateAnalemmaPosition(self):
+       
+        self.CurrentGeoLoc = self.Loc.updateEclipticPosition()
+        self.SunAxis.pos[self.EARTH_VERTEX] = self.CurrentGeoLoc 
+        self.SunAxis.pos[self.SUN_VERTEX] = (0, 0, self.Loc.GeoLoc.pos[2])
+
+        # if we are in 24h animation mode, update forward vector to face earth from the sun's perspective
+        if self.Loc.Planet.SolarSystem.Dashboard.widgetsTab.acb.GetValue() == True:
+
+            #self.getAnalemmaPlaneIntersec()
+            self.getAnalemmaSphereIntersec()
+
+            # update camera forward vector to follow the earth from the sun's perspective
+            #### self.Loc.Planet.SolarSystem.Scene.forward = vector(self.Loc.Planet.Origin.pos - (0, 0, self.CurrentGeoLoc[2] + 5*self.Loc.radius))
+
+            # alternate view: using the current forward vector, match vector rotation with earth angular speed
+            angle = atan2(self.Loc.Planet.Position[1], self.Loc.Planet.Position[0])
+            self.Loc.Planet.SolarSystem.Scene.forward = rotate(self.Loc.Planet.SolarSystem.Scene.forward, angle=(angle-self.viewAngle), axis=self.Loc.Widgets.ECSS.ZdirectionUnit)
+            self.viewAngle = angle
+
+    def setTgPlane(self):
+        self.TgPlane = box(frame=self.Origin, pos=self.distanceFactor*self.Loc.GeoLoc.pos, axis = self.Loc.UnitNormal, width=10*self.Loc.radius, length=0.0001, height=10*self.Loc.radius, material=materials.emissive, visible=False, color=Color.grey, opacity=1)
+
+    def setAnaLemmaSphere(self):
+        self.Sphere = sphere(frame=self.Origin, pos=(0,0,0), radius=self.IntersecRadius, material=materials.emissive, visible=True, color=Color.gray, opacity=0.1)
+        
     def getAnalemmaPlaneIntersec(self):
         # given a vector normal to a location, we can deduct the plane equation that is perpendicular to that vector:
         # The plane is centered on self.anaLemmaDistanceFactor x self.GeoLoc.pos (the earth location amplified by a 
@@ -683,15 +701,15 @@ class makeEarthLocation():
         # 
         # in an EarthLocation context: 
         #   - the point belonging to the plane is self.GeoLoc * self.anaLemmaDistanceFactor
-        #   - the normal vector to the plane is self.UnitGrad
+        #   - the normal vector to the plane is self.UnitNormal
         #   - the point of the line P is the Earth vertex self.GeoLoc
         #   - the direction D is Earth Vertex - Sun Vertex
         
         # first calculate t so that the intersection we are looking for verify the plane equation
 
         if self.analemmaIncrement < TI_FULL_YEAR:
-            PlaneCenter = self.Widgets.PCPF.referential.frame_to_world(self.Widgets.OVRL.frame_to_world(self.GeoPlaneCenter))
-            Normal = self.Widgets.PCPF.referential.frame_to_world(self.Widgets.OVRL.frame_to_world(self.UnitGrad))
+            PlaneCenter = self.Loc.Widgets.PCPF.referential.frame_to_world(self.Loc.Widgets.OVRL.frame_to_world(self.GeoPlaneCenter))
+            Normal = self.Loc.Widgets.PCPF.referential.frame_to_world(self.Loc.Widgets.OVRL.frame_to_world(self.Loc.UnitNormal))
 
             t = (PlaneCenter[0] - self.SunAxis.pos[self.SUN_VERTEX][0])*Normal[0] + \
                 (PlaneCenter[1] - self.SunAxis.pos[self.SUN_VERTEX][1])*Normal[1] + \
@@ -704,18 +722,23 @@ class makeEarthLocation():
             self.Intersec =       ( self.SunAxis.pos[self.SUN_VERTEX][0] + t * (self.SunAxis.pos[self.SUN_VERTEX][0] - self.SunAxis.pos[self.EARTH_VERTEX][0]),
                                     self.SunAxis.pos[self.SUN_VERTEX][1] + t * (self.SunAxis.pos[self.SUN_VERTEX][1] - self.SunAxis.pos[self.EARTH_VERTEX][1]),
                                     self.SunAxis.pos[self.SUN_VERTEX][2] + t * (self.SunAxis.pos[self.SUN_VERTEX][2] - self.SunAxis.pos[self.EARTH_VERTEX][2]))
-            print "intersec=",self.Intersec
-            print "geoLocAB=", self.EclipticPosition
-            if self.Shape == None:
-                self.Shape = curve(frame=self.Widgets.OVRL, color=Color.red, visible=True, radius=5, material=materials.emissive)
+            #print "intersec=",self.Intersec
+            #print "geoLocAB=", self.EclipticPosition
+            if self.Shape is None:
+                self.Shape = curve(frame=self.Loc.Widgets.OVRL, color=Color.red, visible=True, radius=5, material=materials.emissive)
             
             # make sure the intersec is allowed (it must be between the sun and the 
-            # earth location. If it's not, it means that the sun is bolow the horizon)
-            if mag(vector(self.Intersec)) < mag(vector(self.EclipticPosition)):
+            # earth location. If it's not, it means that the sun is below the horizon)
+            if mag(vector(self.Intersec)) < mag(vector(self.Loc.EclipticPosition)):
                 # add a point to the analemma shape until a full year is complete
-                pos = self.Widgets.OVRL.world_to_frame(self.Widgets.PCPF.referential.world_to_frame(self.Intersec))
+                pos = self.Loc.Widgets.OVRL.world_to_frame(self.Loc.Widgets.PCPF.referential.world_to_frame(self.Intersec))
                 self.Shape.append(pos= pos)
-                self.analemmaIncrement = self.analemmaIncrement + self.Planet.SolarSystem.Dashboard.orbitalTab.TimeIncrement
+
+            self.analemmaIncrement = self.analemmaIncrement + self.Loc.Planet.SolarSystem.Dashboard.orbitalTab.TimeIncrement
+            if self.analemmaIncrement >= TI_FULL_YEAR:
+                # stop showing earth-sun axis after completing a full year
+                self.display(False)
+
 
     def getAnalemmaSphereIntersec(self):
         # The sphere is centered on the earth center and has a radius self.anaLemmaDistanceFactor x self.radius (the sphere 
@@ -729,17 +752,18 @@ class makeEarthLocation():
         #
         #       r(t) = P + t.D 
         #
-        # where P is a point on the line and D is the direction vector. If we have 2 points (x0,y0,z0) (x1,y1,z1)
-        # on the line, then the direction D = (x0 -x1, y0 -y1, z0 -z1). Since this line passes through the sun and
-        # the current location on the earth's surface, the final eq is:
+        # where P is a point on the line and D is the direction vector. If we have 2 points (x1,y1,z1)(sun) and 
+        # (x2,y2,z2) (location) on the line, then the direction D = (x2 -x1, y2 -y1, z2 -z1). Since this line 
+        # passes through the sun and the current location on the earth's surface, the final eq is:
         #   
-        #       r(t) = (xloc, yloc, zloc) + t * (x0 -x1, y0 -y1, z0 -z1) with r(t) = (x,y,z)
+        #       r(t) = (x2, y2, z2) + t * (x2 -x1, y2 -y1, z2 -z1) with r(t) = (x,y,z)
+        #       we are looking for the point (x, y, z)
         #
-        # Soo, to find the line and sphere intersec, we need to replace the coordinate of r(t) in the sphere equation
-        # and find the value of t. We then find r(t) by replacing the value of t in each coordinate.
+        # Soo, to find the line and sphere intersec, we need to replace the coordinates (x, y, z) of r(t) in the 
+        # sphere equation and find the value of t. We then find r(t) by replacing the value of t in each coordinate.
         # 
-        # This results in a quadratic equation for t. Finding a solution means calculating its discriminant D and, after
-        # making sure it's positive, keep the positive solution t1 = (-B + sqrt(D))/(2*A)
+        # The first step results in a quadratic equation for t. Finding a solution means calculating its discriminant 
+        # "Dis" and, after making sure it's positive, keep the positive solution t1 = (-B + sqrt(Dis))/(2*A)
         # Last, but not least, we need to make sure, the line coming from the sun doesn't intersect the earth surface
         # before reaching the location. In other words, we need to make sure the location has its y coordinate positive
         # in the ECSS referential.
@@ -751,9 +775,9 @@ class makeEarthLocation():
         # first calculate t so that the intersection we are looking for verifies the sphere equation
 
         if self.analemmaIncrement < TI_FULL_YEAR:
-            sx = self.Planet.Origin.pos[0]
-            sy = self.Planet.Origin.pos[1]
-            sz = self.Planet.Origin.pos[2]
+            sx = self.Loc.Planet.Origin.pos[0]
+            sy = self.Loc.Planet.Origin.pos[1]
+            sz = self.Loc.Planet.Origin.pos[2]
 
             px = self.SunAxis.pos[self.SUN_VERTEX][0]
             py = self.SunAxis.pos[self.SUN_VERTEX][1]
@@ -766,185 +790,132 @@ class makeEarthLocation():
             A = vx*vx + vy*vy + vz*vz
             B = 2.0 * (px * vx + py * vy + pz * vz - vx * sx - vy * sy - vz * sz)
             C = px * px - 2 * px * sx + sx * sx + py * py - 2 * py * sy + sy * sy + \
-                   pz * pz - 2 * pz * sz + sz * sz - self.SphereIntersecRadius * self.SphereIntersecRadius 
-            #vk = self.SunAxis.pos[self.SUN_VERTEX] - self.SunAxis.pos[self.EARTH_VERTEX]
-            #v0 = self.Planet.Origin.pos
-            #A = vk[0]**2 + vk[1]**2 + vk[2]**2
-            
-#           # B = 2 * (vk[0]*(1 - v0[0]) + vk[1]*(1 - v0[1]) + vk[2]*(1 - v0[2]))
-            #B = 2 * (vk[0]*(self.SunAxis.pos[self.EARTH_VERTEX][0] - v0[0]) + \
-            #         vk[1]*(self.SunAxis.pos[self.EARTH_VERTEX][1] - v0[1]) + \
-            #         vk[2]*(self.SunAxis.pos[self.EARTH_VERTEX][2] - v0[2])) 
-
-            #C = self.SunAxis.pos[self.SUN_VERTEX][0]**2 + \
-            #    self.SunAxis.pos[self.SUN_VERTEX][1]**2 + \
-            #    self.SunAxis.pos[self.SUN_VERTEX][2]**2 + \
-            ##    self.SunAxis.pos[self.EARTH_VERTEX][0]**2 + \
-             #   self.SunAxis.pos[self.EARTH_VERTEX][1]**2 + \
-            #    self.SunAxis.pos[self.EARTH_VERTEX][2]**2 + \
-            #    -2*(self.SunAxis.pos[self.SUN_VERTEX][0] * v0[0] + \
-            #    self.SunAxis.pos[self.SUN_VERTEX][1] * v0[1] + \
-            #    self.SunAxis.pos[self.SUN_VERTEX][2] * v0[2]) - self.SphereIntersecRadius**2
+                   pz * pz - 2 * pz * sz + sz * sz - self.IntersecRadius * self.IntersecRadius 
 
             # for the intersec to be on the sphere, we have 2 possible solutions for t
-            D = B*B - 4*A*C
+            Dis = B*B - 4*A*C
             t1 = 0
-            if D > 0:
-                t1 = (-B + sqrt(D))/(2.0*A)
+            if Dis > 0:
+                # we only use the smaller value (corresponds to the 
+                # intersection with sphere to the sun side)
+                t1 = (-B + sqrt(Dis))/(2.0*A)
             else:
                 print "Negative discriminant: B^2=", B*B, ", 4AC=", 4*C*A
                 return
 
-            #D = math.sqrt(B**2 - 4*A*C)
-            #t1 = (-B + D)/2*A
-            #t2 = (-B - D)/2*A      
-
             # second, deduct the coordinates
-            self.Intersec =       ( px + (t1 * vx),
-                                    py + (t1 * vy),
-                                    pz + (t1 * vz))
+            self.Intersec = ( px + (t1 * vx),
+                              py + (t1 * vy),
+                              pz + (t1 * vz))
 
-#            print "P(sun)=", vector(px,py,pz)
-#            print "V(sun-loc)=", vector(vx,vy,vz)
-##            print "discriminant D=", D, ", sqrt(D)=", sqrt(D), ", -B=", -B, ", 2A=", 2.0*A, ", t=", t1
-#            print "solution t=", t1
-#            print "intersec=",self.Intersec
-#            print "geoLocAB=", self.EclipticPosition
-#            print "----------------------------"
-            if self.Shape == None:
-                self.Shape = curve(frame=self.Widgets.OVRL, color=Color.red, visible=True, radius=5, material=materials.emissive)
+            if self.Shape is None:
+                self.Shape = curve(frame=self.Loc.Widgets.OVRL, color=Color.red, visible=True, radius=0, material=materials.emissive)
             
             # make sure the intersec is allowed (it must be between the sun and the 
-            # earth location. If it's not, it means that the sun is bolow the horizon)
+            # earth location. If it's not, it means that the sun is below the horizon)
 
-#            if mag(vector(self.Intersec)) < mag(vector(self.EclipticPosition)):
-
-            ECSSgeoLoc = self.Widgets.ECSS.referential.world_to_frame(self.SunAxis.pos[self.EARTH_VERTEX])
-            print "intersecInECSS:", ECSSgeoLoc
+            ECSSgeoLoc = self.Loc.Widgets.ECSS.referential.world_to_frame(self.SunAxis.pos[self.EARTH_VERTEX])
             if ECSSgeoLoc[1] >= 0:
                 # add a point to the analemma shape until a full year is complete
-                pos = self.Widgets.OVRL.world_to_frame(self.Widgets.PCPF.referential.world_to_frame(self.Intersec))
-                #print "inserting ANALEMMA POINT: ", pos
+                pos = self.Loc.Widgets.OVRL.world_to_frame(self.Loc.Widgets.PCPF.referential.world_to_frame(self.Intersec))
                 self.Shape.append(pos = pos)
+                self.days = (self.days + 1) % 7
+                if self.days == 0:
+                    self.weeks = self.weeks + 1
+                    if self.weeks <= 52:
+                        s = sphere(frame=self.Origin, pos=pos, visible = True, radius=self.Loc.Planet.getBodyRadius()/200, color=Color.yellow, material = materials.emissive)
+                        l = label(frame = self.Origin, color = Color.white,  text = index_to_month[self.Loc.Planet.SolarSystem.Dashboard.orbitalTab.dateMSpin.GetValue()],
+                                        pos = pos*(1.07), box = False, visible=True )
+                        self.AnaPositions.append(s)
 
-            self.analemmaIncrement = self.analemmaIncrement + self.Planet.SolarSystem.Dashboard.orbitalTab.TimeIncrement
+            self.analemmaIncrement = self.analemmaIncrement + self.Loc.Planet.SolarSystem.Dashboard.orbitalTab.TimeIncrement
+            if self.analemmaIncrement >= TI_FULL_YEAR:
+                # stop showing earth-sun axis after completing a full year
+                self.display(False)
+
+
+class makeEarthLocation():
+
+    #
+    # An Earth location is defined in the OVRL referential which 
+    # is itself bound to the PCPF referential. This allows to 
+    # adjust the positions of all overlay objects at once without 
+    # messing with the Planet-Centered-Planet-Fixed referential
+    #
+    def __init__(self, widgets, tz_index):
+        self.Origin             = widgets.OVRL
+        self.Widgets            = widgets
+        self.Planet             = widgets.Planet
+        self.Color              = Color.red
+        self.EclipticPosition   = vector(0,0,0)
+        self.lat                = self.long = 0
+        self.analemma           = None
+        self.GeoLoc             = sphere(frame=self.Origin, pos=vector(0,0,0), radius=10, color=self.Color, material = materials.emissive, opacity=0.5, axis=(0,0,1))
+        self.TOPO               = None
+
+        self.Origin.axis.visible = True
+
+        # obtain location info. Earthloc is a tuple (lat, long, timezone)
+        earthLoc = self.Planet.SolarSystem.locationInfo.getLocationInfo(tz_index)
+        if earthLoc != {}:
+            self.Name = earthLoc["name"]
+            self.lat = earthLoc["lat"]
+            self.long = earthLoc["long"]
+            self.setGeoPosition()
+            self.updateEclipticPosition()
+            #self.setNormalToSurface()
+            #self.setOrientation(self.NormalVec)
         else:
-            print "full year!"
+            self.Name = "None"
 
-    def getAnalemmaSphereIntersec_bis(self):
-        # The sphere is centered on the earth center and has a radius self.anaLemmaDistanceFactor x self.radius (the sphere 
-        # radius is amplified by a factor self.anaLemmaDistanceFactor so that the sphere distance with the earth surface
-        # can be changed)
-        # 
-        # The equation of a sphere centered on earth is: (x - x0)^2 + (y - y0)^2 + (z - z0)^2 = R^2 where (x0, y0, z0) are
-        # the coordinates of the earth center.
-        #
-        # The parametric equation of the line coming from the sun and going to the earth location is given by:
-        #
-        #       r(t) = P + t.D 
-        #
-        # where P is a point on the line and D is the direction vector. If we have 2 points (x0,y0,z0) (x1,y1,z1)
-        # on the line, then the direction D = (x0 -x1, y0 -y1, z0 -z1). Since this line passes through the sun and
-        # the current location on the earth's surface, the final eq is:
-        #   
-        #       r(t) = (xloc, yloc, zloc) + t * (x0 -x1, y0 -y1, z0 -z1) with r(t) = (x,y,z)
-        #
-        # Soo, to find the line and sphere intersec, we need to replace the coordinate of r(t) in the sphere equation
-        # and find the value of t. We then find r(t) by replacing the value of t in each coordinate.
-        # 
-        # This results in a quadratic equation for t. Finding a solution means calculating its discriminant D and, after
-        # making sure it's positive, keep the positive solution t1 = (-B + sqrt(D))/(2*A)
-        # Last, but not least, we need to make sure, the line coming from the sun doesn't intersect the earth surface
-        # before reaching the location. In other words, we need to make sure the location has its y coordinate positive
-        # in the ECSS referential.
-        #
-        # in an EarthLocation context: 
-        #   - the point of the line P is the Earth vertex self.GeoLoc
-        #   - the direction D is Earth Vertex - Sun Vertex
-        
-        # first calculate t so that the intersection we are looking for verifies the sphere equation
+    def makeTopoCentricRef(self):
 
-        if self.analemmaIncrement < TI_FULL_YEAR:
-            #PlaneCenter = self.Widgets.PCPF.referential.frame_to_world(self.Widgets.OVRL.frame_to_world(self.GeoPlaneCenter))
-            #Normal = self.Widgets.PCPF.referential.frame_to_world(self.Widgets.OVRL.frame_to_world(self.UnitGrad))
-            vk = self.SunAxis.pos[self.SUN_VERTEX] - self.SunAxis.pos[self.EARTH_VERTEX]
-            v0 = self.Planet.Origin.pos
-            A = vk[0]**2 + vk[1]**2 + vk[2]**2
-            
-            B = 2 * (vk[0]*(1 - v0[0]) + vk[1]*(1 - v0[1]) + vk[2]*(1 - v0[2]))
-#            B = 2 * (vk[0]*(self.SunAxis.pos[self.EARTH_VERTEX][0] - v0[0]) + \
-#                     vk[1]*(self.SunAxis.pos[self.EARTH_VERTEX][1] - v0[1]) + \
-#                     vk[2]*(self.SunAxis.pos[self.EARTH_VERTEX][2] - v0[2])) 
+        if self.TOPO is not None:
+            return
 
-            C = self.SunAxis.pos[self.SUN_VERTEX][0]**2 + \
-                self.SunAxis.pos[self.SUN_VERTEX][1]**2 + \
-                self.SunAxis.pos[self.SUN_VERTEX][2]**2 + \
-                self.SunAxis.pos[self.EARTH_VERTEX][0]**2 + \
-                self.SunAxis.pos[self.EARTH_VERTEX][1]**2 + \
-                self.SunAxis.pos[self.EARTH_VERTEX][2]**2 + \
-                -2*(self.SunAxis.pos[self.SUN_VERTEX][0] * v0[0] + \
-                self.SunAxis.pos[self.SUN_VERTEX][1] * v0[1] + \
-                self.SunAxis.pos[self.SUN_VERTEX][2] * v0[2]) - self.SphereIntersecRadius*self.SphereIntersecRadius
+        self.TOPO = frame()
+        self.TOPO.frame = self.Widgets.OVRL
 
-            # for the intersec to be on the sphere, we have 2 possible solutions for t
-            D = B*B - 4*A*C
-            t1 = 0
-            if D > 0:
-                t1 = (-B + sqrt(D))/(2.0*A)
-            else:
-                print "Negative discriminant: B^2=", B*B, ", 4AC=", 4*C*A
-                exit()
+        # link the overlay to earth's PCPF referential that rotates with the earth,
+        # so that the widgets rotation will happen through the PCPF ref
 
-            #D = math.sqrt(B**2 - 4*A*C)
-            #t1 = (-B + D)/2*A
-            #t2 = (-B - D)/2*A      
+        self.TOPO.pos = self.getGeoPosition() #(0,0,0)
+        self.setTopoCentricRef()
+        #self.TOPO.display(True)
 
-            # second, deduct the coordinates
-            self.Intersec =       ( self.SunAxis.pos[self.SUN_VERTEX][0] + t1 * (self.SunAxis.pos[self.SUN_VERTEX][0] - self.SunAxis.pos[self.EARTH_VERTEX][0]),
-                                    self.SunAxis.pos[self.SUN_VERTEX][1] + t1 * (self.SunAxis.pos[self.SUN_VERTEX][1] - self.SunAxis.pos[self.EARTH_VERTEX][1]),
-                                    self.SunAxis.pos[self.SUN_VERTEX][2] + t1 * (self.SunAxis.pos[self.SUN_VERTEX][2] - self.SunAxis.pos[self.EARTH_VERTEX][2]))
-            print "intersec=",self.Intersec
-            print "geoLocAB=", self.EclipticPosition
-            if self.Shape == None:
-                self.Shape = curve(frame=self.Widgets.OVRL, color=Color.red, visible=True, radius=5, material=materials.emissive)
-            
-            # make sure the intersec is allowed (it must be between the sun and the 
-            # earth location. If it's not, it means that the sun is bolow the horizon)
-            ECSSgeoLoc = self.Widgets.ECSS.referential.world_to_frame(self.SunAxis.pos[self.EARTH_VERTEX])
-            print "intersecInECSS:", ECSSgeoLoc
-            if ECSSgeoLoc[1] >= 0:
-                # add a point to the analemma shape until a full year is complete
-                pos = self.Widgets.OVRL.world_to_frame(self.Widgets.PCPF.referential.world_to_frame(self.Intersec))
-                self.Shape.append(pos = pos)
-                self.analemmaIncrement = self.analemmaIncrement + self.Planet.SolarSystem.Dashboard.orbitalTab.TimeIncrement
-        else:
-            print "full year!"
+    def createAnalemma(self):
+        if self.analemma is None:
+            self.analemma = makeAnalemma(self, 1.7)
 
-    def updateAnalemmaPosition(self):
-       
-        self.CurrentGeoLoc = self.updateEclipticPosition()
-        self.SunAxis.pos[self.EARTH_VERTEX] = self.CurrentGeoLoc 
-        self.SunAxis.pos[self.SUN_VERTEX] = (0, 0, self.CurrentGeoLoc[2])
+    def displayAnalemma(self, trueFalse):
+        if self.analemma is not None:
+            self.analemma.display(trueFalse)
 
-        # if we are in 24h animation mode, update forward vector to face earth from the sun's perspective
-        if self.Planet.SolarSystem.Dashboard.widgetsTab.acb.GetValue() == True:
+    def resetAnalemma(self):
+        if self.analemma is not None:
+            self.analemma.reset()
+            del self.analemma
+            self.analemma = None
 
-            #self.getAnalemmaPlaneIntersec()
+    def convertPolarToCartesian(self, radius):
+        # calculate distance from z-axis to latitude line
+        eqPlane = radius * cos(deg2rad(self.lat))
 
-            self.getAnalemmaSphereIntersec()
-
-            # set camera forward vector to follow the earth from the sun's perspective
-            #self.Planet.SolarSystem.Scene.forward = vector(self.Planet.Origin.pos - (0, 0, self.CurrentGeoLoc[2] + 5*self.radius))
-
-            # alternate view: using the normal vector
-            self.Planet.SolarSystem.Scene.forward = self.Planet.PCPF.referential.frame_to_world(self.Origin.frame_to_world(self.UnitGrad))
-            self.Planet.SolarSystem.Scene.center = (0,0,0)
+        # deduct (x,y) from eqPlane. Note, we need to extend the longitude 
+        # value by 180 degrees to take into account the way the earth texture
+        # was applied on the sphere
+        return (eqPlane * cos(deg2rad(self.long)+pi),
+                eqPlane * sin(deg2rad(self.long)+pi),
+                radius * sin(deg2rad(self.lat)))
 
     def setGeoPosition(self):
+
         # set the Geo position based on 
         # latitude/longitude of location
+        self.GeoLoc.pos = self.convertPolarToCartesian(self.Planet.getBodyRadius()*0.999)
 
-        self.radius = (self.Planet.radiusToShow/self.Planet.SizeCorrection[self.Planet.sizeType])*0.999
+        """
+        radius = self.Planet.getBodyRadius()*0.999
         
         # calculate distance from z-axis to latitude line
         eqPlane = self.radius * cos(deg2rad(self.lat))
@@ -955,29 +926,20 @@ class makeEarthLocation():
         self.GeoLoc.pos[0] = eqPlane * cos(deg2rad(self.long)+pi)
         self.GeoLoc.pos[1] = eqPlane * sin(deg2rad(self.long)+pi)
         self.GeoLoc.pos[2] = self.radius * sin(deg2rad(self.lat))
+        """
 
-#        self.GeoPlaneCenter = self.anaLemmaDistanceFactor * self.GeoLoc.pos
-
-    def makeSunAxis(self):
-
-        # create first vertex in sun at z coordinate = earth latitude to create an axis parallel to ecliptic
-        self.SunAxis = curve(pos=[(0,0,self.CurrentGeoLoc[2])], color=Color.white, visible=False,  material=materials.emissive, radius=0)
-        ## -> self.SunAxis = curve(pos=[(0,0,0)], color=Color.white, visible=False,  material=materials.emissive, radius=0)
-
-        # add point location in ecliptic coordinate
-        self.SunAxis.append(pos=self.CurrentGeoLoc, color=Color.green)
-
-        # we now have a sun-earth line that links a particular latitude to the Sun light direction
+    def setTopoCentricOrigin(self):
+        # set the topocentric origin based on 
+        # latitude/longitude of location
+        self.TopoLocPos = self.convertPolarToCartesian(self.Planet.getBodyRadius()*0.9)
 
     def updateEclipticPosition(self):
         # init position in ecliptic referential
         # It is calculated by first getting the position of OVRL objects 
         # in the PCPF referential, and then convert it from PCPF to ecliptic (absolute)
         # This method is used mainly by the camera object
-        #self.EclipticPosition = self.Widgets.PCPF.referential.frame_to_world(self.Origin.frame_to_world(self.GeoLoc.pos))
-        self.EclipticPosition = self.Widgets.PCPF.referential.frame_to_world(self.Origin.frame_to_world(self.GeoLoc.pos))
-        #self.GeoPlaneCenter = 1.2 * self.EclipticPosition
 
+        self.EclipticPosition = self.Widgets.PCPF.referential.frame_to_world(self.Origin.frame_to_world(self.GeoLoc.pos))
         return self.EclipticPosition
 
     def getEclipticPosition(self):
@@ -1003,12 +965,12 @@ class makeEarthLocation():
         A = base[0] - self.Origin.pos[0] #self.Planet.Origin.pos[0]
         B = base[1] - self.Origin.pos[1] #self.Planet.Origin.pos[1]
         C = base[2] - self.Origin.pos[2] #self.Planet.Origin.pos[2] 
-        self.Grad = vector(A, B, C)/np.sqrt(A**2 + B**2 + C**2)
+        self.NormalVec = vector(A, B, C)/np.sqrt(A**2 + B**2 + C**2)
 
 ##        self.GradientX = 2*(base[0]-self.Origin.pos[0])
 #        self.GradientY = 2*(base[1]-self.Origin.pos[1])
 #        self.GradientZ = 2*(base[2]-self.Origin.pos[2])
-#        self.Grad = vector(self.GradientX, self.GradientY, self.GradientZ)
+#        self.NormalVec = vector(self.GradientX, self.GradientY, self.GradientZ)
 
         ####zob = sphere(pos=base, radius=300, color=Color.yellow, visible=True, material = materials.emissive, opacity=1.0, frame=self.Origin)
 
@@ -1016,48 +978,381 @@ class makeEarthLocation():
 #        self.GradientY = 2*(self.EclipticPosition[1]-self.Planet.Origin.pos[1])
 #        self.GradientZ = 2*(self.EclipticPosition[2]-self.Planet.Origin.pos[2])
 
-        #self.Grad = vector(self.GradientX, self.GradientY, self.GradientZ)
-        #self.Grad = theGrad * 1/mag(theGrad)
-#        self.NormalVec = simpleArrow(Color.white, 0, 10, self.GeoLoc.pos, axisp = (self.Grad/10), context = self.Origin)
-        self.NormalVec = simpleArrow(Color.white, 0, 10, self.GeoLoc.pos, axisp = (1000 * self.Grad), context = self.Origin)
-        self.NormalVec.display(False)
+        #self.NormalVec = vector(self.GradientX, self.GradientY, self.GradientZ)
+        #self.NormalVec = theGrad * 1/mag(theGrad)
+#        self.topoZ = simpleArrow(Color.white, 0, 10, self.GeoLoc.pos, axisp = (self.NormalVec/10), context = self.Origin)
+        self.topoZ = simpleArrow(Color.white, 0, 10, self.GeoLoc.pos, axisp = (1000 * self.NormalVec), context = self.Origin)
+        self.topoZ.display(False)
 
-    def setNormalToSurface(self):
-        # the equation of the earth surface is S: (x-xcenter)^2 + (y-ycenter)^2 + (z-zcenter)^2 = R^2
+    def setTopoCentricRef(self):
+        # the direction of the vector normal to the location is given by (Loc - center). Since we are
+        # in the OVRL referential, center is always (0,0,0), hence Normal = Loc
+        # 
+        # For a random surface (not necessarily a sphere), a normal to that surface would be 
+        # obtained by calculating the gradient of the surface at this particular point. In this case, 
+        # the surface is a sphere with the equation S: (x-xcenter)^2 + (y-ycenter)^2 + (z-zcenter)^2 = R^2
+        #
         # the coordinates of a vector normal to the earth surface is given by the earth's surface gradient:
         #   Gradient(S) = (DS/Dx, DS/Dy, DS/Dz)
         # DS/Dx = 2(x-xcenter) partial derivative of surface for x
         # DS/Dy = 2(y-ycenter) partial derivative of surface for y 
         # DS/Dz = 2(z-zcenter) partial derivative of surface for z
+        # 
         # the normal vector in our location is given by [xloc+DS/Dx(loc)]
         # Since center is alway (0,0,0) in OVRL referential, calculating DS
         # translates as: DS/Dx = 2x,  Ds/Dy = 2y,  De/Dz = 2z
-        base = self.getGeoPosition() #self.updateEclipticPosition() # self.Planet.Origin.pos
-#        self.GradientX = 2*(base[0]) #-self.Origin.pos[0])
-#        self.GradientY = 2*(base[1]) #-self.Origin.pos[1])
-#        self.GradientZ = 2*(base[2]) #-self.Origin.pos[2])
-        self.GradientX = (base[0]) #-self.Origin.pos[0])
-        self.GradientY = (base[1]) #-self.Origin.pos[1])
-        self.GradientZ = (base[2]) #-self.Origin.pos[2])
-        self.Grad = vector(self.GradientX, self.GradientY, self.GradientZ)
-        self.UnitGrad = norm(self.Grad)
-        self.NormalVec = simpleArrow(Color.white, 0, 10, self.GeoLoc.pos, axisp = (self.Grad/5), context = self.Origin)
-        self.NormalVec.display(False)
+        # so we fall back to Normal = Loc
 
-    def setTgPlane(self):
-        self.anaLemmaTgPlane = box(frame=self.Origin, pos=self.anaLemmaDistanceFactor*self.GeoLoc.pos, axis = self.UnitGrad, width=10*self.radius, length=0.0001, height=10*self.radius, material=materials.emissive, visible=False, color=Color.grey, opacity=1)
+        # Note: the vector coordinates are made in the OVRL referential
 
-    def setAnaLemmaSphere(self):
-        self.anaLemmaSphere = sphere(frame=self.Origin, pos=(0,0,0), radius=self.SphereIntersecRadius, material=materials.emissive, visible=True, color=Color.gray, opacity=0.1)
+        #self.setMonthlyTiltAngleArray()
 
-    def displayTgPlane(self, trueFalse):
+        #################################
+        # create topocentric referential:
+        #################################
+
+        # Normal to location
+        self.NormalVec = vector(self.getGeoPosition())
+        self.UnitNormal = norm(self.NormalVec)
+        self.topoZ = simpleArrow(Color.white, 0, 10, self.GeoLoc.pos, axisp = (self.NormalVec/5), context = self.Origin)
+        self.topoX = self.topoY = None
+
+        # create a vector projection of goeloc on equatorial plane. 
+        localRadiusVector = vector(self.GeoLoc.pos[0], self.GeoLoc.pos[1], 0) 
+
+        # The projection and PCPF-Zaxis are colinear. When they are in opposite 
+        # directions, reverse the projection to obtain a positive dot product
+
+        # When the projection of the normal on the rotation axis is negative, they
+        # are in opposite direction, hence we need to reverse the localRadiusVector 
+        # to keep the topX vector always pointing East
+
+        if dot(self.NormalVec, self.Planet.PCPF.RotAxis) < 0:
+            localRadiusVector = -localRadiusVector
+
+        # Now the localRadiusVector and the normal vectors form either a plane or are collinear 
+        # Now get the vector x, orthogonal to both (self.GeoLoc.pos[0], self.GeoLoc.pos[1], 0) and Normal-z pointing east
+        self.topoVecX = getVectorOrthogonalToPlane(self.NormalVec, localRadiusVector) #getOrthogonalVector(self.NormalVec) * mag(self.NormalVec)
+        if self.topoVecX is None:
+            # the vectors are collinear. let's use the PCPF.RotAxis instead:
+            self.topoVecX = getVectorOrthogonalToPlane(self.Origin.world_to_frame(self.Planet.PCPF.RotAxis), self.NormalVec) #getOrthogonalVector(self.NormalVec) * mag(self.NormalVec)
+        
+        self.topoVecX *= mag(self.NormalVec)
+        self.topoX = simpleArrow(Color.green, 0, 10, self.GeoLoc.pos, axisp = (self.topoVecX/5), context = self.Origin)
+
+        # Finally get the vector y, orthogonal to the plane (x, z), pointing North
+        self.topoVecY = getVectorOrthogonalToPlane(self.NormalVec, self.topoVecX) * mag(self.NormalVec) #getOrthogonalVector(self.NormalVec) * mag(self.NormalVec)
+        self.topoY = simpleArrow(Color.white, 0, 10, self.GeoLoc.pos, axisp = (self.topoVecY/5), context = self.Origin)
+            
+        # Last but not least, set the view vector: The view vector determines the direction we see from the location
+        
+        # 1st, create a vector between the sun and the location
+        v = vector(0,0, self.GeoLoc.pos[2]) - vector(self.getEclipticPosition())
+
+        # transform that vector to OVRL ref coordinates and attach it as the down vector
+        self.sunVector = vector(self.Origin.world_to_frame(self.Planet.PCPF.referential.world_to_frame(v)))/20
+
+        # from this vector, let's correct for the latitude of the location        
+        angle = -deg2rad(abs(self.lat)/2)
+
+        self.sunViewVector = simpleArrow(Color.red, 0, 10, self.GeoLoc.pos, axisp = (self.sunVector/15), context = self.Origin)
+        self.locViewVector = rotate(vector=self.sunVector, angle=angle, axis=self.topoVecX)
+        self.ViewArrowSouth = simpleArrow(Color.magentish, 0, 10, self.GeoLoc.pos, axisp = (self.locViewVector/15), context = self.Origin)
+
+        self.displayTopoCentricRef(False)
+
+
+    def setMonthlyTiltAngleArray(self):
+        self.MTA = np.zeros(12, dtype="float32")
+        T = self.Planet.TiltAngle
+        Tincr = T/3
+        for n in range(0,7):
+            self.MTA[11-n] = -T + n*Tincr
+        
+        #self.MTA[5] = T
+        for n in range(0,5):
+            self.MTA[n] = self.MTA[10-n]
+        
+        print self.MTA
+
+    """
+    def setTopoCentricRef_SAVE(self):
+        # the direction of the vector normal to the location is given by (Loc - center). Since we are
+        # in the OVRL referential, center is always (0,0,0), hence Normal = Loc
+        # 
+        # For a random surface (not necessarily a sphere), a normal to that surface would be 
+        # obtained by calculating the gradient of the surface at this particular point. In this case, 
+        # the surface is a sphere with the equation S: (x-xcenter)^2 + (y-ycenter)^2 + (z-zcenter)^2 = R^2
+        #
+        # the coordinates of a vector normal to the earth surface is given by the earth's surface gradient:
+        #   Gradient(S) = (DS/Dx, DS/Dy, DS/Dz)
+        # DS/Dx = 2(x-xcenter) partial derivative of surface for x
+        # DS/Dy = 2(y-ycenter) partial derivative of surface for y 
+        # DS/Dz = 2(z-zcenter) partial derivative of surface for z
+        # 
+        # the normal vector in our location is given by [xloc+DS/Dx(loc)]
+        # Since center is alway (0,0,0) in OVRL referential, calculating DS
+        # translates as: DS/Dx = 2x,  Ds/Dy = 2y,  De/Dz = 2z
+        # so we fall back to Normal = Loc
+
+        # Note: the vector coordinates are made in the OVRL referential
+
+        self.NormalVec = vector(self.getGeoPosition()) #vector(base[0], base[1], base[2])
+        self.UnitNormal = norm(self.NormalVec)
+        self.topoZ = simpleArrow(Color.white, 0, 10, self.GeoLoc.pos, axisp = (self.NormalVec/5), context = self.Origin)
+        self.topoX = self.topoY = None
+
+        # create a vector projection of goeloc on equatorial plane. 
+        localRadiusVector = vector(self.GeoLoc.pos[0], self.GeoLoc.pos[1], 0) 
+
+        # The projection and PCPF-Zaxis are colinear. When they are in opposite 
+        # directions, reverse the projection to obtain a positive dot product
+
+        # When the projection of the normal on the rotation axis is negative, they
+        # are in opposite direction, hence we need to reverse the localRadiusVector 
+        # to keep the topX vector always pointing East
+        if dot(self.NormalVec, self.Planet.PCPF.RotAxis) < 0:
+            localRadiusVector = -localRadiusVector
+
+        # Now the localRadiusVector and the normal vectors form either a plane or are collinear 
+        # Now get the vector x, orthogonal to both (self.GeoLoc.pos[0], self.GeoLoc.pos[1], 0) and Normal-z pointing east
+        self.topoVecX = getVectorOrthogonalToPlane(self.NormalVec, localRadiusVector) #getOrthogonalVector(self.NormalVec) * mag(self.NormalVec)
+        if self.topoVecX is None:
+            # the vectors are collinear. let's use the PCPF.RotAxis instead:
+            self.topoVecX = getVectorOrthogonalToPlane(self.Origin.world_to_frame(self.Planet.PCPF.RotAxis), self.NormalVec) #getOrthogonalVector(self.NormalVec) * mag(self.NormalVec)
+        
+        self.topoVecX *= mag(self.NormalVec)
+        self.topoX = simpleArrow(Color.green, 0, 10, self.GeoLoc.pos, axisp = (self.topoVecX/5), context = self.Origin)
+
+        # Finally get the vector y, orthogonal to the plane (x, z), pointing North
+        self.topoVecY = getVectorOrthogonalToPlane(self.NormalVec, self.topoVecX) * mag(self.NormalVec) #getOrthogonalVector(self.NormalVec) * mag(self.NormalVec)
+        self.topoY = simpleArrow(Color.white, 0, 10, self.GeoLoc.pos, axisp = (self.topoVecY/5), context = self.Origin)
+            
+        # Last but not least, set the view vector:
+        
+        self.locViewVector = vector(self.Origin.world_to_frame(self.Planet.PCPF.referential.world_to_frame(self.getEclipticPosition())))
+        self.locViewVector = rotate(vector=self.locViewVector, angle=self.Planet.TiltAngle, axis=self.topoVecX)
+        self.ViewArrowSouth = simpleArrow(Color.yellow, 0, 10, self.GeoLoc.pos, axisp = (self.locViewVector/5), context = self.Origin)
+        
+        #v2 = self.Planet.PCPF.referential.frame_to_world(self.Origin.frame_to_world(self.NormalVec))
+        #self.locViewVector = getVectorProjectionToVector(vector(self.EclipticPosition), v2) * v2/mag(v2)
+        #self.ViewArrowSouth = simpleArrow(Color.yellow, 0, 10, self.EclipticPosition, axisp = (self.locViewVector/5))
+
+
+        self.displayTopoCentricRef(False)
+    """
+
+    def updateViewVector(self):
+        self.CurrentGeoLoc = self.getEclipticPosition()
+        self.SunFixed = False
+        if self.SunFixed == True:
+            v = vector(0,0, self.GeoLoc.pos[2]) - vector(self.CurrentGeoLoc)
+            self.locViewVector = vector(self.Origin.world_to_frame(self.Planet.PCPF.referential.world_to_frame(v)))/20
+
+        self.ViewVector = self.locViewVector/15 #10 #self.earthEyeViewVector #self.locViewVector
+
+
+    def RotateHorizon(self):
+        return 
+        # determine angle between local vertical and absolute vertical:
+        #absoluteVertical = self.Origin.world_to_frame(self.Widgets.PCPF.referential.world_to_frame( 0, 0, 1)) 
+        absoluteVertical = self.Widgets.ECSS.RotAxis
+        angle = getAngleBetweenVectors(self.NormalVec, absoluteVertical)
+        print "rotate-horizon: angle=", angle
+
+        self.Planet.SolarSystem.rotateSolarSystemReferential(axis=self.NormalVec)
+
+    """
+    def setTopoCentricRef_SAVE(self):
+        # the direction of the vector normal to the location is given by (Loc - center). Since we are
+        # in the OVRL referential, center is always (0,0,0), hence Normal = Loc
+        # 
+        # For a random surface (not necessarily a sphere), a normal to that surface would be 
+        # obtained by calculating the gradient of the surface at this particular point. In this case, 
+        # the surface is a sphere with the equation S: (x-xcenter)^2 + (y-ycenter)^2 + (z-zcenter)^2 = R^2
+        #
+        # the coordinates of a vector normal to the earth surface is given by the earth's surface gradient:
+        #   Gradient(S) = (DS/Dx, DS/Dy, DS/Dz)
+        # DS/Dx = 2(x-xcenter) partial derivative of surface for x
+        # DS/Dy = 2(y-ycenter) partial derivative of surface for y 
+        # DS/Dz = 2(z-zcenter) partial derivative of surface for z
+        # 
+        # the normal vector in our location is given by [xloc+DS/Dx(loc)]
+        # Since center is alway (0,0,0) in OVRL referential, calculating DS
+        # translates as: DS/Dx = 2x,  Ds/Dy = 2y,  De/Dz = 2z
+        # so we fall back to Normal = Loc
+
+        # Note: the vector coordinates are made in the OVRL referential
+
+        #base = self.getGeoPosition()
+        self.NormalVec = vector(self.getGeoPosition()) #vector(base[0], base[1], base[2])
+        self.UnitNormal = norm(self.NormalVec)
+        self.topoZ = simpleArrow(Color.white, 0, 10, self.GeoLoc.pos, axisp = (self.NormalVec/5), context = self.Origin)
+
+        #print "Normal.absoluteX = ", dot(self.NormalVec, self.Planet.PCPF.getAbsoluteAxisVector(0)), "Normal.ECEF-Xaxis = ", \
+        #                            dot(self.NormalVec, self.Planet.PCPF.XdirectionUnit)
+
+        # now get the vector y, orthogonal to z, pointing North
+        self.topoVecY = getOrthogonalVector(self.NormalVec, direction = 'y') * mag(self.NormalVec) #getVectorOrthogonalToPlane(self.NormalVec, self.topoVecX) * mag(self.NormalVec)
+        # make sure that if topoY axis isn't aligned in the same direction as the PCPF ref rotation axis, we reverse it
+
+
+        if dot(self.topoVecY, self.Planet.PCPF.RotAxis) < 0:
+            self.topoVecY = -self.topoVecY
+
+        print "Normal=", self.NormalVec, "Y=", self.topoVecY
+        self.topoVecY = simpleArrow(Color.white, 0, 10, self.GeoLoc.pos, axisp = (self.topoVecY/5), context = self.Origin)
+
+        # and finally get the vector x, orthogonal to both (y, z) pointing east
+        self.topoVecX = getVectorOrthogonalToPlane(self.NormalVec, self.topoVecY) * mag(self.NormalVec) #getOrthogonalVector(self.NormalVec) * mag(self.NormalVec)
+        self.topoXXVecX = simpleArrow(Color.green, 0, 10, self.GeoLoc.pos, axisp = (self.topoVecX/5), context = self.Origin)
+
+        self.displayTopoCentricRef(False)
+    """
+
+    def displayTopoCentricRef(self, trueFalse):
+        self.topoZ.display(trueFalse)
+        self.topoX.display(trueFalse)
+        self.topoY.display(trueFalse)
+        self.ViewArrowSouth.display(trueFalse)
+        #self.horizontal.display(trueFalse)
+        self.sunViewVector.display(trueFalse)
+
+    def setEarthEyeView(self, trueFalse):
+
+        self.Widgets.locationEarthEyeView = trueFalse
+
+        # Note the mouse needs to be disabled when in locationEarthEyeView mode so that
+        # the direction vector of the camera can't be altered my mouse operations when hovering
+        # on the scene view.
+        if trueFalse == True:
+            #self.RotateHorizon()
+            self.Planet.SolarSystem.Scene.background = Color.cyan
+            self.Planet.SolarSystem.Scene.fov = deg2rad(90)
+            self.updateEarthEyeView()
+            # disable mouse action
+            pass
+        else: 
+            # enable mouse action
+            #self.Planet.SolarSystem.Scene.range = self.zob
+            self.Planet.SolarSystem.Scene.background = Color.black
+            self.Planet.SolarSystem.Scene.fov = deg2rad(40)
+            pass
+
+
+    def updateEarthEyeView(self, direction = "NORTH"):
+        # here direction indicates the cardinal (East, West, North, South) 
+        # where the view axis is supposed to point to.
+
+        ######### self.CurrentGeoLoc = self.getEclipticPosition()
+
+        # update camera forward vector to follow the earth from the sun's perspective
+        #self.Planet.SolarSystem.Scene.forward = vector(self.CurrentGeoLoc - self.Planet.Origin.pos)
+
+
+ #       self.Planet.SolarSystem.Scene.forward = vector(self.Widgets.PCPF.referential.frame_to_world(self.Origin.frame_to_world(self.topoVecX/5)) - self.CurrentGeoLoc)
+ #       print "geoLocEcliptic=", self.CurrentGeoLoc, "topoX=", self.Widgets.PCPF.referential.frame_to_world(self.Origin.frame_to_world(self.topoVecX/5)), "forward=", self.Planet.SolarSystem.Scene.forward
+
+ #       self.Planet.SolarSystem.Scene.center = (self.CurrentGeoLoc - 10 * self.Widgets.PCPF.referential.frame_to_world(self.Origin.frame_to_world(self.topoVecX/5)))
+ #       OVRLpositon = self.getGeoPosition()
+ #       Horizontal = self.Widgets.PCPF.referential.frame_to_world(self.Origin.frame_to_world())
+
+
+        self.updateViewVector()
+       
+        if self.analemma is None:
+            return
+        
+#        abs_center = self.Origin.frame_to_world(vector(self.analemma.Intersec))
+#        self.Planet.SolarSystem.Scene.center = self.Widgets.PCPF.referential.frame_to_world(abs_center) #self.Widgets.PCPF.referential.frame_to_world(self.Origin.frame_to_world(self.getGeoPosition() + 5*self.ViewVector)) #self.NormalVec)) 
+#
+        self.Planet.SolarSystem.Scene.center = self.Widgets.PCPF.referential.frame_to_world(self.Origin.frame_to_world(self.getGeoPosition() + 10*self.ViewVector)) 
+#        self.Planet.SolarSystem.Scene.center = self.Widgets.PCPF.referential.frame_to_world(self.Origin.frame_to_world(self.getGeoPosition() - 5*self.topoVecY)) 
+        self.Planet.SolarSystem.Scene.forward = vector(self.Planet.SolarSystem.Scene.center - self.CurrentGeoLoc)
+#        self.axis = simpleArrow(Color.yellow, 0, 20, vector(self.CurrentGeoLoc*1.05), axisp = self.Planet.SolarSystem.Scene.forward)
+
+        # update view center with a virtual target at 5 time the earth radius, vertical from location
+        #self.Planet.SolarSystem.Scene.center = self.Widgets.PCPF.referential.frame_to_world(self.Origin.frame_to_world(self.getGeoPosition() * 5))
+
+    def updateEarthEyeView_SAVE(self, direction = "NORTH"):
+        # here direction indicates the cardinal (East, West, North, South) 
+        # where the view axis is supposed to point to.
+
+        ######### self.CurrentGeoLoc = self.getEclipticPosition()
+
+        # update camera forward vector to follow the earth from the sun's perspective
+        #self.Planet.SolarSystem.Scene.forward = vector(self.CurrentGeoLoc - self.Planet.Origin.pos)
+
+
+ #       self.Planet.SolarSystem.Scene.forward = vector(self.Widgets.PCPF.referential.frame_to_world(self.Origin.frame_to_world(self.topoVecX/5)) - self.CurrentGeoLoc)
+ #       print "geoLocEcliptic=", self.CurrentGeoLoc, "topoX=", self.Widgets.PCPF.referential.frame_to_world(self.Origin.frame_to_world(self.topoVecX/5)), "forward=", self.Planet.SolarSystem.Scene.forward
+
+ #       self.Planet.SolarSystem.Scene.center = (self.CurrentGeoLoc - 10 * self.Widgets.PCPF.referential.frame_to_world(self.Origin.frame_to_world(self.topoVecX/5)))
+ #       OVRLpositon = self.getGeoPosition()
+ #       Horizontal = self.Widgets.PCPF.referential.frame_to_world(self.Origin.frame_to_world())
+        self.updateViewVector()
+
+        self.Planet.SolarSystem.Scene.center = self.Widgets.PCPF.referential.frame_to_world(self.Origin.frame_to_world(self.getGeoPosition() + 5*self.ViewVector)) #self.NormalVec)) 
+#
+        ###### self.Planet.SolarSystem.Scene.center = self.Widgets.PCPF.referential.frame_to_world(self.Origin.frame_to_world(self.getGeoPosition() + 5*self.topoVecX)) 
+#        self.Planet.SolarSystem.Scene.center = self.Widgets.PCPF.referential.frame_to_world(self.Origin.frame_to_world(self.getGeoPosition() - 5*self.topoVecY)) 
+
+        self.Planet.SolarSystem.Scene.forward = -vector(self.CurrentGeoLoc - self.Planet.SolarSystem.Scene.center)
+#        self.axis = simpleArrow(Color.yellow, 0, 20, vector(self.CurrentGeoLoc*1.05), axisp = self.Planet.SolarSystem.Scene.forward)
+
+        # update view center with a virtual target at 5 time the earth radius, vertical from location
+        #self.Planet.SolarSystem.Scene.center = self.Widgets.PCPF.referential.frame_to_world(self.Origin.frame_to_world(self.getGeoPosition() * 5))
+
+    def updateLocationTopoCentricView2(self, direction = "NORTH"):
+        # here direction indicates the cardinal (East, West, North, South) 
+        # where the view axis is supposed to point to.
+
+        self.CurrentGeoLoc = self.getEclipticPosition()
+
+        # update camera forward vector to follow the earth from the sun's perspective
+        #self.Planet.SolarSystem.Scene.forward = vector(self.CurrentGeoLoc - self.Planet.Origin.pos)
+
+
+ #       self.Planet.SolarSystem.Scene.forward = vector(self.Widgets.PCPF.referential.frame_to_world(self.Origin.frame_to_world(self.topoVecX/5)) - self.CurrentGeoLoc)
+ #       print "geoLocEcliptic=", self.CurrentGeoLoc, "topoX=", self.Widgets.PCPF.referential.frame_to_world(self.Origin.frame_to_world(self.topoVecX/5)), "forward=", self.Planet.SolarSystem.Scene.forward
+
+ #       self.Planet.SolarSystem.Scene.center = (self.CurrentGeoLoc - 10 * self.Widgets.PCPF.referential.frame_to_world(self.Origin.frame_to_world(self.topoVecX/5)))
+ #       OVRLpositon = self.getGeoPosition()
+ #       Horizontal = self.Widgets.PCPF.referential.frame_to_world(self.Origin.frame_to_world())
+        self.Planet.SolarSystem.Scene.center = self.Widgets.PCPF.referential.frame_to_world(self.Origin.frame_to_world(self.getGeoPosition() + 5*self.topoVecX)) 
+#        self.Planet.SolarSystem.Scene.center = self.Widgets.PCPF.referential.frame_to_world(self.Origin.frame_to_world(self.getGeoPosition() - 5*self.topoVecY)) 
+
+        self.Planet.SolarSystem.Scene.forward = -vector(self.CurrentGeoLoc*1.05 - self.Planet.SolarSystem.Scene.center)
+        self.axis = simpleArrow(Color.yellow, 0, 20, vector(self.CurrentGeoLoc*1.05), axisp = self.Planet.SolarSystem.Scene.forward)
+
+        # update view center with a virtual target at 5 time the earth radius, vertical from location
+        #self.Planet.SolarSystem.Scene.center = self.Widgets.PCPF.referential.frame_to_world(self.Origin.frame_to_world(self.getGeoPosition() * 5))
+
+    def updateLocationTopoCentricView_SAVE(self, direction = "NORTH"):
+        # here direction indicates the cardinal (East, West, North, South) 
+        # where the view axis is supposed to point to.
+
+
+        self.CurrentGeoLoc = self.getEclipticPosition()
+
+        # update camera forward vector to follow the earth from the sun's perspective
+        self.Planet.SolarSystem.Scene.forward = vector(self.CurrentGeoLoc - self.Planet.Origin.pos)
+#        self.Planet.SolarSystem.Scene.forward = self.UnitNormal
+
+        # update view center with a virtual target at 5 time the earth radius, vertical from location
+        self.Planet.SolarSystem.Scene.center = self.Widgets.PCPF.referential.frame_to_world(self.Origin.frame_to_world(self.getGeoPosition() * 5))
+
+    def displayTgPlaneXX(self, trueFalse):
         self.anaLemmaTgPlane.visible = trueFalse
 
     def setOrientation(self, axis):
         self.GeoLoc.axis = axis * (1 / mag(axis))
 
-    def show(self, trueFalse):
-        self.NormalVec.display(trueFalse)
+    def showXX(self, trueFalse):
+        self.topoZ.display(trueFalse)
+        self.topoVecX.display(trueFalse)
+        self.topoVecY.display(trueFalse)
+
 
 
 
@@ -1497,59 +1792,12 @@ class makeAnalemmaXX():
         """
         ##### self.analemma = curve(frame=self.Origin, pos=[(2*self.radius,2*self.radius,self.CurrentGeoLoc.pos[2])], color=Color.red, visible=True,  material=materials.emissive, radius=1000)
 
-    def makeSunAxis2(self, locIndex):
-        
-        print "make Sun Axis"
-        loc = None
-        if locIndex != -1:
-            loc = self.Planet.SolarSystem.locationInfo.getLocationInfo(locIndex)
-
- #######       self.setNoonPosition(loc)
-
-
-
-#        self.SunAxisFrame = frame()
-#        self.SunAxisFrame.pos = self.Origin.frame_to_world(self.CurrentGeoLoc.pos)
-
-        # create first vertex in sun at z coordinate = earth latitude to create an axis parallel to ecliptic
-#        self.SunAxis = curve(pos=[(0,0,self.Planet.PCI.referential.frame_to_world(self.CurrentGeoLoc.pos)[2])], color=Color.green, visible=False,  material=materials.emissive, radius=0)
-#######        self.SunAxis = curve(pos=[(0,0,self.CurrentGeoLoc.pos[2])], color=Color.green, visible=False,  material=materials.emissive, radius=0)
-
-        self.SunAxis = curve(pos=[(0,0,self.CurrentGeoLoc[2])], color=Color.green, visible=False,  material=materials.emissive, radius=0)
-
-        #self.SunAxis = curve(pos=[(0,0,self.Planet.PCPF.referential.frame_to_world(self.CurrentGeoLoc.pos)[2])], color=Color.green, visible=False,  material=materials.emissive, radius=0)
-
-
-###        self.SunAxis = curve(pos=self.Planet.PCPF.referential.frame_to_world(self.CurrentGeoLoc.pos), color=Color.green, visible=False,  material=materials.emissive, radius=0)
-
-        # add point at latitude (0,0, self.radius * sin(lat)) in ecliptic coordinate, inside the sun
-###        self.SunAxis.append(pos=(0, 0, self.CurrentGeoLoc.pos[2]), color=Color.green)
-
-##########        self.SunAxis.append(pos=self.Planet.PCI.referential.frame_to_world(vector(0, 0, self.CurrentGeoLoc.pos[2])), color=Color.green)
-        self.SunAxis.append(pos=self.CurrentGeoLoc, color=Color.green)
-
-
-        #self.SunAxis.append(pos=self.Planet.PCPF.referential.frame_to_world(vector(0, 0, self.CurrentGeoLoc.pos[2])), color=Color.green)
-
-        # we now have a sun-earth line that links a particular latitude to the Sun light direction
-
-#        self.SunAxis.append(pos=self.Origin.frame_to_world(self.CurrentGeoLoc.pos), color=Color.green)
-
-
-        """
-        self.NodesAxis = curve( #frame=self.PCI, 
-                                #pos=[(2 * (self.DesNode.Node.pos[0] - self.Planet.Position[0]), 0, 0), 
-                                #    (2 * (self.AscNode.Node.pos[0] - self.Planet.Position[0]), 0, 0)], 
-                                pos = [(self.Planet.Position[0],self.Planet.Position[1],self.Planet.Position[2]), (0,0,0)], 
-                                color=Color.green, visible=True, radius=0, material=materials.emissive)
-        """
-        ##### self.analemma = curve(frame=self.Origin, pos=[(2*self.radius,2*self.radius,self.CurrentGeoLoc.pos[2])], color=Color.red, visible=True,  material=materials.emissive, radius=1000)
 
     def setNoonPosition(self, loc):
 
         self.lat = 0.0
         self.long = 0.0
-        if loc != None:
+        if loc is not None:
             self.lat = loc["lat"]
             #self.lat = 0.0
             self.long = loc["long"]
@@ -1579,7 +1827,7 @@ class makeAnalemmaXX():
 
     #####    self.SunAxis.pos[self.EARTH_VERTEX] = self.Planet.PCPF.referential.frame_to_world(self.CurrentGeoLoc.pos)
 
-        if self.Loc != None:
+        if self.Loc is not None:
             self.CurrentGeoLoc = self.Loc.updateEclipticPosition()
         else:
             self.CurrentGeoLoc = self.Planet.Origin.pos
@@ -1691,7 +1939,7 @@ class makeAnalemmaXX():
         # 
         # in an EarthLocation context: 
         #   - the point belonging to the plane is self.GeoLoc * self.anaLemmaDistanceFactor
-        #   - the normal vector to the plane is self.UnitGrad
+        #   - the normal vector to the plane is self.UnitNormal
         #   - the point of the line P is the Earth vertex self.GeoLoc
         #   - the direction D is Earth Vertex - Sun Vertex
         
@@ -1699,7 +1947,7 @@ class makeAnalemmaXX():
 
         if self.analemmaIncrement < TI_FULL_YEAR:
             PlaneCenter = self.Widgets.PCPF.referential.frame_to_world(self.Widgets.OVRL.frame_to_world(self.Loc.GeoPlaneCenter))
-            Normal = self.Widgets.PCPF.referential.frame_to_world(self.Widgets.OVRL.frame_to_world(self.Loc.UnitGrad))
+            Normal = self.Widgets.PCPF.referential.frame_to_world(self.Widgets.OVRL.frame_to_world(self.Loc.UnitNormal))
 
             t = (PlaneCenter[0] - self.SunAxis.pos[self.SUN_VERTEX][0])*Normal[0] + \
                 (PlaneCenter[1] - self.SunAxis.pos[self.SUN_VERTEX][1])*Normal[1] + \
@@ -1712,7 +1960,7 @@ class makeAnalemmaXX():
             self.Intersec =       ( self.SunAxis.pos[self.SUN_VERTEX][0] + t * (self.SunAxis.pos[self.SUN_VERTEX][0] - self.SunAxis.pos[self.EARTH_VERTEX][0]),
                                     self.SunAxis.pos[self.SUN_VERTEX][1] + t * (self.SunAxis.pos[self.SUN_VERTEX][1] - self.SunAxis.pos[self.EARTH_VERTEX][1]),
                                     self.SunAxis.pos[self.SUN_VERTEX][2] + t * (self.SunAxis.pos[self.SUN_VERTEX][2] - self.SunAxis.pos[self.EARTH_VERTEX][2]))
-            if self.Shape == None:
+            if self.Shape is None:
                 self.Shape = curve(frame=self.Widgets.OVRL, color=Color.red, visible=True, radius=5, material=materials.emissive)
             
             # make sure the intersec is allowed (it must be between the sun and the 

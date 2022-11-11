@@ -48,7 +48,7 @@ class makeBasicReferential:
             print "default Z-AXIS = ", self.defaultZaxis
             print "MANUALLY: = ",[0, sinv, cosv]
 
-        if params['body'] != None:
+        if params['body'] is not None:
             self.body               = params['body']
 #            radius                  = self.body.radiusToShow/self.body.SizeCorrection[self.body.sizeType]
             self.referential.pos    = self.body.Position
@@ -118,9 +118,19 @@ class make3DaxisReferential:
         self.AxisLabel 	        = ["","",""]
         radius                  = params['radius']
         self.body               = None
-       # self.axisLock           = params['axislock']
         self.tiltAngle          = params['tiltangle']
         self.referential.pos    = (0,0,0)
+        self.rotMatrix          = None
+
+        if 'initial_rotation' in params:
+            cosv = cos(params['initial_rotation'])
+            sinv = sin(params['initial_rotation'])
+
+            self.rotMatrix = np.matrix([
+            [cosv,		-sinv,	0],
+            [sinv,		cosv,   0],
+            [0,			0, 	    1]])
+
 #        self.makeAxis           = params['make_axis']
 #        self.defaultZAxis       = None
 #        if 'default_zaxis' in params:
@@ -138,9 +148,10 @@ class make3DaxisReferential:
         #    [0,			-sinv, 	cosv]]
         #)
 
-        if params['body'] != None:
+        if params['body'] is not None:
             self.body               = params['body']
-            radius                  = self.body.radiusToShow/self.body.SizeCorrection[self.body.sizeType]
+#            radius                  = self.body.radiusToShow/self.body.SizeCorrection[self.body.sizeType]
+            radius                  = self.body.getBodyRadius()
             self.referential.pos    = (self.body.Position[0]+self.body.Foci[0], self.body.Position[1]+self.body.Foci[1], self.body.Position[2]+self.body.Foci[2])
             #if body.Name.lower() not in objects_data.keys():
             #    return
@@ -163,6 +174,10 @@ class make3DaxisReferential:
 #        if self.makeAxis ==  True:
             #position = vector(0,0,0) 
         for i in range (3): # Each direction
+            if self.rotMatrix is not None:
+                A = np.matrix([[self.directions[i][0]],[self.directions[i][1]],[self.directions[i][2]]], np.float64)
+                self.directions[i] = self.rotMatrix * A
+
 
             self.Axis[i] = simpleArrow(params['color'], 0, 20, vector(0,0,0), axisp = self.directions[i], context=self.referential)
             self.Axis[i].display(True) # allows axis visibility to be dependent upon their frame visibility when axisLock = True
@@ -175,6 +190,8 @@ class make3DaxisReferential:
 #                self.AxisLabel[i] = label( frame = self.referential, color = params['color'],  text = params['legend'][i],
 #                                            #pos = self.referential.pos+self.directions[i]*(1.07+ve), opacity = 0, box = False, visible=show )
 #                                            pos = position+self.directions[i]*(1.07+ve), opacity = 0, box = False, visible=False )
+
+
             ve = 0.07 #####
 
         self.display(params['show'])
@@ -184,6 +201,11 @@ class make3DaxisReferential:
         for i in range(3):
             self.Axis[i].display(trueFalse)
             self.AxisLabel[i].visible = trueFalse
+
+    def getAbsoluteAxisVector(self, n):
+        if n < 0 or n > 2:
+            return None
+        return self.referential.frame_to_world(self.Axis[n].pos[1])-self.referential.frame_to_world(self.Axis[n].pos[0])
 
     def setAxisTilt(self):
         # rotate referential first
@@ -202,6 +224,8 @@ class make3DaxisReferential:
 
     def updateReferential(self):
         self.referential.pos = (self.body.Position[0]+self.body.Foci[0], self.body.Position[1]+self.body.Foci[1], self.body.Position[2]+self.body.Foci[2])
+        return 
+
 
         # based on whether or not our 3 axis is locked with frame, set position absolutely or relatively
         #position = self.referential.pos #if self.frame == None else vector(0,0,0)

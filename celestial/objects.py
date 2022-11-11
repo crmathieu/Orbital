@@ -26,7 +26,7 @@ class simpleArrow:
 
 class circle:
     def  __init__(self, color, radius, pos, normalAxis, context = None):
-        self.Origin = frame() if context == None else context
+        self.Origin = frame() if context is None else context
         self.Radius = radius if radius > 0 else 30
         self.Color = color
         self.pos = vector(pos)
@@ -146,7 +146,7 @@ class makeReferentialXX:
         #    [0,			-sinv, 	cosv]]
         #)
 
-        if body != None:
+        if body is not None:
             self.body               = body
             radius                  = body.radiusToShow/body.SizeCorrection[body.sizeType]
             self.referential.pos    = body.Position
@@ -154,7 +154,7 @@ class makeReferentialXX:
                 return
 
         # based on whether or not we want our 3 axis locked with frame, set position absolutely or relatively
-        position = self.referential.pos if self.frame == None else vector(0,0,0)
+        position = self.referential.pos if self.frame is None else vector(0,0,0)
 
 #        self.referential.rotate(angle=(initialRotation), axis=(1,0,0))
 
@@ -212,7 +212,7 @@ class makeReferentialXX:
         self.referential.pos = self.body.Position
 
         # based on whether or not our 3 axis is locked with frame, set position absolutely or relatively
-        position = self.referential.pos if self.frame == None else vector(0,0,0)
+        position = self.referential.pos if self.frame is None else vector(0,0,0)
 
 #        self.updateAxis()
         ve = 0.2
@@ -227,7 +227,7 @@ class makeReferentialXX:
 
     def rotate(self, angle):
        # rotAxis = self.referential.frame_to_world(self.ZdirectionUnit)
-        #if self.body != None and self.body.Name.lower() == EARTH_NAME:
+        #if self.body is not None and self.body.Name.lower() == EARTH_NAME:
         #    print self.RotAxis
 #####        self.referential.rotate(angle=(angle), axis=rotAxis) #self.RotAxis) #rotAxis)
         self.referential.rotate(angle=(angle), axis=self.RotAxis) #ZdirectionUnit) #rotAxis)

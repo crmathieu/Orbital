@@ -44,6 +44,7 @@ class locList:
 	TZ_US_WAL = 22
 	TZ_NORTH_P = 23
 	TZ_SOUTH_P = 24
+	TZ_EQUANT = 25
 
 class Timeloc:
 	tzEarthLocations = [
@@ -196,6 +197,12 @@ class Timeloc:
         "lat": -90,
         "long": 45,
         "name": "South Pole"
+    },
+	{
+        "tzname": "",
+        "lat": 0,
+        "long": 180,
+        "name": "Equatorial Antimeridian"
     },
 ]
 	def __init__(self, index = -1):
