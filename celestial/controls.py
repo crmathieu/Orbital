@@ -1878,7 +1878,7 @@ class WIDGETSpanel(AbstractUI):
 
 		self.animate24 = False
 
-		self.arcb = wx.CheckBox(self, label="Earth-Centered-Syn-Synchronous (ECSS) Referential", pos=(50, CHK_L16)) #   CVT_Y+560))
+		self.arcb = wx.CheckBox(self, label="Earth-Centered-Sun-Synchronous (ECSS) Referential", pos=(50, CHK_L16)) #   CVT_Y+560))
 		self.arcb.SetValue(False)
 		self.arcb.Bind(wx.EVT_CHECKBOX,self.OnShowECSS)
 
@@ -1964,7 +1964,7 @@ class WIDGETSpanel(AbstractUI):
 		loc = self.Earth.PlanetWidgets.Loc[self.Earth.PlanetWidgets.currentLocation]
 		if self.acb.GetValue() == True:
 			self.animate24 = True
-			self.parentFrame.orbitalTab.TimeIncrement = TI_24_HOURS_ANA
+			self.parentFrame.orbitalTab.TimeIncrement = TI_24_HOURS
 			self.SolarSystem.setTimeIncrement(self.parentFrame.orbitalTab.TimeIncrement)
 			loc.createAnalemma()
 			loc.displayAnalemma(True)

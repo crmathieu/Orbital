@@ -183,14 +183,20 @@ JPL_ORBIT_CLASS = 58
 
 # time increments in day unit
 
-TI_SIDEREAL_DAY 	= 86164.0905	# secs
+
+TI_SOLAR_DAY		= 86400.0			# in mean solar seconds
+TI_SIDEREAL_DAY 	= 86164.0905	# in mean solar secs
+
+SOLAR_DAY_RATIO 	= TI_SIDEREAL_DAY/TI_SOLAR_DAY 	# as a ratio of MEAN solar day. It's almost one,
+													# 0.997269565972222, but not completely. This is the ratio
+													# set for the earth rotation
+
+TI_SOLAR_YEAR		= 365.24 		# in solar days
 TI_SIDEREAL_YEAR	= 366.24		# in sidereal days
 
-TI_SOLAR_DAY		= 86400
-TI_SOLAR_YEAR		= 365.24 		# in solar days
+TI_ONE_MEAN_SOLAR_SECOND = 1.0 / TI_SOLAR_DAY 	# in mean solar days #1.157407e-5 : 1d -> 86400 sec => 1sec = 1/86400 day
+TI_ONE_SIDEREAL_SOLAR_SECOND = 365.25/366.25 # in UT1 seconds     # 1 / TI_SIDEREAL_DAY
 
-TI_ONE_SOLAR_SECOND = 1.157407e-5	# in days. 1d -> 86164.0905 sec => 1sec = 1/86400 day
-TI_ONE_SECOND		= TI_ONE_SOLAR_SECOND
 
 # analemma special value for visualization
 TI_ONE_SECOND_ANA 	= 1.160585e-5	# normally, it should be 1.160576284e-5 since it is 1/86164.0905 sec 
@@ -198,10 +204,12 @@ TI_ONE_SECOND_ANA 	= 1.160585e-5	# normally, it should be 1.160576284e-5 since i
 
 #TI_24_HOURS_ANA 	= TI_ONE_SECOND_ANA * TI_SIDEREAL_DAY
 
-TI_24_HOURS_ANA 	= TI_ONE_SECOND_ANA * TI_SOLAR_DAY			# 1.00274544 solar day
+#TI_24_HOURS_ANA 	= 1 #TI_ONE_SECOND_ANA * TI_SOLAR_DAY			# 1.00274544 solar day
 
 #TI_ONE_SECOND 	= 1.160576e-5 # 1d -> 86164.0905 sec => 1 sec = 1/86164.0905 day
 
+# values used in Time Slider
+TI_ONE_SECOND		= TI_ONE_MEAN_SOLAR_SECOND # 1.1574074074074074074074074074074e-5 in  mean solar day
 TI_10_SECONDS 		= TI_ONE_SECOND * 10
 TI_30_SECONDS 		= TI_ONE_SECOND * 30
 TI_ONE_MINUTE 		= TI_ONE_SECOND * 60
@@ -213,6 +221,8 @@ TI_SIX_HOURS 		= TI_TEN_MINUTES * 36
 TI_TWELVE_HOURS 	= TI_TEN_MINUTES * 72
 TI_24_HOURS 		= TI_TEN_MINUTES * 144
 TI_FULL_YEAR		= TI_24_HOURS  * 365.25
+
+print "=========================>>>>>>>>>>>>> 1 SEC=", TI_ONE_SECOND, ", 24H = ", TI_24_HOURS
 
 #TI_ONE_HOUR 	= 0.0416666666
 #TI_SIX_HOURS 	= 0.25
@@ -300,7 +310,7 @@ year on average, or exactly 365.2425 days.
 """
 TROPICAL_YEAR = 365.2421871    # in ephemeris days
 
-EARTH_PERIOD = TROPICAL_YEAR #SIDEREAL_YEAR
+EARTH_PERIOD = 365.25 #TROPICAL_YEAR #SIDEREAL_YEAR
 EARTH_CENTURY = 36525
 
 EARTH_MEAN_MOTION_WIKI = 1.99096871e-7  	# in rad/s according to wikipedia
@@ -620,7 +630,7 @@ objects_data = {
 		"QR_perihelion":147.09e9,
 		"EC_e":0.01671022,
 		"PR_revolution": EARTH_PERIOD, #365.256,
-		"rotation":	1,
+		"rotation": 1 * SOLAR_DAY_RATIO,	# = 0.99726956597222 expressed in mean solar day
 		"IN_orbital_inclination":0,
 		"OM_longitude_of_ascendingnode":-11.26064,
 		"longitude_of_perihelion":102.94719,

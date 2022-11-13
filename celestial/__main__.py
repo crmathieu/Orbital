@@ -19,6 +19,7 @@ def bootLoader(story, recorder):
 	sun = makeSun(ssys, color.yellow, pd.SUN, pd.SUN, pd.SUN_SZ_CORRECTION)
 	ssys.register(sun)
 
+	print pd.Frame_Intervals
 
 	#glbRefresh(ssys, False)
 

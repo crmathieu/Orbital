@@ -75,7 +75,7 @@ class makeSolarSystem:
 		self.Scene = ViewPort(title = 'Solar System', width = self.SCENE_WIDTH, height =self.SCENE_HEIGHT, range=3, visible=True, center = (0,0,0))
 		self.Scene.up=(0,0,1)
 		self.Scene.forward = vector(2, 0, -1)
-		self.Scene.fov = deg2rad(40) 		
+		self.Scene.fov = deg2rad(60) 		
 		self.Scene.fullscreen = True
 
 		#self.AltScene = ViewPort(title = 'XXXXXXXXXX', width = self.SCENE_WIDTH, height =self.SCENE_HEIGHT, range=3, visible=True, center = (0,0,0))
@@ -359,6 +359,76 @@ class makeSolarSystem:
 
 				body.Origin.visible = True if self.ShowFeatures & body.BodyType != 0 else False ################################
 #				body.toggleSize(realisticSize)
+				if body.BodyType == OUTERPLANET:
+					body.displayRings(body.Origin.visible) ############# NEW
+
+				if body.Origin.visible == True:
+					if body.Trail is not None:
+						body.Trail.visible = orbitTrace
+					if body.isMoon == True:
+						# apply label on/off when moon in real size, otherwise do not show label
+						value = labelVisible if body.sizeType == SCALE_NORMALIZED else False
+					else:
+						value = labelVisible
+
+					for i in range(len(body.Labels)):
+						body.Labels[i].visible = value
+				else:
+					pass #body.Origin.visible = bodyVisible
+
+			else: # belts / rings
+				if body.BodyType != ECLIPTIC_PLANE:
+					
+					if body.BodyShape.visible == True and animationInProgress == True:
+						body.BodyShape.visible = False
+						for i in range(len(body.Labels)):
+							body.Labels[i].visible = False
+		
+		if self.ShowFeatures & LIT_SCENE != 0:
+			print "LITE"
+			self.Scene.ambient = Color.white
+			self.sunLight.visible = False
+			self.Sun.BodyShape.material = materials.texture(data=self.Sun.Texture, mapping="spherical", interpolate=False)
+			self.Sun.BodyShape.opacity = 1.0
+		else:
+			print "DARK", self.Sun
+			self.Scene.ambient = Color.nightshade #Color.black
+			self.sunLight.visible = True
+			self.Sun.BodyShape.material = materials.emissive
+			
+		setRefTo = True if self.ShowFeatures & REFERENTIAL != 0 else False
+		
+		if 	self.cameraViewTargetSelection == self.Sun.JPL_designation and \
+			self.ShowFeatures & LOCAL_REFERENTIAL:
+			setRelTo = True
+		else:
+			setRelTo = False
+
+		self.setAxisVisibility(setRefTo, setRelTo)
+
+		self.Universe.visible = self.isFeatured(CELESTIAL_SPHERE)
+		self.Constellations.visible = self.isFeatured(CONSTELLATIONS)
+
+
+	def refresh_SAVE(self, animationInProgress = False):
+		orbitTrace 		= True if self.ShowFeatures & ORBITS 	!= 0 else False
+		labelVisible 	= True if self.ShowFeatures & LABELS 	!= 0 else False
+		realisticSize 	= True if self.ShowFeatures & REALSIZE 	!= 0 else False
+
+		#self.toggleSize(realisticSize)
+
+		for body in self.bodies:
+
+			if body.BodyType in [SUN, SPACECRAFT, OUTERPLANET, INNERPLANET, ASTEROID, COMET, \
+								 SATELLITE, DWARFPLANET, PHA, BIG_ASTEROID, TRANS_NEPT]:
+
+				#print "FOUND BODY="+body.Name
+				body.toggleSize(realisticSize)
+				if body.BodyType == SUN:
+					continue
+
+				body.Origin.visible = True if self.ShowFeatures & body.BodyType != 0 else False ################################
+#				body.toggleSize(realisticSize)
 				if body.Origin.visible == True:
 					if body.Trail is not None:
 						body.Trail.visible = orbitTrace
@@ -405,7 +475,6 @@ class makeSolarSystem:
 
 		self.Universe.visible = self.isFeatured(CELESTIAL_SPHERE)
 		self.Constellations.visible = self.isFeatured(CONSTELLATIONS)
-
 
 	def setAxisVisibility(self, setRefTo, setRelTo):
 		self.CenterRef.display(setRefTo)
@@ -855,7 +924,7 @@ class makeBody:
 
 		self.Origin.pos = self.Labels[0].pos = vector(self.Position[0]+self.Foci[0],self.Position[1]+self.Foci[1],self.Position[2]+self.Foci[2])
 		#self.Labels[0].pos = vector(self.Position[0]+self.Foci[0],self.Position[1]+self.Foci[1],self.Position[2]+self.Foci[2])
-		self.setRotation() # <<<<<<<<< this is fucking things up
+		self.setRotation()
 		return self.getCurrentVelocity(), self.getCurrentDistanceFromEarth()
 
 	# makeBody::setOrbitalElements (default)
@@ -1254,8 +1323,9 @@ class makeBody:
 		for i in range(len(self.Labels)):
 			self.Labels[i].visible = False
 		self.Trail.visible = False
-		if self.Ring:
-			self.SolarSystem.hideRings(self)
+		#if self.Ring:
+#		if self.nRings > 0:
+#			self.SolarSystem.hideRings(self)
 
 	def setAxisVisibility(self, setTo):
 		#print "display PCI for ", self.Name, "as ", setTo
@@ -1328,15 +1398,11 @@ class makeSun(makeBody):
 		self.BodyShape.material = materials.emissive
 
 	def updateStillPosition(self, timeinsec):
-		return
+		pass
 
 	def draw(self):
 		self.hasRenderedOrbit = True
 		
-
-	def refreshXX(self):
-		pass
-
 	def setPolarCoordinates(self, E_rad):
 		self.R = 0
 		self.Nu = 0
@@ -1361,11 +1427,6 @@ class makeSun(makeBody):
 	def updateOrbitalElements(self, key, timeIncrement):
 		pass
 
-	def getRealisticSizeCorrectionXX(self):
-		#return 1/(DIST_FACTOR * 50)
-		#PLANET_SZ_CORRECTION = 1/(DIST_FACTOR * 5)
-		return 1/(DIST_FACTOR * 5)
-
 	def toggleSize(self, realisticSize):
 		x = SCALE_NORMALIZED if realisticSize == True else SCALE_OVERSIZED
 		if x == self.sizeType:
@@ -1373,7 +1434,6 @@ class makeSun(makeBody):
 		else:
 			self.sizeType = x
 
-		print "TOGGLING!"
 		self.BodyShape.radius = self.radiusToShow  / self.SizeCorrection[self.sizeType]
 
 
@@ -1441,13 +1501,19 @@ class makePlanet(makeBody):
 		self.BodyShape.radius = self.radiusToShow  / self.SizeCorrection[self.sizeType]
 		if self.nRings > 0:
 			print "toggling rings for", self.Name
-			self.hideRings()
+			#self.hideRings()
+			self.removeRings()
 			self.setRings()
 
 	def setRings(self): #, colorArray):  # change default values during instantiation
 		if self.Name.lower() in rings_data:
 			ringData = rings_data[self.Name.lower()]["rings"]
 			if ringData is not None:
+				self.RingsFrame = frame()
+				# make each ring element relative to the PCI Referential
+				# so that they are aligned with the planet tilt and 
+				# won't have to rotate
+				self.RingsFrame.frame = self.PCI.referential				
 				self.makeRings(ringData)
 
 	def makeRings(self, ringData):
@@ -1461,7 +1527,7 @@ class makePlanet(makeBody):
 			self.Rings.insert(self.nRings, self.makeRingElt(curRadius, width, thickness, ring["color"]))
 			self.nRings += 1
 
-	def makeRingElt(self, radius, width, thickness, colour):
+	def makeRingElt_SAVE(self, radius, width, thickness, colour):
 
 		ringframe = frame()
 		straight = [(0,0,0),(0,0,thickness)]
@@ -1490,9 +1556,72 @@ class makePlanet(makeBody):
 		#ringframe.rotate(angle=(self.TiltAngle), axis=(1,0,0))
 		return ringframe
 
+	def makeRingElt(self, radius, width, thickness, colour):
+
+		#ringframe = frame()
+		straight = [(0,0,0),(0,0,thickness)]
+
+		# shape of outer edge
+		outerEdge = shapes.circle(pos=(0, 0), radius=radius, np=128)
+
+		# shape of inner edge
+		innerEdge = shapes.circle(pos=(0,0), radius=radius-width, np=128)
+
+		# create ring body from extrusion
+		body = extrusion(pos=straight, 
+						shape=outerEdge-innerEdge,
+						color=colour)
+
+		body.frame = self.RingsFrame
+		
+#		ringframe.frame = self.Origin
+
+		# make each ring element relative to the PCI Referential
+		# so that they are aligned with the planet tilt and 
+		# won't have to rotate
+		#ringframe.frame = self.PCI.referential
+
+		#ringframe.rotate(angle=pi/2, axis=(1,0,0))
+		#ringframe.rotate(angle=(self.TiltAngle), axis=(1,0,0))
+		return body #ringframe
+
+	def removeRings(self):
+		print "attempting to remove rings..."
+
+		for ring in self.Rings:
+			print "hidding ring from", self.Name
+			ring.visible = False
+			del(ring)
+
+		del(self.RingsFrame)
+		del(self.Rings)
+		self.Rings = []
+		self.nRings = 0
+
+	def removeRings2(self):
+		print "attempting to remove rings..."
+		if self.nRings > 0:
+			print "hidding rings from", self.Name
+			#ring.visible = False
+			#del(ring)
+			del(self.Rings)
+			del(self.RingsFrame)
+			self.Rings = []
+			self.nRings = 0
+
+	def displayRings(self, trueFalse):
+		if self.nRings > 0:
+			print "setting rings to ", trueFalse
+			self.RingsFrame.visible = trueFalse
 
 	def hideRings(self):
 		print "attempting to hide rings..."
+		self.displayRings(False)
+
+		#if self.nRings > 0:
+		#	self.Ringsframe.visible = False
+		#return
+		"""
 		for ring in self.Rings:
 			print "hidding ring from", self.Name
 			ring.visible = False
@@ -1500,9 +1629,16 @@ class makePlanet(makeBody):
 
 		self.Rings = []
 		self.nRings = 0
+		"""
 
 	def showRings(self, planet):
+		self.displayRings(True)
 		return
+
+		if self.nRings > 0:
+			self.Ringsframe.visible = True
+		return
+
 		for i in range(0, self.nRings):
 			planet.Rings[i].visible = True
 
@@ -1558,7 +1694,7 @@ class makeEarth(makePlanet):
 			'show':			False,
 			'color': 		Color.white,
 			'ratio': 		[1,1,1],
-			'legend': 		["Vernal Eq.", "y", "z"]
+			'legend': 		["vEqx.", "y", "z"]
 		})  
 		self.PCI.setAxisTilt()
 		self.PCI.display(False)		
@@ -1590,6 +1726,11 @@ class makeEarth(makePlanet):
 
 	# This overrides the default initRotation method provided in the makeBody superclass. 
 	# This is where we initially position the earth texture
+
+	def toggleSize(self, realisticSize):
+		makePlanet.toggleSize(self, realisticSize)
+		self.PlanetWidgets.OVRL.visible = False if self.sizeType == SCALE_NORMALIZED else True
+
 
 	def initRotation(self):
 
@@ -2534,7 +2675,6 @@ class makeSmallAsteroid(makeBody):
 class makeDwarfPlanet(makeBody):
 	def __init__(self, system, key, color):
 		makeBody.__init__(self, system, key, color, DWARFPLANET, DWARFPLANET, DWARFPLANET_SZ_CORRECTION, system.Sun)
-		#print "Making ", key
 
 	def setAxisVisibility(self, setTo):
 		pass
@@ -2873,9 +3013,9 @@ def gregoriandate2JDE(year, month, day):
 	return int(EARTH_PERIOD*(year+4716)) + int(30.6001*(month+1)) + day + B - 1524.5
 
 def JDEtoJulian(jdediff_indays):
-	Y = jdediff_indays / 365.25
+	Y = jdediff_indays / EARTH_PERIOD #365.25
 	years = int(Y)
-	days = (Y - years) * 365.25
+	days = (Y - years) * EARTH_PERIOD #365.25
 	return days
 
 def makeJulianDateALTernate(utc, delta):

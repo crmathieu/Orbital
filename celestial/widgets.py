@@ -825,7 +825,8 @@ class makeAnalemma():
                     if self.weeks <= 52:
                         s = sphere(frame=self.Origin, pos=pos, visible = True, radius=self.Loc.Planet.getBodyRadius()/200, color=Color.yellow, material = materials.emissive)
                         l = label(frame = self.Origin, color = Color.white,  text = index_to_month[self.Loc.Planet.SolarSystem.Dashboard.orbitalTab.dateMSpin.GetValue()],
-                                        pos = pos*(1.07), box = False, visible=True )
+                                        #pos = pos*(1.07), opacity = 0, line = True, box = False, visible=True )
+                                        pos = pos, height = 9, xoffset = 1.1 * s.radius, yoffset = 0, opacity = 0, line = False, box = False, visible=True )
                         self.AnaPositions.append(s)
 
             self.analemmaIncrement = self.analemmaIncrement + self.Loc.Planet.SolarSystem.Dashboard.orbitalTab.TimeIncrement
@@ -1236,7 +1237,7 @@ class makeEarthLocation():
             # enable mouse action
             #self.Planet.SolarSystem.Scene.range = self.zob
             self.Planet.SolarSystem.Scene.background = Color.black
-            self.Planet.SolarSystem.Scene.fov = deg2rad(40)
+            self.Planet.SolarSystem.Scene.fov = deg2rad(60)
             pass
 
 
