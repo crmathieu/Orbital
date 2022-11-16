@@ -164,7 +164,7 @@ class make3DaxisReferential:
 
         size = radius * 2
         self.directions = [vector(size*params['ratio'][0], 0, 0), vector(0, size*params['ratio'][1], 0), vector(0, 0, size*params['ratio'][2])]
-        ve = 0.2
+#        ve = 0.2
 #        if size < radius:
 #            ve = 0.4
 
@@ -183,7 +183,7 @@ class make3DaxisReferential:
             self.Axis[i].display(True) # allows axis visibility to be dependent upon their frame visibility when axisLock = True
             self.AxisLabel[i] = label( frame = self.referential, color = params['color'],  text = params['legend'][i],
                                         #pos = self.referential.pos+self.directions[i]*(1.07+ve), opacity = 0, box = False, visible=show )
-                                        pos = self.directions[i]*(1.07+ve), opacity = 0, box = False, visible=True )
+                                        pos = self.directions[i]*(1.07), opacity = 0, box = False, visible=True )
 
 #                self.Axis[i] = simpleArrow(params['color'], 0, 20, position, axisp = self.directions[i], context=self.referential)
 #                self.Axis[i].display(False) # allows axis visibility to be dependent upon their frame visibility when axisLock = True
@@ -192,7 +192,7 @@ class make3DaxisReferential:
 #                                            pos = position+self.directions[i]*(1.07+ve), opacity = 0, box = False, visible=False )
 
 
-            ve = 0.07 #####
+#            ve = 0.07 #####
 
         self.display(params['show'])
 

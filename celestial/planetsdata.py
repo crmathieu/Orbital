@@ -331,6 +331,7 @@ objects_data = {
 		"type": TYPE_SATELLITE,
 		"material":1,
 		"name": "Moon",
+		"symbol": u"\u263D ",
 		"iau_name": "Moon",
 		"jpl_designation": "moon",
 		"mass": 7.342e+22,
@@ -432,10 +433,11 @@ objects_data = {
 		"tga_name": "Charon"
 		},
 
-	"sun" :{
+	"sunZob" :{
 		"type": TYPE_STAR,
 		"material":1,
 		"name": "Sun",
+		"symbol": u"\u2609 ",
 		"iau_name": "SUN",
 		"jpl_designation": "sun",
 		"mass":1.98855e+30,
@@ -450,13 +452,36 @@ objects_data = {
 		"axial_tilt": 7.25,
 		"absolute_mag": 0.0,
 		"tga_name": "Sun"
-
+		},
+	"sun" : {
+		"type": TYPE_STAR,
+		"material":1,
+		"name": "Sun",
+		"symbol": u"\u2609 ",
+		"iau_name": "SUN",
+		"jpl_designation": SUN_NAME,
+		"mass":SUN_M,
+		"radius":SUN_R,
+		"QR_perihelion":0.0,
+		"EC_e":0.0,
+		"PR_revolution": 0,
+		"rotation":	25.05,
+		"IN_orbital_inclination":0,
+		"OM_longitude_of_ascendingnode":0.0,
+		"longitude_of_perihelion":0.0,
+		"axial_tilt": 7.25,
+		"absolute_mag": 0.0,
+		"RA_1": 0.00,
+		"RA_2": -0.641,
+		"kep_elt":{'a' : 1.00000018, 'ar': -3e-08, 'EC_e' : 0.01673163, 'er':-3.661e-05, 'i' :-0.00054346, 'ir':-0.01337178, 'L' :100.46691572, 'Lr':35999.3730633, 'W' :102.93005885, 'Wr':0.3179526, 'N' :-5.11260389, 'Nr':-0.24123856, 'b' :0.0, 'c' :0.0, 's':0.0, 'f' :0.0},
+		"tga_name": "sun"
 		},
 
 	"neptune" :{
 		"type": TYPE_PLANET,
 		"material":1,
 		"name": "Neptune",
+		"symbol": u"\u2646 ",
 		"iau_name": "NEPTUNE",
 		"jpl_designation": "neptune",
 		"mass":102e+24,
@@ -473,13 +498,14 @@ objects_data = {
 		"RA_1": 299.36,
 		"RA_2": 0, # requires special treatment: 299.36 + 0.70 sin N where N=357.85 + 52.316*T, T=Julian century from epoch
 		"kep_elt":{"a" : 30.06952752, "ar": 0.00006447,"EC_e" : 0.00895439,"er": 0.00000818,"i" : 1.77005520,"ir": 0.00022400,"L" : 304.22289287,"Lr": 218.46515314,"W" : 46.68158724,"Wr": 0.01009938,"N" : 131.78635853,"Nr": -0.00606302,"b" : -0.00041348,"c" : 0.68346318,"s" : -0.10162547,"f" : 7.67025000},
-		"tga_name": "Neptune"
+		"tga_name":"Neptune"
 		},
 
 	"uranus" : {
 		"type": TYPE_PLANET,
 		"material":1,
 		"name": "Uranus",
+		"symbol": u"\u26E2 ",
 		"iau_name": "URANUS",
 		"jpl_designation": "uranus",
 		"mass":86.8e24,
@@ -503,6 +529,7 @@ objects_data = {
 		"type": TYPE_PLANET,
 		"material":1,
 		"name": "Saturn",
+		"symbol": u"\u2644 ",
 		"iau_name": "SATURN",
 		"jpl_designation": "saturn",
 		"mass":568e24,
@@ -526,6 +553,7 @@ objects_data = {
 		"type": TYPE_PLANET,
 		"material":1,
 		"name": "Jupiter",
+		"symbol": u"\u2643 ",
 		"iau_name": "JUPITER",
 		"jpl_designation": "jupiter",
 		"mass":1898e24,
@@ -551,6 +579,7 @@ objects_data = {
 		"type": TYPE_PLANET,
 		"material":1,
 		"name": "Mars",
+		"symbol": u"\u2642 ",
 		"iau_name": "MARS",
 		"jpl_designation": "mars",
 		"mass":0.642e24,
@@ -575,6 +604,7 @@ objects_data = {
 		"type": TYPE_PLANET,
 		"material":1,
 		"name": "Mercury",
+		"symbol": u"\u263F ",
 		"iau_name": "MERCURY",
 		"jpl_designation": "mercury",
 		"mass":0.330e24,
@@ -599,6 +629,7 @@ objects_data = {
 		"type": TYPE_PLANET,
 		"material":1,
 		"name": "Venus",
+		"symbol": u"\u2640 ",
 		"iau_name": "VENUS",
 		"jpl_designation": "venus",
 		"mass":4.87e24,
@@ -623,6 +654,7 @@ objects_data = {
 		"type": TYPE_PLANET,
 		"material":1,
 		"name": "Earth",
+		"symbol": u"\u2641 ",
 		"iau_name": "EARTH",
 		"jpl_designation": EARTH_NAME,
 		"mass":5.972e24,
@@ -648,6 +680,7 @@ objects_data = {
 		"type": TYPE_DWARF_PLANET,
 		"material":1,
 		"name": "Pluto",
+		"symbol": u"\u2647 ",
 		"iau_name": "PLUTO",
 		"jpl_designation": "pluto",
 		"mass":0.0146e24,
@@ -667,13 +700,13 @@ objects_data = {
 		#"kep_elt_1":{'a' : 39.48211675, 'ar':-0.00031596, 'EC_e' : 0.24882730, 'er':0.00005170, 'i' :17.14001206, 'ir':0.00004818, 'L' :238.92903833, 'Lr':145.20780515, 'W' :224.06891629, 'Wr':-0.04062942, 'N' :110.30393684, 'Nr':-0.01183482, 'b' :0.0, 'c' :0.0, 's':0.0, 'f' :0.0},
 		"tga_name": "Pluto"
 #		"tga_name": "highres-earth-8192x4096-clouds" #"EarthClouds"
-
 		},
 
 	"eris" : {
 		"type": TYPE_DWARF_PLANET,
 		"material":1,
 		"name": "Eris",
+#		"symbol": u'\u2BF0',		
 		"iau_name": "ERIS",
 		#"jpl_designation": 136199,
 		"jpl_designation": "eris",
@@ -701,6 +734,7 @@ objects_data = {
 		"type": TYPE_DWARF_PLANET,
 		"material":1,
 		"name": "Makemake",
+#		"symbol": u'\U0001F77C',
 		"iau_name": "MAKEMAKE",
 		#"jpl_designation": 136472,
 		"jpl_designation": "makemake",
@@ -728,6 +762,7 @@ objects_data = {
 		"type": TYPE_DWARF_PLANET,
 		"material":1,
 		"name": "Sedna",
+#		"symbol": u"\u2BF2",
 		"iau_name": "SEDNA",
 		#"jpl_designation": 90377,
 		"jpl_designation": "sedna",
@@ -756,6 +791,7 @@ objects_data = {
 		"type": TYPE_DWARF_PLANET,
 		"material":1,
 		"name": "Haumea",
+#		"symbol": u'\U0001F77B',
 		"iau_name": "HAUMEA",
 		#"jpl_designation": 136108,
 		"jpl_designation": "haumea",
@@ -777,28 +813,6 @@ objects_data = {
 		"absolute_mag": 0.2,
 		"axial_tilt": 0,
 		"tga_name": "Haumea"
-		},
-	"sun" : {
-		"type": TYPE_STAR,
-		"material":1,
-		"name": "Sun",
-		"iau_name": "SUN",
-		"jpl_designation": SUN_NAME,
-		"mass":SUN_M,
-		"radius":SUN_R,
-		"QR_perihelion":0.0,
-		"EC_e":0.0,
-		"PR_revolution": 0,
-		"rotation":	25.05,
-		"IN_orbital_inclination":0,
-		"OM_longitude_of_ascendingnode":0.0,
-		"longitude_of_perihelion":0.0,
-		"axial_tilt": 7.25,
-		"absolute_mag": 0.0,
-		"RA_1": 0.00,
-		"RA_2": -0.641,
-		"kep_elt":{'a' : 1.00000018, 'ar': -3e-08, 'EC_e' : 0.01673163, 'er':-3.661e-05, 'i' :-0.00054346, 'ir':-0.01337178, 'L' :100.46691572, 'Lr':35999.3730633, 'W' :102.93005885, 'Wr':0.3179526, 'N' :-5.11260389, 'Nr':-0.24123856, 'b' :0.0, 'c' :0.0, 's':0.0, 'f' :0.0},
-		"tga_name": "sun"
 		},
 
 }

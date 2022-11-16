@@ -64,8 +64,11 @@ CHK_L11 = CHK_L10 + 20
 CHK_L12 = CHK_L11 + 20
 CHK_L13 = CHK_L12 + 20
 CHK_L14 = CHK_L13 + 20
+
 CHK_L15 = CHK_L14 + 25
-CHK_L16 = CHK_L15 + 20
+CHK_L15B = CHK_L14 + 20
+
+CHK_L16 = CHK_L15B + 20
 CHK_L17 = CHK_L16 + 20
 CHK_L18 = CHK_L17 + 20
 CHK_L19 = CHK_L18 + 20
@@ -80,7 +83,7 @@ CHK_L27 = CHK_L26 + 20
 CHK_L28 = CHK_L27 + 20
 CHK_L29 = CHK_L28 + 20
 
-CBBOX_1 = CHK_L9+30
+CBBOX_1 = CHK_L8+30
 
 LSTB_Y = DATE_Y + 60
 SLDS_Y = LSTB_Y + 40
@@ -114,9 +117,9 @@ def isLeapYear(year):
 # JPL API search Panel
 #
 
-MAIN_HEADING_Y = 25
-JPL_DOWNLOAD_Y = MAIN_HEADING_Y-15
-JPL_LISTCTRL_Y = MAIN_HEADING_Y + 25
+JPL_MAIN_HEADING_Y = 25
+JPL_DOWNLOAD_Y = JPL_MAIN_HEADING_Y-15
+JPL_LISTCTRL_Y = JPL_MAIN_HEADING_Y + 25
 
 JPL_LIST_SZ = TOTAL_Y-160
 JPL_BRW_Y = JPL_LISTCTRL_Y + JPL_LIST_SZ + 15
@@ -510,7 +513,7 @@ class SEARCHpanel(AbstractUI):
 		self.BoldFont = wx.Font(10, wx.SWISS, wx.NORMAL, wx.BOLD)
 		self.RegFont = wx.Font(10, wx.SWISS, wx.NORMAL, wx.NORMAL)
 
-		self.heading = wx.StaticText(self, label='Close Approach for '+self.fetchDateStr, pos=(20, MAIN_HEADING_Y))
+		self.heading = wx.StaticText(self, label='Close Approach for '+self.fetchDateStr, pos=(20, JPL_MAIN_HEADING_Y))
 		self.heading.SetFont(self.BoldFont)
 
 		self.download = wx.Button(self, label='Download List', pos=(320, JPL_DOWNLOAD_Y))
@@ -1805,7 +1808,8 @@ class WIDGETSpanel(AbstractUI):
 		self.RegFont = wx.Font(10, wx.SWISS, wx.NORMAL, wx.NORMAL)
 		self.SurfaceDirection = [0,0,0]
 
-		heading = wx.StaticText(self, label='Earth Widgets', pos=(20, MAIN_HEADING_Y))
+		######## Widgets section ########
+		heading = wx.StaticText(self, label='Earth Widgets', pos=(50, MAIN_HEADING_Y))
 		heading.SetFont(self.BoldFont)
 
 		self.eqcb = wx.CheckBox(self, label="Equator", pos=(50, CHK_L1)) #   CVT_Y+560))
@@ -1816,39 +1820,32 @@ class WIDGETSpanel(AbstractUI):
 		self.trcb.SetValue(False)
 		self.trcb.Bind(wx.EVT_CHECKBOX,self.OnDrawTropics)
 
-		self.eqpcb = wx.CheckBox(self, label="Equatorial Plane", pos=(50, CHK_L2)) #   CVT_Y+560))
-		self.eqpcb.SetValue(False)
-		self.eqpcb.Bind(wx.EVT_CHECKBOX,self.OnDrawEquatorialPlane)
-
-		self.ncb = wx.CheckBox(self, label="Nodes", pos=(50, CHK_L3)) #   CVT_Y+560))
-		self.ncb.SetValue(False)
-		self.ncb.Bind(wx.EVT_CHECKBOX,self.OnShowNodes)
-
-		self.mrcb = wx.CheckBox(self, label="Longitude lines", pos=(50, CHK_L4)) #   CVT_Y+560))
+		self.mrcb = wx.CheckBox(self, label="Longitude lines", pos=(50, CHK_L2)) #   CVT_Y+560))
 		self.mrcb.SetValue(False)
 		self.mrcb.Bind(wx.EVT_CHECKBOX,self.OnDrawLongitudeLines)
 
-		self.tzcb = wx.CheckBox(self, label="Time zones", pos=(230, CHK_L4)) #   CVT_Y+560))
+		self.tzcb = wx.CheckBox(self, label="Time zones", pos=(230, CHK_L2)) #   CVT_Y+560))
 		self.tzcb.SetValue(False)
 		self.tzcb.Bind(wx.EVT_CHECKBOX,self.OnDrawTZLines)
 
-		self.latcb = wx.CheckBox(self, label="Latitude lines", pos=(50, CHK_L5)) #   CVT_Y+560))
+		self.latcb = wx.CheckBox(self, label="Latitude lines", pos=(50, CHK_L3)) #   CVT_Y+560))
 		self.latcb.SetValue(False)
 		self.latcb.Bind(wx.EVT_CHECKBOX,self.OnDrawLatitudeLines)
 
-		self.lrcb = wx.CheckBox(self, label="Planet-Centered-Inertial (PCI) Referential", pos=(50, CHK_L6)) #   CVT_Y+560))
-		self.lrcb.SetValue(False)
-		self.lrcb.Bind(wx.EVT_CHECKBOX,self.OnLocalRef)
+		self.eqpcb = wx.CheckBox(self, label="Equatorial Plane", pos=(50, CHK_L4)) #   CVT_Y+560))
+		self.eqpcb.SetValue(False)
+		self.eqpcb.Bind(wx.EVT_CHECKBOX,self.OnDrawEquatorialPlane)
 
-		self.lr2cb = wx.CheckBox(self, label="Earth-Centered-Earth-Fixed (ECEF) Referential", pos=(50, CHK_L7)) #   CVT_Y+560))
-		self.lr2cb.SetValue(False)
-		self.lr2cb.Bind(wx.EVT_CHECKBOX,self.OnECEFRef)
+		self.ncb = wx.CheckBox(self, label="Nodes", pos=(50, CHK_L5)) #   CVT_Y+560))
+		self.ncb.SetValue(False)
+		self.ncb.Bind(wx.EVT_CHECKBOX,self.OnShowNodes)
 
-		self.hpcb = wx.CheckBox(self, label="Hide Planet", pos=(50, CHK_L8)) #   CVT_Y+560))
+		self.hpcb = wx.CheckBox(self, label="Hide Planet", pos=(50, CHK_L6)) #CHK_L8)) #   CVT_Y+560))
 		self.hpcb.SetValue(False)
 		self.hpcb.Bind(wx.EVT_CHECKBOX,self.OnHidePlanet)
 
-		lheading = wx.StaticText(self, label='Locations', pos=(50, CHK_L9))
+		########### Locations section ###########
+		lheading = wx.StaticText(self, label='Locations', pos=(50, CHK_L8))
 		lheading.SetFont(self.BoldFont)
 
 		self.createLocationList(50, CBBOX_1)
@@ -1857,40 +1854,68 @@ class WIDGETSpanel(AbstractUI):
 		#self.flcb.SetValue(False)
 		#self.flcb.Bind(wx.EVT_CHECKBOX,self.OnCenterToSurface)
 
-		self.ncpcb = wx.CheckBox(self, label="Show TopoCentric Referential", pos=(50, CHK_L12)) #   CVT_Y+560))
-		self.ncpcb.SetValue(False)
-		self.ncpcb.Disable()
-		self.ncpcb.Bind(wx.EVT_CHECKBOX,self.OnShowTopoCentricRef)
+		self.lacb = wx.CheckBox(self, label="Location Referential View", pos=(50, CHK_L11)) #CHK_L18)) #   CVT_Y+560))
+		self.lacb.SetValue(False)
+		self.lacb.Disable()
+		self.lacb.Bind(wx.EVT_CHECKBOX,self.OnEarthEyeView)
 
-		self.cpcb = wx.CheckBox(self, label="Re-Center to Earth's center", pos=(230, CHK_L12)) #   CVT_Y+560))
+		self.cpcb = wx.CheckBox(self, label="Re-Center to Earth's center", pos=(50, CHK_L12)) #230, CHK_L12)) #   CVT_Y+560))
 		self.cpcb.SetValue(False)
 		self.cpcb.Disable()
 		self.cpcb.Bind(wx.EVT_CHECKBOX,self.OnReCenter)
 
-		aheading = wx.StaticText(self, label='Analemma', pos=(50, CHK_L14))
-		aheading.SetFont(self.BoldFont)
 
-		self.acb = wx.CheckBox(self, label="Animate 24h period", pos=(50, CHK_L15)) #   CVT_Y+560))
-		self.acb.SetValue(False)
-		self.acb.Disable()
+		######## Referentials section #########
+		rheading = wx.StaticText(self, label='Referentials', pos=(50, CHK_L14))
+		rheading.SetFont(self.BoldFont)
 
-		self.acb.Bind(wx.EVT_CHECKBOX,self.OnAnimate24h)
+		self.lrcb = wx.CheckBox(self, label="Earth-Centered-Inertial (ECI) Referential", pos=(50, CHK_L15B)) #   CVT_Y+560))
+		self.lrcb.SetValue(False)
+		self.lrcb.Bind(wx.EVT_CHECKBOX,self.OnLocalRef)
 
-		self.animate24 = False
+		self.lr2cb = wx.CheckBox(self, label="Earth-Centered-Earth-Fixed (ECEF) Referential", pos=(50, CHK_L16)) #   CVT_Y+560))
+		self.lr2cb.SetValue(False)
+		self.lr2cb.Bind(wx.EVT_CHECKBOX,self.OnECEFRef)
 
-		self.arcb = wx.CheckBox(self, label="Earth-Centered-Sun-Synchronous (ECSS) Referential", pos=(50, CHK_L16)) #   CVT_Y+560))
+		self.arcb = wx.CheckBox(self, label="Earth-Centered-Sun-Synchronous (ECSS) Referential", pos=(50, CHK_L17)) #   CVT_Y+560))
 		self.arcb.SetValue(False)
 		self.arcb.Bind(wx.EVT_CHECKBOX,self.OnShowECSS)
 
-		self.racb = wx.CheckBox(self, label="Reset Analemma", pos=(50, CHK_L17)) #   CVT_Y+560))
+		self.ncpcb = wx.CheckBox(self, label="TopoCentric Referential", pos=(50, CHK_L18)) #   CVT_Y+560))
+		self.ncpcb.SetValue(False)
+		self.ncpcb.Disable()
+		self.ncpcb.Bind(wx.EVT_CHECKBOX,self.OnShowTopoCentricRef)
+
+		########## Analemma section ##########
+		aheading = wx.StaticText(self, label='Analemma', pos=(50, CHK_L20))
+		aheading.SetFont(self.BoldFont)
+
+		self.acb = wx.CheckBox(self, label="Animate 24h period", pos=(50, CHK_L21)) 
+		self.acb.SetValue(False)
+		self.acb.Disable()
+		self.acb.Bind(wx.EVT_CHECKBOX,self.OnAnimate24h)
+		self.animate24 = False
+
+
+		self.srcb = wx.CheckBox(self, label="Show Sun Ray", pos=(50, CHK_L22)) #CHK_L18)) #   CVT_Y+560))
+		self.srcb.SetValue(False)
+		self.srcb.Disable()
+		self.srcb.Bind(wx.EVT_CHECKBOX,self.OnShowSunRay)
+
+		self.sacb = wx.CheckBox(self, label="Show Analemma", pos=(50, CHK_L23)) #CHK_L18)) #   CVT_Y+560))
+		self.sacb.SetValue(False)
+		self.sacb.Disable()
+		self.sacb.Bind(wx.EVT_CHECKBOX,self.OnShowAnalemma)
+
+		self.dmcb = wx.CheckBox(self, label="Display Months", pos=(250, CHK_L23)) #CHK_L18)) #   CVT_Y+560))
+		self.dmcb.SetValue(False)
+		self.dmcb.Disable()
+		self.dmcb.Bind(wx.EVT_CHECKBOX,self.OnDisplayMonths)
+
+		self.racb = wx.CheckBox(self, label="Reset Analemma", pos=(50, CHK_L24)) #CHK_L17)) #   CVT_Y+560))
 		self.racb.SetValue(False)
 		self.racb.Disable()
 		self.racb.Bind(wx.EVT_CHECKBOX,self.OnResetAnalemma)
-
-		self.lacb = wx.CheckBox(self, label="Location Referential View", pos=(50, CHK_L18)) #   CVT_Y+560))
-		self.lacb.SetValue(False)
-		self.lacb.Disable()
-		self.lacb.Bind(wx.EVT_CHECKBOX,self.OnEarthEyeView)
 
 
 	def createLocationList(self, xpos, ypos):
@@ -1917,6 +1942,10 @@ class WIDGETSpanel(AbstractUI):
 			self.acb.Enable()
 			self.ncpcb.Enable()
 			self.lacb.Enable()
+			self.srcb.Enable()
+			self.dmcb.Enable()
+			self.racb.Enable()
+			self.sacb.Enable()
 		else:
 			self.comb.Dismiss() # this will close the combo 
 			self.resetLocationList()
@@ -1945,7 +1974,6 @@ class WIDGETSpanel(AbstractUI):
 			self.lacb.SetValue(False)
 
 
-
 	def OnResetAnalemma_save(self, e):
 		if self.racb.GetValue() == True:
 			#self.Earth.PlanetWidgets.AnaLemma.Shape.visible = False
@@ -1955,6 +1983,7 @@ class WIDGETSpanel(AbstractUI):
 			#self.Earth.PlanetWidgets.AnaLemma.resetAnalemma()
 			self.Earth.PlanetWidgets.Loc[self.Earth.PlanetWidgets.currentLocation].resetAnalemma()
 			self.racb.SetValue(False)
+
 
 	def OnAnimate24h(self, e):
 		if self.Earth.PlanetWidgets.currentLocation == -1:
@@ -1966,8 +1995,10 @@ class WIDGETSpanel(AbstractUI):
 			self.animate24 = True
 			self.parentFrame.orbitalTab.TimeIncrement = TI_24_HOURS
 			self.SolarSystem.setTimeIncrement(self.parentFrame.orbitalTab.TimeIncrement)
+
 			loc.createAnalemma()
-			loc.displayAnalemma(True)
+			####loc.displayAnalemma(True)
+			
 			self.parentFrame.orbitalTab.OnAnimate(e)
 			self.racb.Enable()
 		else:
@@ -1975,10 +2006,47 @@ class WIDGETSpanel(AbstractUI):
 			self.parentFrame.orbitalTab.OnAnimate(e)
 			# 2) reset TimeIncrement with proper value from sliders
 			self.parentFrame.orbitalTab.OnAnimTimeSlider(e)
-			loc.displayAnalemma(False)
-			self.animate24 = False
-			#self.Earth.PlanetWidgets.AnaLemma.display(False)
+			
 			#loc.displayAnalemma(False)
+			
+			self.animate24 = False
+			
+
+	def OnShowSunRay(self, e):
+		if self.Earth.PlanetWidgets.currentLocation == -1:
+			self.srcb.SetValue(False)
+			return
+
+		loc = self.Earth.PlanetWidgets.Loc[self.Earth.PlanetWidgets.currentLocation]
+		loc.analemma.displaySunRay(self.srcb.GetValue())
+
+
+	def OnShowAnalemma(self, e):
+		if self.Earth.PlanetWidgets.currentLocation == -1:
+			self.acb.SetValue(False)
+			return
+
+		loc = self.Earth.PlanetWidgets.Loc[self.Earth.PlanetWidgets.currentLocation]
+		loc.displayAnalemma(self.sacb.GetValue())
+
+
+	def OnDisplayMonths(self, e):
+		pass
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 	def OnAnimate24h_save(self, e):
 		if self.acb.GetValue() == True:
@@ -2042,6 +2110,20 @@ class WIDGETSpanel(AbstractUI):
 		self.acb.SetValue(False)
 		self.ncpcb.Disable()
 		self.ncpcb.SetValue(False)
+
+		self.lacb.Disable()
+		self.lacb.SetValue(False)
+		self.srcb.Disable()
+		self.srcb.SetValue(False)
+		self.dmcb.Disable()
+		self.dmcb.SetValue(False)
+		self.lacb.Disable()
+		self.lacb.SetValue(False)
+		self.racb.Disable()
+		self.racb.SetValue(False)
+		self.sacb.Disable()
+		self.sacb.SetValue(False)
+
 
 		# if an anmation is in progress, make sure to stop it.
 		if self.animate24 == True:

@@ -205,14 +205,13 @@ class makeSolarSystem:
 		if os.path.isfile(file):
 			# adjust celestial Sphere position
 			self.ConstellationOrigin = frame(pos=vector(0,0,0))
-			#self.UniversRadius = CELESTIAL_RADIUS * AU * DIST_FACTOR
 			self.Constellations = sphere(frame=self.ConstellationOrigin, pos=vector(0,0,0), visible = False, radius=self.UniversRadius, color=Color.white, opacity=0.2) #, up=vector(0,0,1))
 			self.Constellations.material = materials.texture(data=materials.loadTGA(file), mapping="spherical", interpolate=False)
-#			self.Constellations.rotate(angle=(pi/2+deg2rad(5)), 	axis=self.CenterRef.XdirectionUnit, origin=(0,0,0))
-			self.Constellations.rotate(angle=(pi/2+deg2rad(10)), 	axis=self.CenterRef.XdirectionUnit, origin=(0,0,0))
-			#self.Constellations.rotate(angle=deg2rad(-30), 		axis=self.CenterRef.YdirectionUnit, origin=(0,0,0))
-			self.Constellations.rotate(angle=deg2rad(25), 			axis=self.CenterRef.YdirectionUnit, origin=(0,0,0))
-			self.Constellations.rotate(angle=deg2rad(-88+180), 		axis=self.CenterRef.ZdirectionUnit, 		origin=(0,0,0))
+
+			# adjust constellations layout on our 3d window to match our coordinates system
+			self.Constellations.rotate(angle=(pi/2), 		axis=self.CenterRef.XdirectionUnit, origin=(0,0,0))
+			self.Constellations.rotate(angle=deg2rad(25), 	axis=self.CenterRef.YdirectionUnit, origin=(0,0,0))
+			self.Constellations.rotate(angle=(pi/2), 		axis=self.CenterRef.ZdirectionUnit, origin=(0,0,0))
 
 		else:
 			print ("Could not find "+file)
@@ -228,14 +227,13 @@ class makeSolarSystem:
 		if os.path.isfile(file):
 			# adjust celestial Sphere position
 			self.CelestialSphereOrigin = frame(pos=vector(0,0,0))
-#			self.UniversRadius = CELESTIAL_RADIUS * AU * DIST_FACTOR
 			self.Universe = sphere(frame=self.CelestialSphereOrigin, pos=vector(0,0,0), visible = False, radius=self.UniversRadius, color=Color.white, opacity=1.0) #, up=vector(0,0,1)) #0.8)
 			self.Universe.material = materials.texture(data=materials.loadTGA(file), mapping="spherical", interpolate=False)
-#			self.Universe.rotate(angle=(pi/2+deg2rad(5)), 	axis=self.XdirectionUnit, origin=(0,0,0))
-			self.Universe.rotate(angle=(pi/2+deg2rad(10)), 	axis=self.CenterRef.XdirectionUnit, origin=(0,0,0))
-			#self.Universe.rotate(angle=deg2rad(-30), 		axis=self.YdirectionUnit, origin=(0,0,0))
-			self.Universe.rotate(angle=deg2rad(25), 		axis=self.CenterRef.YdirectionUnit, origin=(0,0,0))
-			self.Universe.rotate(angle=deg2rad(-88+180), 	axis=self.CenterRef.ZdirectionUnit, 		origin=(0,0,0))
+			
+			# adjust celestial sphere layout on our 3d window to match our coordinates system
+			self.Universe.rotate(angle=(pi/2), 		axis=self.CenterRef.XdirectionUnit, origin=(0,0,0))
+			self.Universe.rotate(angle=deg2rad(25), axis=self.CenterRef.YdirectionUnit, origin=(0,0,0))
+			self.Universe.rotate(angle=(pi/2), 		axis=self.CenterRef.ZdirectionUnit, origin=(0,0,0))
 
 		else:
 			print ("Could not find "+file)
@@ -667,6 +665,10 @@ class makeBody:
 		self.locationInfo 			= system.locationInfo
 		self.AxialTilt				= system.objects_data[key]["axial_tilt"]
 		self.Name					= system.objects_data[key]["name"]				# body name
+		if "symbol" in system.objects_data[key]:
+			self.Symbol				= system.objects_data[key]["symbol"]			# body symbol
+		else:
+			self.Symbol				= " "
 		self.Iau_name				= system.objects_data[key]["iau_name"]			# body iau name
 		self.JPL_designation 		= system.objects_data[key]["jpl_designation"]
 		self.Mass 					= system.objects_data[key]["mass"]				# body mass
@@ -779,7 +781,7 @@ class makeBody:
 			return
 
 		# add label
-		self.Labels.append(label(pos=(self.Position[0]+self.Foci[0],self.Position[1]+self.Foci[1],self.Position[2]+self.Foci[2]), text=self.Name, xoffset=20, yoffset=12, space=0, height=10, color=color, border=6, box=false, font='sans'))
+		self.Labels.append(label(pos=(self.Position[0]+self.Foci[0],self.Position[1]+self.Foci[1],self.Position[2]+self.Foci[2]), text=self.Symbol+self.Name, xoffset=20, yoffset=12, space=0, height=10, color=color, border=6, box=False, font='sans'))
 
 		# hide body if not required
 		if (self.SolarSystem.ShowFeatures & bodyType) == 0:
@@ -1687,6 +1689,9 @@ class makeEarth(makePlanet):
 
 	def make_PCI_referential(self, tiltAngle): 
 		#print "makeEarth: build PCI ref for", self.Name
+		#	P: Polaris direction
+		#	y: 
+		#	u"\u2648": Point of Aries
 		self.PCI = make3DaxisReferential({
 			'body': 		self,
 			'radius': 		0,
@@ -1694,7 +1699,7 @@ class makeEarth(makePlanet):
 			'show':			False,
 			'color': 		Color.white,
 			'ratio': 		[1,1,1],
-			'legend': 		["vEqx.", "y", "z"]
+			'legend': 		[u"\u2648", "y", "P"]
 		})  
 		self.PCI.setAxisTilt()
 		self.PCI.display(False)		
@@ -1704,6 +1709,9 @@ class makeEarth(makePlanet):
 
 	def make_PCPF_referential(self, tiltAngle): #, size, position):
 		#print "makeEarth: build PCPF ref for", self.Name
+		#	P: Polaris direction
+		#	y: 
+		#	A: Antimeridian
 		self.PCPF = make3DaxisReferential({
 			'body': 			self,
 			'radius': 			0,
@@ -1712,7 +1720,7 @@ class makeEarth(makePlanet):
 			'color': 			Color.cyan,
 			'ratio': 			[1,1,1],
 			'initial_rotation': pi/2,
-			'legend': 			["x", "y", "z-PCPF"]
+			'legend': 			["A", "y", "P"]
 		})
 
 		# set planet origin as the PCPF referential (rotates with the planet)
