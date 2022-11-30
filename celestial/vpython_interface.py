@@ -14,6 +14,8 @@ class ViewPort(display):
         self._auto_movement = False 
         self.plat = platform.system()
 
+    def getDisplay(self):
+        return super
 
     # method to change the status of _auto_movement
     def _set_autoMovement(self, is_movement):

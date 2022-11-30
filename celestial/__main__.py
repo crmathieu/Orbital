@@ -6,15 +6,15 @@ from orbit3D import *
 import planetsdata as pd
 from controls import *
 from celestial.orbitalLIB import Api
-from eqsols_calculator import Vernal
+from eqsols_calculator import Vernal, Vernal2
 #from utils import sleep
 
-def bootLoader(story, recorder): 
-	
+def createSolarSystem():
+		
 	ssys = makeSolarSystem()
 	
 	# set what is displayed by default
-	ssys.setDefaultFeatures(pd.INNERPLANET|pd.ORBITS|pd.SATELLITE|pd.LABELS|pd.OUTERPLANET|pd.SUN) 
+	ssys.setDefaultFeatures(pd.INNERPLANET|pd.ORBITS|pd.SATELLITE|pd.OUTERPLANET|pd.SUN) 
 
 	sun = makeSun(ssys, color.yellow, pd.SUN, pd.SUN, pd.SUN_SZ_CORRECTION)
 	ssys.register(sun)
@@ -78,55 +78,61 @@ def bootLoader(story, recorder):
 		loadBodies(ssys, TRANS_NEPT, "data/transNeptunian_objects.txt.json", MAX_OBJECTS)
 		loadBodies(ssys, SPACECRAFT, "data/spacecrafts_orbital_elements.txt.json", MAX_OBJECTS)
 		print "FINISHED ..."
-	
+
 	ssys.drawAllBodiesTrajectory()
 	glbRefresh(ssys, False)
+	return ssys
+
+
+def bootLoader(story, recorder): 
 
 	# Start control window
 	print (wx.version())
-	
 
 	# start wxPython application
 	try:
 		ex = wx.App(False)
+		ssys = createSolarSystem()
 		ssys.setEarthLocations(makeDashBoard(ssys))
+		#ssys.getDashboard().showInfoWindow(True)
+
+		# play story when provided
+		api = Api(ssys, recorder = recorder)
+		if story != None:
+			try:
+				# instantiate story and play it
+				st = story(ssys, api)
+				del st
+			except RuntimeError as err:
+				print ("Exception...\n\nError: " + str(err.code))
+				raise
+		else:
+			ssys.setAutoScale(False)
+			api.camera.setCameraTarget(EARTH_NAME)
+			ssys.displaySolarSystem()
+			ssys.introZoomIn(75)
+			#ssys.rotateSolarSystemReferential(axis=vector(0,1,0))
+			#ssys.Scene.fov = pi
+
+		# we only show the dashboard after the story has finished.
+		ssys.getDashboard().Show()
+		ssys.setAutoScale(False)
+		#ssys.getDashboard().showInfoWindow(False)
+
+		print "Calculate equinox/solstyce"
+		Vernal(2023) ### a test ...
+		Vernal2(2023)
+
+		I = 0
+		while True:
+			#print I
+			#I += 1
+			#rate(1)
+			sleep(2)
+		#	earth.updateStillPosition(cw.orbitalBox, 2)
 
 	except RuntimeError as err:
-		print ("Exception...\n\nError: " + str(err.code))
+		print ("Exception...\n\nError: " + str(err)) #.code))
 		raise
 
-	# play story when provided
-	api = Api(ssys, recorder = recorder)
-	if story != None:
-		try:
-			# instantiate story and play it
-			st = story(ssys, api)
-			del st
-		except RuntimeError as err:
-			print ("Exception...\n\nError: " + str(err.code))
-			raise
-	else:
-		print "0-0"
-		ssys.setAutoScale(False)
-		api.camera.setCameraTarget(EARTH_NAME)
-		print "1-1"
-		ssys.displaySolarSystem()
-		ssys.introZoomIn(75)
-		#ssys.rotateSolarSystemReferential(axis=vector(0,1,0))
-		#ssys.Scene.fov = pi
-
-	# we only show the dashboard after the story has finished.
-	ssys.getDashboard().Show()
-	ssys.setAutoScale(False)
-
-	print "Calculate equinox/solstyce"
-	Vernal(2023) ### a test ...
-
-	I = 0
-	while True:
-		#print I
-		#I += 1
-		#rate(1)
-		sleep(2)
-	#	earth.updateStillPosition(cw.orbitalBox, 2)
-
+	

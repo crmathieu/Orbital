@@ -187,22 +187,22 @@ class Timeloc:
         "name": "US - Wallops Spaceport"
     },
 	{
-        "tzname": "",
+        "tzname": "Africa/Abidjan",
         "lat": 90,
         "long": -135,
         "name": "North Pole"
     },
 	{
-        "tzname": "",
+        "tzname": "Africa/Abidjan",
         "lat": -90,
         "long": 45,
         "name": "South Pole"
     },
 	{
-        "tzname": "",
+        "tzname": "Pacific/Kwajalein",
         "lat": 0,
         "long": 180,
-        "name": "Equatorial Antimeridian"
+        "name": "International Date Line"
     },
 ]
 	def __init__(self, index = -1):

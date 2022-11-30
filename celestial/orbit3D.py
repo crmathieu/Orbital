@@ -31,6 +31,8 @@ import numpy as np
 from celestial.rate_func import F
 from vpython_interface import ViewPort, Color
 from visual import *
+from visual.controls import *
+import wx
 
 #import spice
 
@@ -72,11 +74,27 @@ class makeSolarSystem:
 		self.cameraViewTargetBody = None
 		self.cameraViewTargetSelection = SUN_NAME
 
-		self.Scene = ViewPort(title = 'Solar System', width = self.SCENE_WIDTH, height =self.SCENE_HEIGHT, range=3, visible=True, center = (0,0,0))
+		# create a base window to support adding overlay on Scene
+		#self.baseWindow = self.createBaseWindow()
+
+		# create the main display area
+		self.Scene = ViewPort(	#window = self.baseWindow, 
+								title = 'Solar System', 
+								width  = self.SCENE_WIDTH, 
+								height = self.SCENE_HEIGHT,
+								x=0, #window.dwidth, 
+								y=0, #window.dheight, #+window.menuheight,
+								style=wx.NO_BORDER|~(wx.CAPTION|wx.CLOSE_BOX|wx.MAXIMIZE_BOX|wx.MINIMIZE_BOX|wx.RESIZE_BORDER),
+								#style=wx.FRAME_FLOAT_ON_PARENT & ~(wx.RESIZE_BORDER), 
+								#range=3, 
+								#style=~(wx.CLIP_CHILDREN),
+								fullscreen = True,
+								visible=True) #, center = (0,0,0))
 		self.Scene.up=(0,0,1)
 		self.Scene.forward = vector(2, 0, -1)
-		self.Scene.fov = deg2rad(60) 		
-		self.Scene.fullscreen = True
+		self.Scene.fov = deg2rad(60) 	
+		#self.Scene.win.SetTransparent(255)
+		#self.Scene.fullscreen = True
 
 		#self.AltScene = ViewPort(title = 'XXXXXXXXXX', width = self.SCENE_WIDTH, height =self.SCENE_HEIGHT, range=3, visible=True, center = (0,0,0))
 		#self.AltScene.fullscreen = True
@@ -140,6 +158,22 @@ class makeSolarSystem:
 		print "initial CAMERA POSITION ************************* ", self.Scene.mouse.camera
 
 		#self.Scene.scale = self.Scene.scale * 10
+
+	def getBaseWindow(self):
+		return self.baseWindow
+
+	def createBaseWindow(self):
+		w = window(	x=0, y=0,
+						width=(self.SCENE_WIDTH), #+window.dwidth), 
+						height=(self.SCENE_HEIGHT), #+window.dheight+window.menuheight),
+           				menus=False,
+						#title='CACA',
+           				style=(wx.NO_BORDER),
+						#style=wx.CAPTION|wx.MINIMIZE_BOX | wx.MAXIMIZE_BOX|wx.CLOSE_BOX ,
+						#style=wx.MINIMIZE_BOX | wx.MAXIMIZE_BOX | wx.RESIZE_BORDER | wx.CAPTION | wx.CLOSE_BOX,
+						fullscreen = False) #wx.SYSTEM_MENU | wx.CAPTION | wx.CLOSE_BOX)
+		#w.win.SetTransparent(0)
+		return w
 
 	def makeSolarSystemReferential(self):
 		print "building Solar System Referential"
@@ -323,7 +357,7 @@ class makeSolarSystem:
 	def drawAllBodiesTrajectory(self):
 		for body in self.bodies:
 			if body.BodyType in [OUTERPLANET, INNERPLANET, SATELLITE, DWARFPLANET, KUIPER_BELT, ASTEROID_BELT, INNER_OORT_CLOUD, ECLIPTIC_PLANE]:
-				print "drawing", body.Name
+				#print "drawing", body.Name
 				body.draw()
 
 		self.Scene.autoscale = False #0
@@ -1107,7 +1141,7 @@ class makeBody:
 		return pi/180
 
 	def draw(self):
-		print "Rendering orbit for ", self.Name
+		#print "Rendering orbit for ", self.Name
 		self.Trail.visible = False
 		rad_E = deg2rad(self.E)
 		increment = self.getIncrement()
@@ -1126,7 +1160,7 @@ class makeBody:
 			self.Trail.visible = True
 
 		self.hasRenderedOrbit = True
-		print "DRAW: origin.pos=",self.Origin.pos, "label.pos=", self.Labels[0].pos
+		#print "DRAW: origin.pos=",self.Origin.pos, "label.pos=", self.Labels[0].pos
 
 	def setPolarCoordinates(self, E_rad):
 		X = self.a * (cos(E_rad) - self.e)
