@@ -538,15 +538,14 @@ class makePlanetWidgets():
 ###        self.ECSS.referential.pos = self.Planet.Origin.pos
 
     def updateCurrentLocationEcliptic(self):
-        if self.currentLocation >= 0: 
-            self.Loc[self.currentLocation].updateEclipticPosition()
+        self.Loc[self.currentLocation].updateEclipticPosition()
 
     def updateCurrentLocationAnalemma_SAVE(self):
         if self.currentLocation >= 0 and self.Loc[self.currentLocation].analemma is not None: 
             self.Loc[self.currentLocation].analemma.updateAnalemmaPosition()
 
     def updateCurrentLocationAnalemma(self):
-        if self.currentLocation >= 0 and self.Loc[self.currentLocation].SunAxis is not None:
+        if self.Loc[self.currentLocation].SunAxis is not None:
             self.Loc[self.currentLocation].updateSunRay()
             if self.Loc[self.currentLocation].analemma is not None: 
                 self.Loc[self.currentLocation].analemma.updateAnalemmaPosition()
@@ -556,27 +555,24 @@ class makePlanetWidgets():
             #self.Loc[self.currentLocation].updateForwardVectorIn24hMode()                
 
     def updateCurrentLocationTopoCentricView(self):
-        if self.currentLocation >= 0 and self.locationEarthEyeView == True:
+        if self.locationEarthEyeView == True:
             self.Loc[self.currentLocation].updateEarthEyeView()
 
-    def updateInfoWindowDateTime(self):
-        ctrl = self.Loc[self.currentLocation].Planet.SolarSystem.Dashboard.orbitalTab
-        self.Planet.SolarSystem.Dashboard.setInfoLine("UTC: "+index_to_month[ctrl.dateMSpin.GetValue()]+" {:>02}/{:>4}".format(str(ctrl.dateDSpin.GetValue()), str(ctrl.dateYSpin.GetValue())), 0)
-        utcdt = self.Planet.SolarSystem.Dashboard.orbitalTab.new_utcDatetime
-        self.Planet.SolarSystem.Dashboard.setInfoLine("{:>5}{:>2}:{:>2}:{:2}".format("", str(utcdt.hour).zfill(2), str(utcdt.minute).zfill(2), str(utcdt.second).zfill(2)), 1)
+    def updateInfoWindow(self):
+        # display information in infoWindow based on user choice. The choice is 
+        # determined by the value of the integer value "currentInfoAction"
+        db = self.Planet.SolarSystem.getDashboard()
+        if db.widgetsTab.iscb.GetValue() == True:
+            db.widgetsTab.infoWindowActions[db.widgetsTab.currentInfoAction]()
 
     def animate(self):
-
-        self.updateInfoWindowDateTime()
         self.update_PCI_PCPF_ECSS_Position()
-        ### self.update_PCPF_Rotation()
         self.update_ECSS_Rotation()
-        #### self.Eq.updateNodesPosition()
-        self.updateCurrentLocationEcliptic()
-        #self.AnaLemma.updateAnalemmaPosition()
-        self.updateCurrentLocationAnalemma()
-
-        self.updateCurrentLocationTopoCentricView()
+        self.updateInfoWindow() #DateTime()
+        if self.currentLocation >= 0:
+            self.updateCurrentLocationEcliptic()
+            self.updateCurrentLocationAnalemma()
+            self.updateCurrentLocationTopoCentricView()
 
         ### self.EqPlane.updateEquatorialPlanePosition()	
 

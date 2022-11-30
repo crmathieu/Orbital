@@ -1985,11 +1985,26 @@ class WIDGETSpanel(AbstractUI):
 		self.Locations = []
 		self.locIndexes = []
 
+		self.currentInfoAction = 1 # need to find a mechanism to assign a value to currentAction based on what the user picks (each option is mutually exclusive)
+		self.infoWindowActions = {
+                0: self.dummy,
+                1: self.UTCdatetime
+            }
+		"""
 		self.CameraSettings = []
 		self.cameraSettingActions = {
 			0: self.OnFollowMode,
 			1: self.OnEarthEyeView
 		}
+		"""
+
+	def UTCdatetime(self):
+		ctrl = self.parentFrame.orbitalTab
+		self.parentFrame.setInfoLine("UTC: "+index_to_month[ctrl.dateMSpin.GetValue()]+" {:>02}/{:>4}".format(str(ctrl.dateDSpin.GetValue()), str(ctrl.dateYSpin.GetValue())), 0)
+		self.parentFrame.setInfoLine("{:>5}{:>2}:{:>2}:{:2}".format("", str(ctrl.new_utcDatetime.hour).zfill(2), str(ctrl.new_utcDatetime.minute).zfill(2), str(ctrl.new_utcDatetime.second).zfill(2)), 1)
+
+	def dummy(self):
+		pass
 
 	def InitUI(self):
 
@@ -2128,7 +2143,7 @@ class WIDGETSpanel(AbstractUI):
 	def OnShowUTCInfo(self, e):
 		self.parentFrame.showInfoWindow(self.iscb.GetValue()) #### need to parametrize to allow for other actions than just UTC info
 
-	def OnCameraSettings(self, e):
+	def OnCameraSettingsXX(self, e):
 
 		index = self.rbox.GetSelection()
 		self.Source = {0: PHA, 1: COMET, 2:BIG_ASTEROID, 3:TRANS_NEPT}[index]
@@ -2138,7 +2153,7 @@ class WIDGETSpanel(AbstractUI):
 		self.Parent.orbitalTab.followModeView = True
 
 
-	def createCameraSettingsList(self, xpos, ypos):
+	def createCameraSettingsListXXX(self, xpos, ypos):
 		self.CameraSettings = ["Follow Mode", "Location Referential View"]
 		self.cameraSettingActions = {
 			0: self.OnFollowMode,
