@@ -189,9 +189,9 @@ class DrawRect(wx.Panel):
          dc.SetBrush(wx.Brush("C0C0C0"))
          dc.DrawRectangle(50,50,50,50)		
 """
-class createVizualisationWindow(wx.Frame):
+class createInfoWindow(wx.Frame):
 
-	def __init__(self, pos, size):
+	def __init__(self, pos, size, nlines):
 		style = (wx.CLIP_CHILDREN |wx.STAY_ON_TOP|wx.FRAME_NO_TASKBAR|wx.NO_BORDER|wx.FRAME_SHAPED)
 		#        style = ( wx.CLIP_CHILDREN | wx.FRAME_FLOAT_ON_PARENT | wx.FRAME_NO_TASKBAR |
 		#                  wx.NO_BORDER | wx.FRAME_SHAPED  )
@@ -217,7 +217,7 @@ class createVizualisationWindow(wx.Frame):
 		self.RegFont = wx.Font(20, wx.MODERN, wx.NORMAL, wx.NORMAL)
 		#DrawRect(parent=p, id=10, pos=(1,1), size=(498,148))
 		self.infoLineGroup = []
-		self.setInfoLineGroup(2)
+		self.setInfoLineGroup(nlines)
 
 	def setInfoLineGroup(self, dim):
 		for i in range(0,dim):
@@ -234,7 +234,7 @@ class createVizualisationWindow(wx.Frame):
 		# establish the painting surface
 		dc = wx.PaintDC(self.panel)
 
-		dc.SetPen(wx.Pen('white', 1))
+		dc.SetPen(wx.Pen('gray', 1))
 		dc.SetBrush(wx.Brush('black'))
 
 #		print self.pos[0], self.pos[1], self.size[0], self.size[1]
@@ -338,10 +338,10 @@ class makeDashBoard(wx.Frame):
 			#self.SolarSystem.camera.oneTickCameraCombination(zoom=True, zoom_forward=True)
 		self.orbitalTab.Show()
 
-		# create a window to use to display information above the viewPort
-		self.infoWindow = createVizualisationWindow(pos=(50, 50), size=(300, 100))
-
-		#self.c = FancyFrame(solarsystem.Scene)
+		# create a window used to display information above the viewPort.
+		# this information will reflect the user's current selection
+		# from a listbox of possible options.
+		self.infoWindow = createInfoWindow(pos=(50, 50), size=(300, 150), nlines=3)
 
 	def setInfoLine(self, text, line):
 		self.infoWindow.setLine(text, line)
@@ -1146,7 +1146,8 @@ class ORBITALpanel(AbstractUI):
 #		self.DaysIncrement = 0 # number of days from today - used for animation into future or past (detalT < 0)
 		self.DeltaT = 0
 		self.velocity = 0
-		self.distance = 0
+		self.dte = 0
+		self.dts = 0
 		self.list = []
 		self.listjplid = []
 		self.DetailsOn = False
@@ -1491,18 +1492,26 @@ class ORBITALpanel(AbstractUI):
 			if body.BodyType in [SUN, SPACECRAFT, OUTERPLANET, INNERPLANET, SATELLITE, ASTEROID, \
 								 COMET, DWARFPLANET, PHA, BIG_ASTEROID, TRANS_NEPT]:
 				if body.Origin.visible == True or body.Name.lower() == EARTH_NAME:
-					velocity, distance = body.animate(self.DeltaT)
+					velocity, dte, dts = body.animate(self.DeltaT)
+					#print "VEL:", velocity, "dte:", dte
 					if self.SolarSystem.cameraViewTargetBody is not None:
 						# update center position if we are NOT in the middle of a smooth transition and
 						# NOT in a location Referential view mode (point of view from current location)
-						if body.JPL_designation == self.SolarSystem.cameraViewTargetBody.JPL_designation and \
-							(self.SolarSystem.Dashboard.focusTab.smoothTransition == False and \
-							 self.SolarSystem.Dashboard.widgetsTab.Earth.PlanetWidgets.locationEarthEyeView == False):
+						if 	body.JPL_designation == self.SolarSystem.cameraViewTargetBody.JPL_designation and \
+							self.SolarSystem.Dashboard.focusTab.smoothTransition == False and \
+							self.SolarSystem.Dashboard.widgetsTab.Earth.PlanetWidgets.locationEarthEyeView == False:
+
 							self.SolarSystem.camera.updateCameraViewTarget()
 
-					if body.BodyType == self.Source or body.Details == True:
+					#if body.BodyType == self.Source or body.Details == True:
+
+					# save velocity and DTE/DTS info on object currently observed
+					if self.SolarSystem.cameraViewTargetSelection == body.Name.lower() or \
+						(self.SolarSystem.cameraViewTargetSelection == CURRENT_BODY and \
+						 self.SolarSystem.cameraViewTargetBody.Name.lower() == body.Name.lower()):
 						self.velocity = velocity
-						self.distance = distance
+						self.dte = dte
+						self.dts = dts
 
 			#else:
 			#	print("UNKNOWN BODYTYPE:", body.BodyType)
@@ -1544,10 +1553,10 @@ class ORBITALpanel(AbstractUI):
 		if self.DetailsOn == True:
 			self.ObjVelocity.SetLabel("{:<12}{:>10.4f}".format("Vel.(km/s)", round(self.velocity/1000, 2)))
 
-	def setDistanceLabel(self):
+	def setDTElabel(self):
 		if self.DetailsOn == True:
-			#print "distance="+str(self.distance)
-			self.ObjDistance.SetLabel("{:<12}{:>10.4f}".format("DTE (AU)", float(self.distance)))
+			#print "dte="+str(self.dte)
+			self.ObjDistance.SetLabel("{:<12}{:>10.4f}".format("DTE (AU)", float(self.dte)))
 
 
 	# deltaTick is used for earth realtime rotation update, when enabled
@@ -1572,7 +1581,7 @@ class ORBITALpanel(AbstractUI):
 		self.updateTimeDisplay(self.new_utcDatetime, self.new_localDatetime)
 
 		self.setVelocityLabel()
-		self.setDistanceLabel()
+		self.setDTElabel()
 		#print ("refresh Date")
 
 	def updateTimeDisplay(self, utcDatetime, localDatetime):
@@ -1701,7 +1710,7 @@ class ORBITALpanel(AbstractUI):
 		self.InfoTitle.SetLabel(body.Name)
 
 		print "ANIMATE deltaT=", self.DeltaT
-		self.velocity, self.distance = body.animate(self.DeltaT)
+		self.velocity, self.dte, self.dts = body.animate(self.DeltaT)
 		if body.Mass == 0:
 			mass = "???"
 		else:
@@ -1985,10 +1994,11 @@ class WIDGETSpanel(AbstractUI):
 		self.Locations = []
 		self.locIndexes = []
 
-		self.currentInfoAction = 1 # need to find a mechanism to assign a value to currentAction based on what the user picks (each option is mutually exclusive)
+		self.currentInfoAction = 2 # need to find a mechanism to assign a value to currentAction based on what the user picks (each option is mutually exclusive)
 		self.infoWindowActions = {
                 0: self.dummy,
-                1: self.UTCdatetime
+                1: self.UTCdatetime,
+				2: self.Dynamics
             }
 		"""
 		self.CameraSettings = []
@@ -1997,6 +2007,15 @@ class WIDGETSpanel(AbstractUI):
 			1: self.OnEarthEyeView
 		}
 		"""
+
+	def Dynamics(self):
+		ctrl = self.parentFrame.orbitalTab
+#		self.parentFrame.setInfoLine("{:<12}{:>10.4f}".format("Vel:", round(ctrl.velocity/1000, 2),"km/s"), 0)
+		self.parentFrame.setInfoLine("Vel: "+"{:>06.4f}".format(round(ctrl.velocity/1000, 2))+" km/s", 0)
+#		self.parentFrame.setInfoLine("{:<12}{:>10.4f}".format("DTE:", float(ctrl.dte),"AU"), 1)
+		self.parentFrame.setInfoLine("DTE: "+"{:>06.4f}".format(float(ctrl.dte))+" AU", 1)
+		self.parentFrame.setInfoLine("DTS: "+"{:>06.4f}".format(float(ctrl.dts))+" AU", 2)
+
 
 	def UTCdatetime(self):
 		ctrl = self.parentFrame.orbitalTab

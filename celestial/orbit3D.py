@@ -430,7 +430,8 @@ class makeSolarSystem:
 			
 		setRefTo = True if self.ShowFeatures & REFERENTIAL != 0 else False
 		
-		if 	self.cameraViewTargetSelection == self.Sun.JPL_designation and \
+#		if 	self.cameraViewTargetSelection == self.Sun.JPL_designation and \
+		if 	self.cameraViewTargetSelection == self.Sun.Name.lower() and \
 			self.ShowFeatures & LOCAL_REFERENTIAL:
 			setRelTo = True
 		else:
@@ -497,7 +498,8 @@ class makeSolarSystem:
 			
 		setRefTo = True if self.ShowFeatures & REFERENTIAL != 0 else False
 		
-		if 	self.cameraViewTargetSelection == self.Sun.JPL_designation and \
+#		if 	self.cameraViewTargetSelection == self.Sun.JPL_designation and \
+		if 	self.cameraViewTargetSelection == self.Sun.Name.lower() and \
 			self.ShowFeatures & LOCAL_REFERENTIAL:
 			setRelTo = True
 		else:
@@ -961,7 +963,7 @@ class makeBody:
 		self.Origin.pos = self.Labels[0].pos = vector(self.Position[0]+self.Foci[0],self.Position[1]+self.Foci[1],self.Position[2]+self.Foci[2])
 		#self.Labels[0].pos = vector(self.Position[0]+self.Foci[0],self.Position[1]+self.Foci[1],self.Position[2]+self.Foci[2])
 		self.setRotation()
-		return self.getCurrentVelocity(), self.getCurrentDistanceFromEarth()
+		return self.getCurrentVelocity(), self.getCurrentDistanceFromEarth(), self.getCurrentDistanceFromSun()
 
 	# makeBody::setOrbitalElements (default)
 	def setOrbitalElements(self, key, timeincrement = 0):
@@ -1385,7 +1387,8 @@ class makeBody:
 			if self.Origin.visible == False:
 				self.show()
 			# if this is the cameraViewTargetBody, check for local referential attribute
-			if 	self.SolarSystem.cameraViewTargetSelection == self.JPL_designation and \
+#			if 	self.SolarSystem.cameraViewTargetSelection == self.JPL_designation and \
+			if 	self.SolarSystem.cameraViewTargetSelection == self.Name.lower() and \
 				self.SolarSystem.ShowFeatures & LOCAL_REFERENTIAL:
 					setTo = True
 			else:
@@ -1408,6 +1411,10 @@ class makeBody:
 		return sqrt((self.Position[0] - self.SolarSystem.EarthRef.Position[0])**2 + \
 					(self.Position[1] - self.SolarSystem.EarthRef.Position[1])**2 + \
 					(self.Position[2] - self.SolarSystem.EarthRef.Position[2])**2)/DIST_FACTOR/AU
+
+	def getCurrentDistanceFromSun(self):
+		#return sqrt((self.Position[0])**2 + (self.Position[1])**2 + (self.Position[2])**2)/DIST_FACTOR/AU
+		return mag(vector(self.Position)) / DIST_FACTOR / AU
 
 class emptyTrail:
 	visible = False
@@ -1867,13 +1874,13 @@ class makeEarth(makePlanet):
 	# makeEarth::animate (overrides makeBody::animate")
 	def animate(self, timeIncrement):
 		# run default planet animation as defined in makeBody class
-		velocity, distance = makePlanet.animate(self, timeIncrement)
+		velocity, dte, dts = makePlanet.animate(self, timeIncrement)
 
 		# and animate widgets as well
 		if self.PlanetWidgets is not None:
 			self.PlanetWidgets.animate() #timeIncrement)
 
-		return velocity, distance
+		return velocity, dte, dts
 
 	def resetTexture(self): # TO REVIEW!!!!
 		self.BodyShape = None
@@ -2209,7 +2216,7 @@ class makeGenericSpacecraft(makeBody):
 		self.setRotation()
 		#print "ANIMATING-3 ", self.Name, "Origin=",self.Origin.pos, "Foci =",self.Foci
 
-		return self.getCurrentVelocity(), self.getCurrentDistanceFromEarth()
+		return self.getCurrentVelocity(), self.getCurrentDistanceFromEarth(), self.getCurrentDistanceFromSun()
 
 
 	def setAspect(self, key):
