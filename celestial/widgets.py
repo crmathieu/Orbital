@@ -126,7 +126,7 @@ class makePlanetWidgets():
         self.OVRL.frame = self.Planet.PCPF.referential
         self.OVRL.pos = (0,0,0)
 
-    def resetWidgetsRefFromSolarTime(self):
+    def resetWidgetsRefFromSolarTimeXXXXXXXXXXX(self):
 
         print "RESET WIDGET FROM SOLAR-TIME"
         if self.SiderealCorrectionAngle != 0.0:
@@ -147,6 +147,7 @@ class makePlanetWidgets():
 
     def resetWidgetsReferencesFromNewDate(self): #, fl_diff_in_days):
         print "RESET WIDGETS REF"
+        return ###########################
         if self.SiderealCorrectionAngle != 0.0:
             # there has been a previous manual reset of the UTC date which has resulted in a sidereal 
             # correction. We need to undo it prior to reposition the texture for the new date

@@ -36,7 +36,7 @@ import wx
 
 #import spice
 
-from location import Timeloc
+from location import EarthLocations
 from planetsdata import *
 from utils import deg2rad, rad2deg #, sleep
 
@@ -60,7 +60,7 @@ class makeSolarSystem:
 	def __init__(self):
 		print "### vpython v"+version[0]+"-"+version[1]+" ###"
 
-		self.locationInfo = Timeloc()
+		self.locationInfo = EarthLocations()
 		self.todayUTCdatetime = self.locationInfo.getUTCDateTime()
 		self.SurfaceView = False
 		self.SurfaceDirection = [0,0,0]
@@ -184,7 +184,8 @@ class makeSolarSystem:
 					'show':			True,
 					'color': 		Color.white,
 					'ratio': 		[1,1,0.1],
-					'legend': 		["x","y","z"],
+					'legend': 		[u"\u2648", u"\u2649", "z"]
+#					'legend': 		["x","y","z"],
 				})		
 
 	def rotateSolarSystemReferential(self, axis = vector(0,0,1)):
@@ -287,7 +288,9 @@ class makeSolarSystem:
 			self.ShowFeatures |= type
 		else:
 			self.ShowFeatures = (self.ShowFeatures & ~type)
-			if 	self.cameraViewTargetSelection != SUN_NAME and self.cameraViewTargetBody.BodyType == type:
+			if 	self.cameraViewTargetSelection != SUN_NAME and \
+				self.cameraViewTargetBody.BodyType == type and \
+				self.cameraViewTargetBody.Name.lower() != EARTH_NAME:
 				# reset SUN as current ViewTarget when the currobject should not longer be visible
 				return 1
 		return 0
@@ -558,7 +561,7 @@ class makeEcliptic:
 	def draw(self):
 		#print ("Drawing ecliptic")
 		side = 250*AU*DIST_FACTOR
-		self.BodyShape = box(frame=self.Origin, pos=vector(0, 0, 0), length=side, width=0.0001, height=side, material=materials.emissive, color=self.Color, opacity=0.05) #, axis=(0, 0, 1), opacity=0.8) #opacity=self.Opacity)
+		self.BodyShape = box(frame=self.Origin, pos=vector(0, 0, 0), length=side, width=0.0001, height=side, material=materials.emissive, color=self.Color, opacity=0.1) #, axis=(0, 0, 1), opacity=0.8) #opacity=self.Opacity)
 		self.Origin.visible = False
 
 	def refresh(self):
@@ -640,16 +643,17 @@ class makeJtrojan(makeBelt):
 
 	def draw(self):
 		# determine where the body is
-		if self.PlanetName is not None:
-			return
+		#if self.PlanetName is not None:
+		#	return
 
 		# grab Jupiter's current True Anomaly and add the Long. of perihelion to capture
 		# the current angle in the fixed referential
 		Nu = deg2rad(toRange(rad2deg(self.Planet.Nu) + self.Planet.Longitude_of_perihelion))
 
 		# get Lagrangian L4 and L5 based on body position
-		L4 = (Nu + 4*pi/3 )
-		L5 = (Nu + 2*pi/3)
+		L4 = (Nu + pi/3 )
+		L5 = (Nu - pi/3)
+
 		delta = deg2rad(25)
 
 		for i in np.arange(pi/(180*self.Density), delta, pi/(180*self.Density)):
@@ -696,6 +700,8 @@ class makeBody:
 		if centralBody is not None:
 			self.Foci = vector(centralBody.Position[0], centralBody.Position[1], centralBody.Position[2])
 		
+		# load body data to data structure
+
 		self.ObjectIndex = key
 		self.SolarSystem 			= system
 		self.locationInfo 			= system.locationInfo
@@ -1829,7 +1835,7 @@ class makeEarth(makePlanet):
 		# see the document "data/texture-positioning.png"
 
 		if localDatetime == None:
-			localDatetime = self.locationInfo.localdatetime
+			localDatetime = self.locationInfo.getLocalDateTime() #localdatetime
 
 		# calculate initial angle (theta) between sun-earth 
 		# axis and solar referential x axis tan(theta) = Y/X
@@ -1980,7 +1986,7 @@ class makeEarth(makePlanet):
 
 		# also reflect the same reset amount with the widgets
 
-		self.PlanetWidgets.resetWidgetsReferencesFromNewDate() #fl_diff_in_days)
+		######### self.PlanetWidgets.resetWidgetsReferencesFromNewDate() #fl_diff_in_days)
 
 
 	# method called every few sec to allow for an update of the time label. BUT, the position is not updated
@@ -2053,6 +2059,121 @@ class makeEarth(makePlanet):
 		success, self.E, dE, it = solveKepler(M, self.e, 12000)
 		if success == False:
 			print ("Could not converge for "+self.Name+", E = "+str(self.E)+", last precision = "+str(dE))
+
+##########################################################################################
+class makeEarthTest(makePlanet):
+
+	
+	def __init__(self, system, ccolor, type, sizeCorrectionType, defaultSizeCorrection):
+	
+		makePlanet.__init__(self, system, EARTH_NAME_2, ccolor, type, sizeCorrectionType, defaultSizeCorrection)
+
+
+
+	def initRotation(self):
+
+		# we need to rotate around X axis by pi/2 to properly align the planet's texture,
+		# and also, we need to take into account planet tilt around X axis 
+#		self.BodyShape.rotate(angle=(pi/2+self.TiltAngle), axis=self.XdirectionUnit, origin=(0,0,0))
+
+		# here we use "-" tilt angle to make it point to the correct direction
+		print "XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX"
+		#self.BodyShape.rotate(angle=(pi/2 - self.TiltAngle), axis=self.PCPF.XdirectionUnit, origin=(0,0,0))
+
+#		self.BodyShape.rotate(angle=pi/2, axis=self.PCPF.XdirectionUnit, origin=(0,0,0))
+
+		#self.PCI.referential.rotate(angle=(self.TiltAngle), axis=self.PCI.XdirectionUnit, origin=(0,0,0))
+		#self.PCPF.referential.rotate(angle=(self.TiltAngle), axis=self.PCPF.XdirectionUnit, origin=(0,0,0))
+
+		# rotate texture by 90 degrees along x
+		#self.BodyShape.rotate(angle=(pi/2), axis=self.PCPF.XdirectionUnit)
+
+		# then further rotation will apply to Z axis
+		
+		##### self.RotAxis = self.PCPF.ZdirectionUnit
+
+#		planet.initRotation(self)
+		#self.BodyShape.rotate(angle=(pi/2), axis=self.PCPF.XdirectionUnit, origin=(0,0,0))
+
+		# induce initial tilt
+		#self.PCPF.referential.rotate(angle=(-self.TiltAngle), axis=self.PCPF.XdirectionUnit, origin=(0,0,0))
+
+		# then further rotation will apply to Z axis
+		#self.RotAxis = self.PCPF.RotAxis #self.PCPF.ZdirectionUnit
+		### self.RotAxis = self.PCPF.referential.frame_to_world(self.PCPF.ZdirectionUnit)
+		#print self.RotAxis , "for", self.Name
+
+		# adjust earth texture based on solar time
+		################################
+		################################
+		return
+
+
+
+	# makeEarth::computeOrbitalEltFromPlanetPositionApproximation (overrides makeBody's) 
+	def computeOrbitalEltFromPlanetPositionApproximation(self, elements, timeincrement):
+
+		ns = NasaSpice(10)
+		id = 399 # earth
+
+		elts = ns.getPlanetElements(id, datetime.datetime.today().strftime('%Y %b %d, %H:%M:%S'))
+
+
+		self.a = getSemiMajor(elts[0], elts[1]) * 1000 * AU # perihelion, eccentricity
+
+		self.e = elts[1]
+		self.Inclination = elts[2]
+
+		self.Longitude_of_perihelion = elts[4]
+		self.Longitude_of_ascendingnode = elts[3]
+
+		self.Argument_of_perihelion = self.Longitude_of_perihelion - self.Longitude_of_ascendingnode
+
+		M = elts[5]
+
+		success, self.E, dE, it = solveKepler(M, self.e, 12000)
+		if success == False:
+			print ("Could not converge for "+self.Name+", E = "+str(self.E)+", last precision = "+str(dE))
+
+
+
+		if False:
+
+			Adjustment = 0 #0.35
+
+			# get number of days since J2000 epoch and obtain the fraction of century
+			# (the rate adjustment is given as a rate per century)
+			days = daysSinceJ2000UTC(self.locationInfo) + timeincrement
+			
+			# These formulas use 'days' based on days since 1/Jan/2000 12:00 UTC ("J2000.0"), 
+			# instead of 0/Jan/2000 0:00 UTC ("day value"). Correct by subtracting 1.5 days...
+
+			T = (days - Adjustment)/EARTH_CENTURY # T is in Julian centuries since J2000.0
+
+			self.a = (elts["a"] + (elts["ar"] * T)) * AU
+			self.e = elts["EC_e"] + (elts["er"] * T)
+			self.Inclination = elts["i"] + (elts["ir"] * T)
+
+			# compute mean Longitude with correction factors beyond jupiter M = L - W + bT^2 +ccos(ft) + ssin(ft)
+			L = elts["L"] + (elts["Lr"] * T) + (elts["b"] * T**2  +
+												elts["c"] * cos(elts["f"] * T) +
+												elts["s"] * sin(elts["f"] * T))
+			self.Longitude_of_perihelion = elts["W"] + (elts["Wr"] * T)
+			self.Longitude_of_ascendingnode = elts["N"] + (elts["Nr"] * T)
+
+			# compute Argument of perihelion w
+			self.Argument_of_perihelion = self.Longitude_of_perihelion - self.Longitude_of_ascendingnode
+
+			# compute mean Anomaly M = L - W
+			M = toRange(L - self.Longitude_of_perihelion) #W)
+
+			# Obtain ecc. Anomaly E (in degrees) from M using an approx method of resolution:
+			success, self.E, dE, it = solveKepler(M, self.e, 12000)
+			if success == False:
+				print ("Could not converge for "+self.Name+", E = "+str(self.E)+", last precision = "+str(dE))
+
+##########################################################################################
+
 
 
 # CLASS SATELLITE -------------------------------------------------------------
@@ -3133,7 +3254,7 @@ def utc_to_local_fromTimestamp(utcTimeStamp, locationInfo):
 	utc	= datetime.datetime.fromtimestamp(utcTimeStamp)
 	utc = utc.replace(tzinfo=pytz.utc)
 	# deduct local time ...
-	return utc.astimezone(pytz.timezone(locationInfo.timezoneStr))
+	return utc.astimezone(pytz.timezone(locationInfo.getTZ()))
 
 
 # Convert date/time from UTC to local date/time

@@ -841,6 +841,7 @@ class SEARCHpanel(AbstractUI):
 			print "Querying: ", host+target
 			response = opener.open(host+target)
 			rawResp = response.read()
+			print rawResp
 
 		except urllib2.HTTPError as err:
 			if err.code == 300:
@@ -1021,6 +1022,8 @@ class SEARCHpanel(AbstractUI):
 			elif elt["name"] == "tp":
 				self.SolarSystem.objects_data[spkid].update({"Tp_Time_of_perihelion_passage_JD": float(elt["value"])}) # value unit in "TDB" (Time Dynamic Baricenter)
 			elif elt["name"] == "per":
+				if elt["value"] == None:
+					elt["value"] = 0
 				self.SolarSystem.objects_data[spkid].update({"PR_revolution": float(elt["value"])})
 			elif elt["name"] == "n":
 				self.SolarSystem.objects_data[spkid].update({"N_mean_motion": float(elt["value"])})
@@ -1505,7 +1508,7 @@ class ORBITALpanel(AbstractUI):
 
 					#if body.BodyType == self.Source or body.Details == True:
 
-					# save velocity and DTE/DTS info on object currently observed
+					# save velocity and DTE/DTS info on object currently observednew_localDatetimeonAnimate
 					if self.SolarSystem.cameraViewTargetSelection == body.Name.lower() or \
 						(self.SolarSystem.cameraViewTargetSelection == CURRENT_BODY and \
 						 self.SolarSystem.cameraViewTargetBody.Name.lower() == body.Name.lower()):
@@ -1946,7 +1949,6 @@ class ORBITALpanel(AbstractUI):
 		sec = time.gmtime(time.time()).tm_sec
 		framerate = 0
 
-
 		while self.AnimationInProgress:
 #			sleep(1e-2)
 			#sleep(1e-3)
@@ -1993,8 +1995,9 @@ class WIDGETSpanel(AbstractUI):
 		self.checkboxList = {}
 		self.Locations = []
 		self.locIndexes = []
+		self.locationID = 0
 
-		self.currentInfoAction = 2 # need to find a mechanism to assign a value to currentAction based on what the user picks (each option is mutually exclusive)
+		self.currentInfoAction = 1 # need to find a mechanism to assign a value to currentAction based on what the user picks (each option is mutually exclusive)
 		self.infoWindowActions = {
                 0: self.dummy,
                 1: self.UTCdatetime,
@@ -2019,7 +2022,12 @@ class WIDGETSpanel(AbstractUI):
 
 	def UTCdatetime(self):
 		ctrl = self.parentFrame.orbitalTab
-		self.parentFrame.setInfoLine("UTC: "+index_to_month[ctrl.dateMSpin.GetValue()]+" {:>02}/{:>4}".format(str(ctrl.dateDSpin.GetValue()), str(ctrl.dateYSpin.GetValue())), 0)
+		self.parentFrame.setInfoLine("UTC: "+index_to_month[ctrl.dateMSpin.GetValue()]+" {:>02}".format(str(ctrl.dateDSpin.GetValue())), 0)
+		self.parentFrame.setInfoLine("{:>5}{:>2}:{:>2}:{:2}".format("", str(ctrl.new_utcDatetime.hour).zfill(2), str(ctrl.new_utcDatetime.minute).zfill(2), str(ctrl.new_utcDatetime.second).zfill(2)), 1)
+
+	def CurLocDatetime(self): # todo
+		ctrl = self.parentFrame.orbitalTab
+		self.parentFrame.setInfoLine("UTC: "+index_to_month[ctrl.dateMSpin.GetValue()]+" {:>02}".format(str(ctrl.dateDSpin.GetValue())), 0)
 		self.parentFrame.setInfoLine("{:>5}{:>2}:{:>2}:{:2}".format("", str(ctrl.new_utcDatetime.hour).zfill(2), str(ctrl.new_utcDatetime.minute).zfill(2), str(ctrl.new_utcDatetime.second).zfill(2)), 1)
 
 	def dummy(self):
@@ -2205,10 +2213,10 @@ class WIDGETSpanel(AbstractUI):
 
 	def OnSelectLocation(self, e):
 		if self.parentFrame.orbitalTab.AnimationInProgress == False:
-			locationID = self.locIndexes[e.GetSelection()]
+			self.locationID = self.locIndexes[e.GetSelection()]
 			self.comb.Dismiss() # this will close the combo 
 			self.cpcb.Enable()
-			self.SolarSystem.camera.gotoEarthLocationVertical(locationID)
+			self.SolarSystem.camera.gotoEarthLocationVertical(self.locationID)
 			self.Earth.PlanetWidgets.Loc[self.Earth.PlanetWidgets.currentLocation].makeTopoCentricRef()
 			self.acb.Enable()
 			self.ncpcb.Enable()
