@@ -64,8 +64,11 @@ CHK_L11 = CHK_L10 + 20
 CHK_L12 = CHK_L11 + 20
 CHK_L13 = CHK_L12 + 20
 CHK_L14 = CHK_L13 + 20
+
 CHK_L15 = CHK_L14 + 25
-CHK_L16 = CHK_L15 + 20
+CHK_L15B = CHK_L14 + 20
+
+CHK_L16 = CHK_L15B + 20
 CHK_L17 = CHK_L16 + 20
 CHK_L18 = CHK_L17 + 20
 CHK_L19 = CHK_L18 + 20
@@ -79,8 +82,12 @@ CHK_L26 = CHK_L25 + 20
 CHK_L27 = CHK_L26 + 20
 CHK_L28 = CHK_L27 + 20
 CHK_L29 = CHK_L28 + 20
+CHK_L30 = CHK_L29 + 20
+CHK_L31 = CHK_L30 + 20
+CHK_L32 = CHK_L31 + 20
 
-CBBOX_1 = CHK_L9+30
+CBBOX_1 = CHK_L8+30
+CBBOX_2 = CHK_L26 + 30
 
 LSTB_Y = DATE_Y + 60
 SLDS_Y = LSTB_Y + 40
@@ -100,8 +107,8 @@ TOTAL_Y = INFO1_Y+180
 TOTAL_X = 500
 
 date_elements = {
-	"d_p_m" : {1:31, 2:28, 3:31, 4:30, 5:31, 6:30, 7:31, 8:31, 9:30, 10:31, 11:20, 12:31},
-	"d_p_m_leap" : {1:31, 2:29, 3:31, 4:30, 5:31, 6:30, 7:31, 8:31, 9:30, 10:31, 11:20, 12:31},
+	"d_p_m" : {1:31, 2:28, 3:31, 4:30, 5:31, 6:30, 7:31, 8:31, 9:30, 10:31, 11:30, 12:31},
+	"d_p_m_leap" : {1:31, 2:29, 3:31, 4:30, 5:31, 6:30, 7:31, 8:31, 9:30, 10:31, 11:30, 12:31},
 	"d_to_m" :{1:0, 2:31, 3:59, 4:90, 5:120, 6:151, 7:181, 8:212, 9:243, 10:273, 11:304, 12:334},
 	"d_to_m_leap" :{1:0, 2:31, 3:60, 4:91, 5:121, 6:152, 7:182, 8:213, 9:244, 10:274, 11:305, 12:335},
 	"d_since_J2000":{1995:-1827.5, 1996: -1462.5, 1997: -1096.5, 1998: -731.5, 1999:-366.5, 2000:-1.5, 2001: 364.5, 2002: 729.5, 2003:1094.5, 2004:1459.5, 2005:1825.5}
@@ -114,9 +121,9 @@ def isLeapYear(year):
 # JPL API search Panel
 #
 
-MAIN_HEADING_Y = 25
-JPL_DOWNLOAD_Y = MAIN_HEADING_Y-15
-JPL_LISTCTRL_Y = MAIN_HEADING_Y + 25
+JPL_MAIN_HEADING_Y = 25
+JPL_DOWNLOAD_Y = JPL_MAIN_HEADING_Y-15
+JPL_LISTCTRL_Y = JPL_MAIN_HEADING_Y + 25
 
 JPL_LIST_SZ = TOTAL_Y-160
 JPL_BRW_Y = JPL_LISTCTRL_Y + JPL_LIST_SZ + 15
@@ -165,6 +172,136 @@ class AbstractUI(wx.Panel):
 			cb.SetValue(False)
 		self.checkboxList[type] = cb
 
+"""
+class DrawRect(wx.Panel):
+     def __init__(self, parent=None, id=-1,pos=(-1,-1), size=(-1,-1), style=0):
+         wx.Panel.__init__(self,parent,id,size,pos,style)
+         self.SetBackgroundColour("#D18B47")
+         self.Bind(wx.EVT_PAINT,self.onPaint)
+
+     def onPaint(self, event):
+         event.Skip()
+         dc = wx.PaintDC(event.GetEventObject())
+         self.drawRect(dc)
+
+     def drawRect(self,dc):
+         dc.SetPen(wx.Pen("FFCE8A", 0))
+         dc.SetBrush(wx.Brush("C0C0C0"))
+         dc.DrawRectangle(50,50,50,50)		
+"""
+class createInfoWindow(wx.Frame):
+
+	def __init__(self, pos, size, nlines):
+		style = (wx.CLIP_CHILDREN |wx.STAY_ON_TOP|wx.FRAME_NO_TASKBAR|wx.NO_BORDER|wx.FRAME_SHAPED)
+		#        style = ( wx.CLIP_CHILDREN | wx.FRAME_FLOAT_ON_PARENT | wx.FRAME_NO_TASKBAR |
+		#                  wx.NO_BORDER | wx.FRAME_SHAPED  )
+		#        wx.Frame.__init__(self, parent=None, title='Fancy Window', style = style, size=(orbit3D.makeSolarSystem.SCENE_WIDTH, orbit3D.makeSolarSystem.SCENE_HEIGHT))
+
+		wx.Frame.__init__(self, parent=None, id=10, title='', pos = pos, style = style, size=size)
+		self.panel = wx.Panel(self, size=size) #(350, 200)) 
+		self.panel.Bind(wx.EVT_PAINT, self.onPaint) 
+		self.Fit() 
+
+		self.pos = pos
+		self.size = size
+		self.SetBackgroundColour('BLACK')
+		self.SetForegroundColour('WHITE')
+
+		#self.Bind(wx.EVT_KEY_UP, self.OnKeyDown)
+		#self.Bind(wx.EVT_MOTION, self.OnMouse)
+		
+#		self.BoldFont = wx.Font(20, wx.SWISS, wx.NORMAL, wx.BOLD)
+#		self.RegFont = wx.Font(20, wx.SWISS, wx.NORMAL, wx.NORMAL)
+
+		self.BoldFont = wx.Font(20, wx.MODERN, wx.NORMAL, wx.BOLD)
+		self.RegFont = wx.Font(20, wx.MODERN, wx.NORMAL, wx.NORMAL)
+		#DrawRect(parent=p, id=10, pos=(1,1), size=(498,148))
+		self.infoLineGroup = []
+		self.setInfoLineGroup(nlines)
+
+	def setInfoLineGroup(self, dim):
+		for i in range(0,dim):
+			self.infoLineGroup = append(self.infoLineGroup, wx.StaticText(self, label="", pos=(10, 10+(i*30)), size=(self.size[0]-11, 30))) #50)))
+			self.infoLineGroup[i].SetFont(self.RegFont)
+			self.infoLineGroup[i].Wrap(self.GetSize().width)
+
+	def setLine(self, text, n):
+		if n < 0 or n > len(self.infoLineGroup)-1:
+			return
+		self.infoLineGroup[n].SetLabel(text)
+
+	def onPaint(self, e):
+		# establish the painting surface
+		dc = wx.PaintDC(self.panel)
+
+		dc.SetPen(wx.Pen('gray', 1))
+		dc.SetBrush(wx.Brush('black'))
+
+#		print self.pos[0], self.pos[1], self.size[0], self.size[1]
+#		rect = wx.Rect(self.pos[0], self.pos[1], self.size[0], self.size[1]) 
+
+		rect = wx.Rect(0, 0, self.size[0], self.size[1]) 
+		dc.DrawRoundedRectangleRect(rect, 0)
+
+#		self.setLine("line1", 0)
+#		self.setLine("line2", 1)
+#		self.setLine("line3", 2)
+
+		if False:
+			dc.SetPen(wx.Pen('blue', 4))
+			# draw a blue line (thickness = 4)
+			dc.DrawLine(50, 20, 300, 20)
+			dc.SetPen(wx.Pen('red', 1))
+			# draw a red rounded-rectangle
+			rect = wx.Rect(50, 50, 100, 100) 
+			dc.DrawRoundedRectangleRect(rect, 8)
+			# draw a red circle with yellow fill
+			dc.SetBrush(wx.Brush('yellow'))
+			x = 250
+			y = 100
+			r = 50
+			dc.DrawCircle(x, y, r)
+
+	def display(self, trueFalse):
+		self.Show(trueFalse)
+
+#	def hide(self):
+#		self.SetTransparent(0)
+#		self.Show(False)
+
+#	def show(self):
+#		self.SetTransparent(255)
+#		self.Show(True)
+
+
+"""
+	def OnKeyDown(self, event):
+		#quit if user press q or Esc
+		if event.GetKeyCode() == 27 or event.GetKeyCode() == ord('Q'): #27 is Esc
+			self.Close(force=True)
+		else:
+			event.Skip()
+
+	def OnMouse(self, event):
+		#implement dragging
+		if not event.Dragging():
+			self._dragPos = None
+			return
+		self.CaptureMouse()
+		if not self._dragPos:
+			self._dragPos = event.GetPosition()
+		else:
+			pos = event.GetPosition()
+			displacement = self._dragPos - pos
+			self.SetPosition( self.GetPosition() - displacement )
+"""
+
+#app = wx.App()
+#f = FancyFrame()
+#app.MainLoop()
+
+#######################################################
+
 
 # CLASS makeDashBoard ---------------------------------------------------------
 # This is the GUI entry point
@@ -201,6 +338,16 @@ class makeDashBoard(wx.Frame):
 			#self.SolarSystem.camera.oneTickCameraCombination(zoom=True, zoom_forward=True)
 		self.orbitalTab.Show()
 
+		# create a window used to display information above the viewPort.
+		# this information will reflect the user's current selection
+		# from a listbox of possible options.
+		self.infoWindow = createInfoWindow(pos=(50, 50), size=(300, 150), nlines=3)
+
+	def setInfoLine(self, text, line):
+		self.infoWindow.setLine(text, line)
+		
+	def showInfoWindow(self, trueFalse):
+		self.infoWindow.display(trueFalse)
 
 
 # CLASS FOCUSpanel ------------------------------------------------------------
@@ -324,6 +471,7 @@ class FOCUSpanel(AbstractUI):
 
 	def setCurrentBodyFocusManually(self, body, selectIndex):
 		self.rbox.SetSelection(selectIndex)
+		self.parentFrame.orbitalTab.initViewAngle(body)
 		self.OnRadioBox(None)
 		#self.setBodyFocus(body)
 
@@ -510,7 +658,7 @@ class SEARCHpanel(AbstractUI):
 		self.BoldFont = wx.Font(10, wx.SWISS, wx.NORMAL, wx.BOLD)
 		self.RegFont = wx.Font(10, wx.SWISS, wx.NORMAL, wx.NORMAL)
 
-		self.heading = wx.StaticText(self, label='Close Approach for '+self.fetchDateStr, pos=(20, MAIN_HEADING_Y))
+		self.heading = wx.StaticText(self, label='Close Approach for '+self.fetchDateStr, pos=(20, JPL_MAIN_HEADING_Y))
 		self.heading.SetFont(self.BoldFont)
 
 		self.download = wx.Button(self, label='Download List', pos=(320, JPL_DOWNLOAD_Y))
@@ -693,6 +841,7 @@ class SEARCHpanel(AbstractUI):
 			print "Querying: ", host+target
 			response = opener.open(host+target)
 			rawResp = response.read()
+			print rawResp
 
 		except urllib2.HTTPError as err:
 			if err.code == 300:
@@ -873,6 +1022,8 @@ class SEARCHpanel(AbstractUI):
 			elif elt["name"] == "tp":
 				self.SolarSystem.objects_data[spkid].update({"Tp_Time_of_perihelion_passage_JD": float(elt["value"])}) # value unit in "TDB" (Time Dynamic Baricenter)
 			elif elt["name"] == "per":
+				if elt["value"] == None:
+					elt["value"] = 0
 				self.SolarSystem.objects_data[spkid].update({"PR_revolution": float(elt["value"])})
 			elif elt["name"] == "n":
 				self.SolarSystem.objects_data[spkid].update({"N_mean_motion": float(elt["value"])})
@@ -991,11 +1142,15 @@ class ORBITALpanel(AbstractUI):
 		self.AnimLoop = 0
 		self.surfaceRadius = 0.0  # used for surface focus
 		self.todayUTCdatetime = self.SolarSystem.locationInfo.getUTCDateTime()
+		self.new_utcDatetime = self.todayUTCdatetime
+		self.new_localDatetime = self.todayUTCdatetime
+
 
 #		self.DaysIncrement = 0 # number of days from today - used for animation into future or past (detalT < 0)
 		self.DeltaT = 0
 		self.velocity = 0
-		self.distance = 0
+		self.dte = 0
+		self.dts = 0
 		self.list = []
 		self.listjplid = []
 		self.DetailsOn = False
@@ -1004,7 +1159,14 @@ class ORBITALpanel(AbstractUI):
 		self.RecorderOn = False
 		self.VideoRecorder = None
 		self.earthLoc = None
+		self.viewAngle = 0
+		self.followModeView = False
 		self.Hide()
+
+	def initViewAngle(self, body):
+		# update viewAngle with current body view Angle
+		print "init view angle for", body.Name 
+		self.viewAngle = atan2(body.Position[1], body.Position[0])
 
 	def resetDateFromBodyId(self, id):
 		diff =  self.SolarSystem.objects_data[id]["utc_dt"] - self.todayUTCdatetime
@@ -1052,13 +1214,13 @@ class ORBITALpanel(AbstractUI):
 		self.showObjectDetails(self.currentBody)
 
 	def setCurrentBodyFromId(self, id):
-		print "ZZZZZZZZZZZZZZZZZZZ"
 		if self.currentBody is not None:
 			self.currentBody.hide()
 
 		body = self.SolarSystem.getBodyFromName(id)
 		if body is not None:
 			self.currentBody = body
+			self.initViewAngle(body)
 			self.currentBody.Details = True
 			#print "Current body SET-1 with ", self.currentBody.Name, "Origin=",self.currentBody.Origin.pos
 			#print ""
@@ -1205,6 +1367,10 @@ class ORBITALpanel(AbstractUI):
 		self.AutoRotation.SetValue(False)
 		self.AutoRotation.Bind(wx.EVT_CHECKBOX,self.OnAutoAnimationClick)
 
+		self.followMode = wx.CheckBox(self, label="Follow Mode", pos=(200-30, DET_Y-20))
+		self.followMode.SetValue(False)
+		self.followMode.Bind(wx.EVT_CHECKBOX,self.OnFollowModeClick)
+
 		#
 		# current object details
 		#
@@ -1235,6 +1401,9 @@ class ORBITALpanel(AbstractUI):
 		# enable / disable mouse tracking based on auto animation status
 		self.SolarSystem._set_autoMovement(self.AutoRotation.GetValue())
 		wx.Event.Skip(e, True)
+
+	def OnFollowModeClick(self, e):
+		self.followModeView = self.followMode.GetValue()
 
 	def setCameraViewTarget(self, body):
 		self.SolarSystem.cameraViewTargetBody = body
@@ -1326,18 +1495,26 @@ class ORBITALpanel(AbstractUI):
 			if body.BodyType in [SUN, SPACECRAFT, OUTERPLANET, INNERPLANET, SATELLITE, ASTEROID, \
 								 COMET, DWARFPLANET, PHA, BIG_ASTEROID, TRANS_NEPT]:
 				if body.Origin.visible == True or body.Name.lower() == EARTH_NAME:
-					velocity, distance = body.animate(self.DeltaT)
+					velocity, dte, dts = body.animate(self.DeltaT)
+					#print "VEL:", velocity, "dte:", dte
 					if self.SolarSystem.cameraViewTargetBody is not None:
 						# update center position if we are NOT in the middle of a smooth transition and
 						# NOT in a location Referential view mode (point of view from current location)
-						if body.JPL_designation == self.SolarSystem.cameraViewTargetBody.JPL_designation and \
-							(self.SolarSystem.Dashboard.focusTab.smoothTransition == False and \
-							 self.SolarSystem.Dashboard.widgetsTab.Earth.PlanetWidgets.locationEarthEyeView == False):
+						if 	body.JPL_designation == self.SolarSystem.cameraViewTargetBody.JPL_designation and \
+							self.SolarSystem.Dashboard.focusTab.smoothTransition == False and \
+							self.SolarSystem.Dashboard.widgetsTab.Earth.PlanetWidgets.locationEarthEyeView == False:
+
 							self.SolarSystem.camera.updateCameraViewTarget()
 
-					if body.BodyType == self.Source or body.Details == True:
+					#if body.BodyType == self.Source or body.Details == True:
+
+					# save velocity and DTE/DTS info on object currently observednew_localDatetimeonAnimate
+					if self.SolarSystem.cameraViewTargetSelection == body.Name.lower() or \
+						(self.SolarSystem.cameraViewTargetSelection == CURRENT_BODY and \
+						 self.SolarSystem.cameraViewTargetBody.Name.lower() == body.Name.lower()):
 						self.velocity = velocity
-						self.distance = distance
+						self.dte = dte
+						self.dts = dts
 
 			#else:
 			#	print("UNKNOWN BODYTYPE:", body.BodyType)
@@ -1379,10 +1556,10 @@ class ORBITALpanel(AbstractUI):
 		if self.DetailsOn == True:
 			self.ObjVelocity.SetLabel("{:<12}{:>10.4f}".format("Vel.(km/s)", round(self.velocity/1000, 2)))
 
-	def setDistanceLabel(self):
+	def setDTElabel(self):
 		if self.DetailsOn == True:
-			#print "distance="+str(self.distance)
-			self.ObjDistance.SetLabel("{:<12}{:>10.4f}".format("DTE (AU)", float(self.distance)))
+			#print "dte="+str(self.dte)
+			self.ObjDistance.SetLabel("{:<12}{:>10.4f}".format("DTE (AU)", float(self.dte)))
 
 
 	# deltaTick is used for earth realtime rotation update, when enabled
@@ -1396,18 +1573,18 @@ class ORBITALpanel(AbstractUI):
 		#print self.SolarSystem.DaysIncrement
 
 	def refreshDate(self):
-		new_utcDatetime = self.todayUTCdatetime + datetime.timedelta(days = self.DeltaT)
-		new_localDatetime = orbit3D.utc_to_local_fromDatetime(new_utcDatetime, self.SolarSystem.locationInfo)
+		self.new_utcDatetime = self.todayUTCdatetime + datetime.timedelta(days = self.DeltaT)
+		self.new_localDatetime = orbit3D.utc_to_local_fromDatetime(self.new_utcDatetime, self.SolarSystem.locationInfo)
 		#print "Refresh DATE: UTC = ", new_utcDatetime, ", LOCAL=",new_localDatetime
 		
-		self.dateDSpin.SetValue(new_utcDatetime.day)
-		self.dateMSpin.SetValue(new_utcDatetime.month)
-		self.dateYSpin.SetValue(new_utcDatetime.year)
+		self.dateDSpin.SetValue(self.new_utcDatetime.day)
+		self.dateMSpin.SetValue(self.new_utcDatetime.month)
+		self.dateYSpin.SetValue(self.new_utcDatetime.year)
 
-		self.updateTimeDisplay(new_utcDatetime, new_localDatetime)
+		self.updateTimeDisplay(self.new_utcDatetime, self.new_localDatetime)
 
 		self.setVelocityLabel()
-		self.setDistanceLabel()
+		self.setDTElabel()
 		#print ("refresh Date")
 
 	def updateTimeDisplay(self, utcDatetime, localDatetime):
@@ -1536,7 +1713,7 @@ class ORBITALpanel(AbstractUI):
 		self.InfoTitle.SetLabel(body.Name)
 
 		print "ANIMATE deltaT=", self.DeltaT
-		self.velocity, self.distance = body.animate(self.DeltaT)
+		self.velocity, self.dte, self.dts = body.animate(self.DeltaT)
 		if body.Mass == 0:
 			mass = "???"
 		else:
@@ -1671,17 +1848,39 @@ class ORBITALpanel(AbstractUI):
 		#self.AnimationInProgress = False # stop potential animation in progress
 		#self.OneTimeIncrement()
 
+
 	def OneTimeIncrement(self):
 		self.DeltaT += self.TimeIncrement
+
+		# perform animation actions when requested
+		self.executeAnimationActions()
+
+		# animate by one TimeIncrement all bodies in the solar system
+		self.updateSolarSystem()
+		sleep(1e-2)
+		#sleep(1e-4)
+
+	def executeAnimationActions(self):
 		# if auto movement is required, execute it
 		if self.AutoRotation.GetValue() == True:
 #			self.SolarSystem.camera.cameraTest(frame=1)
 			#self.SolarSystem.camera.oneTickCameraCombination(zoom=True, zoom_forward=True)
 			self.SolarSystem.camera.oneTickCameraRotationWithDirection(direction = self.SolarSystem.camera.ROT_HOR|self.SolarSystem.camera.ROT_LEFT)
-		# animate by one TimeIncrement all bodies in the solar system
-		self.updateSolarSystem()
-		sleep(1e-2)
-		#sleep(1e-4)
+
+		# follow mode view (camera tracks the subject 
+		# in its trajectory using the same angle)
+		if self.followModeView == True:
+            # update camera forward vector to follow the earth (either from the 
+            # sun's perspective or from the forward vector current position)
+			self.updateConstantForwardVectorMode()
+
+	def updateConstantForwardVectorMode(self, sunPerspective = False):
+		# we use self.SolarSystem.cameraViewTargetBody
+		# alternate view: using the current forward vector, match vector rotation with earth angular speed
+		if self.SolarSystem.cameraViewTargetBody is not None:
+			angle = atan2(self.SolarSystem.cameraViewTargetBody.Position[1], self.SolarSystem.cameraViewTargetBody.Position[0])
+			self.SolarSystem.Scene.forward = rotate(self.SolarSystem.Scene.forward, angle=(angle-self.viewAngle), axis=(0,0,1)) #self.Widgets.ECSS.ZdirectionUnit)
+			self.viewAngle = angle
 
 
 	def SetAnimationCallback(self, callbackFunc, args):
@@ -1750,7 +1949,6 @@ class ORBITALpanel(AbstractUI):
 		sec = time.gmtime(time.time()).tm_sec
 		framerate = 0
 
-
 		while self.AnimationInProgress:
 #			sleep(1e-2)
 			#sleep(1e-3)
@@ -1797,7 +1995,43 @@ class WIDGETSpanel(AbstractUI):
 		self.checkboxList = {}
 		self.Locations = []
 		self.locIndexes = []
+		self.locationID = 0
 
+		self.currentInfoAction = 1 # need to find a mechanism to assign a value to currentAction based on what the user picks (each option is mutually exclusive)
+		self.infoWindowActions = {
+                0: self.dummy,
+                1: self.UTCdatetime,
+				2: self.Dynamics
+            }
+		"""
+		self.CameraSettings = []
+		self.cameraSettingActions = {
+			0: self.OnFollowMode,
+			1: self.OnEarthEyeView
+		}
+		"""
+
+	def Dynamics(self):
+		ctrl = self.parentFrame.orbitalTab
+#		self.parentFrame.setInfoLine("{:<12}{:>10.4f}".format("Vel:", round(ctrl.velocity/1000, 2),"km/s"), 0)
+		self.parentFrame.setInfoLine("Vel: "+"{:>06.4f}".format(round(ctrl.velocity/1000, 2))+" km/s", 0)
+#		self.parentFrame.setInfoLine("{:<12}{:>10.4f}".format("DTE:", float(ctrl.dte),"AU"), 1)
+		self.parentFrame.setInfoLine("DTE: "+"{:>06.4f}".format(float(ctrl.dte))+" AU", 1)
+		self.parentFrame.setInfoLine("DTS: "+"{:>06.4f}".format(float(ctrl.dts))+" AU", 2)
+
+
+	def UTCdatetime(self):
+		ctrl = self.parentFrame.orbitalTab
+		self.parentFrame.setInfoLine("UTC: "+index_to_month[ctrl.dateMSpin.GetValue()]+" {:>02}".format(str(ctrl.dateDSpin.GetValue())), 0)
+		self.parentFrame.setInfoLine("{:>5}{:>2}:{:>2}:{:2}".format("", str(ctrl.new_utcDatetime.hour).zfill(2), str(ctrl.new_utcDatetime.minute).zfill(2), str(ctrl.new_utcDatetime.second).zfill(2)), 1)
+
+	def CurLocDatetime(self): # todo
+		ctrl = self.parentFrame.orbitalTab
+		self.parentFrame.setInfoLine("UTC: "+index_to_month[ctrl.dateMSpin.GetValue()]+" {:>02}".format(str(ctrl.dateDSpin.GetValue())), 0)
+		self.parentFrame.setInfoLine("{:>5}{:>2}:{:>2}:{:2}".format("", str(ctrl.new_utcDatetime.hour).zfill(2), str(ctrl.new_utcDatetime.minute).zfill(2), str(ctrl.new_utcDatetime.second).zfill(2)), 1)
+
+	def dummy(self):
+		pass
 
 	def InitUI(self):
 
@@ -1805,7 +2039,8 @@ class WIDGETSpanel(AbstractUI):
 		self.RegFont = wx.Font(10, wx.SWISS, wx.NORMAL, wx.NORMAL)
 		self.SurfaceDirection = [0,0,0]
 
-		heading = wx.StaticText(self, label='Earth Widgets', pos=(20, MAIN_HEADING_Y))
+		######## Widgets section ########
+		heading = wx.StaticText(self, label='Earth Widgets', pos=(50, MAIN_HEADING_Y))
 		heading.SetFont(self.BoldFont)
 
 		self.eqcb = wx.CheckBox(self, label="Equator", pos=(50, CHK_L1)) #   CVT_Y+560))
@@ -1816,39 +2051,32 @@ class WIDGETSpanel(AbstractUI):
 		self.trcb.SetValue(False)
 		self.trcb.Bind(wx.EVT_CHECKBOX,self.OnDrawTropics)
 
-		self.eqpcb = wx.CheckBox(self, label="Equatorial Plane", pos=(50, CHK_L2)) #   CVT_Y+560))
-		self.eqpcb.SetValue(False)
-		self.eqpcb.Bind(wx.EVT_CHECKBOX,self.OnDrawEquatorialPlane)
-
-		self.ncb = wx.CheckBox(self, label="Nodes", pos=(50, CHK_L3)) #   CVT_Y+560))
-		self.ncb.SetValue(False)
-		self.ncb.Bind(wx.EVT_CHECKBOX,self.OnShowNodes)
-
-		self.mrcb = wx.CheckBox(self, label="Longitude lines", pos=(50, CHK_L4)) #   CVT_Y+560))
+		self.mrcb = wx.CheckBox(self, label="Longitude lines", pos=(50, CHK_L2)) #   CVT_Y+560))
 		self.mrcb.SetValue(False)
 		self.mrcb.Bind(wx.EVT_CHECKBOX,self.OnDrawLongitudeLines)
 
-		self.tzcb = wx.CheckBox(self, label="Time zones", pos=(230, CHK_L4)) #   CVT_Y+560))
+		self.tzcb = wx.CheckBox(self, label="Time zones", pos=(230, CHK_L2)) #   CVT_Y+560))
 		self.tzcb.SetValue(False)
 		self.tzcb.Bind(wx.EVT_CHECKBOX,self.OnDrawTZLines)
 
-		self.latcb = wx.CheckBox(self, label="Latitude lines", pos=(50, CHK_L5)) #   CVT_Y+560))
+		self.latcb = wx.CheckBox(self, label="Latitude lines", pos=(50, CHK_L3)) #   CVT_Y+560))
 		self.latcb.SetValue(False)
 		self.latcb.Bind(wx.EVT_CHECKBOX,self.OnDrawLatitudeLines)
 
-		self.lrcb = wx.CheckBox(self, label="Planet-Centered-Inertial (PCI) Referential", pos=(50, CHK_L6)) #   CVT_Y+560))
-		self.lrcb.SetValue(False)
-		self.lrcb.Bind(wx.EVT_CHECKBOX,self.OnLocalRef)
+		self.eqpcb = wx.CheckBox(self, label="Equatorial Plane", pos=(50, CHK_L4)) #   CVT_Y+560))
+		self.eqpcb.SetValue(False)
+		self.eqpcb.Bind(wx.EVT_CHECKBOX,self.OnDrawEquatorialPlane)
 
-		self.lr2cb = wx.CheckBox(self, label="Earth-Centered-Earth-Fixed (ECEF) Referential", pos=(50, CHK_L7)) #   CVT_Y+560))
-		self.lr2cb.SetValue(False)
-		self.lr2cb.Bind(wx.EVT_CHECKBOX,self.OnECEFRef)
+		self.ncb = wx.CheckBox(self, label="Nodes", pos=(50, CHK_L5)) #   CVT_Y+560))
+		self.ncb.SetValue(False)
+		self.ncb.Bind(wx.EVT_CHECKBOX,self.OnShowNodes)
 
-		self.hpcb = wx.CheckBox(self, label="Hide Planet", pos=(50, CHK_L8)) #   CVT_Y+560))
+		self.hpcb = wx.CheckBox(self, label="Hide Planet", pos=(50, CHK_L6)) #CHK_L8)) #   CVT_Y+560))
 		self.hpcb.SetValue(False)
 		self.hpcb.Bind(wx.EVT_CHECKBOX,self.OnHidePlanet)
 
-		lheading = wx.StaticText(self, label='Locations', pos=(50, CHK_L9))
+		########### Locations section ###########
+		lheading = wx.StaticText(self, label='Locations', pos=(50, CHK_L8))
 		lheading.SetFont(self.BoldFont)
 
 		self.createLocationList(50, CBBOX_1)
@@ -1857,41 +2085,117 @@ class WIDGETSpanel(AbstractUI):
 		#self.flcb.SetValue(False)
 		#self.flcb.Bind(wx.EVT_CHECKBOX,self.OnCenterToSurface)
 
-		self.ncpcb = wx.CheckBox(self, label="Show TopoCentric Referential", pos=(50, CHK_L12)) #   CVT_Y+560))
-		self.ncpcb.SetValue(False)
-		self.ncpcb.Disable()
-		self.ncpcb.Bind(wx.EVT_CHECKBOX,self.OnShowTopoCentricRef)
-
-		self.cpcb = wx.CheckBox(self, label="Re-Center to Earth's center", pos=(230, CHK_L12)) #   CVT_Y+560))
-		self.cpcb.SetValue(False)
-		self.cpcb.Disable()
-		self.cpcb.Bind(wx.EVT_CHECKBOX,self.OnReCenter)
-
-		aheading = wx.StaticText(self, label='Analemma', pos=(50, CHK_L14))
-		aheading.SetFont(self.BoldFont)
-
-		self.acb = wx.CheckBox(self, label="Animate 24h period", pos=(50, CHK_L15)) #   CVT_Y+560))
-		self.acb.SetValue(False)
-		self.acb.Disable()
-
-		self.acb.Bind(wx.EVT_CHECKBOX,self.OnAnimate24h)
-
-		self.animate24 = False
-
-		self.arcb = wx.CheckBox(self, label="Earth-Centered-Syn-Synchronous (ECSS) Referential", pos=(50, CHK_L16)) #   CVT_Y+560))
-		self.arcb.SetValue(False)
-		self.arcb.Bind(wx.EVT_CHECKBOX,self.OnShowECSS)
-
-		self.racb = wx.CheckBox(self, label="Reset Analemma", pos=(50, CHK_L17)) #   CVT_Y+560))
-		self.racb.SetValue(False)
-		self.racb.Disable()
-		self.racb.Bind(wx.EVT_CHECKBOX,self.OnResetAnalemma)
-
-		self.lacb = wx.CheckBox(self, label="Location Referential View", pos=(50, CHK_L18)) #   CVT_Y+560))
+		self.lacb = wx.CheckBox(self, label="Location Referential View", pos=(50, CHK_L11)) #CHK_L18)) #   CVT_Y+560))
 		self.lacb.SetValue(False)
 		self.lacb.Disable()
 		self.lacb.Bind(wx.EVT_CHECKBOX,self.OnEarthEyeView)
 
+		self.cpcb = wx.CheckBox(self, label="Re-Center to Earth's center", pos=(50, CHK_L12)) #230, CHK_L12)) #   CVT_Y+560))
+		self.cpcb.SetValue(False)
+		self.cpcb.Disable()
+		self.cpcb.Bind(wx.EVT_CHECKBOX,self.OnReCenter)
+
+
+		######## Referentials section #########
+		rheading = wx.StaticText(self, label='Referentials', pos=(50, CHK_L14))
+		rheading.SetFont(self.BoldFont)
+
+		self.lrcb = wx.CheckBox(self, label="Earth-Centered-Inertial (ECI) Referential", pos=(50, CHK_L15B)) #   CVT_Y+560))
+		self.lrcb.SetValue(False)
+		self.lrcb.Bind(wx.EVT_CHECKBOX,self.OnLocalRef)
+
+		self.lr2cb = wx.CheckBox(self, label="Earth-Centered-Earth-Fixed (ECEF) Referential", pos=(50, CHK_L16)) #   CVT_Y+560))
+		self.lr2cb.SetValue(False)
+		self.lr2cb.Bind(wx.EVT_CHECKBOX,self.OnECEFRef)
+
+		self.arcb = wx.CheckBox(self, label="Earth-Centered-Sun-Synchronous (ECSS) Referential", pos=(50, CHK_L17)) #   CVT_Y+560))
+		self.arcb.SetValue(False)
+		self.arcb.Bind(wx.EVT_CHECKBOX,self.OnShowECSS)
+
+		self.ncpcb = wx.CheckBox(self, label="TopoCentric Referential", pos=(50, CHK_L18)) #   CVT_Y+560))
+		self.ncpcb.SetValue(False)
+		self.ncpcb.Disable()
+		self.ncpcb.Bind(wx.EVT_CHECKBOX,self.OnShowTopoCentricRef)
+
+		########## Analemma section ##########
+		aheading = wx.StaticText(self, label='Analemma', pos=(50, CHK_L20))
+		aheading.SetFont(self.BoldFont)
+
+		self.acb = wx.CheckBox(self, label="Animate 24h period", pos=(50, CHK_L21)) 
+		self.acb.SetValue(False)
+		self.acb.Disable()
+		self.acb.Bind(wx.EVT_CHECKBOX,self.OnAnimate24h)
+		self.animate24 = False
+
+
+		self.srcb = wx.CheckBox(self, label="Show Sun Ray", pos=(50, CHK_L22)) #CHK_L18)) #   CVT_Y+560))
+		self.srcb.SetValue(False)
+		self.srcb.Disable()
+		self.srcb.Bind(wx.EVT_CHECKBOX,self.OnShowSunRay)
+
+		self.sacb = wx.CheckBox(self, label="Show Analemma", pos=(50, CHK_L23)) #CHK_L18)) #   CVT_Y+560))
+		self.sacb.SetValue(False)
+		self.sacb.Disable()
+		self.sacb.Bind(wx.EVT_CHECKBOX,self.OnShowAnalemma)
+
+		self.dmcb = wx.CheckBox(self, label="Display Months", pos=(250, CHK_L23)) #CHK_L18)) #   CVT_Y+560))
+		self.dmcb.SetValue(False)
+		self.dmcb.Disable()
+		self.dmcb.Bind(wx.EVT_CHECKBOX,self.OnDisplayMonths)
+
+		self.racb = wx.CheckBox(self, label="Reset Analemma", pos=(50, CHK_L24)) #CHK_L17)) #   CVT_Y+560))
+		self.racb.SetValue(False)
+		self.racb.Disable()
+		self.racb.Bind(wx.EVT_CHECKBOX,self.OnResetAnalemma)
+
+		########## Camera section ##########
+
+		iheading = wx.StaticText(self, label='Info Settings', pos=(50, CHK_L26))
+		iheading.SetFont(self.BoldFont)
+		self.iscb = wx.CheckBox(self, label="UTC time", pos=(50, CHK_L27)) #CHK_L17)) #   CVT_Y+560))
+		self.iscb.SetValue(False)
+		self.iscb.Bind(wx.EVT_CHECKBOX,self.OnShowUTCInfo)
+
+		if False:
+			cheading = wx.StaticText(self, label='Camera Settings', pos=(50, CHK_L26))
+			cheading.SetFont(self.BoldFont)
+			lblList = ['Follow Mode', 'Location View']
+			self.rbox = wx.RadioBox(self,label = 'Animation Settings', pos = (50, CBBOX_2), size=(165, 170), choices = lblList ,majorDimension = 1, style = wx.RA_SPECIFY_COLS)
+			self.rbox.SetFont(self.RegFont)
+			self.rbox.Bind(wx.EVT_RADIOBOX,self.OnCameraSettings)
+
+	#		self.createCameraSettingsList(50, CBBOX_2)
+
+	INFO_UTC = 0
+	def OnShowUTCInfo(self, e):
+		self.parentFrame.showInfoWindow(self.iscb.GetValue()) #### need to parametrize to allow for other actions than just UTC info
+
+	def OnCameraSettingsXX(self, e):
+
+		index = self.rbox.GetSelection()
+		self.Source = {0: PHA, 1: COMET, 2:BIG_ASTEROID, 3:TRANS_NEPT}[index]
+		self.cameraSettingsActions[index](e)
+
+	def OnFollowMode(self, e):
+		self.Parent.orbitalTab.followModeView = True
+
+
+	def createCameraSettingsListXXX(self, xpos, ypos):
+		self.CameraSettings = ["Follow Mode", "Location Referential View"]
+		self.cameraSettingActions = {
+			0: self.OnFollowMode,
+			1: self.OnEarthEyeView
+		}
+
+		
+		#i = 0
+		#for setting in settings:
+		#	self.CameraSettings.append(setting)
+		#	self.CameraSettingsIndexes.append(i)
+		#	i += 1
+
+		self.combCam = wx.ComboBox(self, id=wx.ID_ANY, value="Select a Camera Setting", size=wx.DefaultSize, pos=(xpos, ypos), choices=self.CameraSettings, style=(wx.CB_DROPDOWN))
+		self.combCam.Bind(wx.EVT_COMBOBOX, self.OnSelectCameraSetting)
 
 	def createLocationList(self, xpos, ypos):
 		i = 0
@@ -1909,41 +2213,51 @@ class WIDGETSpanel(AbstractUI):
 
 	def OnSelectLocation(self, e):
 		if self.parentFrame.orbitalTab.AnimationInProgress == False:
-			locationID = self.locIndexes[e.GetSelection()]
+			self.locationID = self.locIndexes[e.GetSelection()]
 			self.comb.Dismiss() # this will close the combo 
 			self.cpcb.Enable()
-			self.SolarSystem.camera.gotoEarthLocationVertical(locationID)
+			self.SolarSystem.camera.gotoEarthLocationVertical(self.locationID)
 			self.Earth.PlanetWidgets.Loc[self.Earth.PlanetWidgets.currentLocation].makeTopoCentricRef()
 			self.acb.Enable()
 			self.ncpcb.Enable()
 			self.lacb.Enable()
+			self.srcb.Enable()
+			self.dmcb.Enable()
+			self.racb.Enable()
+			self.sacb.Enable()
 		else:
 			self.comb.Dismiss() # this will close the combo 
 			self.resetLocationList()
 			print ">> Earth Location motion are disabled when animation is in progress"
 
-	def OnResetAnalemma(self, e):
-		if self.Earth.PlanetWidgets.currentLocation == -1:
-			self.racb.SetValue(False)
-			return
+	def OnSelectCameraSetting(self, e):
+		self.cameraActions[e.GetSelection()](e)
 
-		if self.racb.GetValue() == True:
-			self.Earth.PlanetWidgets.Loc[self.Earth.PlanetWidgets.currentLocation].resetAnalemma()
+	def OnResetAnalemma(self, e):
+		loc = self.getLocation()
+		if loc is not None:
+			if self.racb.GetValue() == True:
+				#self.Earth.PlanetWidgets.Loc[self.Earth.PlanetWidgets.currentLocation].resetAnalemma()
+				loc.resetAnalemma()
+				self.racb.SetValue(False)
+				self.racb.Disable()
+		else:
 			self.racb.SetValue(False)
-			self.racb.Disable()
+
 
 	def OnEarthEyeView(self, e):
-		if self.Earth.PlanetWidgets.currentLocation == -1:
-			self.lacb.SetValue(False)
-			return
-
-		if self.lacb.GetValue() == True:
-			self.Earth.PlanetWidgets.Loc[self.Earth.PlanetWidgets.currentLocation].setEarthEyeView(True)
-			#self.lacb.Disable()
+		loc = self.getLocation()
+		if loc is not None:
+			if self.lacb.GetValue() == True:
+				#self.Earth.PlanetWidgets.Loc[self.Earth.PlanetWidgets.currentLocation].setEarthEyeView(True)
+				loc.setEarthEyeView(True)
+				#self.lacb.Disable()
+			else:
+#				self.Earth.PlanetWidgets.Loc[self.Earth.PlanetWidgets.currentLocation].setEarthEyeView(False)
+				loc.setEarthEyeView(False)
+				self.lacb.SetValue(False)
 		else:
-			self.Earth.PlanetWidgets.Loc[self.Earth.PlanetWidgets.currentLocation].setEarthEyeView(False)
 			self.lacb.SetValue(False)
-
 
 
 	def OnResetAnalemma_save(self, e):
@@ -1956,37 +2270,81 @@ class WIDGETSpanel(AbstractUI):
 			self.Earth.PlanetWidgets.Loc[self.Earth.PlanetWidgets.currentLocation].resetAnalemma()
 			self.racb.SetValue(False)
 
-	def OnAnimate24h(self, e):
-		if self.Earth.PlanetWidgets.currentLocation == -1:
-			self.acb.SetValue(False)
-			return
 
-		loc = self.Earth.PlanetWidgets.Loc[self.Earth.PlanetWidgets.currentLocation]
-		if self.acb.GetValue() == True:
-			self.animate24 = True
-			self.parentFrame.orbitalTab.TimeIncrement = TI_24_HOURS_ANA
-			self.SolarSystem.setTimeIncrement(self.parentFrame.orbitalTab.TimeIncrement)
-			loc.createAnalemma()
-			loc.displayAnalemma(True)
-			self.parentFrame.orbitalTab.OnAnimate(e)
-			self.racb.Enable()
+	def OnAnimate24h(self, e):
+		loc = self.getLocation()
+		if loc is not None:
+			if self.acb.GetValue() == True:
+				self.animate24 = True
+				self.parentFrame.orbitalTab.TimeIncrement = TI_24_HOURS
+				self.SolarSystem.setTimeIncrement(self.parentFrame.orbitalTab.TimeIncrement)
+
+				########### loc.createAnalemma()
+				####loc.showAnalemma(True)
+				
+				self.parentFrame.orbitalTab.OnAnimate(e)
+				self.racb.Enable()
+			else:
+				# 1) stop animation
+				self.parentFrame.orbitalTab.OnAnimate(e)
+				# 2) reset TimeIncrement with proper value from sliders
+				self.parentFrame.orbitalTab.OnAnimTimeSlider(e)
+				
+				#loc.showAnalemma(False)
+				
+				self.animate24 = False
 		else:
-			# 1) stop animation
-			self.parentFrame.orbitalTab.OnAnimate(e)
-			# 2) reset TimeIncrement with proper value from sliders
-			self.parentFrame.orbitalTab.OnAnimTimeSlider(e)
-			loc.displayAnalemma(False)
-			self.animate24 = False
-			#self.Earth.PlanetWidgets.AnaLemma.display(False)
-			#loc.displayAnalemma(False)
+			self.acb.SetValue(False)
+
+	def OnShowSunRay(self, e):
+		loc = self.getLocation()
+		if loc is not None:
+			loc.displaySunRay(self.srcb.GetValue())
+		else:
+			self.srcb.SetValue(False)
+
+	def OnShowAnalemma(self, e):
+		loc = self.getLocation()
+		if loc is not None:
+			loc.showAnalemma(self.sacb.GetValue())
+		else:
+			self.acb.SetValue(False)
+
+
+	def OnDisplayMonths(self, e):
+		loc = self.getLocation()
+		if loc is not None:
+			loc.analemma.showAnaLabels(self.dmcb.GetValue())
+		else:
+			self.dmcb.SetValue(False)
+
+	def getLocation(self):
+		if self.Earth.PlanetWidgets.currentLocation == -1:
+			return None
+		else:
+			return self.Earth.PlanetWidgets.Loc[self.Earth.PlanetWidgets.currentLocation]
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 	def OnAnimate24h_save(self, e):
 		if self.acb.GetValue() == True:
 			self.parentFrame.orbitalTab.TimeIncrement = TI_24_HOURS
 			self.SolarSystem.setTimeIncrement(self.parentFrame.orbitalTab.TimeIncrement)
 			loc = self.Earth.PlanetWidgets.Loc[self.Earth.PlanetWidgets.currentLocation]
-			loc.createAnalemma()
-			loc.displayAnalemma(True)
+			#loc.createAnalemma()
+			loc.showAnalemma(True)
 			#-> self.parentFrame.orbitalTab.OnAnimate(e)
 		else:
 			# 1) stop animation
@@ -1994,7 +2352,7 @@ class WIDGETSpanel(AbstractUI):
 			# 2) reset TimeIncrement with proper value from sliders
 			self.parentFrame.orbitalTab.OnAnimTimeSlider(e)
 			#self.Earth.PlanetWidgets.AnaLemma.display(False)
-			self.Earth.PlanetWidgets.Loc[self.Earth.PlanetWidgets.currentLocation].displayAnalemma(False)
+			self.Earth.PlanetWidgets.Loc[self.Earth.PlanetWidgets.currentLocation].showAnalemma(False)
 
 	def OnShowECSS(self, e):
 		self.Earth.PlanetWidgets.ECSS.display(self.arcb.GetValue())
@@ -2042,6 +2400,20 @@ class WIDGETSpanel(AbstractUI):
 		self.acb.SetValue(False)
 		self.ncpcb.Disable()
 		self.ncpcb.SetValue(False)
+
+		self.lacb.Disable()
+		self.lacb.SetValue(False)
+		self.srcb.Disable()
+		self.srcb.SetValue(False)
+		self.dmcb.Disable()
+		self.dmcb.SetValue(False)
+		self.lacb.Disable()
+		self.lacb.SetValue(False)
+		self.racb.Disable()
+		self.racb.SetValue(False)
+		self.sacb.Disable()
+		self.sacb.SetValue(False)
+
 
 		# if an anmation is in progress, make sure to stop it.
 		if self.animate24 == True:

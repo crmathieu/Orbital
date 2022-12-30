@@ -102,47 +102,31 @@ class makePlanetWidgets():
             'legend': ["tg","orth","z"],
    			'make_axis': True
         })
-        self.ECSS.setAxisTilt() #initiateReferentialTilt()
-        #def  __init__(self, body, radius, tiltAngle, show = False, color = Color.white, ratio = [1,1,1], legend = ["x", "y", "z"], axisLock = False):
+        self.ECSS.setAxisTilt() 
 
-        """
-        self.ECSS = frame()     
-        self.ECSS.pos = self.Planet.Origin.pos
-        self.Axis = [None,None,None]
-        self.radius = (self.Planet.radiusToShow/self.Planet.SizeCorrection[self.Planet.sizeType])*0.999
-        """
-
-        # compute rotation
+        # calculate initial angle of planet on its ecliptic based on current coordinates
         self.ECSSangle = atan2(self.Planet.Position[1], self.Planet.Position[0])
-#        self.ECSS.referential.rotate(angle=(pi/2 + self.ECSSangle), axis=(0,0,self.ECSS.Axis[2])) #self.Planet.SolarSystem.ZdirectionUnit)
-#        self.ECSS.referential.rotate(angle=(pi/2 + self.ECSSangle), axis=(0,0,self.ECSS.ZdirectionUnit)) #self.Planet.SolarSystem.ZdirectionUnit)
-
-        self.ECSS.referential.rotate(angle=(self.ECSSangle + pi/2), axis=self.ECSS.ZdirectionUnit) #self.Planet.SolarSystem.ZdirectionUnit)
-
-        #self.ECSS.referential.rotate(angle=(self.ECSSangle), axis=self.ECSS.ZdirectionUnit) #self.Planet.SolarSystem.ZdirectionUnit)
-
+        # then rotate referential accordingly to be sun synchronous
+        self.ECSS.referential.rotate(angle=(self.ECSSangle + pi/2), axis=self.ECSS.ZdirectionUnit)
         self.ECSS.display(False)
-        return 
-
-        pos = vector(self.ECSS.pos)
-        directions = [vector(2*self.radius,0,0), vector(0,2*self.radius,0), vector(0,0,2*self.radius)]
-
-        for i in [0,1,2]:
-            self.Axis[i] = simpleArrow(Color.white, 0, 20, self.ECSS.pos, axisp = directions[i])
-            self.Axis[i].display(True)
 
 
     def makeOverlayRef(self):
-        # the overlay referential will display all the earth's widgets:
-        # meridians, latitudes, earth locations, analemma etc...
+        # the overlay referential is attached to the ECEF referential and will
+        # be used as a reference by all objects built at the earth surface or
+        # orbiting it:
+        #   - locations
+        #   - analemmas 
+        #   - rocket trajectories 
+        #   - earth widgets (meridiens, latitudes, nodes, equator, tropics etc...) 
         self.OVRL = frame()
 
-        # link the overlay to earth's PCPF referential that rotates with the earth,
-        # so that the widgets rotation will happen through the PCPF ref
+        # link the overlay to earth's PCPF (ECEF) referential that rotates 
+        # with the earth, so that the widgets rotation will happen through the PCPF ref
         self.OVRL.frame = self.Planet.PCPF.referential
         self.OVRL.pos = (0,0,0)
 
-    def resetWidgetsRefFromSolarTime(self):
+    def resetWidgetsRefFromSolarTimeXXXXXXXXXXX(self):
 
         print "RESET WIDGET FROM SOLAR-TIME"
         if self.SiderealCorrectionAngle != 0.0:
@@ -163,6 +147,7 @@ class makePlanetWidgets():
 
     def resetWidgetsReferencesFromNewDate(self): #, fl_diff_in_days):
         print "RESET WIDGETS REF"
+        return ###########################
         if self.SiderealCorrectionAngle != 0.0:
             # there has been a previous manual reset of the UTC date which has resulted in a sidereal 
             # correction. We need to undo it prior to reposition the texture for the new date
@@ -554,27 +539,41 @@ class makePlanetWidgets():
 ###        self.ECSS.referential.pos = self.Planet.Origin.pos
 
     def updateCurrentLocationEcliptic(self):
-        if self.currentLocation >= 0: 
-            self.Loc[self.currentLocation].updateEclipticPosition()
+        self.Loc[self.currentLocation].updateEclipticPosition()
 
-    def updateCurrentLocationAnalemma(self):
+    def updateCurrentLocationAnalemma_SAVE(self):
         if self.currentLocation >= 0 and self.Loc[self.currentLocation].analemma is not None: 
             self.Loc[self.currentLocation].analemma.updateAnalemmaPosition()
 
+    def updateCurrentLocationAnalemma(self):
+        if self.Loc[self.currentLocation].SunAxis is not None:
+            self.Loc[self.currentLocation].updateSunRay()
+            if self.Loc[self.currentLocation].analemma is not None: 
+                self.Loc[self.currentLocation].analemma.updateAnalemmaPosition()
+
+            # update camera forward vector to follow the earth (either from the 
+            # sun's perspective or from the forward vector current position)
+            #self.Loc[self.currentLocation].updateForwardVectorIn24hMode()                
+
     def updateCurrentLocationTopoCentricView(self):
-        if self.currentLocation >= 0 and self.locationEarthEyeView == True:
+        if self.locationEarthEyeView == True:
             self.Loc[self.currentLocation].updateEarthEyeView()
+
+    def updateInfoWindow(self):
+        # display information in infoWindow based on user choice. The choice is 
+        # determined by the value of the integer value "currentInfoAction"
+        db = self.Planet.SolarSystem.getDashboard()
+        if db.widgetsTab.iscb.GetValue() == True:
+            db.widgetsTab.infoWindowActions[db.widgetsTab.currentInfoAction]()
 
     def animate(self):
         self.update_PCI_PCPF_ECSS_Position()
-        ### self.update_PCPF_Rotation()
         self.update_ECSS_Rotation()
-        #### self.Eq.updateNodesPosition()
-        self.updateCurrentLocationEcliptic()
-        #self.AnaLemma.updateAnalemmaPosition()
-        self.updateCurrentLocationAnalemma()
-
-        self.updateCurrentLocationTopoCentricView()
+        self.updateInfoWindow() #DateTime()
+        if self.currentLocation >= 0:
+            self.updateCurrentLocationEcliptic()
+            self.updateCurrentLocationAnalemma()
+            self.updateCurrentLocationTopoCentricView()
 
         ### self.EqPlane.updateEquatorialPlanePosition()	
 
@@ -604,6 +603,9 @@ class makeAnalemma():
     SUN_VERTEX = 0
     EARTH_VERTEX = 1
 
+    SPHERE_INTERSEC = 0
+    PLANE_INTERSEC = 1
+
     def __init__(self, earthLoc, intersecRatio):
         self.Loc = earthLoc
         self.Origin = self.Loc.Origin
@@ -613,14 +615,21 @@ class makeAnalemma():
         self.Shape = None
         self.anaLemmaIncrement = 0
         self.viewAngle = self.Loc.Widgets.ECSSangle
-
-        self.Shape = None
+        self.intersecDistanceFactor = intersecRatio
         self.analemmaIncrement = 0
-        self.distanceFactor = intersecRatio
-        self.IntersecRadius = self.Loc.Planet.getBodyRadius() * self.distanceFactor
-        self.GeoPlaneCenter = self.Loc.GeoLoc.pos * self.distanceFactor
+        self.Shape = None
         self.CurrentGeoLoc = self.Loc.getEclipticPosition()
+
+        # Intersec
+        self.IntersecFunc = [self.getAnalemmaSphereIntersec, self.getAnalemmaPlaneIntersec]
+        self.IntersecType = self.SPHERE_INTERSEC
+
+        # Plane intersec
+        self.GeoPlaneCenter = self.Loc.GeoLoc.pos * self.intersecDistanceFactor
         
+        # Sphere intersec
+        self.IntersecRadius = self.Loc.Planet.getBodyRadius() * self.intersecDistanceFactor
+
         self.AnaFrame = frame()
         self.AnaFrame.frame = self.Origin
         self.AnaPositions = []
@@ -628,21 +637,42 @@ class makeAnalemma():
 
         #self.setTgPlane()
         #self.setAnaLemmaSphere()
-        self.makeSunAxis()
+        ###### self.makeSunAxis()
 
     def reset(self):
         if self.Shape is not None:
             self.Shape.visible = False
-            self.SunAxis.visible = False
-            del self.SunAxis
+            #self.SunAxis.visible = False
+            #del self.SunAxis
             del self.Shape
+            for s,l in self.AnaPositions:
+                s.visible = l.visible = False
+                del s
+                del l
+
             self.Shape = None
+            self.AnaPositions = []
             self.analemmaIncrement = 0
 
-    def display(self, trueFalse):
+    def showAnaLabels(self, trueFalse):
+        for s,l in self.AnaPositions:
+            l.visible = trueFalse
+
+    def hideAnaPositions(self):
+        for s,l in self.AnaPositions:
+            s.visible = False
+
+    def displaySunRayXX(self, trueFalse):
+        #print "display SUNRAY:", trueFalse
         self.SunAxis.visible = trueFalse
 
-    def makeSunAxis(self):
+    def display(self, trueFalse):
+        self.Loc.SunAxis.visible = self.Loc.Planet.SolarSystem.Dashboard.widgetsTab.srcb.GetValue() #trueFalse
+        for s,l in self.AnaPositions:
+            s.visible = trueFalse
+            l.visible = self.Loc.Planet.SolarSystem.Dashboard.widgetsTab.dmcb.GetValue()
+
+    def makeSunAxisXX(self):
 
         # create first vertex in sun at z coordinate = earth latitude to create an axis parallel to ecliptic
         self.SunAxis = curve(pos=[(0,0,self.Loc.GeoLoc.pos[2])], color=Color.yellow, visible=False,  material=materials.emissive, radius=0)
@@ -652,30 +682,41 @@ class makeAnalemma():
 
         # we now have a sun-earth segment that links a particular latitude to the Sun light direction
 
-    def updateAnalemmaPosition(self):
-       
-        self.CurrentGeoLoc = self.Loc.updateEclipticPosition()
-        self.SunAxis.pos[self.EARTH_VERTEX] = self.CurrentGeoLoc 
-        self.SunAxis.pos[self.SUN_VERTEX] = (0, 0, self.Loc.GeoLoc.pos[2])
+    def updateForwardVectorIn24hMode_XX(self, sunPerspective = False):
 
-        # if we are in 24h animation mode, update forward vector to face earth from the sun's perspective
-        if self.Loc.Planet.SolarSystem.Dashboard.widgetsTab.acb.GetValue() == True:
-
-            #self.getAnalemmaPlaneIntersec()
-            self.getAnalemmaSphereIntersec()
-
-            # update camera forward vector to follow the earth from the sun's perspective
-            #### self.Loc.Planet.SolarSystem.Scene.forward = vector(self.Loc.Planet.Origin.pos - (0, 0, self.CurrentGeoLoc[2] + 5*self.Loc.radius))
-
+        if sunPerspective == True:
+            # Sun's perpective
+            self.Loc.Planet.SolarSystem.Scene.forward = vector(self.Loc.Planet.Origin.pos - (0, 0, self.CurrentGeoLoc[2] + 5*self.Loc.radius))
+        else:
             # alternate view: using the current forward vector, match vector rotation with earth angular speed
             angle = atan2(self.Loc.Planet.Position[1], self.Loc.Planet.Position[0])
             self.Loc.Planet.SolarSystem.Scene.forward = rotate(self.Loc.Planet.SolarSystem.Scene.forward, angle=(angle-self.viewAngle), axis=self.Loc.Widgets.ECSS.ZdirectionUnit)
             self.viewAngle = angle
 
-    def setTgPlane(self):
-        self.TgPlane = box(frame=self.Origin, pos=self.distanceFactor*self.Loc.GeoLoc.pos, axis = self.Loc.UnitNormal, width=10*self.Loc.radius, length=0.0001, height=10*self.Loc.radius, material=materials.emissive, visible=False, color=Color.grey, opacity=1)
 
-    def setAnaLemmaSphere(self):
+    def updateAnalemmaPosition(self):
+       
+        ####self.CurrentGeoLoc = self.Loc.updateEclipticPosition()
+        #self.Loc.updateSunRay()
+        ###########self.SunAxis.pos[self.EARTH_VERTEX] = self.CurrentGeoLoc 
+        ###########self.SunAxis.pos[self.SUN_VERTEX] = (0, 0, self.Loc.GeoLoc.pos[2])
+
+        # if we are in 24h animation mode, update forward vector to face earth from the sun's perspective -or- follows 
+        if  self.Loc.Planet.SolarSystem.Dashboard.widgetsTab.acb.GetValue() == True and \
+            self.Loc.Planet.SolarSystem.Dashboard.widgetsTab.sacb.GetValue() == True:
+            # update Analemma only in "24h animation" mode (acb) and "show Analemma" check (sacb)
+            # use current intersection mode (Sphere or Plane) to create analemma
+            self.IntersecFunc[self.IntersecType]()
+
+        # update camera forward vector to follow the earth (either from the 
+        # sun's perspective or from the forward vector current position)
+        ########## self.updateForwardVectorIn24hMode()
+
+
+    def setTgPlaneXX(self):
+        self.TgPlane = box(frame=self.Origin, pos=self.intersecDistanceFactor*self.Loc.GeoLoc.pos, axis = self.Loc.UnitNormal, width=10*self.Loc.radius, length=0.0001, height=10*self.Loc.radius, material=materials.emissive, visible=False, color=Color.grey, opacity=1)
+
+    def setAnaLemmaSphereXX(self):
         self.Sphere = sphere(frame=self.Origin, pos=(0,0,0), radius=self.IntersecRadius, material=materials.emissive, visible=True, color=Color.gray, opacity=0.1)
         
     def getAnalemmaPlaneIntersec(self):
@@ -710,22 +751,22 @@ class makeAnalemma():
         if self.analemmaIncrement < TI_FULL_YEAR:
             PlaneCenter = self.Loc.Widgets.PCPF.referential.frame_to_world(self.Loc.Widgets.OVRL.frame_to_world(self.GeoPlaneCenter))
             Normal = self.Loc.Widgets.PCPF.referential.frame_to_world(self.Loc.Widgets.OVRL.frame_to_world(self.Loc.UnitNormal))
+            axis = self.Loc.SunAxis.pos
+            t = (PlaneCenter[0] - axis[self.SUN_VERTEX][0])*Normal[0] + \
+                (PlaneCenter[1] - axis[self.SUN_VERTEX][1])*Normal[1] + \
+                (PlaneCenter[2] - axis[self.SUN_VERTEX][2])*Normal[2]
 
-            t = (PlaneCenter[0] - self.SunAxis.pos[self.SUN_VERTEX][0])*Normal[0] + \
-                (PlaneCenter[1] - self.SunAxis.pos[self.SUN_VERTEX][1])*Normal[1] + \
-                (PlaneCenter[2] - self.SunAxis.pos[self.SUN_VERTEX][2])*Normal[2]
-
-            t = t / ((self.SunAxis.pos[self.SUN_VERTEX][0] - self.SunAxis.pos[self.EARTH_VERTEX][0])*Normal[0] +\
-                    (self.SunAxis.pos[self.SUN_VERTEX][1] - self.SunAxis.pos[self.EARTH_VERTEX][1])*Normal[1] + \
-                    (self.SunAxis.pos[self.SUN_VERTEX][2] - self.SunAxis.pos[self.EARTH_VERTEX][2])*Normal[2])
+            t = t / ((axis[self.SUN_VERTEX][0] - axis[self.EARTH_VERTEX][0])*Normal[0] +\
+                    (axis[self.SUN_VERTEX][1] - axis[self.EARTH_VERTEX][1])*Normal[1] + \
+                    (axis[self.SUN_VERTEX][2] - axis[self.EARTH_VERTEX][2])*Normal[2])
             # second, deduct the coordinates
-            self.Intersec =       ( self.SunAxis.pos[self.SUN_VERTEX][0] + t * (self.SunAxis.pos[self.SUN_VERTEX][0] - self.SunAxis.pos[self.EARTH_VERTEX][0]),
-                                    self.SunAxis.pos[self.SUN_VERTEX][1] + t * (self.SunAxis.pos[self.SUN_VERTEX][1] - self.SunAxis.pos[self.EARTH_VERTEX][1]),
-                                    self.SunAxis.pos[self.SUN_VERTEX][2] + t * (self.SunAxis.pos[self.SUN_VERTEX][2] - self.SunAxis.pos[self.EARTH_VERTEX][2]))
+            self.Intersec =       ( axis[self.SUN_VERTEX][0] + t * (axis[self.SUN_VERTEX][0] - axis[self.EARTH_VERTEX][0]),
+                                    axis[self.SUN_VERTEX][1] + t * (axis[self.SUN_VERTEX][1] - axis[self.EARTH_VERTEX][1]),
+                                    axis[self.SUN_VERTEX][2] + t * (axis[self.SUN_VERTEX][2] - axis[self.EARTH_VERTEX][2]))
             #print "intersec=",self.Intersec
             #print "geoLocAB=", self.EclipticPosition
             if self.Shape is None:
-                self.Shape = curve(frame=self.Loc.Widgets.OVRL, color=Color.red, visible=True, radius=5, material=materials.emissive)
+                self.Shape = curve(frame=self.Loc.Widgets.OVRL, color=Color.red, visible=False, radius=5, material=materials.emissive)
             
             # make sure the intersec is allowed (it must be between the sun and the 
             # earth location. If it's not, it means that the sun is below the horizon)
@@ -737,7 +778,7 @@ class makeAnalemma():
             self.analemmaIncrement = self.analemmaIncrement + self.Loc.Planet.SolarSystem.Dashboard.orbitalTab.TimeIncrement
             if self.analemmaIncrement >= TI_FULL_YEAR:
                 # stop showing earth-sun axis after completing a full year
-                self.display(False)
+                self.Loc.displaySunRay(False)
 
 
     def getAnalemmaSphereIntersec(self):
@@ -779,13 +820,13 @@ class makeAnalemma():
             sy = self.Loc.Planet.Origin.pos[1]
             sz = self.Loc.Planet.Origin.pos[2]
 
-            px = self.SunAxis.pos[self.SUN_VERTEX][0]
-            py = self.SunAxis.pos[self.SUN_VERTEX][1]
-            pz = self.SunAxis.pos[self.SUN_VERTEX][2]
+            px = self.Loc.SunAxis.pos[self.SUN_VERTEX][0]
+            py = self.Loc.SunAxis.pos[self.SUN_VERTEX][1]
+            pz = self.Loc.SunAxis.pos[self.SUN_VERTEX][2]
 
-            vx = px - self.SunAxis.pos[self.EARTH_VERTEX][0]
-            vy = py - self.SunAxis.pos[self.EARTH_VERTEX][1]
-            vz = pz - self.SunAxis.pos[self.EARTH_VERTEX][2]
+            vx = px - self.Loc.SunAxis.pos[self.EARTH_VERTEX][0]
+            vy = py - self.Loc.SunAxis.pos[self.EARTH_VERTEX][1]
+            vz = pz - self.Loc.SunAxis.pos[self.EARTH_VERTEX][2]
 
             A = vx*vx + vy*vy + vz*vz
             B = 2.0 * (px * vx + py * vy + pz * vz - vx * sx - vy * sy - vz * sz)
@@ -809,29 +850,31 @@ class makeAnalemma():
                               pz + (t1 * vz))
 
             if self.Shape is None:
-                self.Shape = curve(frame=self.Loc.Widgets.OVRL, color=Color.red, visible=True, radius=0, material=materials.emissive)
+                self.Shape = curve(frame=self.Loc.Widgets.OVRL, color=Color.red, visible=False, radius=0, material=materials.emissive)
             
             # make sure the intersec is allowed (it must be between the sun and the 
             # earth location. If it's not, it means that the sun is below the horizon)
 
-            ECSSgeoLoc = self.Loc.Widgets.ECSS.referential.world_to_frame(self.SunAxis.pos[self.EARTH_VERTEX])
+            ECSSgeoLoc = self.Loc.Widgets.ECSS.referential.world_to_frame(self.Loc.SunAxis.pos[self.EARTH_VERTEX])
             if ECSSgeoLoc[1] >= 0:
                 # add a point to the analemma shape until a full year is complete
                 pos = self.Loc.Widgets.OVRL.world_to_frame(self.Loc.Widgets.PCPF.referential.world_to_frame(self.Intersec))
                 self.Shape.append(pos = pos)
+                # add a sphere for each week of the year
                 self.days = (self.days + 1) % 7
                 if self.days == 0:
                     self.weeks = self.weeks + 1
                     if self.weeks <= 52:
                         s = sphere(frame=self.Origin, pos=pos, visible = True, radius=self.Loc.Planet.getBodyRadius()/200, color=Color.yellow, material = materials.emissive)
                         l = label(frame = self.Origin, color = Color.white,  text = index_to_month[self.Loc.Planet.SolarSystem.Dashboard.orbitalTab.dateMSpin.GetValue()],
-                                        pos = pos*(1.07), box = False, visible=True )
-                        self.AnaPositions.append(s)
+                                        #pos = pos*(1.07), opacity = 0, line = True, box = False, visible=True )
+                                        pos = pos, height = 9, xoffset = 1.1 * s.radius, yoffset = 0, opacity = 0, line = False, box = False, visible=self.Loc.Planet.SolarSystem.Dashboard.widgetsTab.dmcb.GetValue())
+                        self.AnaPositions.append((s, l))
 
             self.analemmaIncrement = self.analemmaIncrement + self.Loc.Planet.SolarSystem.Dashboard.orbitalTab.TimeIncrement
             if self.analemmaIncrement >= TI_FULL_YEAR:
                 # stop showing earth-sun axis after completing a full year
-                self.display(False)
+                self.Loc.displaySunRay(False)
 
 
 class makeEarthLocation():
@@ -852,8 +895,9 @@ class makeEarthLocation():
         self.analemma           = None
         self.GeoLoc             = sphere(frame=self.Origin, pos=vector(0,0,0), radius=10, color=self.Color, material = materials.emissive, opacity=0.5, axis=(0,0,1))
         self.TOPO               = None
-
+        self.SunAxis            = None
         self.Origin.axis.visible = True
+        self.viewAngle          = self.Widgets.ECSSangle
 
         # obtain location info. Earthloc is a tuple (lat, long, timezone)
         earthLoc = self.Planet.SolarSystem.locationInfo.getLocationInfo(tz_index)
@@ -863,10 +907,41 @@ class makeEarthLocation():
             self.long = earthLoc["long"]
             self.setGeoPosition()
             self.updateEclipticPosition()
+            #self.makeSunAxis()
             #self.setNormalToSurface()
             #self.setOrientation(self.NormalVec)
         else:
             self.Name = "None"
+
+    def updateForwardVectorIn24hMode(self, sunPerspective = False):
+
+        if sunPerspective == True:
+            # Sun's perpective
+            self.Planet.SolarSystem.Scene.forward = vector(self.Planet.Origin.pos - (0, 0, self.EclipticPosition[2] + 5*self.radius))
+        else:
+            # alternate view: using the current forward vector, match vector rotation with earth angular speed
+            angle = atan2(self.Planet.Position[1], self.Planet.Position[0])
+            self.Planet.SolarSystem.Scene.forward = rotate(self.Planet.SolarSystem.Scene.forward, angle=(angle-self.viewAngle), axis=self.Widgets.ECSS.ZdirectionUnit)
+            self.viewAngle = angle
+
+    def makeSunAxis(self):
+        if self.SunAxis is None:
+            # create first vertex in sun at z coordinate = earth latitude to create an axis parallel to ecliptic
+            self.SunAxis = curve(pos=[(0,0,self.GeoLoc.pos[2])], color=Color.yellow, visible=True,  material=materials.emissive, radius=0)
+
+            # add 2nd vertex as earth location in ecliptic coordinate
+            self.SunAxis.append(pos=self.EclipticPosition, color=Color.yellow)
+
+            # we now have a sun-earth segment that links a particular latitude to the Sun light direction
+
+    def updateSunRay(self):
+        self.SunAxis.pos[makeAnalemma.EARTH_VERTEX] = self.updateEclipticPosition()
+        self.SunAxis.pos[makeAnalemma.SUN_VERTEX] = (0, 0, self.GeoLoc.pos[2])
+
+    def displaySunRay(self, trueFalse):
+        #print "display SUNRAY:", trueFalse
+        self.makeSunAxis()
+        self.SunAxis.visible = trueFalse
 
     def makeTopoCentricRef(self):
 
@@ -883,19 +958,23 @@ class makeEarthLocation():
         self.setTopoCentricRef()
         #self.TOPO.display(True)
 
-    def createAnalemma(self):
+    def createAnalemmaXX(self):
         if self.analemma is None:
             self.analemma = makeAnalemma(self, 1.7)
 
-    def displayAnalemma(self, trueFalse):
-        if self.analemma is not None:
-            self.analemma.display(trueFalse)
+    def showAnalemma(self, trueFalse):
+        if self.analemma is None:
+            self.makeSunAxis()
+            self.analemma = makeAnalemma(self, 1.7)
+        #if self.analemma is not None:
+        self.analemma.display(trueFalse)
 
     def resetAnalemma(self):
         if self.analemma is not None:
             self.analemma.reset()
             del self.analemma
             self.analemma = None
+            #self.createAnalemma()
 
     def convertPolarToCartesian(self, radius):
         # calculate distance from z-axis to latitude line
@@ -1015,6 +1094,9 @@ class makeEarthLocation():
         self.NormalVec = vector(self.getGeoPosition())
         self.UnitNormal = norm(self.NormalVec)
         self.topoZ = simpleArrow(Color.white, 0, 10, self.GeoLoc.pos, axisp = (self.NormalVec/5), context = self.Origin)
+        self.zLabel = label( frame = self.Origin, color = Color.white,  text = "z",
+                             pos = self.GeoLoc.pos + (self.NormalVec/5)*(1.07), opacity = 0, box = False, visible=False )
+
         self.topoX = self.topoY = None
 
         # create a vector projection of goeloc on equatorial plane. 
@@ -1036,13 +1118,17 @@ class makeEarthLocation():
         if self.topoVecX is None:
             # the vectors are collinear. let's use the PCPF.RotAxis instead:
             self.topoVecX = getVectorOrthogonalToPlane(self.Origin.world_to_frame(self.Planet.PCPF.RotAxis), self.NormalVec) #getOrthogonalVector(self.NormalVec) * mag(self.NormalVec)
-        
+
         self.topoVecX *= mag(self.NormalVec)
         self.topoX = simpleArrow(Color.green, 0, 10, self.GeoLoc.pos, axisp = (self.topoVecX/5), context = self.Origin)
+        self.xLabel = label( frame = self.Origin, color = Color.green,  text = "E",
+                             pos = self.GeoLoc.pos + (self.topoVecX/5)*(1.07), opacity = 0, box = False, visible=False )
 
         # Finally get the vector y, orthogonal to the plane (x, z), pointing North
         self.topoVecY = getVectorOrthogonalToPlane(self.NormalVec, self.topoVecX) * mag(self.NormalVec) #getOrthogonalVector(self.NormalVec) * mag(self.NormalVec)
         self.topoY = simpleArrow(Color.white, 0, 10, self.GeoLoc.pos, axisp = (self.topoVecY/5), context = self.Origin)
+        self.yLabel = label( frame = self.Origin, color = Color.white,  text = "N",
+                             pos = self.GeoLoc.pos + (self.topoVecY/5)*(1.07), opacity = 0, box = False, visible=False )
             
         # Last but not least, set the view vector: The view vector determines the direction we see from the location
         
@@ -1144,7 +1230,7 @@ class makeEarthLocation():
 
     def updateViewVector(self):
         self.CurrentGeoLoc = self.getEclipticPosition()
-        self.SunFixed = False
+        self.SunFixed = False   # need to put this setting as a checkbox in widgetsPANEL
         if self.SunFixed == True:
             v = vector(0,0, self.GeoLoc.pos[2]) - vector(self.CurrentGeoLoc)
             self.locViewVector = vector(self.Origin.world_to_frame(self.Planet.PCPF.referential.world_to_frame(v)))/20
@@ -1212,8 +1298,11 @@ class makeEarthLocation():
 
     def displayTopoCentricRef(self, trueFalse):
         self.topoZ.display(trueFalse)
+        self.zLabel.visible = trueFalse
         self.topoX.display(trueFalse)
+        self.xLabel.visible = trueFalse
         self.topoY.display(trueFalse)
+        self.yLabel.visible = trueFalse
         self.ViewArrowSouth.display(trueFalse)
         #self.horizontal.display(trueFalse)
         self.sunViewVector.display(trueFalse)
@@ -1236,7 +1325,7 @@ class makeEarthLocation():
             # enable mouse action
             #self.Planet.SolarSystem.Scene.range = self.zob
             self.Planet.SolarSystem.Scene.background = Color.black
-            self.Planet.SolarSystem.Scene.fov = deg2rad(40)
+            self.Planet.SolarSystem.Scene.fov = deg2rad(60)
             pass
 
 
@@ -1259,10 +1348,11 @@ class makeEarthLocation():
 
 
         self.updateViewVector()
-       
+        """ Removing this test temporary Nov 28 2022
         if self.analemma is None:
             return
-        
+        """
+
 #        abs_center = self.Origin.frame_to_world(vector(self.analemma.Intersec))
 #        self.Planet.SolarSystem.Scene.center = self.Widgets.PCPF.referential.frame_to_world(abs_center) #self.Widgets.PCPF.referential.frame_to_world(self.Origin.frame_to_world(self.getGeoPosition() + 5*self.ViewVector)) #self.NormalVec)) 
 #
@@ -1421,12 +1511,16 @@ class makeEquator():
     def makeNodeAxis(self):
         # Nodes axis is fixed to the stars and therefore 
         # must be relative to the PCI referential
+        radius = self.Planet.getBodyRadius()
+
         self.NodesAxis = curve( frame=self.Planet.PCI.referential, #self.PCI.referential, 
                                 #pos=[(2 * (self.DesNode.Node.pos[0] - self.Planet.Position[0]), 0, 0), 
                                 #    (2 * (self.AscNode.Node.pos[0] - self.Planet.Position[0]), 0, 0)], 
-                                pos = [ (-2*self.Planet.radiusToShow/self.Planet.SizeCorrection[self.Planet.sizeType],0,0),
-                                        (2*self.Planet.radiusToShow/self.Planet.SizeCorrection[self.Planet.sizeType],0,0)],
+                                pos = [ (-2*radius,0,0),
+                                        (2*radius,0,0)],
                                 color=Color.cyan, visible=False, radius=0, material=materials.emissive)
+        self.NodesAxisLabel = label( frame=self.Planet.PCI.referential, color = Color.cyan,  text = u"\u2648",
+                                     pos = (2*1.07*radius,0,0), opacity = 0, box = False, visible=False )                                
 
 
     def display(self, trueFalse):
@@ -1461,6 +1555,7 @@ class makeEquator():
         self.AscNode.display(trueFalse)
         self.DesNode.display(trueFalse)
         self.NodesAxis.visible = trueFalse
+        self.NodesAxisLabel.visible = trueFalse
 
     #def updateNodesAxisPosition(self):
 

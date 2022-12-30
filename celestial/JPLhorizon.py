@@ -155,7 +155,7 @@ class JPLsearch:
 		enddate = (datetime.utcnow()+timedelta(days=1)).strftime('%Y/%m/%d %H:%M')
 		parameters = self.urlBuilder(target, startdate, enddate, "24h")
 		#print "TARGET=", self.url+parameters
-		if self.fetchJPL(parameters) == True:
+		if self.fetchHorizon(parameters) == True:
 			self.extractGeometry(target)
 			self.extractAppearence(target)
 			print objects_data
@@ -368,7 +368,7 @@ class JPLsearch:
 				self.SolarSystem.addTo(body)
 				return "" #entry["neo_reference_id"]
 
-	def fetchJPL(self, param):
+	def fetchHorizon(self, param):
 		query = self.url + param #+"\n"
 		try:
 			headers = {"Content-Type": "application/json; charset=utf-8"}
