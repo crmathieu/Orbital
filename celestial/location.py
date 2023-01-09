@@ -63,208 +63,208 @@ class EarthLocations:
         "tzname": "America/Los_Angeles",
         "lat": 45.6418,
         "long": -122.6801,
-        "name": "US - Vancouver",
+        "name": "Vancouver-US",
 		"dst": False,
-		"localDatetime": None
-		#"localTZ": None
+		"localDatetime": None,
+		"AbsoluteTimeDiffInSec": 0
     },
     { # UTC
         "tzname": "Africa/Abidjan",
         "lat": 51.4934,
         "long": 0.0098,
-        "name": "UK - Greenwich",
+        "name": "Greenwich-UK",
 		"dst": False,
-		"localDatetime": None
-		#"localTZ": None
+		"localDatetime": None,
+		"AbsoluteTimeDiffInSec": 0
     },
     { # CAIRO
         "tzname": "Africa/Cairo",
         "lat": 30.0444,
         "long": 31.2357,
-        "name": "EG - Cairo",
+        "name": "Cairo-EG",
 		"dst": False,
-		"localDatetime": None
-		#"localTZ": None
+		"localDatetime": None,
+		"AbsoluteTimeDiffInSec": 0
     },
     { # PARIS
         "tzname": "Europe/Paris",
         "lat": 48.8566,
         "long": 2.3522,
-        "name": "FR - Paris",
+        "name": "Paris-FR",
 		"dst": False,
-		"localDatetime": None
-		#"localTZ": None
+		"localDatetime": None,
+		"AbsoluteTimeDiffInSec": 0
     },
  	{ # Kourou
         "tzname": "America/Guyana",
         "lat": 5.1611,
         "long": -52.6493,
-        "name": "FR - Kourou Spaceport",
+        "name": "Kourou Spaceport-FR",
 		"dst": False,
-		"localDatetime": None
-		#"localTZ": None
+		"localDatetime": None,
+		"AbsoluteTimeDiffInSec": 0
     },
     { # Reykjavik
         "tzname": "Iceland",
         "lat": 64.1466,
         "long": -21.9426,
-        "name": "ICE - Reykjavik",
+        "name": "Reykjavik-ICE",
 		"dst": False,
-		"localDatetime": None
-		#"localTZ": None
+		"localDatetime": None,
+		"AbsoluteTimeDiffInSec": 0
     },
     { # Sydney
         "tzname": "Australia/Sydney",
         "lat": -33.8688,
         "long": 151.2093,
-        "name": "AUS - Sydney",
+        "name": "Sydney-AUS",
 		"dst": False,
-		"localDatetime": None
-		#"localTZ": None
+		"localDatetime": None,
+		"AbsoluteTimeDiffInSec": 0
     },
     { # Santiago
         "tzname": "America/Santiago",
         "lat": -33.4489,
         "long": -70.6693,
-        "name": "CHI - Santiago",
+        "name": "Santiago-CHI",
 		"dst": False,
-		"localDatetime": None
-		#"localTZ": None
+		"localDatetime": None,
+		"AbsoluteTimeDiffInSec": 0
     },
     { # Hawaii
         "tzname": "Pacific/Honolulu",
         "lat": 19.8968,
         "long": -155.5828,
-        "name": "US - Honolulu",
+        "name": "Honolulu-US",
 		"dst": False,
-		"localDatetime": None
-		#"localTZ": None
+		"localDatetime": None,
+		"AbsoluteTimeDiffInSec": 0
     },
 	{ # Cape
         "tzname": "America/New_York",
         "lat": 28.40584, # 28.3922,
         "long":  -80.6077,
-        "name": "US - Cape Canaveral",
+        "name": "Cape Canaveral-US",
 		"dst": False,
-		"localDatetime": None
-		#"localTZ": None
+		"localDatetime": None,
+		"AbsoluteTimeDiffInSec": 0
     },
 	{ # Kodiac
         "tzname": "America/Juneau",
         "lat": 57.433,
         "long": -152.33,
-        "name": "US - Kodiak Spaceport",
+        "name": "Kodiak Spaceport-US",
 		"dst": False,
-		"localDatetime": None
-		#"localTZ": None
+		"localDatetime": None,
+		"AbsoluteTimeDiffInSec": 0
     },
 	{ # Wallops
         "tzname": "America/New_York",
         "lat": 37.85,
         "long": -75.46667,
-        "name": "US - Wallops Spaceport",
+        "name": "Wallops Spaceport-US",
 		"dst": False,
-		"localDatetime": None
-		#"localTZ": None
+		"localDatetime": None,
+		"AbsoluteTimeDiffInSec": 0
     },
 	{ # Vandenberg
         "tzname": "America/Los_Angeles",
         "lat": 34.7420,
         "long": -120.5724,
-        "name": "US - Vandenberg Air Force Base",
+        "name": "Vandenberg AF Base-US",
 		"dst": False,
-		"localDatetime": None
-		#"localTZ": None
+		"localDatetime": None,
+		"AbsoluteTimeDiffInSec": 0
     },
  	{ # Baikonur
         "tzname": "Asia/Oral",
         "lat": 45.6232,
         "long": 63.3140,
-        "name": "RUS - Baikonur Cosmodrome",
+        "name": "Baikonur Cosmodrome-RUS",
 		"dst": False,
-		"localDatetime": None
-		#"localTZ": None
+		"localDatetime": None,
+		"AbsoluteTimeDiffInSec": 0
     },
 	{ # India
         "tzname": "Asia/Kolkata",
         "lat": 8.5241,
         "long": 76.9366,
-        "name": "IND - Thiruvananthapuram Spaceport",
+        "name": "Thiruvananthapuram-IND",
 		"dst": False,
-		"localDatetime": None
-		#"localTZ": None
+		"localDatetime": None,
+		"AbsoluteTimeDiffInSec": 0
     },
 	{ # New Zealand
         "tzname": "Pacific/Auckland",
         "lat": -39.0806,
         "long": 177.8749,
-        "name": "NZL - Mahia Spaceport",
+        "name": "Mahia Spaceport-NZL",
 		"dst": False,
-		"localDatetime": None
-		#"localTZ": None
+		"localDatetime": None,
+		"AbsoluteTimeDiffInSec": 0
     },
 	{ # Japan
         "tzname": "Japan",
         "lat": 30.3999984,
         "long": 130.968662792,
-        "name": "JPN - Tanegashima Spaceport",
+        "name": "Tanegashima Spaceport-JPN",
 		"dst": False,
-		"localDatetime": None
-		#"localTZ": None
+		"localDatetime": None,
+		"AbsoluteTimeDiffInSec": 0
     },
     { # Honk kong
         "tzname": "Hongkong",
         "lat": 22.3193,
         "long": 114.1694,
-        "name": "CHN - Hong Kong",
+        "name": "Hong Kong-CHN",
 		"dst": False,
-		"localDatetime": None
-		#"localTZ": None
+		"localDatetime": None,
+		"AbsoluteTimeDiffInSec": 0
     },
 	{ # Xichang
         "tzname": "Asia/Shanghai",
         "lat": 27.8945,
         "long": 102.2631,
-        "name": "CHN - Xichang Spaceport",
+        "name": "Xichang Spaceport-CHN",
 		"dst": False,
-		"localDatetime": None
-		#"localTZ": None
+		"localDatetime": None,
+		"AbsoluteTimeDiffInSec": 0
     },
 	{ # Wenchang
         "tzname": "Asia/Chungking",
         "lat": 19.614492,
         "long": 110.951133,
-        "name": "CHN - Wenchang Spaceport",
+        "name": "Wenchang Spaceport-CHN",
 		"dst": False,
-		"localDatetime": None
-		#"localTZ": None
+		"localDatetime": None,
+		"AbsoluteTimeDiffInSec": 0
     },
 	{ # Jiuquan
         "tzname": "Asia/Shanghai",
         "lat": 40.95,
         "long": 100.2833,
-        "name": "CHN - Jiuquan Spaceport",
+        "name": "Jiuquan Spaceport-CHN",
 		"dst": False,
-		"localDatetime": None
-		#"localTZ": None
+		"localDatetime": None,
+		"AbsoluteTimeDiffInSec": 0
     },
 	{ # Taiyuan
         "tzname": "Asia/Chungking",
         "lat": 38.83,
         "long": 111.6,
-        "name": "CHN - Taiyuan Spaceport",
+        "name": "Taiyuan Spaceport-CHN",
 		"dst": False,
-		"localDatetime": None
-		#"localTZ": None
+		"localDatetime": None,
+		"AbsoluteTimeDiffInSec": 0
     },
 	{ # Jingyu
         "tzname": "Asia/Chungking",
         "lat": 42.0,
         "long": 126.5,
-        "name": "CHN - Jingyu Spaceport",
+        "name": "Jingyu Spaceport-CHN",
 		"dst": False,
-		"localDatetime": None
-		#"localTZ": None
+		"localDatetime": None,
+		"AbsoluteTimeDiffInSec": 0
     },
 	{ # NP
         "tzname": "Africa/Abidjan",
@@ -272,8 +272,8 @@ class EarthLocations:
         "long": -135,
         "name": "North Pole",
 		"dst": False,
-		"localDatetime": None
-		#"localTZ": None
+		"localDatetime": None,
+		"AbsoluteTimeDiffInSec": 0
     },
 	{ # SP
         "tzname": "Africa/Abidjan",
@@ -281,28 +281,37 @@ class EarthLocations:
         "long": 45,
         "name": "South Pole",
 		"dst": False,
-		"localDatetime": None
-		#"localTZ": None
+		"localDatetime": None,
+		"AbsoluteTimeDiffInSec": 0
     },
 	{ # Date line
         "tzname": "Pacific/Kwajalein",
         "lat": 0,
         "long": 180,
-        "name": "International Date Line",
+        "name": "Inter. Date Line",
 		"dst": False,
-		"localDatetime": None
-		#"localTZ": None
+		"localDatetime": None,
+		"AbsoluteTimeDiffInSec": 0
     },
 ]
 
 
 	def __init__(self, index = -1):
 		self.Locations = []
+		self.locationOfInterest = 0
 		self.loadAllLocations()
 		self.setLocal2UTCdiff()
 		self.InitGeometryData()
 		#self.Psi = 0.0
 
+	# changes the index locationOfInterest value. locationOfInterest always points to
+	# the location that is displayed as the "local" date & time 
+	def setLocationOfInterest(self, index):
+		if index >= 0 and index < len(self.tzEarthLocations):
+			self.locationOfInterest = index
+
+	def getLocationOfInterestName(self):
+		return self.tzEarthLocations[self.locationOfInterest]["name"]
 		
 	def loadAllLocations(self):
 
@@ -363,28 +372,39 @@ class EarthLocations:
 
 		# initialize local time zones...
 		self.localTZ 							  = pytz.timezone(self.tzEarthLocations[0]["tzname"]) #self.timezoneStr)
+		# print default location info
+		print 'Latitude ...... {0}'.format(self.tzEarthLocations[0]["lat"])
+		print 'Longitude ..... {0}'.format(self.tzEarthLocations[0]["long"])
+
+		return 
+
+
 		# ... deduct non-naive (DST aware) local date...
 		self.tzEarthLocations[0]["localDatetime"] = self.UTCtime.astimezone(self.localTZ)
 		# ... and determine if daylight saving is in use
 		self.tzEarthLocations[0]["dst"] 		  = bool(self.tzEarthLocations[0]["localDatetime"].dst())
 
-		# print default location info
-		print 'Latitude ...... {0}'.format(self.tzEarthLocations[0]["lat"])
-		print 'Longitude ..... {0}'.format(self.tzEarthLocations[0]["long"])
 
 
 	def loadOtherLocations(self):
-		for i in range(1, len(self.tzEarthLocations)-1):
-			self.setLocationDatetime(i)
+		for i in range(0, len(self.tzEarthLocations)-1):
+			self._setLocationDatetime(i)
 
 
-	def setLocationDatetime(self, tzidx):
-		if tzidx > len(self.tzEarthLocations):
+	def _setLocationDatetime(self, tzidx):
+		if tzidx > len(self.tzEarthLocations)-1:
 			return 
 
 		# determine tz aware local time and daylight saving use flag
 		self.tzEarthLocations[tzidx]["localDatetime"] = self.UTCtime.astimezone(pytz.timezone(self.tzEarthLocations[tzidx]["tzname"]))
 		self.tzEarthLocations[tzidx]["dst"] = bool(self.tzEarthLocations[tzidx]["localDatetime"].dst())
+		
+		# determine how many secs separate local time and UTC. 
+		"""
+		# When returned value is < 0, it means we 
+		# are WEST of UTC, and a value > 0 means we are East of UTC 
+		"""
+		self.tzEarthLocations[tzidx]["AbsoluteTimeDiffInSec"] = self.tz_diff(self.tzEarthLocations[tzidx]["localDatetime"], self.UTCtime, self.tzEarthLocations[tzidx]["long"])
 
 		print self.tzEarthLocations[tzidx]["name"], self.tzEarthLocations[tzidx]["localDatetime"]
 
@@ -396,7 +416,8 @@ class EarthLocations:
 				"long": self.tzEarthLocations[tzindex]["long"],
 				"timezone": self.tzEarthLocations[tzindex]["tzname"],
 				"name": self.tzEarthLocations[tzindex]["name"],
-				"localDatetime": self.tzEarthLocations[tzindex]["localDatetime"]
+				"localDatetime": self.tzEarthLocations[tzindex]["localDatetime"],
+				"AbsoluteTimeDiffInSec": self.tzEarthLocations[tzindex]["AbsoluteTimeDiffInSec"]
 			}
 		# for whacky index we return the default location
 		return {
@@ -404,8 +425,12 @@ class EarthLocations:
 			"long": self.tzEarthLocations[0]["long"],
 			"timezone": self.tzEarthLocations[0]["tzname"],
 			"name": self.tzEarthLocations[0]["name"],
-			"localDatetime": self.tzEarthLocations[0]["localDatetime"]
+			"localDatetime": self.tzEarthLocations[0]["localDatetime"],
+			"AbsoluteTimeDiffInSec": self.tzEarthLocations[0]["AbsoluteTimeDiffInSec"]
 		}
+
+	def getLocationOfInterestIndex(self):
+		return self.getLocationInfo(self.locationOfInterest)
 
 	def setLocal2UTCdiff(self):
 
@@ -426,11 +451,11 @@ class EarthLocations:
 		# When returned value is < 0, it means we 
 		# are WEST of UTC, and a value > 0 means we are East of UTC 
 		"""
-		self.AbsoluteTimeDiffInSec = self.tz_diff(self.tzEarthLocations[0]["localDatetime"], self.UTCtime) #dt.datetime.utcnow().replace(tzinfo = pytz.timezone('UTC'))) #self.localTZ, self.utcTZ) 
+		self.AbsoluteTimeDiffInSec = self.tz_diff(self.tzEarthLocations[0]["localDatetime"], self.UTCtime, self.longitude) #dt.datetime.utcnow().replace(tzinfo = pytz.timezone('UTC'))) #self.localTZ, self.utcTZ) 
 		print "========================>>>>>>>>>>>>", self.AbsoluteTimeDiffInSec
 		print "LOCAL=", self.tzEarthLocations[0]["localDatetime"], ", UTC=", self.UTCtime
 
-		##########self.longitudeSign = -1 if self.longitude < 0  else 1
+		#self.longitudeSign = -1 if self.longitude < 0  else 1
 		self.longitudeSign = 1  # TODO: remove self.longitudeSign variable
 
 
@@ -486,7 +511,27 @@ class EarthLocations:
 			return (tz_to.localize(date) - tz_from.localize(date)).seconds
 
 
-	def tz_diff(self, date_tz_from, date_tz_to):
+	def tz_diff(self, date_tz_from, date_tz_to, longitude):
+		'''
+		Returns the difference in seconds between 2 tz aware dates
+		The difference is always  < 0
+		'''
+		return (int(date_tz_from.strftime('%z')) - int(date_tz_to.strftime('%z')))*36
+		
+		 
+		print "LOCAL=", date_tz_from, ", UTC=", date_tz_to
+		if longitude < 0:
+			# west of UTC
+			print "WEST: ", int(date_tz_from.strftime('%z')) - int(date_tz_to.strftime('%z'))
+			#return (date_tz_from - date_tz_to).seconds
+			return (int(date_tz_from.strftime('%z')) - int(date_tz_to.strftime('%z')))*36
+		else: 
+			# east of UTC
+			print "EAST: ", int(date_tz_to.strftime('%z')) - int(date_tz_from.strftime('%z'))
+			#return (date_tz_to - date_tz_from).seconds
+			return (int(date_tz_to.strftime('%z')) - int(date_tz_from.strftime('%z')))*36
+
+	def tz_diff_SAVE(self, date_tz_from, date_tz_to):
 		'''
 		Returns the difference in seconds between 2 tz aware dates
 		The difference is always  < 0
@@ -559,7 +604,8 @@ class EarthLocations:
 
 	def TimeToUtcInSec(self):
 		#print "TimeToUtcInSec is ", self.AbsoluteTimeDiffInSec
-		return self.AbsoluteTimeDiffInSec
+		return self.tzEarthLocations[self.locationOfInterest]['AbsoluteTimeDiffInSec']
+		#return self.AbsoluteTimeDiffInSec
 
 	def TimeInSec2degree(self, time_in_sec):
 		# 15 deg corresponds to 1hour (3600s). 1s -> 15/3600
@@ -574,6 +620,11 @@ class EarthLocations:
 		# time.struct_time(tm_year=2021, tm_mon=4, tm_mday=15, tm_hour=13, tm_min=34, tm_sec=41, tm_wday=3, tm_yday=105, tm_isdst=1) 
 		return self.tzEarthLocations[0]["localDatetime"]
 		#return self.localdatetime
+
+	def getLocationOfInterestDateTime(self):
+		# returns local time as a structure:
+		# time.struct_time(tm_year=2021, tm_mon=4, tm_mday=15, tm_hour=13, tm_min=34, tm_sec=41, tm_wday=3, tm_yday=105, tm_isdst=1) 
+		return self.tzEarthLocations[self.locationOfInterest]["localDatetime"]
 
 	def setUTCDateTime(self, utcTime):
 		self.UTCtime = utcTime

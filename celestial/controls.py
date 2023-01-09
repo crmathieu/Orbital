@@ -45,7 +45,7 @@ import rate_func
 
 MAIN_HEADING_Y = 40
 MAIN_MIDDLE_X = 200
-DATE_Y = MAIN_HEADING_Y
+DATE_Y = MAIN_HEADING_Y+10
 DATE_SLD_Y = DATE_Y + 20
 JPL_BRW_Y = DATE_SLD_Y
 
@@ -1143,7 +1143,8 @@ class ORBITALpanel(AbstractUI):
 		self.surfaceRadius = 0.0  # used for surface focus
 		self.todayUTCdatetime = self.SolarSystem.locationInfo.getUTCDateTime()
 		self.new_utcDatetime = self.todayUTCdatetime
-		self.new_localDatetime = self.todayUTCdatetime
+		# initialize Location-of-interest datetime with UTC
+		self.new_LOIdatetime = self.todayUTCdatetime
 
 
 #		self.DaysIncrement = 0 # number of days from today - used for animation into future or past (detalT < 0)
@@ -1242,19 +1243,28 @@ class ORBITALpanel(AbstractUI):
 		#print "Current body SET-2 with ", self.currentBody.Name, "Origin=",self.currentBody.Origin.pos
 
 	def updateTimeStamps(self, ldt, utcdt):
-		self.setLocalDateTimeLabel(ldt)
-		self.setUTCDateTimeLabel(utcdt)
+		self.set_LOI_datetime_label(ldt)
+		self.set_UTC_datetime_label(utcdt)
 
-	def setLocalDateTimeLabel(self, ldt):
-		self.localTimeLabel.SetLabel("{:>2}:{:>2}:{:2}".format(str(ldt.hour).zfill(2), str(ldt.minute).zfill(2), str(ldt.second).zfill(2)))
+	def set_LOI_datetime_label(self, ldt):
+		self.LOITimeLabel.SetLabel("{:>2}:{:>2}:{:2}".format(str(ldt.hour).zfill(2), str(ldt.minute).zfill(2), str(ldt.second).zfill(2)))
 		#print ("{:>2}:{:>2}:{:2}".format(str(ldt.hour).zfill(2), str(ldt.minute).zfill(2), str(ldt.second).zfill(2)))
 
-		self.localDateLabel.SetLabel("{:>2}/{:>2}/{:2}".format(str(ldt.month).zfill(2), str(ldt.day).zfill(2), str(ldt.year).zfill(2)))
+		self.LOIDateLabel.SetLabel("{:>2}/{:>2}/{:2}".format(str(ldt.month).zfill(2), str(ldt.day).zfill(2), str(ldt.year).zfill(2)))
 		#print ("{:>2}/{:>2}/{:2}".format(str(ldt.month).zfill(2), str(ldt.day).zfill(2), str(ldt.year).zfill(2)))
 
-	def setUTCDateTimeLabel(self, utcdt):
+	def set_UTC_datetime_label(self, utcdt):
 		self.UTCtimeLabel.SetLabel("{:>2}:{:>2}:{:2}".format(str(utcdt.hour).zfill(2), str(utcdt.minute).zfill(2), str(utcdt.second).zfill(2)))
 		self.UTCdateLabel.SetLabel("{:>2}/{:>2}/{:2}".format(str(utcdt.month).zfill(2), str(utcdt.day).zfill(2), str(utcdt.year).zfill(2)))
+
+	# updates location of interest name label and date / time using animation time DeltaT
+	def setLocationOfInterestDateTime(self):
+		self.locationOfInterestStaticText.SetLabel(self.SolarSystem.locationInfo.getLocationOfInterestName()+':')
+		
+		# calculate new date/time for location of interest, based on 
+		# the initial date/time, incremented by the animation time ellasped DeltaT
+		lt = self.SolarSystem.locationInfo.getLocationOfInterestDateTime() + datetime.timedelta(days = self.DeltaT)
+		self.set_LOI_datetime_label(lt)
 
 	def InitUI(self):
 		self.BoldFont = wx.Font(10, wx.SWISS, wx.NORMAL, wx.BOLD)
@@ -1266,18 +1276,19 @@ class ORBITALpanel(AbstractUI):
 		OFF_TIME = 0
 		dateLabel = wx.StaticText(self, label='Orbital Date (UTC)', pos=(MAIN_MIDDLE_X, DATE_Y))
 		dateLabel.SetFont(self.BoldFont)
-		wx.StaticText(self, label='Local Time: ', pos=(MAIN_MIDDLE_X+OFF_TIME, DATE_Y-18))
-		wx.StaticText(self, label='Universal Time:', pos=(MAIN_MIDDLE_X+OFF_TIME, DATE_Y-33))
+#		wx.StaticText(self, label='Local Time: ', pos=(MAIN_MIDDLE_X+OFF_TIME, DATE_Y-18))
+		self.locationOfInterestStaticText = wx.StaticText(self, label=self.SolarSystem.locationInfo.getLocationOfInterestName()+':', pos=(MAIN_MIDDLE_X+OFF_TIME-10, DATE_Y-23))
+		wx.StaticText(self, label='Universal Time:', pos=(MAIN_MIDDLE_X+OFF_TIME-10, DATE_Y-38))
 
-		self.localTimeLabel = wx.StaticText(self, label='hh:mm:ss', pos=(280+OFF_TIME+5, DATE_Y-18))
-		self.localDateLabel = wx.StaticText(self, label='mm/dd/yyyy', pos=(280+OFF_TIME+75, DATE_Y-18))
-		self.UTCtimeLabel = wx.StaticText(self, label='hh:mm:ss', pos=(280+OFF_TIME+5, DATE_Y-33))
-		self.UTCdateLabel = wx.StaticText(self, label='mm/dd/yyyy', pos=(280+OFF_TIME+75, DATE_Y-33))
+		self.LOITimeLabel = wx.StaticText(self, label='hh:mm:ss', pos=(350+OFF_TIME+2, DATE_Y-23))
+		self.LOIDateLabel = wx.StaticText(self, label='mm/dd/yyyy', pos=(350+OFF_TIME+55, DATE_Y-23))
+		self.UTCtimeLabel = wx.StaticText(self, label='hh:mm:ss', pos=(350+OFF_TIME+2, DATE_Y-38))
+		self.UTCdateLabel = wx.StaticText(self, label='mm/dd/yyyy', pos=(350+OFF_TIME+55, DATE_Y-38))
 
-		lt = self.SolarSystem.locationInfo.getLocalDateTime()
+		lt = self.SolarSystem.locationInfo.getLocationOfInterestDateTime()
 
-		self.setLocalDateTimeLabel(lt)
-		self.setUTCDateTimeLabel(self.todayUTCdatetime)
+		self.set_LOI_datetime_label(lt)
+		self.set_UTC_datetime_label(self.todayUTCdatetime)
 
 		# date spinner
 		self.dateMSpin = wx.SpinCtrl(self, id=wx.ID_ANY, initial=self.todayUTCdatetime.month, min=1, max=12, pos=(MAIN_MIDDLE_X, DATE_SLD_Y), size=(60,25), style=wx.SP_ARROW_KEYS)
@@ -1508,7 +1519,7 @@ class ORBITALpanel(AbstractUI):
 
 					#if body.BodyType == self.Source or body.Details == True:
 
-					# save velocity and DTE/DTS info on object currently observednew_localDatetimeonAnimate
+					# save velocity and DTE/DTS info on object currently observed onAnimate
 					if self.SolarSystem.cameraViewTargetSelection == body.Name.lower() or \
 						(self.SolarSystem.cameraViewTargetSelection == CURRENT_BODY and \
 						 self.SolarSystem.cameraViewTargetBody.Name.lower() == body.Name.lower()):
@@ -1532,9 +1543,9 @@ class ORBITALpanel(AbstractUI):
 		#print "Resetting UTC datetime to -> ", new_utcDatetime
 		new_utcDatetime = new_utcDatetime.replace(tzinfo=pytz.utc)
 
-		# from that utc datetime, calculate local datetime
-		new_localDatetime = orbit3D.utc_to_local_fromDatetime(new_utcDatetime, self.SolarSystem.locationInfo)
-		#print "Resetting LOCAL datetime to -> ", new_localDatetime
+		# from that utc datetime, calculate location of interest datetime
+		#new_LOIdatetime = orbit3D.utc_to_local_fromDatetime(new_utcDatetime, self.SolarSystem.locationInfo)
+		#print "Resetting LOCAL datetime to -> ", new_LOIdatetime
 
 		# calculate the time difference between current "today's Date" with new selected date
 		diff = new_utcDatetime - self.todayUTCdatetime
@@ -1574,22 +1585,22 @@ class ORBITALpanel(AbstractUI):
 
 	def refreshDate(self):
 		self.new_utcDatetime = self.todayUTCdatetime + datetime.timedelta(days = self.DeltaT)
-		self.new_localDatetime = orbit3D.utc_to_local_fromDatetime(self.new_utcDatetime, self.SolarSystem.locationInfo)
-		#print "Refresh DATE: UTC = ", new_utcDatetime, ", LOCAL=",new_localDatetime
+		self.new_LOIdatetime = orbit3D.utc_to_local_fromDatetime(self.new_utcDatetime, self.SolarSystem.locationInfo)
+		#print "Refresh DATE: UTC = ", self.new_utcDatetime, ", LOCAL=",self.new_LOIdatetime
 		
 		self.dateDSpin.SetValue(self.new_utcDatetime.day)
 		self.dateMSpin.SetValue(self.new_utcDatetime.month)
 		self.dateYSpin.SetValue(self.new_utcDatetime.year)
 
-		self.updateTimeDisplay(self.new_utcDatetime, self.new_localDatetime)
+		self.updateTimeDisplay(self.new_utcDatetime, self.new_LOIdatetime)
 
 		self.setVelocityLabel()
 		self.setDTElabel()
 		#print ("refresh Date")
 
 	def updateTimeDisplay(self, utcDatetime, localDatetime):
-		self.setLocalDateTimeLabel(localDatetime)
-		self.setUTCDateTimeLabel(utcDatetime)
+		self.set_LOI_datetime_label(localDatetime)
+		self.set_UTC_datetime_label(utcDatetime)
 
 	def disableBeltsForAnimation(self):
 		self.checkboxList[JTROJANS].SetValue(False)
@@ -1923,7 +1934,7 @@ class ORBITALpanel(AbstractUI):
 		# DaysIncrement with current time as a fraction of day
 		"""
 		if UNINITIALIZED == self.SolarSystem.DaysIncrement:
-			ztime = self.localTimeLabel.GetLabel().split(" : ")
+			ztime = self.LOITimeLabel.GetLabel().split(" : ")
 			if len(ztime) > 0:
 				#print "before correction", self.DaysIncrement
 				self.SolarSystem.DaysIncrement += (float(ztime[0]) * TI_ONE_HOUR) + (float(ztime[1]) * TI_ONE_MINUTE) + (float(ztime[2]) * TI_ONE_SECOND)
@@ -1989,6 +2000,7 @@ class ORBITALpanel(AbstractUI):
 class WIDGETSpanel(AbstractUI):
 
 	def InitVariables(self):	
+		self.DEF_CITY_SELECTION = "Select a location on Earth"
 		self.ca_deltaT = 0
 		self.Earth = self.SolarSystem.EarthRef
 		
@@ -1997,11 +2009,12 @@ class WIDGETSpanel(AbstractUI):
 		self.locIndexes = []
 		self.locationID = 0
 
-		self.currentInfoAction = 1 # need to find a mechanism to assign a value to currentAction based on what the user picks (each option is mutually exclusive)
+		self.currentInfoAction = 3 # need to find a mechanism to assign a value to currentAction based on what the user picks (each option is mutually exclusive)
 		self.infoWindowActions = {
                 0: self.dummy,
                 1: self.UTCdatetime,
-				2: self.Dynamics
+				2: self.Dynamics,
+				3: self.CurLocDatetime
             }
 		"""
 		self.CameraSettings = []
@@ -2027,8 +2040,13 @@ class WIDGETSpanel(AbstractUI):
 
 	def CurLocDatetime(self): # todo
 		ctrl = self.parentFrame.orbitalTab
-		self.parentFrame.setInfoLine("UTC: "+index_to_month[ctrl.dateMSpin.GetValue()]+" {:>02}".format(str(ctrl.dateDSpin.GetValue())), 0)
-		self.parentFrame.setInfoLine("{:>5}{:>2}:{:>2}:{:2}".format("", str(ctrl.new_utcDatetime.hour).zfill(2), str(ctrl.new_utcDatetime.minute).zfill(2), str(ctrl.new_utcDatetime.second).zfill(2)), 1)
+		dt = self.SolarSystem.locationInfo.tzEarthLocations[self.locationID]["localDatetime"]
+		#dt = self.Locations[self.locationID]["localDatetime"]
+		# add current DeltaT value (in days)
+		time_change = datetime.timedelta(days=ctrl.DeltaT)
+		upd_dt = dt+time_change
+		self.parentFrame.setInfoLine("LOC: "+index_to_month[ctrl.dateMSpin.GetValue()]+" {:>02}".format(str(upd_dt.day)), 0)
+		self.parentFrame.setInfoLine("{:>5}{:>2}:{:>2}:{:2}".format("", str(upd_dt.hour).zfill(2), str(upd_dt.minute).zfill(2), str(upd_dt.second).zfill(2)), 1)
 
 	def dummy(self):
 		pass
@@ -2204,16 +2222,21 @@ class WIDGETSpanel(AbstractUI):
 			self.locIndexes.append(i)
 			i += 1
 
-		self.comb = wx.ComboBox(self, id=wx.ID_ANY, value="Select a location on Earth", size=wx.DefaultSize, pos=(xpos, ypos), choices=self.Locations, style=(wx.CB_DROPDOWN))
+		self.comb = wx.ComboBox(self, id=wx.ID_ANY, value=self.DEF_CITY_SELECTION, size=wx.DefaultSize, pos=(xpos, ypos), choices=self.Locations, style=(wx.CB_DROPDOWN))
 		self.comb.Bind(wx.EVT_COMBOBOX, self.OnSelectLocation)
 
 	def resetLocationList(self):
 		self.comb.SetSelection(-1)
-		self.comb.SetValue("Select a location on Earth")
+		self.comb.SetValue(self.DEF_CITY_SELECTION)
 
 	def OnSelectLocation(self, e):
 		if self.parentFrame.orbitalTab.AnimationInProgress == False:
 			self.locationID = self.locIndexes[e.GetSelection()]
+#############
+			self.SolarSystem.locationInfo.setLocationOfInterest(self.locationID)
+			self.parentFrame.orbitalTab.setLocationOfInterestDateTime()
+#############
+
 			self.comb.Dismiss() # this will close the combo 
 			self.cpcb.Enable()
 			self.SolarSystem.camera.gotoEarthLocationVertical(self.locationID)
