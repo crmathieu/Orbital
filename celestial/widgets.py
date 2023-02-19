@@ -2,7 +2,7 @@ from celestial.utils import getAngleBetweenVectors, getVectorProjectionToVector,
 from orbit3D import *
 from vpython_interface import ViewPort, Color
 from visual import *
-from utils import deg2rad
+from utils import deg2rad, getVectorProjection
 #from objects import circle
 from location import locList
 from video import *
@@ -102,7 +102,7 @@ class makePlanetWidgets():
             'legend': ["tg","orth","z"],
    			'make_axis': True
         })
-        self.ECSS.setAxisTilt() 
+        self.ECSS.setAxisTilt(0) 
 
         # calculate initial angle of planet on its ecliptic based on current coordinates
         self.ECSSangle = atan2(self.Planet.Position[1], self.Planet.Position[0])
@@ -613,10 +613,10 @@ class makeAnalemma():
 
         self.TgPlane = None
         self.Shape = None
-        self.anaLemmaIncrement = 0
+        self.analemmaIncrement = 0
         self.viewAngle = self.Loc.Widgets.ECSSangle
         self.intersecDistanceFactor = intersecRatio
-        self.analemmaIncrement = 0
+        #self.analemmaIncrement = 0
         self.Shape = None
         self.CurrentGeoLoc = self.Loc.getEclipticPosition()
 
@@ -893,7 +893,7 @@ class makeEarthLocation():
         self.EclipticPosition   = vector(0,0,0)
         self.lat                = self.long = 0
         self.analemma           = None
-        self.GeoLoc             = sphere(frame=self.Origin, pos=vector(0,0,0), radius=10, color=self.Color, material = materials.emissive, opacity=0.5, axis=(0,0,1))
+        self.GeoLoc             = sphere(frame=self.Origin, pos=vector(0,0,0), radius=10, color=self.Color, visible=False, material = materials.emissive, opacity=0.5, axis=(0,0,1))
         self.TOPO               = None
         self.SunAxis            = None
         self.Origin.axis.visible = True
@@ -905,6 +905,7 @@ class makeEarthLocation():
             self.Name = earthLoc["name"]
             self.lat = earthLoc["lat"]
             self.long = earthLoc["long"]
+            self.localDatetime = earthLoc["localDatetime"]
             self.setGeoPosition()
             self.updateEclipticPosition()
             #self.makeSunAxis()
@@ -912,6 +913,12 @@ class makeEarthLocation():
             #self.setOrientation(self.NormalVec)
         else:
             self.Name = "None"
+
+    def showLocation(self, trueFalse):
+        self.GeoLoc.visible = trueFalse
+
+    def getLocalDatetime(self):
+        return self.localDatetime + datetime.timedelta(days=self.Planet.SolarSystem.Dashboard.orbitalTab.DeltaT)
 
     def updateForwardVectorIn24hMode(self, sunPerspective = False):
 
@@ -1090,14 +1097,15 @@ class makeEarthLocation():
         # create topocentric referential:
         #################################
 
+        self.topoX = self.topoY = None
+
         # Normal to location
         self.NormalVec = vector(self.getGeoPosition())
         self.UnitNormal = norm(self.NormalVec)
-        self.topoZ = simpleArrow(Color.white, 0, 10, self.GeoLoc.pos, axisp = (self.NormalVec/5), context = self.Origin)
-        self.zLabel = label( frame = self.Origin, color = Color.white,  text = "z",
-                             pos = self.GeoLoc.pos + (self.NormalVec/5)*(1.07), opacity = 0, box = False, visible=False )
+        self.topoZ = simpleArrow(Color.white, 0, 2, self.GeoLoc.pos, axisp = (self.NormalVec/5), context = self.Origin)
+        #self.zLabel = label( frame = self.Origin, color = Color.white,  text = "z",
+        #                     pos = self.GeoLoc.pos + (self.NormalVec/5)*(1.17), opacity = 0, box = False, visible=False )
 
-        self.topoX = self.topoY = None
 
         # create a vector projection of goeloc on equatorial plane. 
         localRadiusVector = vector(self.GeoLoc.pos[0], self.GeoLoc.pos[1], 0) 
@@ -1112,7 +1120,7 @@ class makeEarthLocation():
         if dot(self.NormalVec, self.Planet.PCPF.RotAxis) < 0:
             localRadiusVector = -localRadiusVector
 
-        # Now the localRadiusVector and the normal vectors form either a plane or are collinear 
+        # Now the localRadiusVector and the normal vectors form either a plane or are colinear 
         # Now get the vector x, orthogonal to both (self.GeoLoc.pos[0], self.GeoLoc.pos[1], 0) and Normal-z pointing east
         self.topoVecX = getVectorOrthogonalToPlane(self.NormalVec, localRadiusVector) #getOrthogonalVector(self.NormalVec) * mag(self.NormalVec)
         if self.topoVecX is None:
@@ -1120,17 +1128,18 @@ class makeEarthLocation():
             self.topoVecX = getVectorOrthogonalToPlane(self.Origin.world_to_frame(self.Planet.PCPF.RotAxis), self.NormalVec) #getOrthogonalVector(self.NormalVec) * mag(self.NormalVec)
 
         self.topoVecX *= mag(self.NormalVec)
-        self.topoX = simpleArrow(Color.green, 0, 10, self.GeoLoc.pos, axisp = (self.topoVecX/5), context = self.Origin)
-        self.xLabel = label( frame = self.Origin, color = Color.green,  text = "E",
-                             pos = self.GeoLoc.pos + (self.topoVecX/5)*(1.07), opacity = 0, box = False, visible=False )
+        self.topoX = simpleArrow(Color.green, 0, 2, self.GeoLoc.pos, axisp = (self.topoVecX/5), context = self.Origin)
+        #self.xLabel = label( frame = self.Origin, color = Color.green,  text = "E",
+        #                     pos = self.GeoLoc.pos + (self.topoVecX/5)*(1.17), opacity = 0, box = False, visible=False )
 
         # Finally get the vector y, orthogonal to the plane (x, z), pointing North
         self.topoVecY = getVectorOrthogonalToPlane(self.NormalVec, self.topoVecX) * mag(self.NormalVec) #getOrthogonalVector(self.NormalVec) * mag(self.NormalVec)
-        self.topoY = simpleArrow(Color.white, 0, 10, self.GeoLoc.pos, axisp = (self.topoVecY/5), context = self.Origin)
-        self.yLabel = label( frame = self.Origin, color = Color.white,  text = "N",
-                             pos = self.GeoLoc.pos + (self.topoVecY/5)*(1.07), opacity = 0, box = False, visible=False )
+        self.topoY = simpleArrow(Color.white, 0, 2, self.GeoLoc.pos, axisp = (self.topoVecY/5), context = self.Origin)
+        #self.yLabel = label( frame = self.Origin, color = Color.white,  text = "N",
+        #                     pos = self.GeoLoc.pos + (self.topoVecY/5)*(1.17), opacity = 0, box = False, visible=False )
             
-        # Last but not least, set the view vector: The view vector determines the direction we see from the location
+        # Last but not least, SET THE VIEW VECTOR: 
+        # The view vector determines the direction we see from the location
         
         # 1st, create a vector between the sun and the location
         v = vector(0,0, self.GeoLoc.pos[2]) - vector(self.getEclipticPosition())
@@ -1138,11 +1147,29 @@ class makeEarthLocation():
         # transform that vector to OVRL ref coordinates and attach it as the down vector
         self.sunVector = vector(self.Origin.world_to_frame(self.Planet.PCPF.referential.world_to_frame(v)))/20
 
-        # from this vector, let's correct for the latitude of the location        
-        angle = -deg2rad(abs(self.lat)/2)
+        # from this vector, let's correct for the latitude of the location  
+        #ldt = self.getLocalDatetime()
 
-        self.sunViewVector = simpleArrow(Color.red, 0, 10, self.GeoLoc.pos, axisp = (self.sunVector/15), context = self.Origin)
+        angle = -self.Planet.TiltAngle
+        print "latitude=", self.lat, "- angle = ",angle
+
+        self.sunViewVector = simpleArrow(Color.red, 0, 2, self.GeoLoc.pos, axisp = (self.sunVector/15), context = self.Origin)
+
+        # compensate for the latitude correction
         self.locViewVector = rotate(vector=self.sunVector, angle=angle, axis=self.topoVecX)
+
+        # make sure we still point in the general direction of the sun: use the projection
+        # of locViewVector on the (z, sunVector) plane
+        self.locViewVector = getVectorProjection(self.locViewVector, vector(0,0,1), self.sunVector) * mag(self.sunVector)
+
+        # if the dot product between viewVector and the normal is negative,
+        # it means that the sun isn't visible, hence use the Normal
+        # vector as view vector
+#        if dot(self.locViewVector, self.NormalVec) < 0:
+        if dot(self.locViewVector, self.NormalVec) < 0:
+            self.ViewHiddenArrow = simpleArrow(Color.yellow, 0, 2, self.GeoLoc.pos, axisp = (self.locViewVector/15), context = self.Origin)
+            self.locViewVector = self.NormalVec
+
         self.ViewArrowSouth = simpleArrow(Color.magentish, 0, 10, self.GeoLoc.pos, axisp = (self.locViewVector/15), context = self.Origin)
 
         self.displayTopoCentricRef(False)
@@ -1298,11 +1325,11 @@ class makeEarthLocation():
 
     def displayTopoCentricRef(self, trueFalse):
         self.topoZ.display(trueFalse)
-        self.zLabel.visible = trueFalse
+        #.visible = trueFalse
         self.topoX.display(trueFalse)
-        self.xLabel.visible = trueFalse
+        #self.xLabel.visible = trueFalse
         self.topoY.display(trueFalse)
-        self.yLabel.visible = trueFalse
+        #self.yLabel.visible = trueFalse
         self.ViewArrowSouth.display(trueFalse)
         #self.horizontal.display(trueFalse)
         self.sunViewVector.display(trueFalse)
@@ -1317,7 +1344,7 @@ class makeEarthLocation():
         if trueFalse == True:
             #self.RotateHorizon()
             self.Planet.SolarSystem.Scene.background = Color.cyan
-            self.Planet.SolarSystem.Scene.fov = deg2rad(90)
+            self.Planet.SolarSystem.Scene.fov = deg2rad(95)
             self.updateEarthEyeView()
             # disable mouse action
             pass
@@ -1488,7 +1515,7 @@ class makeEquator():
         #self.PCI = widgets.PCI
         self.Color = Color.red
 
-        self.Trail = curve(frame=self.Origin, color=self.Color, visible=False, radius=25, material=materials.emissive)
+        self.Trail = curve(frame=self.Origin, color=self.Color, visible=False, radius=10, material=materials.emissive)
 #        self.Trail = curve(frame=self.Planet.PCPF.referential, color=self.Color, visible=False, radius=25, material=materials.emissive)
 #        self.Trail = curve(frame=self.Planet.PCI.referential, color=self.Color, visible=False, radius=25, material=materials.emissive)
         self.Position = np.matrix([[0],[0],[0]], np.float64)
@@ -1582,6 +1609,9 @@ class makeEquatorialPlane():
 
 
     def display(self, trueFalse):
+        self.eqPlane.opacity = (0.6 if trueFalse == True else 0)
+        return
+
         STEPS = 10
         if trueFalse == True:
             bound = 0
@@ -1602,7 +1632,7 @@ class doMeridian():
         self.Planet = widgets.Planet
         #Radius = 25 if longitudeAngle == 0 else 0
         # define meridian in rotating referential PCPF
-        self.Trail = curve(frame=self.Origin, color=colr, visible=False,  material=materials.emissive, radius=(25 if longitudeAngle == 0 else 0))
+        self.Trail = curve(frame=self.Origin, color=colr, visible=False,  material=materials.emissive, radius=(10 if longitudeAngle == 0 else 0))
         self.Position = np.matrix([[0],[0],[0]], np.float64)
         self.Color = colr #Color.cyan
         self.draw()
@@ -1764,8 +1794,8 @@ class makeTropics():
 
     def draw(self):
         # build latitudes levels every 10deg from -90 to +90            
-        self.Tropics.append(doLatitude(self.Widgets, -self.TROPIC_ABS_LATITUDES, Color.yellow, thickness=25))
-        self.Tropics.append(doLatitude(self.Widgets, +self.TROPIC_ABS_LATITUDES, Color.yellow, thickness=25))
+        self.Tropics.append(doLatitude(self.Widgets, -self.TROPIC_ABS_LATITUDES, Color.yellow, thickness=10)) #25))
+        self.Tropics.append(doLatitude(self.Widgets, +self.TROPIC_ABS_LATITUDES, Color.yellow, thickness=10)) #25))
 
 
 class makeAnalemmaXX():

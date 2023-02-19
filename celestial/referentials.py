@@ -98,8 +98,14 @@ class makeBasicReferential:
     def display(self, trueFalse):
         self.referential.visible = trueFalse
 
-    def setAxisTilt(self):
+    def setAxisTilt(self, rightAscension):
+
+
         self.referential.rotate(angle=(self.tiltAngle), axis=(1,0,0))
+        if rightAscension != 0:
+            print "Basic: Adjusting axis direction by ", rightAscension%360, " degrees"
+            self.referential.rotate(angle=deg2rad(rightAscension), axis=(0,0,1), origin=(self.body.Position[0]+self.body.Foci[0],self.body.Position[1]+self.body.Foci[1],self.body.Position[2]+self.body.Foci[2]))
+
         self.ZdirectionUnit = self.RotAxis = self.body.getRotAxis() #vector(0, sin(self.tiltAngle), cos(self.tiltAngle))
 
     def updateReferential(self):
@@ -207,9 +213,15 @@ class make3DaxisReferential:
             return None
         return self.referential.frame_to_world(self.Axis[n].pos[1])-self.referential.frame_to_world(self.Axis[n].pos[0])
 
-    def setAxisTilt(self):
+    def setAxisTilt(self, rightAscension):
+
+
         # rotate referential first
         self.referential.rotate(angle=(self.tiltAngle), axis=(1,0,0))
+        if rightAscension != 0:
+            print "3Dref: Adjusting axis direction by ", rightAscension%360, " degrees"
+            self.referential.rotate(angle=deg2rad(rightAscension % 360), axis=(0,0,1), origin=(self.body.Position[0]+self.body.Foci[0],self.body.Position[1]+self.body.Foci[1],self.body.Position[2]+self.body.Foci[2]))
+
 
         # determine unit vector for each direction
         ZdirectionVec = self.referential.frame_to_world(self.Axis[2].pos[1])-self.referential.frame_to_world(self.Axis[2].pos[0])

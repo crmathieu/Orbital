@@ -3,6 +3,7 @@
 from re import I
 from rate_func import *	
 from orbit3D import *
+from planets import *
 import planetsdata as pd
 from controls import *
 from celestial.orbitalLIB import Api
@@ -31,7 +32,7 @@ def createSolarSystem():
 	earth = makeEarth(ssys, color.cyan, pd.INNERPLANET, pd.INNERPLANET, pd.PLANET_SZ_CORRECTION)
 	ssys.addTo(earth)
 
-	mars = makePlanet(ssys, 'mars', color.red, pd.INNERPLANET, pd.INNERPLANET, pd.PLANET_SZ_CORRECTION)
+	mars = makeMars(ssys, color.red, pd.INNERPLANET, pd.INNERPLANET, pd.PLANET_SZ_CORRECTION)
 	ssys.addTo(mars)
 
 	pluto = makePlanet(ssys, 'pluto', color.green, pd.DWARFPLANET, pd.DWARFPLANET, pd.DWARFPLANET_SZ_CORRECTION) #pd.OUTERPLANET, DWARFPLANET)
@@ -43,13 +44,13 @@ def createSolarSystem():
 	#ssys.addTo(makeSatellite(ssys, 'phobos', color.red, mars))
 	#ssys.addTo(makeSatellite(ssys, 'deimos', color.white, mars))
 
-	ssys.addTo(makeEcliptic(ssys, color.cyan, 0.4))
+	ssys.addTo(makeEcliptic(ssys, color.magenta, 0.4))
 
-	ssys.addTo(makePlanet(ssys, 'mercury', color.green, pd.INNERPLANET, pd.INNERPLANET, pd.PLANET_SZ_CORRECTION))
+	ssys.addTo(makeMercury(ssys, color.green, pd.INNERPLANET, pd.INNERPLANET, pd.PLANET_SZ_CORRECTION))
 	ssys.addTo(makePlanet(ssys, 'venus', color.yellow, pd.INNERPLANET, pd.INNERPLANET, pd.PLANET_SZ_CORRECTION))
 	ssys.addTo(makePlanet(ssys, 'jupiter', color.magenta, pd.OUTERPLANET, pd.GASGIANT, pd.PLANET_SZ_CORRECTION))
 	ssys.addTo(makePlanet(ssys, 'uranus', color.yellow, pd.OUTERPLANET, pd.GASGIANT, pd.PLANET_SZ_CORRECTION))
-	ssys.addTo(makePlanet(ssys, 'neptune', color.orange, pd.OUTERPLANET, pd.GASGIANT, pd.PLANET_SZ_CORRECTION))
+	ssys.addTo(makeNeptune(ssys, color.orange, pd.OUTERPLANET, pd.GASGIANT, pd.PLANET_SZ_CORRECTION))
 	ssys.addTo(makePlanet(ssys, 'saturn', color.cyan, pd.OUTERPLANET, pd.GASGIANT, pd.PLANET_SZ_CORRECTION))
 	
 	# generate DWARF planets

@@ -150,7 +150,7 @@ class makeSolarSystem:
 
 		######################################################
 		self.CenterRef = self.makeSolarSystemReferential()
-		self.CenterRef.setAxisTilt()
+		self.CenterRef.setAxisTilt(0)
 		######################################################
 		self.makeCelestialSphere()
 		self.makeConstellations()
@@ -777,6 +777,9 @@ class makeBody:
 		# convert polar to Cartesian in Sun referential
 		self.Position = self.setCartesianCoordinates()
 		##### self.shape = bodyShaper[bodyType]
+
+		# calculate North Pole direction based on Right Ascension information
+		self.RA = self.setRightAscensionAngle()
 		
 		# Create referentials:
 		# The PCI referential (the "Planet-Centered Inertial" is fixed to the stars, in other words, 
@@ -835,6 +838,23 @@ class makeBody:
 
 	#### makeBody methods in the order they are called in the __init__ constructor ####
 
+	# makeBody::setRightAscensionAngle to determine the direction of a planet's North Pole)
+	def setRightAscensionAngle_XXXX(self):
+		if "RA_1" in self.SolarSystem.objects_data[self.ObjectIndex]:
+			T = daysSinceJ2000UTC(self.locationInfo)/EARTH_CENTURY #36525. # T is in centuries
+			D = daysSinceJ2000UTC(self.locationInfo)
+#			return 90 + self.SolarSystem.objects_data[self.ObjectIndex]["RA_1"] + self.SolarSystem.objects_data[self.ObjectIndex]["RA_2"] * D #T
+			return self.SolarSystem.objects_data[self.ObjectIndex]["RA_1"] + self.SolarSystem.objects_data[self.ObjectIndex]["RA_2"] * D #T
+		return 0
+
+	def setRightAscensionAngle(self):
+		if "rotationalElts" in self.SolarSystem.objects_data[self.ObjectIndex]:
+			#T = daysSinceJ2000UTC(self.locationInfo)/EARTH_CENTURY #36525. # T is in centuries
+			D = daysSinceJ2000UTC(self.locationInfo)
+			RE = self.SolarSystem.objects_data[self.ObjectIndex]["rotationalElts"]
+			return RE["W_1"] + RE["W_2"] * D + RE["W_C"] # "W_C" is a correction factor
+		return 0
+
 	# this the referential fixed to the star. default is None (mostly for objects that don't
 	# require it such as PHA, comets, asteroids). Planets and the Sun must override this method
 	# to create a 3D referential, as it can be displayed through the user interface.
@@ -848,6 +868,7 @@ class makeBody:
 			self.RotAxis = self.setObliquity()
 
 	def setObliquity(self): 
+		print "setObliquity for ", self.Name
 		return vector(0, sin(self.TiltAngle), cos(self.TiltAngle))
 
 	def getRotAxis(self):
@@ -890,7 +911,8 @@ class makeBody:
 		return self.radiusToShow/self.SizeCorrection[self.sizeType]
 
 	def setPCPFAxisTilt(self):
-		self.PCPF.setAxisTilt()
+		if self.PCPF is not None:
+			self.PCPF.setAxisTilt(self.RA)
 
 	def makeOrbit(self):
 		# attach a curve to the object to display its orbit
@@ -904,14 +926,7 @@ class makeBody:
 			return False
 
 	def initRotation(self):
-		
-		# calculate current RA, to position the obliquity properly:
-		
-		if "RA_1" in self.SolarSystem.objects_data[self.ObjectIndex]:
-			T = daysSinceJ2000UTC(self.locationInfo)/EARTH_CENTURY #36525. # T is in centuries
-			self.RA = self.SolarSystem.objects_data[self.ObjectIndex]["RA_1"] + self.SolarSystem.objects_data[self.ObjectIndex]["RA_2"] * T
-#			self.BodyShape.rotate(angle=deg2rad(self.RA), axis=self.RotAxis, origin=(0,0,0)) #origin=(self.Position[0]+self.Foci[0],self.Position[1]+self.Foci[1],self.Position[2]+self.Foci[2]))
-			self.Origin.rotate(angle=deg2rad(self.RA), axis=self.RotAxis, origin=(0,0,0)) #origin=(self.Position[0]+self.Foci[0],self.Position[1]+self.Foci[1],self.Position[2]+self.Foci[2]))
+		return
 
 	def getRealisticSizeCorrection(self):
 		return self.RealisticCorrectionSize
@@ -1049,6 +1064,7 @@ class makeBody:
 	def update_referentials(self):
 		if self.PCI is not None:
 			self.PCI.updateReferential()
+		#if self.PCPF is not None:	
 		self.PCPF.updateReferential()
 		self.PCPF.rotate(angle=self.RotAngle)
 
@@ -1494,6 +1510,9 @@ class makePlanet(makeBody):
 		#self.BodyShape.visible = False
 		self.setRings()
 
+	def make_PCPF_referentialXX(self, tiltAngle): ###########################
+		self.PCPF = None
+
 	def make_PCI_referential(self, tiltAngle): ###, size, position):
 		# This is the referential that doesn't rotate with the planet and is fixed to the stars.
 		# in other words, it always points to the same direction
@@ -1507,7 +1526,11 @@ class makePlanet(makeBody):
 			'ratio': [1,1,1],
 			'legend': ["x", "y", "z"],
 		})  
-		self.PCI.setAxisTilt()
+
+		self.Origin 				= self.PCI.referential
+		self.Origin.visible			= True
+
+		self.PCI.setAxisTilt(self.RA)
 		self.PCI.display(False)
 		#self.setRotAxis()
 
@@ -1748,7 +1771,7 @@ class makeEarth(makePlanet):
 			'ratio': 		[1,1,1],
 			'legend': 		[u"\u2648", "y", "P"]
 		})  
-		self.PCI.setAxisTilt()
+		self.PCI.setAxisTilt(0)
 		self.PCI.display(False)		
 
 	# makeEarth::make_PCPF_referential (overrides the makePlanet method)
@@ -3138,6 +3161,8 @@ def getOrthogonalVector(vec):
 	norm = mag((x, y, z))
 	return vector(x/norm, y/norm, z/norm)
 """
+
+
 # ----------------
 # TIME MANAGEMENT
 # ----------------
@@ -3257,10 +3282,10 @@ def utc_to_local_fromTimestamp(utcTimeStamp, locationInfo):
 	return utc.astimezone(pytz.timezone(locationInfo.getTZ()))
 
 
-# Convert date/time from UTC to local date/time
+# Convert date/time from UTC to location of interest date/time
 def utc_to_local_fromDatetime(utc_datetime, locationInfo):
-	
-	return utc_datetime + locationInfo.longitudeSign * datetime.timedelta(seconds=locationInfo.TimeToUtcInSec())
+#	return utc_datetime + locationInfo.longitudeSign * datetime.timedelta(seconds=locationInfo.TimeToUtcInSec())
+	return utc_datetime + datetime.timedelta(seconds=locationInfo.TimeToUtcInSec())
 	#return utc_datetime - datetime.timedelta(seconds=locationInfo.TimeToUtcInSec())
 
 	
