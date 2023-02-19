@@ -45,6 +45,8 @@ class locList:
 	TZ_CHN_JIU = TZ_CHN_WE+1
 	TZ_CHN_TAI = TZ_CHN_JIU+1
 	TZ_CHN_JIN = TZ_CHN_TAI+1
+
+	# geo locations
 	TZ_NORTH_P = TZ_CHN_JIN+1
 	TZ_SOUTH_P = TZ_NORTH_P+1
 	TZ_EQUANT = TZ_SOUTH_P+1
@@ -387,12 +389,13 @@ class EarthLocations:
 
 
 	def loadOtherLocations(self):
-		for i in range(0, len(self.tzEarthLocations)-1):
+		for i in range(0, len(self.tzEarthLocations)):
 			self._setLocationDatetime(i)
 
 
 	def _setLocationDatetime(self, tzidx):
 		if tzidx > len(self.tzEarthLocations)-1:
+			print "IDX", tzidx, " too big"
 			return 
 
 		# determine tz aware local time and daylight saving use flag

@@ -103,7 +103,7 @@ class makeBasicReferential:
 
         self.referential.rotate(angle=(self.tiltAngle), axis=(1,0,0))
         if rightAscension != 0:
-            print "Adjusting axis direction by ", rightAscension, " degrees"
+            print "Basic: Adjusting axis direction by ", rightAscension%360, " degrees"
             self.referential.rotate(angle=deg2rad(rightAscension), axis=(0,0,1), origin=(self.body.Position[0]+self.body.Foci[0],self.body.Position[1]+self.body.Foci[1],self.body.Position[2]+self.body.Foci[2]))
 
         self.ZdirectionUnit = self.RotAxis = self.body.getRotAxis() #vector(0, sin(self.tiltAngle), cos(self.tiltAngle))
@@ -219,7 +219,7 @@ class make3DaxisReferential:
         # rotate referential first
         self.referential.rotate(angle=(self.tiltAngle), axis=(1,0,0))
         if rightAscension != 0:
-            print "Adjusting axis direction by ", rightAscension%360, " degrees"
+            print "3Dref: Adjusting axis direction by ", rightAscension%360, " degrees"
             self.referential.rotate(angle=deg2rad(rightAscension % 360), axis=(0,0,1), origin=(self.body.Position[0]+self.body.Foci[0],self.body.Position[1]+self.body.Foci[1],self.body.Position[2]+self.body.Foci[2]))
 
 

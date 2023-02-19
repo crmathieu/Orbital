@@ -327,6 +327,12 @@ def getEarthMeanMotion2():
 #from visual import color
 from vpython_interface import Color
 
+# Note: the "rotationalElts" structure contains the information relevant to a planet's rotation axis 
+# direction. Each planet has its own algorithm to determine its orientation and therefore must have
+# a different "rotationalElts" structure, as well as a custom "setRightAscensionAngle" method to 
+# handle its specific content. These methods are defined in each planet class in planets.py.
+# see document: doc/"method to determine north Pole orientation"
+
 objects_data = {
 	"moon" :{
 		"type": TYPE_SATELLITE,
@@ -472,8 +478,11 @@ objects_data = {
 		"longitude_of_perihelion":0.0,
 		"axial_tilt": 7.25,
 		"absolute_mag": 0.0,
-		"RA_1": 0.00,
-		"RA_2": -0.641,
+		"rotationalElts": {
+			"W_1": 0.00,
+			"W_2": -0.641,
+			"W_C": 0
+		},
 		"kep_elt":{'a' : 1.00000018, 'ar': -3e-08, 'EC_e' : 0.01673163, 'er':-3.661e-05, 'i' :-0.00054346, 'ir':-0.01337178, 'L' :100.46691572, 'Lr':35999.3730633, 'W' :102.93005885, 'Wr':0.3179526, 'N' :-5.11260389, 'Nr':-0.24123856, 'b' :0.0, 'c' :0.0, 's':0.0, 'f' :0.0},
 		"tga_name": "sun"
 		},
@@ -496,8 +505,24 @@ objects_data = {
 		"longitude_of_perihelion":44.97135,
 		"axial_tilt": 28.32,
 		"absolute_mag": 0.0,
-		"RA_1": 299.36,
-		"RA_2": 0, # requires special treatment: 299.36 + 0.70 sin N where N=357.85 + 52.316*T, T=Julian century from epoch
+		"rotationalElts": {
+			"""
+			N=357.85 + 52.316T			
+			a0=299.36 + 0.70 sinN
+			d0=43.46 - 0.51 cosN
+			W=253.18 + 536.3128492d - 0.48 sinN 
+			"""
+			"a0_1": 299.36,
+			"a0_2": 0.70,
+			"d0_1": 43.46,
+			"d0_2":	-0.51,
+			"N_1": 357.85,
+			"N_2": 52.316,
+			"W_1": 253.18, 
+			"W_2": 536.3128492,#0, # requires special treatment: 299.36 + 0.70 sin N where N=357.85 + 52.316*T, T= interval in Julian centuries (of 36525 days) from the standard epoch
+			"W_3": -0.48,
+			"W_C": 200
+		},
 		"kep_elt":{"a" : 30.06952752, "ar": 0.00006447,"EC_e" : 0.00895439,"er": 0.00000818,"i" : 1.77005520,"ir": 0.00022400,"L" : 304.22289287,"Lr": 218.46515314,"W" : 46.68158724,"Wr": 0.01009938,"N" : 131.78635853,"Nr": -0.00606302,"b" : -0.00041348,"c" : 0.68346318,"s" : -0.10162547,"f" : 7.67025000},
 		"tga_name":"Neptune"
 		},
@@ -520,8 +545,11 @@ objects_data = {
 		"longitude_of_perihelion":170.96424,
 		"axial_tilt": 97.8,
 		"absolute_mag": 0.0,
-		"RA_1": 257.311,
-		"RA_2": 0,
+		"rotationalElts": {
+			"W_1": 203.81, #257.311,
+			"W_2": -501.1600928, #0,
+			"W_C": 70
+		},
 		"kep_elt":{"a" : 19.18797948, "ar": -0.00020455, "EC_e" : 0.04685740, "er": -0.00001550, "i" : 0.77298127, "ir": -0.00180155, "L" : 314.20276625, "Lr": 428.49512595, "W" : 172.43404441, "Wr": 0.09266985, "N": 73.96250215, "Nr": 0.05739699, "b" : 0.00058331, "c" : -0.97731848, "s" : 0.17689245, "f" : 7.67025000},
 		"tga_name": "Uranus"
 		},
@@ -544,8 +572,16 @@ objects_data = {
 		"longitude_of_perihelion":92.43194,
 		"axial_tilt": 26.7,
 		"absolute_mag": 0.0,
-		"RA_1": 38.90, #40.589,
-		"RA_2": 810.7939024, #-0.036,
+		"rotationalElts": {
+			"a0_1": 40.589,
+			"a0_2": -0.036,
+			"d0_1": 83.537,
+			"d0_2":	-0.004,
+			"W_1": 38.90, #40.589,
+			"W_2": 810.7939024, #-0.036,
+			"W_C": -30
+
+		},
 		"kep_elt":{"a" : 9.54149883, "ar": -0.00003065, "EC_e" : 0.05550825, "er": -0.00032044, "i" : 2.49424102, "ir": 0.00451969, "L" : 50.07571329, "Lr": 1222.11494724, "W" : 92.86136063, "Wr": 0.54179478, "N": 113.63998702, "Nr": -0.25015002, "b" : 0.00025899, "c" : -0.13434469, "s" : 0.87320147, "f" : 38.35125},
 		"tga_name": "Saturn"
 		},
@@ -568,9 +604,11 @@ objects_data = {
 		"longitude_of_perihelion":14.75385,
 		"axial_tilt": 3.1,
 		"absolute_mag": 0.0,
-		"RA_1": 268.057,
-		"RA_2": -0.006,
-
+		"rotationalElts": {
+			"W_1": 284.95,
+			"W_2": 870.5360000,
+			"W_C": 0
+		},
 		"kep_elt":{'a' : 5.20248019, 'ar': -0.00002864, "EC_e" : 0.04853590, "er": 0.00018026, "i" : 1.29861416, "ir": -0.00322699, "L" : 34.33479152, "Lr": 3034.90371757, "W" : 14.27495244, "Wr": 0.18199196, "N": 100.29282654, "Nr": 0.13024619, "b" : -0.00012452, "c" : 0.06064060, "s" : -0.35635438, "f" : 38.35125},
 		"tga_name": "Jupiter"
 
@@ -594,9 +632,15 @@ objects_data = {
 		"longitude_of_perihelion":336.04084,
 		"axial_tilt": 25.2,
 		"absolute_mag": 0.0,
-		"RA_1": 317.681,
-		"RA_2": -0.106,
-
+		"rotationalElts": {
+			"a0_1": 317.68143,
+			"a0_2": -0.1061,
+			"d0_1": 52.88650,
+			"d0_2": -0.0609,
+			"W_1": 176.630, #317.681,
+			"W_2": 350.89198226, #-0.106,
+			"W_C": 0
+		},
 		"kep_elt":{'a' : 1.52371243, 'ar': 9.7e-07, 'EC_e' : 0.09336511, 'er':9.149e-05, 'i' :1.85181869, 'ir':-0.00724757, 'L' :-4.56813164, 'Lr':19140.2993424, 'W' :-23.91744784, 'Wr':0.45223625, 'N' :49.71320984, 'Nr':-0.26852431, 'b' :0.0, 'c' :0.0, 's':0.0, 'f' :0.0},
 		"tga_name": "Mars"
 		},
@@ -619,9 +663,11 @@ objects_data = {
 		"longitude_of_perihelion":77.45645,
 		"axial_tilt": 0.034,
 		"absolute_mag": 0.0,
-		"RA_1": 281.010,
-		"RA_2": -0.033,
-
+		"rotationalElts": {
+			"W_1": 281.010,
+			"W_2": -0.033,
+			"W_C": 0
+		},
 		"kep_elt":{'a' : 0.38709843, 'ar': 0.0, 'EC_e' : 0.20563661, 'er':0.00002123, 'i' :7.00559432, 'ir':-0.00590158, 'L' :252.25166724, 'Lr':149472.674866, 'W' :77.45771895, 'Wr':0.15940013, 'N' :48.33961819, 'Nr':-0.12214182, 'b' :0.0, 'c' :0.0, 's':0.0, 'f' :0.0},
 		"tga_name": "Mercury"
 		},
@@ -644,8 +690,13 @@ objects_data = {
 		"longitude_of_perihelion":131.53298,
 		"axial_tilt": 177.4,
 		"absolute_mag": 0.0,
-		"RA_1": 272.76,
-		"RA_2": 0,
+		"rotationalElts": {
+			"a0": 272.76,
+			"d0": 67.16,
+			"W_1": 160.20, #272.76,
+			"W_2": -1.4813688, #0,
+			"W_C": 0
+		},
 		"kep_elt":{'a' : 0.72332102, 'ar': -2.6e-07, 'EC_e' : 0.00676399, 'er':-5.107e-05, 'i' :3.39777545, 'ir':0.00043494, 'L' :181.9797085, 'Lr':58517.8156026, 'W' :131.76755713, 'Wr':0.05679648, 'N' :76.67261496, 'Nr':-0.27274174, 'b' :0.0, 'c' :0.0, 's':0.0, 'f' :0.0},
 		#"kep_elt_1":{'a' : 0.72333566, 'ar':0.00000390, 'EC_e' : 0.00677672, 'er':-0.00004107, 'i' :3.39467605, 'ir':-0.00078890, 'L' :181.97909950, 'Lr':58517.81538729, 'W' :131.60246718, 'Wr':0.00268329, 'N' :76.67984255, 'Nr':-0.27769418, 'b' :0.0, 'c' :0.0, 's':0.0, 'f' :0.0},
 		"tga_name": "Venus"
@@ -669,8 +720,6 @@ objects_data = {
 		"longitude_of_perihelion":102.94719,
 		"axial_tilt": 23.4,
 		"absolute_mag": 0.0,
-		"RA_1": -90, #0.00,
-		"RA_2": 0, #-0.641,
 		"kep_elt":{'a' : 1.00000018, 'ar': -3e-08, 'EC_e' : 0.01673163, 'er':-3.661e-05, 'i' :-0.00054346, 'ir':-0.01337178, 'L' :100.46691572, 'Lr':35999.3730633, 'W' :102.93005885, 'Wr':0.3179526, 'N' :-5.11260389, 'Nr':-0.24123856, 'b' :0.0, 'c' :0.0, 's':0.0, 'f' :0.0},
 		#"kep_elt_1":{'a' : 1.00000261, 'ar': 0.00000562, 'EC_e' : 0.01671123, 'er':-0.00004392, 'i' :-0.00001531, 'ir':-0.01294668, 'L' :100.46457166, 'Lr':35999.37244981, 'W' :102.93768193, 'Wr':0.32327364, 'N' :0.0, 'Nr':0.0, 'b' :0.0, 'c' :0.0, 's':0.0, 'f' :0.0},
 		"tga_name": "highres-earth-8192x4096-clouds" #"EarthClouds"
@@ -716,8 +765,11 @@ objects_data = {
 		"longitude_of_perihelion":224.06676,
 		"axial_tilt": 122.5,
 		"absolute_mag": -0.7,
-		"RA_1": 132.99,
-		"RA_2": 0,
+		"rotationalElts": {
+			"W_1": 132.99,
+			"W_2": 0,
+			"W_C": 0
+		},
 		"kep_elt":{'a' : 39.48686035, 'ar': 0.00449751, 'EC_e' : 0.24885238, 'er':6.016e-05, 'i' :17.1410426, 'ir':5.01e-06, 'L' :238.96535011, 'Lr':145.18042903, 'W' :224.09702598, 'Wr':-0.00968827, 'N' :110.30167986, 'Nr':-0.00809981, 'b' :-0.01262724, 'c' :0.0, 's':0.0, 'f' :0.0},
 		#"kep_elt_1":{'a' : 39.48211675, 'ar':-0.00031596, 'EC_e' : 0.24882730, 'er':0.00005170, 'i' :17.14001206, 'ir':0.00004818, 'L' :238.92903833, 'Lr':145.20780515, 'W' :224.06891629, 'Wr':-0.04062942, 'N' :110.30393684, 'Nr':-0.01183482, 'b' :0.0, 'c' :0.0, 's':0.0, 'f' :0.0},
 		"tga_name": "Pluto"
@@ -924,8 +976,14 @@ rings_data = {
 	},
 	"uranus": {
 		"rings":[
-			{	"name"		: "Mu",
+			{	"name"		: "cos-1",
 				"radius"	: 103000e3,
+				"width"		: 50e3,
+				"color"		: Color.grey, #Color.blueish,
+				"opacity"	: 1.0
+			},
+			{	"name"		: "Mu",
+				"radius"	: 102950e3,
 				"width"		: 17000e3,
 				"color"		: Color.darkgrey,
 				"opacity"	: 0.6
@@ -936,8 +994,14 @@ rings_data = {
 				"color"		: Color.darkgrey,
 				"opacity"	: 0.3
 			},
-			{	"name"		: "Tau",
+			{	"name"		: "cos-2",
 				"radius"	: 41350e3,
+				"width"		: 50e3,
+				"color"		: Color.grey, #Color.blueish,
+				"opacity"	: 0.4
+			},
+			{	"name"		: "Tau",
+				"radius"	: 41300e3,
 				"width"		: 3500e3,
 				"color"		: Color.darkgrey, #Color.blueish,
 				"opacity"	: 0.2

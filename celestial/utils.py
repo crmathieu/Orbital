@@ -32,8 +32,8 @@ def getXZprojection(vec):
 def getYZprojection(vec):
 	return getVectorProjection(vec, vector(0,1,0), vector(0,0,1))
 
-def getVectorProjection(vec, p1, p2):
-	# get vector orthogonal to a plane defined by 2 vectors p1 and p2
+def getVectorProjection(vec, pv1, pv2):
+	# get vector orthogonal to a plane defined by 2 vectors pv1 and pv2
 	# Recall that the vector projection of a vector u onto another vector v is given by 
 	# 
 	# projv(u) = (u.v/||v||^2) x v
@@ -46,7 +46,7 @@ def getVectorProjection(vec, p1, p2):
 	# projPlane(u) = u - projn(u) = u - (u.n/||n||^2) x n
 	# where n is a vector normal to plane
 	#
-	n = getVectorOrthogonalToPlane(p1, p2)
+	n = getVectorOrthogonalToPlane(pv1, pv2)
 	vec = (1/mag(vec)) * vec
 	projn_vec = (vec[0]*n[0] + vec[1]*n[1] + vec[2]*n[2]) * n
 	return vec - projn_vec

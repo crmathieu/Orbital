@@ -838,13 +838,21 @@ class makeBody:
 
 	#### makeBody methods in the order they are called in the __init__ constructor ####
 
-	# calculate current Right Ascension angle, when available 
-	# (used to determine the direction of a planet's North Pole)
-	def setRightAscensionAngle(self):
+	# makeBody::setRightAscensionAngle to determine the direction of a planet's North Pole)
+	def setRightAscensionAngle_XXXX(self):
 		if "RA_1" in self.SolarSystem.objects_data[self.ObjectIndex]:
 			T = daysSinceJ2000UTC(self.locationInfo)/EARTH_CENTURY #36525. # T is in centuries
 			D = daysSinceJ2000UTC(self.locationInfo)
-			return 90 + self.SolarSystem.objects_data[self.ObjectIndex]["RA_1"] + self.SolarSystem.objects_data[self.ObjectIndex]["RA_2"] * D #T
+#			return 90 + self.SolarSystem.objects_data[self.ObjectIndex]["RA_1"] + self.SolarSystem.objects_data[self.ObjectIndex]["RA_2"] * D #T
+			return self.SolarSystem.objects_data[self.ObjectIndex]["RA_1"] + self.SolarSystem.objects_data[self.ObjectIndex]["RA_2"] * D #T
+		return 0
+
+	def setRightAscensionAngle(self):
+		if "rotationalElts" in self.SolarSystem.objects_data[self.ObjectIndex]:
+			#T = daysSinceJ2000UTC(self.locationInfo)/EARTH_CENTURY #36525. # T is in centuries
+			D = daysSinceJ2000UTC(self.locationInfo)
+			RE = self.SolarSystem.objects_data[self.ObjectIndex]["rotationalElts"]
+			return RE["W_1"] + RE["W_2"] * D + RE["W_C"] # "W_C" is a correction factor
 		return 0
 
 	# this the referential fixed to the star. default is None (mostly for objects that don't
@@ -919,17 +927,6 @@ class makeBody:
 
 	def initRotation(self):
 		return
-
-		# calculate current RA, to position the obliquity properly:
-		
-		if "RA_1" in self.SolarSystem.objects_data[self.ObjectIndex]:
-			T = daysSinceJ2000UTC(self.locationInfo)/EARTH_CENTURY #36525. # T is in centuries
-			self.RA = self.SolarSystem.objects_data[self.ObjectIndex]["RA_1"] + self.SolarSystem.objects_data[self.ObjectIndex]["RA_2"] * T
-#			self.BodyShape.rotate(angle=deg2rad(self.RA), axis=self.RotAxis, origin=(0,0,0)) #origin=(self.Position[0]+self.Foci[0],self.Position[1]+self.Foci[1],self.Position[2]+self.Foci[2]))
-#####			self.Origin.rotate(angle=deg2rad(self.RA), axis=self.RotAxis, origin=(0,0,0)) #origin=(self.Position[0]+self.Foci[0],self.Position[1]+self.Foci[1],self.Position[2]+self.Foci[2]))
-			print "Adjusting axis direction for ", self.Name, " by ", self.RA, " degrees"
-			self.Origin.rotate(angle=deg2rad(self.RA), axis=(0,0,1), origin=(self.Position[0]+self.Foci[0],self.Position[1]+self.Foci[1],self.Position[2]+self.Foci[2]))
-
 
 	def getRealisticSizeCorrection(self):
 		return self.RealisticCorrectionSize

@@ -2,7 +2,7 @@ from celestial.utils import getAngleBetweenVectors, getVectorProjectionToVector,
 from orbit3D import *
 from vpython_interface import ViewPort, Color
 from visual import *
-from utils import deg2rad
+from utils import deg2rad, getVectorProjection
 #from objects import circle
 from location import locList
 from video import *
@@ -893,7 +893,7 @@ class makeEarthLocation():
         self.EclipticPosition   = vector(0,0,0)
         self.lat                = self.long = 0
         self.analemma           = None
-        self.GeoLoc             = sphere(frame=self.Origin, pos=vector(0,0,0), radius=10, color=self.Color, material = materials.emissive, opacity=0.5, axis=(0,0,1))
+        self.GeoLoc             = sphere(frame=self.Origin, pos=vector(0,0,0), radius=10, color=self.Color, visible=False, material = materials.emissive, opacity=0.5, axis=(0,0,1))
         self.TOPO               = None
         self.SunAxis            = None
         self.Origin.axis.visible = True
@@ -905,6 +905,7 @@ class makeEarthLocation():
             self.Name = earthLoc["name"]
             self.lat = earthLoc["lat"]
             self.long = earthLoc["long"]
+            self.localDatetime = earthLoc["localDatetime"]
             self.setGeoPosition()
             self.updateEclipticPosition()
             #self.makeSunAxis()
@@ -912,6 +913,12 @@ class makeEarthLocation():
             #self.setOrientation(self.NormalVec)
         else:
             self.Name = "None"
+
+    def showLocation(self, trueFalse):
+        self.GeoLoc.visible = trueFalse
+
+    def getLocalDatetime(self):
+        return self.localDatetime + datetime.timedelta(days=self.Planet.SolarSystem.Dashboard.orbitalTab.DeltaT)
 
     def updateForwardVectorIn24hMode(self, sunPerspective = False):
 
@@ -1140,20 +1147,30 @@ class makeEarthLocation():
         # transform that vector to OVRL ref coordinates and attach it as the down vector
         self.sunVector = vector(self.Origin.world_to_frame(self.Planet.PCPF.referential.world_to_frame(v)))/20
 
-        # from this vector, let's correct for the latitude of the location        
-#        angle = -deg2rad(abs(self.lat)/2)
-        angle = -deg2rad(abs(self.lat)/2) - self.Planet.TiltAngle * 0.9
+        # from this vector, let's correct for the latitude of the location  
+        #ldt = self.getLocalDatetime()
+
+        angle = -self.Planet.TiltAngle
+        print "latitude=", self.lat, "- angle = ",angle
 
         self.sunViewVector = simpleArrow(Color.red, 0, 2, self.GeoLoc.pos, axisp = (self.sunVector/15), context = self.Origin)
+
+        # compensate for the latitude correction
         self.locViewVector = rotate(vector=self.sunVector, angle=angle, axis=self.topoVecX)
 
-        # if the dot product between viewVector and normal is negative,
+        # make sure we still point in the general direction of the sun: use the projection
+        # of locViewVector on the (z, sunVector) plane
+        self.locViewVector = getVectorProjection(self.locViewVector, vector(0,0,1), self.sunVector) * mag(self.sunVector)
+
+        # if the dot product between viewVector and the normal is negative,
         # it means that the sun isn't visible, hence use the Normal
         # vector as view vector
+#        if dot(self.locViewVector, self.NormalVec) < 0:
         if dot(self.locViewVector, self.NormalVec) < 0:
+            self.ViewHiddenArrow = simpleArrow(Color.yellow, 0, 2, self.GeoLoc.pos, axisp = (self.locViewVector/15), context = self.Origin)
             self.locViewVector = self.NormalVec
 
-        self.ViewArrowSouth = simpleArrow(Color.magentish, 0, 2, self.GeoLoc.pos, axisp = (self.locViewVector/15), context = self.Origin)
+        self.ViewArrowSouth = simpleArrow(Color.magentish, 0, 10, self.GeoLoc.pos, axisp = (self.locViewVector/15), context = self.Origin)
 
         self.displayTopoCentricRef(False)
 
@@ -1327,7 +1344,7 @@ class makeEarthLocation():
         if trueFalse == True:
             #self.RotateHorizon()
             self.Planet.SolarSystem.Scene.background = Color.cyan
-            self.Planet.SolarSystem.Scene.fov = deg2rad(90)
+            self.Planet.SolarSystem.Scene.fov = deg2rad(95)
             self.updateEarthEyeView()
             # disable mouse action
             pass
@@ -1498,7 +1515,7 @@ class makeEquator():
         #self.PCI = widgets.PCI
         self.Color = Color.red
 
-        self.Trail = curve(frame=self.Origin, color=self.Color, visible=False, radius=25, material=materials.emissive)
+        self.Trail = curve(frame=self.Origin, color=self.Color, visible=False, radius=10, material=materials.emissive)
 #        self.Trail = curve(frame=self.Planet.PCPF.referential, color=self.Color, visible=False, radius=25, material=materials.emissive)
 #        self.Trail = curve(frame=self.Planet.PCI.referential, color=self.Color, visible=False, radius=25, material=materials.emissive)
         self.Position = np.matrix([[0],[0],[0]], np.float64)
@@ -1592,6 +1609,9 @@ class makeEquatorialPlane():
 
 
     def display(self, trueFalse):
+        self.eqPlane.opacity = (0.6 if trueFalse == True else 0)
+        return
+
         STEPS = 10
         if trueFalse == True:
             bound = 0
@@ -1612,7 +1632,7 @@ class doMeridian():
         self.Planet = widgets.Planet
         #Radius = 25 if longitudeAngle == 0 else 0
         # define meridian in rotating referential PCPF
-        self.Trail = curve(frame=self.Origin, color=colr, visible=False,  material=materials.emissive, radius=(25 if longitudeAngle == 0 else 0))
+        self.Trail = curve(frame=self.Origin, color=colr, visible=False,  material=materials.emissive, radius=(10 if longitudeAngle == 0 else 0))
         self.Position = np.matrix([[0],[0],[0]], np.float64)
         self.Color = colr #Color.cyan
         self.draw()
@@ -1774,8 +1794,8 @@ class makeTropics():
 
     def draw(self):
         # build latitudes levels every 10deg from -90 to +90            
-        self.Tropics.append(doLatitude(self.Widgets, -self.TROPIC_ABS_LATITUDES, Color.yellow, thickness=25))
-        self.Tropics.append(doLatitude(self.Widgets, +self.TROPIC_ABS_LATITUDES, Color.yellow, thickness=25))
+        self.Tropics.append(doLatitude(self.Widgets, -self.TROPIC_ABS_LATITUDES, Color.yellow, thickness=10)) #25))
+        self.Tropics.append(doLatitude(self.Widgets, +self.TROPIC_ABS_LATITUDES, Color.yellow, thickness=10)) #25))
 
 
 class makeAnalemmaXX():

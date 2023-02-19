@@ -2039,14 +2039,16 @@ class WIDGETSpanel(AbstractUI):
 		self.parentFrame.setInfoLine("{:>5}{:>2}:{:>2}:{:2}".format("", str(ctrl.new_utcDatetime.hour).zfill(2), str(ctrl.new_utcDatetime.minute).zfill(2), str(ctrl.new_utcDatetime.second).zfill(2)), 1)
 
 	def CurLocDatetime(self): # todo
-		ctrl = self.parentFrame.orbitalTab
-		dt = self.SolarSystem.locationInfo.tzEarthLocations[self.locationID]["localDatetime"]
+		#ctrl = self.parentFrame.orbitalTab
+		loc = self.SolarSystem.locationInfo.tzEarthLocations[self.locationID]
+		dt = loc["localDatetime"]
 		#dt = self.Locations[self.locationID]["localDatetime"]
 		# add current DeltaT value (in days)
-		time_change = datetime.timedelta(days=ctrl.DeltaT)
+		time_change = datetime.timedelta(days=self.parentFrame.orbitalTab.DeltaT)
 		upd_dt = dt+time_change
-		self.parentFrame.setInfoLine("LOC: "+index_to_month[ctrl.dateMSpin.GetValue()]+" {:>02}".format(str(upd_dt.day)), 0)
-		self.parentFrame.setInfoLine("{:>5}{:>2}:{:>2}:{:2}".format("", str(upd_dt.hour).zfill(2), str(upd_dt.minute).zfill(2), str(upd_dt.second).zfill(2)), 1)
+		self.parentFrame.setInfoLine(loc["name"]+":", 0)
+		self.parentFrame.setInfoLine(index_to_month[upd_dt.month]+" {:>02}".format(str(upd_dt.day)), 1)
+		self.parentFrame.setInfoLine("{:>2}:{:>2}:{:2}".format(str(upd_dt.hour).zfill(2), str(upd_dt.minute).zfill(2), str(upd_dt.second).zfill(2)), 2)
 
 	def dummy(self):
 		pass
@@ -2231,7 +2233,11 @@ class WIDGETSpanel(AbstractUI):
 
 	def OnSelectLocation(self, e):
 		if self.parentFrame.orbitalTab.AnimationInProgress == False:
+			if self.locationID != -1:
+				self.Earth.PlanetWidgets.Loc[self.locationID].showLocation(False)
+
 			self.locationID = self.locIndexes[e.GetSelection()]
+			self.Earth.PlanetWidgets.Loc[self.locationID].showLocation(True)
 #############
 			self.SolarSystem.locationInfo.setLocationOfInterest(self.locationID)
 			self.parentFrame.orbitalTab.setLocationOfInterestDateTime()
