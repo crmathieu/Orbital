@@ -113,21 +113,22 @@ Orbital creates graphics though the vpython module. because *vpython* has evolve
 
 ### on Windows computer:
 
-1) Install python2.7 64 bits:
+Install python2.7 64 bits:
+
 go to "https://www.python.org/downloads/release/python-279/" and under "Files",
 click on "Windows x86-64 MSI installer". Download the installer and run it.
 
 use the default install configuration. Your python folder should be
-in c:\python27
+in **c:\python27**
 
 If you get the error "error: Microsoft Visual C++ 9.0 is required. Get it from http://aka.ms/vcpython27"
 then from "https://www.microsoft.com/en-us/download/confirmation.aspx?id=44266" download the VC runtime
 installer: VCForPython27.msi and run it to install the missing runtime library. Then try to run the python27
 installer again to finish installing python.
 
-Add "c:\python27" and "c:\python27\scripts" to your PATH environment variable
+Add *c:\python27* and *c:\python27\scripts* to your **PATH** environment variable
 
-For hassle free install, it is recommanded to do the manual installation. After installing python 2.7, simply go to the "manual-install" folder:
+For hassle free install, it is recommanded to do the manual installation instead of using the pip command. After installing python 2.7, simply go to the "manual-install" folder:
 ```text
 cv2.zip
 numpy.zip
@@ -136,7 +137,7 @@ pytz.zip
 vpython.zip
 wx-python-3.0-msw.zip
 ```
-Then unzip each package into the python2.7 "site-packages" folder. 
+Then unzip each package into the python2.7 **site-packages** folder. 
 
 Create an environment variable **PYTHONPATH** that contains the absolute path to the cvisual.pyd file. Assuming python2.7 is installed in c:\python2.7, that would be:
 
