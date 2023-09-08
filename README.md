@@ -109,7 +109,25 @@ List of a few close encounters between Potentially Harzardous Asteroids and eart
 
 
 # How to install 
-Orbital creates graphics though the vpython module. because *vpython* has evolved into a web based system, support for the standalone version has been neglected and never got uograded to be compatible with python3.x. Instead python2.7 must be used. For hassle free install, it is recommanded to do the manual installation. Simply go to the "manual-install" folder:
+Orbital creates graphics though the vpython module. because *vpython* has evolved into a web based system, support for the standalone version has been neglected and never got uograded to be compatible with python3.x. Instead python2.7 must be used. 
+
+### on Windows computer:
+
+1) Install python2.7 64 bits:
+go to "https://www.python.org/downloads/release/python-279/" and under "Files",
+click on "Windows x86-64 MSI installer". Download the installer and run it.
+
+use the default install configuration. Your python folder should be
+in c:\python27
+
+If you get the error "error: Microsoft Visual C++ 9.0 is required. Get it from http://aka.ms/vcpython27"
+then from "https://www.microsoft.com/en-us/download/confirmation.aspx?id=44266" download the VC runtime
+installer: VCForPython27.msi and run it to install the missing runtime library. Then try to run the python27
+installer again to finish installing python.
+
+Add "c:\python27" and "c:\python27\scripts" to your PATH environment variable
+
+For hassle free install, it is recommanded to do the manual installation. After installing python 2.7, simply go to the "manual-install" folder:
 ```text
 cv2.zip
 numpy.zip
@@ -124,27 +142,12 @@ Create an environment variable **PYTHONPATH** that contains the absolute path to
 
 **PYTHONPATH=c:\python2.7\Lib\site-packages\visual_common**
 
-With the newest version, the project starts with the file orbital.py. So, to start the simulation, from the orbital folder type:
+To start the simulation, from the orbital folder type:
 
 ```text
 c:\python2.7\python orbital.py
 ```
 
-### on Windows computer:
-
-	1) Install python2.7 64 bits:
-	go to "https://www.python.org/downloads/release/python-279/" and under "Files",
-	click on "Windows x86-64 MSI installer". Download the installer and run it.
-
-	use the default install configuration. Your python folder should be
-	in c:\python27
-
-	If you get the error "error: Microsoft Visual C++ 9.0 is required. Get it from http://aka.ms/vcpython27"
-	then from "https://www.microsoft.com/en-us/download/confirmation.aspx?id=44266" download the VC runtime
-	installer: VCForPython27.msi and run it to install the missing runtime library. Then try to run the python27
-	installer again to finish installing python.
-
-	Add "c:\python27" and "c:\python27\scripts" to your PATH environment variable
 <!--
 	2) Install Numpy and Scipy libraries:
 	go to http://www.lfd.uci.edu/~gohlke/pythonlibs
@@ -171,7 +174,6 @@ c:\python2.7\python orbital.py
 
 	Once downloaded, run it. This installer will also install the wxPython 3.0 library.
 	That's it!
--->
 
 ### on a Mac
 
@@ -190,6 +192,7 @@ c:\python2.7\python orbital.py
 	one from python.org.
 
 	Open the VPython installer (Doubleclick VPython-Mac-Py2.7-6.11.pkg.)
+-->
 
 
 Enjoy the simulation!
