@@ -109,20 +109,26 @@ List of a few close encounters between Potentially Harzardous Asteroids and eart
 
 
 # How to install 
-Orbital creates graphics though the vpython module. because *vpython* has evolved into a web based system, support for the standalone version has been neglected and is not compatible with python3.x. Instead python2.7 must be used. For hassle free install, it is recommanded to do the manual installation. Simply go to the "manual-install" folder, then unzip each package into the python2.7 "site-packages" folder. 
-
+Orbital creates graphics though the vpython module. because *vpython* has evolved into a web based system, support for the standalone version has been neglected and never got uograded to be compatible with python3.x. Instead python2.7 must be used. For hassle free install, it is recommanded to do the manual installation. Simply go to the "manual-install" folder:
+```text
 cv2.zip
 numpy.zip
 pyautogui.zip
 pytz.zip
 vpython.zip
 wx-python-3.0-msw.zip
+```
+Then unzip each package into the python2.7 "site-packages" folder. 
 
-Create an environment variable PYTHONPATH that contains the absolute path to the cvisual.pyd file. Assuming python2.7 is installed in c:\python2.7, that would be 
+Create an environment variable **PYTHONPATH** that contains the absolute path to the cvisual.pyd file. Assuming python2.7 is installed in c:\python2.7, that would be:
+
 **PYTHONPATH=c:\python2.7\Lib\site-packages\visual_common**
 
 With the newest version, the project starts with the file orbital.py. So, to start the simulation, from the orbital folder type:
+
+```text
 c:\python2.7\python orbital.py
+```
 
 ### on Windows computer:
 
@@ -167,7 +173,7 @@ c:\python2.7\python orbital.py
 	That's it!
 -->
 
-# How to install on a Mac
+### on a Mac
 
 	If you already have a version of VPython 6, it's a good idea to uninstall it before installing
 	the new VPython 6.11. (If you have VPython 5 installed, you need to delete the old folders visual,
