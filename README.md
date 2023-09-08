@@ -108,7 +108,23 @@ List of a few close encounters between Potentially Harzardous Asteroids and eart
 	2004 XK50 	12/24/2025
 
 
-# How to install the platform on Windows computer:
+# How to install 
+Orbital creates graphics though the vpython module. because *vpython* has evolved into a web based system, support for the standalone version has been neglected and is not compatible with python3.x. Instead python2.7 must be used. For hassle free install, it is recommanded to do the manual installation. Simply go to the "manual-install" folder, then unzip each package into the python2.7 "site-packages" folder. 
+
+cv2.zip
+numpy.zip
+pyautogui.zip
+pytz.zip
+vpython.zip
+wx-python-3.0-msw.zip
+
+Create an environment variable PYTHONPATH that contains the absolute path to the cvisual.pyd file. Assuming python2.7 is installed in c:\python2.7, that would be 
+**PYTHONPATH=c:\python2.7\Lib\site-packages\visual_common**
+
+With the newest version, the project starts with the file orbital.py. So, to start the simulation, from the orbital folder type:
+c:\python2.7\python orbital.py
+
+### on Windows computer:
 
 	1) Install python2.7 64 bits:
 	go to "https://www.python.org/downloads/release/python-279/" and under "Files",
@@ -123,7 +139,7 @@ List of a few close encounters between Potentially Harzardous Asteroids and eart
 	installer again to finish installing python.
 
 	Add "c:\python27" and "c:\python27\scripts" to your PATH environment variable
-
+<!--
 	2) Install Numpy and Scipy libraries:
 	go to http://www.lfd.uci.edu/~gohlke/pythonlibs
 	- download numpy+mkl: "numpy-1.13.1+mkl-cp27-cp27m-win_amd64.whl"
@@ -149,6 +165,7 @@ List of a few close encounters between Potentially Harzardous Asteroids and eart
 
 	Once downloaded, run it. This installer will also install the wxPython 3.0 library.
 	That's it!
+-->
 
 # How to install on a Mac
 
