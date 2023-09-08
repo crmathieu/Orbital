@@ -68,24 +68,24 @@ You have the ability to change the Point Of View (POV) to reset the center of th
 
 <img src="./screenshot-3.jpg">
 
-# Most important Files:
+# Main Files:
 ```text
-	orbital.py ....................... Orbital entry point
-	celestial/__main__.py ............ bootloader
-	celestial/camera.py .............. Camera movements
-	celestial/controls.py ............ Orbital controller class used in the "Orbital Control" user interface
-	celestial/location.py ............ Earth location functions
-	celestial/numberfmt.py ........... String precision formatting
-	celestial/objects.py ............. Library of 3D objects
-	celestial/orbit3D.py ............. Orbit trajectories and belts calculations classes
-	celestial/orbitalLIB.py .......... library class allowing to create an animation (story) programmatically
-	celestial/planetsdata.py ......... Orbital elements for major planets and belts
-	celestial/rate_func.py ........... Rate functions defined for animations
-	celestial/referentials.py ........ Planet Referentials classes
-	celestial/utils.py ............... Linear Algebra utility functions
-	celestial/video.py ............... Animation recording class
-	celestial/vpython_interface.py ... Modify vpython "display" class
-	celestial/widgets.py ............. Earth widgets classes
+orbital.py ....................... Orbital entry point
+celestial/__main__.py ............ bootloader
+celestial/camera.py .............. Camera movements
+celestial/controls.py ............ Orbital controller class used in the "Orbital Control" user interface
+celestial/location.py ............ Earth location functions
+celestial/numberfmt.py ........... String precision formatting
+celestial/objects.py ............. Library of 3D objects
+celestial/orbit3D.py ............. Orbit trajectories and belts calculations classes
+celestial/orbitalLIB.py .......... library class allowing to create an animation (story) programmatically
+celestial/planetsdata.py ......... Orbital elements for major planets and belts
+celestial/rate_func.py ........... Rate functions defined for animations
+celestial/referentials.py ........ Planet Referentials classes
+celestial/utils.py ............... Linear Algebra utility functions
+celestial/video.py ............... Animation recording class
+celestial/vpython_interface.py ... Modify vpython "display" class
+celestial/widgets.py ............. Earth widgets classes
 ```
 
 # Close Approach Data:
