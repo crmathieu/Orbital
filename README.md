@@ -1,15 +1,15 @@
 # Orbital
 
-"Orbital" is an accurate interactive 3D representation of the solar system featuring inner and outer planets, asteroids, comets and Trans-Neptunian objects. It also includes the asteroid belt, Jupiter Trojans, Kuiper belt and daily "Close Approach" bodies from the Jet Propulsion Laboratory database. In addition, the orbital elements of any object listed in the JPL small-body database can be retrieved using the "Search" tab.
+"Orbital" is an accurate interactive 3D representation of the solar system featuring inner and outer planets, asteroids, comets and Trans-Neptunian objects. It also includes the asteroid belt, Jupiter Trojans, Kuiper belt, the celestial sphere and a constellations map. 
 
-3D orbits of major objects in the solar system are rendered and because the window is interactive, the user can zoom in and out as well as rotate the scene. Each object is located on its actual orbit position at the time of rendering. For a demo of the simulation go to https://youtu.be/WjiwySvZY3g. (Note: When the video was made, body rotation was not implemented yet, hence you won't see the planets spinning, but this repository includes the code that implements body rotation).
+The 3D orbits of the major planets are rendered and because the window is interactive, the user can zoom in and out as well as rotate the scene. Each object is located on its actual orbit position at the time of rendering. For a demo of the simulation go to https://youtu.be/WjiwySvZY3g. (Note: When the video was made, body rotation was not implemented yet, hence you won't see the planets spinning, but this repository includes the code that implements body rotation).
 
 # Interacting with the simulation:
 
 To zoom in/out: click on both mouse buttons and drag the mouse forward or backward.
 To rotate the scene: click on the mouse left button only and drag the mouse sideways.
 
-Objects listed in the drop down were collected from the JPL Small-Body Database Search Engine and the Nasa planetary factsheets. The Celestial mechanic concepts required to develop this program can be found in the Roger Bates's book "Introduction to Astrodynamics", as well as the document "Keplerian Elements for Approximate Positions of the Major Planets" (E.M. Standish from JPL Caltech).
+Objects listed in the drop down were collected from the JPL Small-Body Database Search Engine and the Nasa planetary factsheets. The Celestial mechanics concepts required to develop this program can be found in the Roger Bates's book "Introduction to Astrodynamics", as well as the document "Keplerian Elements for Approximate Positions of the Major Planets" (E.M. Standish from JPL Caltech).
 
 Keep in mind that
 
@@ -84,7 +84,7 @@ celestial/rate_func.py ........... Rate functions defined for animations
 celestial/referentials.py ........ Planet Referentials classes
 celestial/utils.py ............... Linear Algebra utility functions
 celestial/video.py ............... Animation recording class
-celestial/vpython_interface.py ... Modify vpython "display" class
+celestial/vpython_interface.py ... Modifies vpython "display" class
 celestial/widgets.py ............. Earth widgets classes
 ```
 
