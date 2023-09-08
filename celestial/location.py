@@ -639,7 +639,8 @@ class EarthLocations:
 		return self.tzEarthLocations[0]["tzname"]
 		
 	def getPytzValue(self):
-		print "TZ INFO: timezoneSTR=", self.timezoneStr, "timezoneINT=", pytz.timezone(self.timezoneStr)
+#		print "TZ INFO: timezoneSTR=", self.timezoneStr, "timezoneINT=", pytz.timezone(self.timezoneStr)
+		print "TZ INFO: timezoneSTR=", self.tzEarthLocations[0]["tzname"], "timezoneINT=", pytz.timezone(self.tzEarthLocations[0]["tzname"])
 		return pytz.timezone(self.tzEarthLocations[0]["tzname"]) #self.timezoneStr)
 
 

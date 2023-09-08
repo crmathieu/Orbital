@@ -1,22 +1,22 @@
 # Orbital
 
-"Orbital" is an accurate interactive 3D representation of the solar system featuring inner and outer planets, asteroids, comets and Trans-Neptunian objects. It also includes the asteroid belt, Jupiter Trojans, Kuiper belt, the inner Oort cloud and daily "Close Approach" bodies from the Jet Propulsion Laboratory database.
+"Orbital" is an accurate interactive 3D representation of the solar system featuring inner and outer planets, asteroids, comets and Trans-Neptunian objects. It also includes the asteroid belt, Jupiter Trojans, Kuiper belt and daily "Close Approach" bodies from the Jet Propulsion Laboratory database. In addition, the orbital elements of any object listed in the JPL small-body database can be retrieved using the "Search" tab.
 
-The 3D orbits of major objects in the solar system are rendered and can be zoomed in and out as well as rotated. Each object is located on its actual orbit position at the time of rendering. For a demo of the simulation go to https://youtu.be/WjiwySvZY3g. (Note: When the video was made, body rotation was not implemented yet, hence you won't see the planets spinning, but this repository includes the code that implements body rotation).
+3D orbits of major objects in the solar system are rendered and because the window is interactive, the user can zoom in and out as well as rotate the scene. Each object is located on its actual orbit position at the time of rendering. For a demo of the simulation go to https://youtu.be/WjiwySvZY3g. (Note: When the video was made, body rotation was not implemented yet, hence you won't see the planets spinning, but this repository includes the code that implements body rotation).
 
 # Interacting with the simulation:
 
 To zoom in/out: click on both mouse buttons and drag the mouse forward or backward.
 To rotate the scene: click on the mouse left button only and drag the mouse sideways.
 
-The data was collected from the JPL Small-Body Database Search Engine and the Nasa planetary factsheets. The Celestial mechanic concepts required to develop this program can be found in the Roger Bates's book "Introduction to Astrodynamics", as well as the document "Keplerian Elements for Approximate Positions of the Major Planets" (E.M. Standish from JPL Caltech).
+Objects listed in the drop down were collected from the JPL Small-Body Database Search Engine and the Nasa planetary factsheets. The Celestial mechanic concepts required to develop this program can be found in the Roger Bates's book "Introduction to Astrodynamics", as well as the document "Keplerian Elements for Approximate Positions of the Major Planets" (E.M. Standish from JPL Caltech).
 
 Keep in mind that
 
-	- All distances between each object and the sun are proportional to the actual distance.
+	- Distances between each object and the sun are proportional to the actual distance.
 	- Objects sizes are NOT proportional to their actual size (this is by design in order to
 	  view all objects properly).
-	- Asteroid belt, Kuiper belt, Jupiter Trojans and Oort Cloud are included for illustration purpose
+	- Asteroid belt, Kuiper belt, Jupiter Trojans are included for illustration purpose
 	  only. Even though their size and thickness is somehow proportional to their actual dimension, the
 	  distribution pattern within the belt is purely random/aesthetic.
 
@@ -33,7 +33,7 @@ you will also need the following libraries:
 
 To launch the application, go to the folder where the project was downloaded and type:
 
-	> python2.7.exe solarsys.py
+	> python2.7.exe orbital.py
 
 The vpython display window and the Orbital control modal window will take only a few seconds to load. PHA, Asteroids, Comets and trans-Neptunian objects orbits get calculated and rendered as needed, but inner and outter planets orbits are displayed right away and can be interacted with. The constant MAX_OBJECTS in solarsys.py specifies the upper limit of objects to load per data file.
 
@@ -68,17 +68,27 @@ You have the ability to change the Point Of View (POV) to reset the center of th
 
 <img src="./screenshot-3.jpg">
 
-# Files:
+# Most important Files:
 
-	solarsys.py: 	Main file
-	orbital.py:  	Orbits trajectory and belts calculations classes
-	controls.py:	Orbital controller class used in the "Orbital Control" user interface
-	planetsdata.py:	Orbital elements for major planets and belts
-	numberfmt: 	String precision formatting
+	orbital.py ................. Orbital entry point
+	celestial/__main__.py ...... bootloader
+	celestial/camera.py ........ Camera movements
+	celestial/controls.py ...... Orbital controller class used in the "Orbital Control" user interface
+	celestial/location.py ...... Earth location functions
+	celestial/numberfmt.py ..... String precision formatting
+	celestial/objects.py ....... Library of 3D objects
+	celestial/orbit3D.py ....... Orbit trajectories and belts calculations classes
+	celestial/orbitalLIB.py .... library class allowing to create an animation (story) programmatically
+	celestial/planetsdata.py ... Orbital elements for major planets and belts
+	celestial/rate_func.py ..... Rate functions defined for animations
+	celestial/referentials.py .. Planet Referentials classes
+	celestial/utils.py ......... Linear Algebra utility functions
+	celestial/video.py ......... Animation recording class
+	celestial/widgets.py ....... Earth widgets classes
 
 # Close Approach Data:
 
-"Orbital" allows you to find out which asteroids "close encounters" with earth are happening on a daily basis. If you click on the "Close Approach Data" tab, you will be able to directly fetch from the JPL database the list of objects that are at their closest position to earth for the current day.
+"Orbital" allows you to find out which asteroids "close encounters" with earth are happening on a daily basis. If you click on the "Search" tab, the "Close Approach Data" section will directly fetch from the JPL database the list of objects that are at their closest position to earth for the current day (If you would rather look for information on a particular object, use the Search input field in the lower section).
 
 <img src="./screenshot-2.jpg">
 
@@ -86,7 +96,7 @@ Once the list has been downloaded, you may also get the list from the previous o
 
 Note: The autoscale feature in vpython is a bit erratic. If you are in a very expansive view that includes far objects such as dwarf planets and also closer to the sun objects like inner planets, unchecking the far objects and refreshing the scene may "autoscale" you back inside the sun (even though everything looks black). To eliminate the problem, simply perform a zoom out.
 
-The planets and the sun rotate on their axis in a realistic way, according to their rotation rate. You may note that Venus and Pluto have a retrograde motion and it is because of their north pole reversion. A good way to clarify what is happening is to check the "Show Local Referential" checkbox in the"Animation POV" tab. Also note the great range of rotation rate among the planets, from really fast (the outter planets) to really slow (Venus).
+The planets and the sun rotate on their axis in a realistic way, according to their rotation rate. You may note that Venus and Pluto have a retrograde motion and it is because of their north pole reversion. A good way to clarify what is happening is to check the "Show Local Referential" checkbox in the"Animation POV" tab. Also note the great range of rotation rates among the planets, from really fast (the outter planets) to really slow (Venus).
 
 List of a few close encounters between Potentially Harzardous Asteroids and earth:
 
