@@ -66,7 +66,7 @@ Legend is:
 
 You have the ability to change the Point Of View (POV) to reset the center of the scene on any object of your choice. By default, the POV is focused on the Sun, but it can be set on any of the major inner / outer planets, the dwarf planets - or - on the body that you are currently studying.
 
-<img src="./screenshot-3.jpg">
+<img src="./screenshot-2.jpg">
 
 # Main Files:
 ```text
@@ -92,7 +92,7 @@ celestial/widgets.py ............. Earth widgets classes
 
 "Orbital" allows you to find out which asteroids "close encounters" with earth are happening on a daily basis. If you click on the "Search" tab, the "Close Approach Data" section will directly fetch from the JPL database the list of objects that are at their closest position to earth for the current day (If you would rather look for information on a particular object, use the Search input field in the lower section).
 
-<img src="./screenshot-2.jpg">
+<img src="./screenshot-3.jpg">
 
 Once the list has been downloaded, you may also get the list from the previous or the next day. Double clicking on a row in that list will automatically display the orbit and position of the corresponding object, as well as switch back to the "Main" tab to detail its orbital elements.
 
