@@ -69,7 +69,7 @@ You have the ability to change the Point Of View (POV) to reset the center of th
 <img src="./screenshot-3.jpg">
 
 # Most important Files:
-'''text
+```text
 	orbital.py ....................... Orbital entry point
 	celestial/__main__.py ............ bootloader
 	celestial/camera.py .............. Camera movements
@@ -86,7 +86,7 @@ You have the ability to change the Point Of View (POV) to reset the center of th
 	celestial/video.py ............... Animation recording class
 	celestial/vpython_interface.py ... Modify vpython "display" class
 	celestial/widgets.py ............. Earth widgets classes
-'''
+```
 
 # Close Approach Data:
 
