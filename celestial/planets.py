@@ -59,7 +59,7 @@ class makeNeptune(makePlanet):
 			D = daysSinceJ2000UTC(self.locationInfo)
 			RE = self.SolarSystem.objects_data[self.ObjectIndex]["rotationalElts"]
 			N = deg2rad(RE["N_1"] + RE["N_2"]*T)
-			toto = RE["W_1"] + RE["W_2"] * D - RE["W_3"]*sin(N) + RE["W_C"]
-			print "NEPTUNE !!!!!!!!!!!!!!!!!!!!!!!!", toto  % 360
-			return toto % 360
+			raw = RE["W_1"] + RE["W_2"] * D - RE["W_3"]*sin(N) + RE["W_C"]
+			#print "NEPTUNE !!!!!!!!!!!!!!!!!!!!!!!!", toto  % 360
+			return raw % 360
 		return 0

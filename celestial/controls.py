@@ -2105,7 +2105,7 @@ class WIDGETSpanel(AbstractUI):
 		#self.flcb.SetValue(False)
 		#self.flcb.Bind(wx.EVT_CHECKBOX,self.OnCenterToSurface)
 
-		self.lacb = wx.CheckBox(self, label="Location Referential View", pos=(50, CHK_L11)) #CHK_L18)) #   CVT_Y+560))
+		self.lacb = wx.CheckBox(self, label="Location Zenithal View", pos=(50, CHK_L11)) #CHK_L18)) #   CVT_Y+560))
 		self.lacb.SetValue(False)
 		self.lacb.Disable()
 		self.lacb.Bind(wx.EVT_CHECKBOX,self.OnEarthEyeView)

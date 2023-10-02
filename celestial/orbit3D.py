@@ -738,7 +738,6 @@ class makeBody:
 		self.SizeCorrection 		= {	SCALE_OVERSIZED: 	bodyScaler[sizeCorrectionType], 
 										SCALE_NORMALIZED: 	self.RealisticCorrectionSize} 
 		# for planets with rings
-		self.Ring 					= False
 		self.Rings 					= []
 		self.nRings 				= 0
 		self.RingThickness 			= self.RING_BASE_THICKNESS / self.SizeCorrection[self.sizeType]
@@ -1383,9 +1382,6 @@ class makeBody:
 		for i in range(len(self.Labels)):
 			self.Labels[i].visible = False
 		self.Trail.visible = False
-		#if self.Ring:
-#		if self.nRings > 0:
-#			self.SolarSystem.hideRings(self)
 
 	def setAxisVisibility(self, setTo):
 		#print "display PCI for ", self.Name, "as ", setTo
@@ -1516,7 +1512,8 @@ class makePlanet(makeBody):
 	def make_PCI_referential(self, tiltAngle): ###, size, position):
 		# This is the referential that doesn't rotate with the planet and is fixed to the stars.
 		# in other words, it always points to the same direction
-		print "Planet: build PCI ref for", self.Name
+		
+		#print "Planet: build PCI ref for", self.Name
 		self.PCI = make3DaxisReferential({
 			'body': self,
 			'radius': 0,
@@ -1683,7 +1680,7 @@ class makePlanet(makeBody):
 
 	def displayRings(self, trueFalse):
 		if self.nRings > 0:
-			print "setting rings to ", trueFalse
+			#print "setting rings to ", trueFalse
 			self.RingsFrame.visible = trueFalse
 
 	def hideRings(self):
@@ -1788,18 +1785,16 @@ class makeEarth(makePlanet):
 			'tiltangle': 		-tiltAngle,
 			'show':				True,
 			'color': 			Color.cyan,
-			'ratio': 			[1,1,1],
+			'ratio': 			[-1,-1,1],
 			'initial_rotation': pi/2,
 			'legend': 			["A", "y", "P"]
 		})
 
 		# set planet origin as the PCPF referential (rotates with the planet)
-
 		self.Origin 				= self.PCPF.referential #frame()
 		self.Origin.visible			= True
 
 		# Note: the referential tilt will be initiated after loading the body texture
-
 		self.PCPF.display(False)
 
 	# This overrides the default initRotation method provided in the makeBody superclass. 
