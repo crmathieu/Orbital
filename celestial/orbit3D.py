@@ -3045,20 +3045,17 @@ def loadBodies(SolarSystem, type, filename, maxentries = 0):
 				"tga_name": str(obj[key]["tga_name"])
 			}
 			
-			if 1:
-				#print obj[key]["jpl_designation"]
-				#return
-				body = {SPACECRAFT: 	makeSpacecraft,
-						COMET: 			makeComet,
-						BIG_ASTEROID: 	makeAsteroid,
-						PHA:			makePha,
-						TRANS_NEPT:		makeTransNeptunian,
-						SATELLITE:		makeSatellite,
-						SMALL_ASTEROID:	makeSmallAsteroid,
-						}[type](SolarSystem, idx, getColor())
+			body = {SPACECRAFT: 	makeSpacecraft,
+					COMET: 			makeComet,
+					BIG_ASTEROID: 	makeAsteroid,
+					PHA:			makePha,
+					TRANS_NEPT:		makeTransNeptunian,
+					SATELLITE:		makeSatellite,
+					SMALL_ASTEROID:	makeSmallAsteroid,
+					}[type](SolarSystem, idx, getColor())
 #						}[type](SolarSystem, obj[key]["jpl_designation"], getColor())
 
-				SolarSystem.addTo(body)
+			SolarSystem.addTo(body)
 	
 			#if body.Name == "Moon":
 			#	print body.JPL_designation
