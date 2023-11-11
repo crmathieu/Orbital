@@ -1055,8 +1055,8 @@ class makeBody:
 		self.Longitude_of_ascendingnode +=  0.013967 * (2000.0 - (getCurrentYear() + incrementYears)) + 3.82394e-5 * dT
 
 		# adjust Mean Anomaly with time elapsed since epoch
-		M = toRange(self.Mean_anomaly + self.Mean_motion * dT)
-		success, self.E, dE, it = solveKepler(M, self.e, 20000)
+		self.Mean_anomaly = toRange(self.Mean_anomaly + self.Mean_motion * dT)
+		success, self.E, dE, it = solveKepler(self.Mean_anomaly, self.e, 20000)
 		if success == False:
 			print (self.Name+" Warning Could not converge - E = "+str(self.E))
 
@@ -1152,10 +1152,10 @@ class makeBody:
 		self.Argument_of_perihelion = self.Longitude_of_perihelion - self.Longitude_of_ascendingnode
 
 		# compute mean Anomaly M = L - W
-		M = toRange(L - self.Longitude_of_perihelion) #W)
+		self.Mean_anomaly = toRange(L - self.Longitude_of_perihelion) #W)
 
 		# Obtain ecc. Anomaly E (in degrees) from M using an approx method of resolution:
-		success, self.E, dE, it = solveKepler(M, self.e, 12000)
+		success, self.E, dE, it = solveKepler(self.Mean_anomaly, self.e, 12000)
 		if success == False:
 			print ("Could not converge for "+self.Name+", E = "+str(self.E)+", last precision = "+str(dE))
 
@@ -2071,10 +2071,10 @@ class makeEarth(makePlanet):
 		self.Argument_of_perihelion = self.Longitude_of_perihelion - self.Longitude_of_ascendingnode
 
 		# compute mean Anomaly M = L - W
-		M = toRange(L - self.Longitude_of_perihelion) #W)
+		self.Mean_anomaly = toRange(L - self.Longitude_of_perihelion) #W)
 
 		# Obtain ecc. Anomaly E (in degrees) from M using an approx method of resolution:
-		success, self.E, dE, it = solveKepler(M, self.e, 12000)
+		success, self.E, dE, it = solveKepler(self.Mean_anomaly, self.e, 12000)
 		if success == False:
 			print ("Could not converge for "+self.Name+", E = "+str(self.E)+", last precision = "+str(dE))
 
@@ -2147,9 +2147,9 @@ class makeEarthTest(makePlanet):
 
 		self.Argument_of_perihelion = self.Longitude_of_perihelion - self.Longitude_of_ascendingnode
 
-		M = elts[5]
+		self.Mean_anomaly = elts[5]
 
-		success, self.E, dE, it = solveKepler(M, self.e, 12000)
+		success, self.E, dE, it = solveKepler(self.Mean_anomaly, self.e, 12000)
 		if success == False:
 			print ("Could not converge for "+self.Name+", E = "+str(self.E)+", last precision = "+str(dE))
 

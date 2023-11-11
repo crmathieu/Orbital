@@ -499,6 +499,7 @@ class FOCUSpanel(AbstractUI):
 		e = round(float(Body.e) * 1000)/1000
 		q = round(float(Body.Perihelion/AU) * 1000)/1000
 		a = round(float(Body.Aphelion/AU) * 1000)/1000
+		meanA = round(float(Body.Mean_anomaly))
 
 		self.Title.SetLabel(Body.Name)
 		self.Info.SetLabel("{:<17}{:>10}\n{:<20}{:>7.1f}\n{:<15}{:>12.4f}\n{:<15}{:>12.4f}\n{:<14}{:>10.2f}\n{:<14}{:>10.2f}\n{:<14}{:>10.2f}\n{:<22}{:>5.2f}\n{:<12}{:>7.3f}\n{:<12}{:>7.3f}\n{:<20}{:>7.3f}\n{:<20}{:>7.2f}".
@@ -513,6 +514,7 @@ class FOCUSpanel(AbstractUI):
 				"Lg.of Asc Node(deg) ", N,
 				"Arg. of Perih.(deg) ", w,
 				"Eccentricity ", e,
+				"Mean Anomaly", meanA,
 				"Axial Tilt(deg) ", Body.AxialTilt))
 
 		if self.SolarSystem.cameraViewTargetSelection != CURRENT_BODY:
