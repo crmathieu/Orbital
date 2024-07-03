@@ -21,11 +21,14 @@ pathOut = "c:/proj/orbital/img/NASA"
 #TGAarrayOut = ["8k_stars_milky_way-reversed"]
 #TGAarrayIn = ["starmap_8k-reversed"]
 #TGAarrayOut = ["starmap_8k-reversed"]
-TGAarrayIn = ["constellation_bounds_and_figures_colored_legend_reversed_8k"]
-TGAarrayOut = ["constellation_bounds_and_figures_colored_legend_reversed_8k"]
+#TGAarrayIn = ["constellation_bounds_and_figures_colored_legend_reversed_8k"]
+#TGAarrayOut = ["constellation_bounds_and_figures_colored_legend_reversed_8k"]
+TGAarrayIn = ["plutomap4k"]
+TGAarrayOut = ["pluto"]
 
-width = 8192 #16384 #8192 # must be power of 2
-height = 4096 #8192 #4096 # must be power of 2
+
+width = 4096 #8192 #16384 #8192 # must be power of 2
+height = 2048 #8192 #4096 # must be power of 2
 
 for i in range (0, len(TGAarrayIn), 1):
 	nameIn = path+"/"+TGAarrayIn[i]

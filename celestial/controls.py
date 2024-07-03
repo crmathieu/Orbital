@@ -54,6 +54,7 @@ CHK_L1 = MAIN_HEADING_Y + 20
 CHK_L2 = CHK_L1 + 20
 CHK_L3 = CHK_L2 + 20
 CHK_L4 = CHK_L3 + 20
+CHK_L4B = CHK_L4 + 20
 CHK_L5 = CHK_L4 + 20
 CHK_L6 = CHK_L5 + 20
 CHK_L7 = CHK_L6 + 20
@@ -68,26 +69,47 @@ CHK_L14 = CHK_L13 + 20
 CHK_L15 = CHK_L14 + 25
 CHK_L15B = CHK_L14 + 20
 
-CHK_L16 = CHK_L15B + 20
-CHK_L17 = CHK_L16 + 20
-CHK_L18 = CHK_L17 + 20
-CHK_L19 = CHK_L18 + 20
-CHK_L20 = CHK_L19 + 20
-CHK_L21 = CHK_L20 + 20
-CHK_L22 = CHK_L21 + 20
-CHK_L23 = CHK_L22 + 20
-CHK_L24 = CHK_L23 + 20
-CHK_L25 = CHK_L24 + 20
-CHK_L26 = CHK_L25 + 20
-CHK_L27 = CHK_L26 + 20
-CHK_L28 = CHK_L27 + 20
-CHK_L29 = CHK_L28 + 20
-CHK_L30 = CHK_L29 + 20
-CHK_L31 = CHK_L30 + 20
-CHK_L32 = CHK_L31 + 20
+
+WCHK_L1 = MAIN_HEADING_Y + 20
+WCHK_L2 = WCHK_L1 + 20
+WCHK_L3 = WCHK_L2 + 20
+WCHK_L4 = WCHK_L3 + 20
+WCHK_L4B = WCHK_L4 + 20
+WCHK_L5 = WCHK_L4 + 20
+WCHK_L6 = WCHK_L5 + 20
+WCHK_L7 = WCHK_L6 + 20
+WCHK_L8 = WCHK_L7 + 20
+WCHK_L9 = WCHK_L8 + 20
+WCHK_L10 = WCHK_L9 + 20
+WCHK_L11 = WCHK_L10 + 20
+WCHK_L12 = WCHK_L11 + 20
+WCHK_L13 = WCHK_L12 + 20
+WCHK_L14 = WCHK_L13 + 20
+
+WCHK_L15 = WCHK_L14 + 25
+WCHK_L15B = WCHK_L14 + 20
+
+
+WCHK_L16 = WCHK_L15B + 20
+WCHK_L17 = WCHK_L16 + 20
+WCHK_L18 = WCHK_L17 + 20
+WCHK_L19 = WCHK_L18 + 20
+WCHK_L20 = WCHK_L19 + 20
+WCHK_L21 = WCHK_L20 + 20
+WCHK_L22 = WCHK_L21 + 20
+WCHK_L23 = WCHK_L22 + 20
+WCHK_L24 = WCHK_L23 + 20
+WCHK_L25 = WCHK_L24 + 20
+WCHK_L26 = WCHK_L25 + 20
+WCHK_L27 = WCHK_L26 + 20
+WCHK_L28 = WCHK_L27 + 20
+WCHK_L29 = WCHK_L28 + 20
+WCHK_L30 = WCHK_L29 + 20
+WCHK_L31 = WCHK_L30 + 20
+WCHK_L32 = WCHK_L31 + 20
 
 CBBOX_1 = CHK_L8+30
-CBBOX_2 = CHK_L26 + 30
+CBBOX_2 = WCHK_L26 + 30
 
 LSTB_Y = DATE_Y + 60
 SLDS_Y = LSTB_Y + 40
@@ -2065,40 +2087,44 @@ class WIDGETSpanel(AbstractUI):
 		heading = wx.StaticText(self, label='Earth Widgets', pos=(50, MAIN_HEADING_Y))
 		heading.SetFont(self.BoldFont)
 
-		self.eqcb = wx.CheckBox(self, label="Equator", pos=(50, CHK_L1)) #   CVT_Y+560))
+		self.eqcb = wx.CheckBox(self, label="Equator", pos=(50, WCHK_L1)) #   CVT_Y+560))
 		self.eqcb.SetValue(False)
 		self.eqcb.Bind(wx.EVT_CHECKBOX,self.OnDrawEquator)
 
-		self.trcb = wx.CheckBox(self, label="Tropics", pos=(230, CHK_L1)) #   CVT_Y+560))
+		self.trcb = wx.CheckBox(self, label="Tropics", pos=(230, WCHK_L1)) #   CVT_Y+560))
 		self.trcb.SetValue(False)
 		self.trcb.Bind(wx.EVT_CHECKBOX,self.OnDrawTropics)
 
-		self.mrcb = wx.CheckBox(self, label="Longitude lines", pos=(50, CHK_L2)) #   CVT_Y+560))
+		self.mrcb = wx.CheckBox(self, label="Longitude lines", pos=(50, WCHK_L2)) #   CVT_Y+560))
 		self.mrcb.SetValue(False)
 		self.mrcb.Bind(wx.EVT_CHECKBOX,self.OnDrawLongitudeLines)
 
-		self.tzcb = wx.CheckBox(self, label="Time zones", pos=(230, CHK_L2)) #   CVT_Y+560))
+		self.tzcb = wx.CheckBox(self, label="Time zones", pos=(230, WCHK_L2)) #   CVT_Y+560))
 		self.tzcb.SetValue(False)
 		self.tzcb.Bind(wx.EVT_CHECKBOX,self.OnDrawTZLines)
 
-		self.latcb = wx.CheckBox(self, label="Latitude lines", pos=(50, CHK_L3)) #   CVT_Y+560))
+		self.latcb = wx.CheckBox(self, label="Latitude lines", pos=(50, WCHK_L3)) #   CVT_Y+560))
 		self.latcb.SetValue(False)
 		self.latcb.Bind(wx.EVT_CHECKBOX,self.OnDrawLatitudeLines)
 
-		self.eqpcb = wx.CheckBox(self, label="Equatorial Plane", pos=(50, CHK_L4)) #   CVT_Y+560))
+		self.eqpcb = wx.CheckBox(self, label="Equatorial Plane", pos=(50, WCHK_L4)) #   CVT_Y+560))
 		self.eqpcb.SetValue(False)
 		self.eqpcb.Bind(wx.EVT_CHECKBOX,self.OnDrawEquatorialPlane)
 
-		self.ncb = wx.CheckBox(self, label="Nodes", pos=(50, CHK_L5)) #   CVT_Y+560))
+		#self.eqpcb = wx.CheckBox(self, label="Ecliptic Plane", pos=(50, WCHK_L4)) #   CVT_Y+560))
+		#self.eqpcb.SetValue(False)
+		#self.eqpcb.Bind(wx.EVT_CHECKBOX,self.OnDrawEquatorialPlane)
+
+		self.ncb = wx.CheckBox(self, label="Nodes", pos=(50, WCHK_L5)) #   CVT_Y+560))
 		self.ncb.SetValue(False)
 		self.ncb.Bind(wx.EVT_CHECKBOX,self.OnShowNodes)
 
-		self.hpcb = wx.CheckBox(self, label="Hide Planet", pos=(50, CHK_L6)) #CHK_L8)) #   CVT_Y+560))
+		self.hpcb = wx.CheckBox(self, label="Hide Planet", pos=(50, WCHK_L6)) #CHK_L8)) #   CVT_Y+560))
 		self.hpcb.SetValue(False)
 		self.hpcb.Bind(wx.EVT_CHECKBOX,self.OnHidePlanet)
 
 		########### Locations section ###########
-		lheading = wx.StaticText(self, label='Locations', pos=(50, CHK_L8))
+		lheading = wx.StaticText(self, label='Locations', pos=(50, WCHK_L8))
 		lheading.SetFont(self.BoldFont)
 
 		self.createLocationList(50, CBBOX_1)
@@ -2107,79 +2133,79 @@ class WIDGETSpanel(AbstractUI):
 		#self.flcb.SetValue(False)
 		#self.flcb.Bind(wx.EVT_CHECKBOX,self.OnCenterToSurface)
 
-		self.lacb = wx.CheckBox(self, label="Location Zenithal View", pos=(50, CHK_L11)) #CHK_L18)) #   CVT_Y+560))
+		self.lacb = wx.CheckBox(self, label="Location Zenithal View", pos=(50, WCHK_L11)) #CHK_L18)) #   CVT_Y+560))
 		self.lacb.SetValue(False)
 		self.lacb.Disable()
 		self.lacb.Bind(wx.EVT_CHECKBOX,self.OnEarthEyeView)
 
-		self.cpcb = wx.CheckBox(self, label="Re-Center to Earth's center", pos=(50, CHK_L12)) #230, CHK_L12)) #   CVT_Y+560))
+		self.cpcb = wx.CheckBox(self, label="Re-Center to Earth's center", pos=(50, WCHK_L12)) #230, CHK_L12)) #   CVT_Y+560))
 		self.cpcb.SetValue(False)
 		self.cpcb.Disable()
 		self.cpcb.Bind(wx.EVT_CHECKBOX,self.OnReCenter)
 
 
 		######## Referentials section #########
-		rheading = wx.StaticText(self, label='Referentials', pos=(50, CHK_L14))
+		rheading = wx.StaticText(self, label='Referentials', pos=(50, WCHK_L14))
 		rheading.SetFont(self.BoldFont)
 
-		self.lrcb = wx.CheckBox(self, label="Earth-Centered-Inertial (ECI) Referential", pos=(50, CHK_L15B)) #   CVT_Y+560))
+		self.lrcb = wx.CheckBox(self, label="Earth-Centered-Inertial (ECI) Referential", pos=(50, WCHK_L15B)) #   CVT_Y+560))
 		self.lrcb.SetValue(False)
 		self.lrcb.Bind(wx.EVT_CHECKBOX,self.OnLocalRef)
 
-		self.lr2cb = wx.CheckBox(self, label="Earth-Centered-Earth-Fixed (ECEF) Referential", pos=(50, CHK_L16)) #   CVT_Y+560))
+		self.lr2cb = wx.CheckBox(self, label="Earth-Centered-Earth-Fixed (ECEF) Referential", pos=(50, WCHK_L16)) #   CVT_Y+560))
 		self.lr2cb.SetValue(False)
 		self.lr2cb.Bind(wx.EVT_CHECKBOX,self.OnECEFRef)
 
-		self.arcb = wx.CheckBox(self, label="Earth-Centered-Sun-Synchronous (ECSS) Referential", pos=(50, CHK_L17)) #   CVT_Y+560))
+		self.arcb = wx.CheckBox(self, label="Earth-Centered-Sun-Synchronous (ECSS) Referential", pos=(50, WCHK_L17)) #   CVT_Y+560))
 		self.arcb.SetValue(False)
 		self.arcb.Bind(wx.EVT_CHECKBOX,self.OnShowECSS)
 
-		self.ncpcb = wx.CheckBox(self, label="TopoCentric Referential", pos=(50, CHK_L18)) #   CVT_Y+560))
+		self.ncpcb = wx.CheckBox(self, label="TopoCentric Referential", pos=(50, WCHK_L18)) #   CVT_Y+560))
 		self.ncpcb.SetValue(False)
 		self.ncpcb.Disable()
 		self.ncpcb.Bind(wx.EVT_CHECKBOX,self.OnShowTopoCentricRef)
 
 		########## Analemma section ##########
-		aheading = wx.StaticText(self, label='Analemma', pos=(50, CHK_L20))
+		aheading = wx.StaticText(self, label='Analemma', pos=(50, WCHK_L20))
 		aheading.SetFont(self.BoldFont)
 
-		self.acb = wx.CheckBox(self, label="Animate 24h period", pos=(50, CHK_L21)) 
+		self.acb = wx.CheckBox(self, label="Animate 24h period", pos=(50, WCHK_L21)) 
 		self.acb.SetValue(False)
 		self.acb.Disable()
 		self.acb.Bind(wx.EVT_CHECKBOX,self.OnAnimate24h)
 		self.animate24 = False
 
 
-		self.srcb = wx.CheckBox(self, label="Show Sun Ray", pos=(50, CHK_L22)) #CHK_L18)) #   CVT_Y+560))
+		self.srcb = wx.CheckBox(self, label="Show Sun Ray", pos=(50, WCHK_L22)) #CHK_L18)) #   CVT_Y+560))
 		self.srcb.SetValue(False)
 		self.srcb.Disable()
 		self.srcb.Bind(wx.EVT_CHECKBOX,self.OnShowSunRay)
 
-		self.sacb = wx.CheckBox(self, label="Show Analemma", pos=(50, CHK_L23)) #CHK_L18)) #   CVT_Y+560))
+		self.sacb = wx.CheckBox(self, label="Show Analemma", pos=(50, WCHK_L23)) #CHK_L18)) #   CVT_Y+560))
 		self.sacb.SetValue(False)
 		self.sacb.Disable()
 		self.sacb.Bind(wx.EVT_CHECKBOX,self.OnShowAnalemma)
 
-		self.dmcb = wx.CheckBox(self, label="Display Months", pos=(250, CHK_L23)) #CHK_L18)) #   CVT_Y+560))
+		self.dmcb = wx.CheckBox(self, label="Display Months", pos=(250, WCHK_L23)) #CHK_L18)) #   CVT_Y+560))
 		self.dmcb.SetValue(False)
 		self.dmcb.Disable()
 		self.dmcb.Bind(wx.EVT_CHECKBOX,self.OnDisplayMonths)
 
-		self.racb = wx.CheckBox(self, label="Reset Analemma", pos=(50, CHK_L24)) #CHK_L17)) #   CVT_Y+560))
+		self.racb = wx.CheckBox(self, label="Reset Analemma", pos=(50, WCHK_L24)) #CHK_L17)) #   CVT_Y+560))
 		self.racb.SetValue(False)
 		self.racb.Disable()
 		self.racb.Bind(wx.EVT_CHECKBOX,self.OnResetAnalemma)
 
 		########## Camera section ##########
 
-		iheading = wx.StaticText(self, label='Info Settings', pos=(50, CHK_L26))
+		iheading = wx.StaticText(self, label='Info Settings', pos=(50, WCHK_L26))
 		iheading.SetFont(self.BoldFont)
-		self.iscb = wx.CheckBox(self, label="UTC time", pos=(50, CHK_L27)) #CHK_L17)) #   CVT_Y+560))
+		self.iscb = wx.CheckBox(self, label="UTC time", pos=(50, WCHK_L27)) #CHK_L17)) #   CVT_Y+560))
 		self.iscb.SetValue(False)
 		self.iscb.Bind(wx.EVT_CHECKBOX,self.OnShowUTCInfo)
 
 		if False:
-			cheading = wx.StaticText(self, label='Camera Settings', pos=(50, CHK_L26))
+			cheading = wx.StaticText(self, label='Camera Settings', pos=(50, WCHK_L26))
 			cheading.SetFont(self.BoldFont)
 			lblList = ['Follow Mode', 'Location View']
 			self.rbox = wx.RadioBox(self,label = 'Animation Settings', pos = (50, CBBOX_2), size=(165, 170), choices = lblList ,majorDimension = 1, style = wx.RA_SPECIFY_COLS)

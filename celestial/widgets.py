@@ -99,7 +99,7 @@ class makePlanetWidgets():
             'show':	False,
             'color': Color.yellow,
             'ratio': [1,1,1],
-            'legend': ["tg","orth","z"],
+            'legend': ["tg","sun","z"],
    			'make_axis': True
         })
         self.ECSS.setAxisTilt(0) 
