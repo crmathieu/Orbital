@@ -69,7 +69,7 @@ CHK_L14 = CHK_L13 + 20
 CHK_L15 = CHK_L14 + 25
 CHK_L15B = CHK_L14 + 20
 
-
+# widget offsets
 WCHK_L1 = MAIN_HEADING_Y + 20
 WCHK_L2 = WCHK_L1 + 20
 WCHK_L3 = WCHK_L2 + 20
@@ -2111,6 +2111,10 @@ class WIDGETSpanel(AbstractUI):
 		self.eqpcb.SetValue(False)
 		self.eqpcb.Bind(wx.EVT_CHECKBOX,self.OnDrawEquatorialPlane)
 
+		self.ecpcb = wx.CheckBox(self, label="Local Ecliptic Plane", pos=(230, WCHK_L4)) #   CVT_Y+560))
+		self.ecpcb.SetValue(False)
+		self.ecpcb.Bind(wx.EVT_CHECKBOX,self.OnDrawLocalEclipticPlane)
+
 		#self.eqpcb = wx.CheckBox(self, label="Ecliptic Plane", pos=(50, WCHK_L4)) #   CVT_Y+560))
 		#self.eqpcb.SetValue(False)
 		#self.eqpcb.Bind(wx.EVT_CHECKBOX,self.OnDrawEquatorialPlane)
@@ -2633,6 +2637,9 @@ class WIDGETSpanel(AbstractUI):
 
 	def OnDrawEquatorialPlane(self, e):
 		self.Earth.PlanetWidgets.showEquatorialPlane(self.eqpcb.GetValue())
+
+	def OnDrawLocalEclipticPlane(self, e):
+		self.Earth.PlanetWidgets.showLocalEclipticPlane(self.ecpcb.GetValue())
 
 	def OnDrawLongitudeLines(self, e):
 		self.Earth.PlanetWidgets.showLongitudes(self.mrcb.GetValue())

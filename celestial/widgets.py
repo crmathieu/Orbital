@@ -163,6 +163,7 @@ class makePlanetWidgets():
         self.Eq = makeEquator(self)
         self.Tr = makeTropics(self)
         self.EqPlane = makeEquatorialPlane(self, Color.orange, opacity=self.Planet.Opacity)
+        self.EcPlane = makeLocalEclipticPlane(self, Color.yellow, opacity=self.Planet.Opacity)
         self.Lons = makeLongitudes(self)
         self.Lats = makeLatitudes(self)
         self.tz = makeTimezones(self)
@@ -579,6 +580,9 @@ class makePlanetWidgets():
 
     def showEquatorialPlane(self, value):
         self.EqPlane.display(value)
+
+    def showLocalEclipticPlane(self, value):
+        self.EcPlane.display(value)
 
     def showEquator(self, value):
         self.Eq.display(value)
@@ -1617,6 +1621,37 @@ class makeEquatorialPlane():
 
     def display(self, trueFalse):
         self.eqPlane.opacity = (0.6 if trueFalse == True else 0)
+        return
+
+        STEPS = 10
+        if trueFalse == True:
+            bound = 0
+        else:
+            bound = STEPS-1
+        
+        for i in range(STEPS):
+            self.eqPlane.opacity = float(abs(bound-i))/(3*STEPS)
+            sleep(1e-2)
+
+class makeLocalEclipticPlane():
+
+    def __init__(self, widgets, color, opacity): #planet, color, opacity):
+        # Equatorial Plane is fixed to the stars and therefore 
+        # must be relative to the PCI referential
+        
+        self.Planet = widgets.Planet
+#        self.Origin = widgets.Planet.ECSS.referential #widgets.Planet.Origin
+        self.Origin = widgets.ECSS.referential #widgets.Planet.Origin
+        self.Opacity = opacity
+        self.Color = color 
+
+        side = 0.1*AU*DIST_FACTOR
+        # define plane in fix referential PCI
+        self.ecPlane = box(frame=self.Origin, pos=(0,0,0), length=side, width=0.0001, height=side, material=materials.emissive, visible=True, color=self.Color, opacity=0) #, axis=(0, 0, 1), opacity=0.8) #opacity=self.Opacity)
+
+
+    def display(self, trueFalse):
+        self.ecPlane.opacity = (0.6 if trueFalse == True else 0)
         return
 
         STEPS = 10
