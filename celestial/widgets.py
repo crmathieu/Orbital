@@ -99,7 +99,7 @@ class makePlanetWidgets():
             'show':	False,
             'color': Color.yellow,
             'ratio': [1,1,1],
-            'legend': ["tg","orth","z"],
+            'legend': ["tg","sun","z"],
    			'make_axis': True
         })
         self.ECSS.setAxisTilt(0) 
@@ -163,6 +163,7 @@ class makePlanetWidgets():
         self.Eq = makeEquator(self)
         self.Tr = makeTropics(self)
         self.EqPlane = makeEquatorialPlane(self, Color.orange, opacity=self.Planet.Opacity)
+        self.EcPlane = makeLocalEclipticPlane(self, Color.yellow, opacity=self.Planet.Opacity)
         self.Lons = makeLongitudes(self)
         self.Lats = makeLatitudes(self)
         self.tz = makeTimezones(self)
@@ -580,6 +581,9 @@ class makePlanetWidgets():
     def showEquatorialPlane(self, value):
         self.EqPlane.display(value)
 
+    def showLocalEclipticPlane(self, value):
+        self.EcPlane.display(value)
+
     def showEquator(self, value):
         self.Eq.display(value)
 
@@ -597,6 +601,9 @@ class makePlanetWidgets():
 
     def showNodes(self, value):
         self.Eq.showNodes(value)
+
+    def showPlanetNutation(self, value):
+        self.nut.showNutation(value)
 
 
 class makeAnalemma():
@@ -1617,6 +1624,110 @@ class makeEquatorialPlane():
 
     def display(self, trueFalse):
         self.eqPlane.opacity = (0.6 if trueFalse == True else 0)
+        return
+
+        STEPS = 10
+        if trueFalse == True:
+            bound = 0
+        else:
+            bound = STEPS-1
+        
+        for i in range(STEPS):
+            self.eqPlane.opacity = float(abs(bound-i))/(3*STEPS)
+            sleep(1e-2)
+
+class makeLocalEclipticPlane():
+
+    def __init__(self, widgets, color, opacity):
+        # ecliptic Plane is relative to the ECSS referential
+        
+        self.Planet = widgets.Planet
+        self.Origin = widgets.ECSS.referential #widgets.Planet.Origin
+        self.Opacity = opacity
+        self.Color = color 
+
+        side = 0.1*AU*DIST_FACTOR
+        # define plane in fix referential PCI
+        self.ecPlane = box(frame=self.Origin, pos=(0,0,0), length=side, width=0.0001, height=side, material=materials.emissive, visible=True, color=self.Color, opacity=0) #, axis=(0, 0, 1), opacity=0.8) #opacity=self.Opacity)
+
+
+    def display(self, trueFalse):
+        self.ecPlane.opacity = (0.6 if trueFalse == True else 0)
+        return
+
+        STEPS = 10
+        if trueFalse == True:
+            bound = 0
+        else:
+            bound = STEPS-1
+        
+        for i in range(STEPS):
+            self.eqPlane.opacity = float(abs(bound-i))/(3*STEPS)
+            sleep(1e-2)
+
+class nutation(): # IN PROGRESS
+    def __init__(self, widgets):
+
+        # The principal term of nutation is due to the regression of the Moon's
+        # nodal line and has the same period of 6798 days (18.61 years). It
+        # reaches plus or minus 17" in longitude and 9.2" in obliquity. All
+        # other terms are much smaller; the next-largest, with a period of 183
+        # days (0.5 year), has amplitudes 1.3" and 0.6" respectively.
+        # nutation happens in the PCI referential
+        
+        self.NutationSteps = 0
+        self.Planet = widgets.Planet
+#        self.Origin = widgets.Planet.ECSS.referential #widgets.Planet.Origin
+        self.Origin = widgets.PCI.referential #widgets.Planet.Origin
+        self.Opacity = opacity
+        self.Color = color 
+
+        side = 0.1*AU*DIST_FACTOR
+        # define plane in fix referential PCI
+        self.ecPlane = box(frame=self.Origin, pos=(0,0,0), length=side, width=0.0001, height=side, material=materials.emissive, visible=True, color=self.Color, opacity=0) #, axis=(0, 0, 1), opacity=0.8) #opacity=self.Opacity)
+
+    def runNutationStep(self):
+        pass
+
+    def display(self, trueFalse):
+        self.ecPlane.opacity = (0.6 if trueFalse == True else 0)
+        return
+
+        STEPS = 10
+        if trueFalse == True:
+            bound = 0
+        else:
+            bound = STEPS-1
+        
+        for i in range(STEPS):
+            self.eqPlane.opacity = float(abs(bound-i))/(3*STEPS)
+            sleep(1e-2)
+
+class precession(): # IN PROGRESS
+    def __init__(self, widgets):
+
+        # precession happens in the PCI referential by rotating the z-axis 
+        # by 1 deg every 72 years along a circle (or 360 deg in 26000 years)
+        # must be relative to the PCI referential
+        
+        self.PrecessionSteps = 0
+        self.Planet = widgets.Planet
+#        self.Origin = widgets.Planet.ECSS.referential #widgets.Planet.Origin
+        self.Origin = widgets.PCI.referential #widgets.Planet.Origin
+        self.Opacity = opacity
+        self.Color = color 
+
+        #side = 0.1*AU*DIST_FACTOR
+        # define plane in fix referential PCI
+        #self.ecPlane = box(frame=self.Origin, pos=(0,0,0), length=side, width=0.0001, height=side, material=materials.emissive, visible=True, color=self.Color, opacity=0) #, axis=(0, 0, 1), opacity=0.8) #opacity=self.Opacity)
+
+    def runPrecessionStep(self):
+        self.Origin.rotate(angle=pi/2, axis=self.ECSS.XdirectionUnit) #(self.Axis[0], 0, 0)))
+        pass
+
+
+    def display(self, trueFalse):
+        self.ecPlane.opacity = (0.6 if trueFalse == True else 0)
         return
 
         STEPS = 10

@@ -94,8 +94,10 @@ CSV_FORMAT='YES'
 OBJ_DATA='NO'
 
 
+DEFAULT_CENTER = "@10"		# Sun center
 QHEADER = "?batch=1&COMMAND="
-QCENTER = "&CENTER='@10'&MAKE_EPHEM='YES'&EPHEM_TYPE=ELEMENTS&REF_PLANE='ECLIPTIC'"
+QCENTER = "&CENTER="
+QDEF1 = "&MAKE_EPHEM='YES'&EPHEM_TYPE=ELEMENTS&REF_PLANE='ECLIPTIC'"
 QSTART = "&START_TIME="
 QSTOP = "&STOP_TIME="
 QSTEP = "&STEP_SIZE="  # 1h, 6h, ...
@@ -146,15 +148,16 @@ class JPLsearch:
 	endMarker = "$$EOE"
 	nameMarker = "Target body name:"
 
-	def urlBuilder(self, targetid, starttime, endtime, step):
-		return QHEADER+"'"+targetid+"'"+QCENTER+QSTART+"'"+starttime+"'"+QSTOP+"'"+endtime+"'"+QSTEP+"'"+step+"'"+QTRAILER
+	def urlBuilder(self, targetid, centerid, starttime, endtime, step):
+#		return QHEADER+"'"+targetid+"'"+QCENTER+QSTART+"'"+starttime+"'"+QSTOP+"'"+endtime+"'"+QSTEP+"'"+step+"'"+QTRAILER
+		return QHEADER+"'"+targetid+"'"+QCENTER+"'"+centerid+"'"+QDEF1+QSTART+"'"+starttime+"'"+QSTOP+"'"+endtime+"'"+QSTEP+"'"+step+"'"+QTRAILER
 
 
-	def fetchElements(self, target):
+	def fetchElements(self, target, center = DEFAULT_CENTER):
 		startdate = datetime.utcnow().strftime('%Y/%m/%d %H:%M')
 		enddate = (datetime.utcnow()+timedelta(days=1)).strftime('%Y/%m/%d %H:%M')
-		parameters = self.urlBuilder(target, startdate, enddate, "24h")
-		#print "TARGET=", self.url+parameters
+		parameters = self.urlBuilder(target, center, startdate, enddate, "24h")
+		print "TARGET=", self.url+parameters
 		if self.fetchHorizon(parameters) == True:
 			self.extractGeometry(target)
 			self.extractAppearence(target)
@@ -192,7 +195,9 @@ class JPLsearch:
 			end = self.rawResp.find(self.endMarker, start, len(self.rawResp))
 			if end != -1:
 				cvs = self.rawResp[start:end]
+				print "+++++++++++++++++++++++++++++++++++++++++++++++++++++++++"
 				print cvs
+				print "---------------------------------------------------------"
 				# read line by line
 				line = StringIO.StringIO(cvs)
 				rec = line.readline()
@@ -390,8 +395,8 @@ class JPLsearch:
 
 
 test = JPLsearch()
-#test.fetchElements(urllib.quote("toutatis"))
-test.fetchElements(urllib.quote("C/2017 K2"))
+test.fetchElements(urllib.quote("999"), urllib.quote("@10"))
+#test.fetchElements(urllib.quote("C/2017 K2"))
 
 # Example of output for an asteroid/comet (Ceres)
 
@@ -665,4 +670,32 @@ FORMAT = 'json'
  A = 1.982386440445509E+08 AD= 2.489694918842016E+08 PR= 4.814004910876034E+07
 
 
+{'-143205': {
+	'epochJD': 2460220.584027778, 
+	'Tp_Time_of_perihelion_passage_JD': 2460382.1012956277, 
+	'radius': 0, 
+	'albedo': 0.0, 
+	'orbit_class': 'N/A', 
+	'iau_name': 'SpaceX Roadster (spacecraft)', 
+	'W_argument_of_perihelion': 177.7420026475098, 
+	'earth_moid': 0, 
+	'local': '', 
+	'profile': '', 
+	'IN_orbital_inclination': 1.074905031671512, 
+	'material': 0, 
+	'N_mean_motion': 7.477410819835479e-06, 
+	'jpl_designation': '-143205', 
+	'EC_e': 0.2558890317468015, 
+	'rotation': 0.0, 
+	'QR_perihelion': 147521678.2481975, 
+	'utc': '', 
+	'name': 'SpaceX Roadster (spacecraft)', 
+	'longitude_of_perihelion': 494.6448385049015, 
+	'OM_longitude_of_ascendingnode': 316.9028358573917, 
+	'absolute_mag': 0, 
+	'mass': 0.0, 
+	'axial_tilt': 0.0, 
+	'MA_mean_anomaly': 255.6520445193141, 
+	'PR_revolution': 48145007.49979134}
+}
 """

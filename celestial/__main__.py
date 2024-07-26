@@ -44,7 +44,7 @@ def createSolarSystem():
 	#ssys.addTo(makeSatellite(ssys, 'phobos', color.red, mars))
 	#ssys.addTo(makeSatellite(ssys, 'deimos', color.white, mars))
 
-	ssys.addTo(makeEcliptic(ssys, color.magenta, 0.4))
+	ssys.addTo(makeEcliptic(ssys, color.white, 0.4))
 
 	ssys.addTo(makeMercury(ssys, color.green, pd.INNERPLANET, pd.INNERPLANET, pd.PLANET_SZ_CORRECTION))
 	ssys.addTo(makePlanet(ssys, 'venus', color.yellow, pd.INNERPLANET, pd.INNERPLANET, pd.PLANET_SZ_CORRECTION))
