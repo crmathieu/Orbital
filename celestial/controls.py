@@ -2123,9 +2123,17 @@ class WIDGETSpanel(AbstractUI):
 		self.ncb.SetValue(False)
 		self.ncb.Bind(wx.EVT_CHECKBOX,self.OnShowNodes)
 
+		self.nutcb = wx.CheckBox(self, label="Nutation", pos=(230, WCHK_L5)) #   CVT_Y+560))
+		self.nutcb.SetValue(False)
+		self.nutcb.Bind(wx.EVT_CHECKBOX,self.OnPlanetNutation)
+
 		self.hpcb = wx.CheckBox(self, label="Hide Planet", pos=(50, WCHK_L6)) #CHK_L8)) #   CVT_Y+560))
 		self.hpcb.SetValue(False)
 		self.hpcb.Bind(wx.EVT_CHECKBOX,self.OnHidePlanet)
+
+		self.precb = wx.CheckBox(self, label="Precession", pos=(230, WCHK_L6)) #CHK_L8)) #   CVT_Y+560))
+		self.precb.SetValue(False)
+		self.precb.Bind(wx.EVT_CHECKBOX,self.OnPlanetPrecession)
 
 		########### Locations section ###########
 		lheading = wx.StaticText(self, label='Locations', pos=(50, WCHK_L8))
@@ -2137,7 +2145,7 @@ class WIDGETSpanel(AbstractUI):
 		#self.flcb.SetValue(False)
 		#self.flcb.Bind(wx.EVT_CHECKBOX,self.OnCenterToSurface)
 
-		self.lacb = wx.CheckBox(self, label="Location Zenithal View", pos=(50, WCHK_L11)) #CHK_L18)) #   CVT_Y+560))
+		self.lacb = wx.CheckBox(self, label="Location Zenital View", pos=(50, WCHK_L11)) #CHK_L18)) #   CVT_Y+560))
 		self.lacb.SetValue(False)
 		self.lacb.Disable()
 		self.lacb.Bind(wx.EVT_CHECKBOX,self.OnEarthEyeView)
@@ -2634,6 +2642,12 @@ class WIDGETSpanel(AbstractUI):
 
 	def OnShowNodes(self, e):
 		self.Earth.PlanetWidgets.showNodes(self.ncb.GetValue())
+
+	def OnPlanetNutation(self, e):
+		self.Earth.PlanetWidgets.showPlanetNutation(self.nutcb.GetValue())
+
+	def OnPlanetPrecession(self, e):
+		self.Earth.PlanetWidgets.showPlanetPrecession(self.precb.GetValue())
 
 	def OnDrawEquatorialPlane(self, e):
 		self.Earth.PlanetWidgets.showEquatorialPlane(self.eqpcb.GetValue())

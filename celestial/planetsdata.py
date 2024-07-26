@@ -185,7 +185,7 @@ JPL_ORBIT_CLASS = 58
 # time increments in day unit
 
 
-TI_SOLAR_DAY		= 86400.0			# in mean solar seconds
+TI_SOLAR_DAY		= 86400.0		# in mean solar seconds
 TI_SIDEREAL_DAY 	= 86164.0905	# in mean solar secs
 
 SOLAR_DAY_RATIO 	= TI_SIDEREAL_DAY/TI_SOLAR_DAY 	# as a ratio of MEAN solar day. It's almost one,
@@ -329,7 +329,7 @@ from vpython_interface import Color
 
 # Note: the "rotationalElts" structure contains the information relevant to a planet's rotation axis 
 # direction. Each planet has its own algorithm to determine its orientation and therefore must have
-# a different "rotationalElts" structure, as well as a custom "setRightAscensionAngle" method to 
+# a different "rotationalElts" structure, as well as a custom "setNorthPoleRightAscensionAngle" method to 
 # handle its specific content. These methods are defined in each planet class in planets.py.
 # see document: doc/"method to determine north Pole orientation"
 

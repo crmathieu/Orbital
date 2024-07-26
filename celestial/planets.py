@@ -10,7 +10,7 @@ class makeMercury(makePlanet):
 	def __init__(self, system, Color, ptype, sizeCorrectionType, defaultSizeCorrection):
 		makePlanet.__init__(self, system, "mercury", Color, ptype, sizeCorrectionType, defaultSizeCorrection)
 
-	def setRightAscensionAngle(self):
+	def setNorthPoleRightAscensionAngle(self):
 		# for now the method is just like the defaut method, but it should be upgraded 
 		# to refect the the complexity of the calculation
 		if "rotationalElts" in self.SolarSystem.objects_data[self.ObjectIndex]:
@@ -52,7 +52,7 @@ class makeNeptune(makePlanet):
 	def __init__(self, system, Color, ptype, sizeCorrectionType, defaultSizeCorrection):
 		makePlanet.__init__(self, system, "neptune", Color, ptype, sizeCorrectionType, defaultSizeCorrection)
 
-	def setRightAscensionAngle(self):
+	def setNorthPoleRightAscensionAngle(self):
 		if "rotationalElts" in self.SolarSystem.objects_data[self.ObjectIndex]:
 
 			T = daysSinceJ2000UTC(self.locationInfo)/EARTH_CENTURY #36525. # T is in centuries

@@ -778,7 +778,7 @@ class makeBody:
 		##### self.shape = bodyShaper[bodyType]
 
 		# calculate North Pole direction based on Right Ascension information
-		self.RA = self.setRightAscensionAngle()
+		self.RA = self.setNorthPoleRightAscensionAngle()
 		
 		# Create referentials:
 		# The PCI referential (the "Planet-Centered Inertial" is fixed to the stars, in other words, 
@@ -837,8 +837,8 @@ class makeBody:
 
 	#### makeBody methods in the order they are called in the __init__ constructor ####
 
-	# makeBody::setRightAscensionAngle to determine the direction of a planet's North Pole)
-	def setRightAscensionAngle_XXXX(self):
+	# makeBody::setNorthPoleRightAscensionAngle to determine the direction of a planet's North Pole)
+	def setNorthPoleRightAscensionAngle_XXXX(self):
 		if "RA_1" in self.SolarSystem.objects_data[self.ObjectIndex]:
 			T = daysSinceJ2000UTC(self.locationInfo)/EARTH_CENTURY #36525. # T is in centuries
 			D = daysSinceJ2000UTC(self.locationInfo)
@@ -846,7 +846,7 @@ class makeBody:
 			return self.SolarSystem.objects_data[self.ObjectIndex]["RA_1"] + self.SolarSystem.objects_data[self.ObjectIndex]["RA_2"] * D #T
 		return 0
 
-	def setRightAscensionAngle(self):
+	def setNorthPoleRightAscensionAngle(self):
 		if "rotationalElts" in self.SolarSystem.objects_data[self.ObjectIndex]:
 			#T = daysSinceJ2000UTC(self.locationInfo)/EARTH_CENTURY #36525. # T is in centuries
 			D = daysSinceJ2000UTC(self.locationInfo)
@@ -1758,7 +1758,7 @@ class makeEarth(makePlanet):
 		#print "makeEarth: build PCI ref for", self.Name
 		#	P: Polaris direction
 		#	y: 
-		#	u"\u2648": Point of Aries
+		#	u"\u2648": Point of Aries character
 		self.PCI = make3DaxisReferential({
 			'body': 		self,
 			'radius': 		0,
@@ -1803,7 +1803,6 @@ class makeEarth(makePlanet):
 	def toggleSize(self, realisticSize):
 		makePlanet.toggleSize(self, realisticSize)
 		self.PlanetWidgets.OVRL.visible = False if self.sizeType == SCALE_NORMALIZED else True
-
 
 	def initRotation(self):
 
