@@ -51,7 +51,9 @@ def createSolarSystem():
 	ssys.addTo(makePlanet(ssys, 'jupiter', color.magenta, pd.OUTERPLANET, pd.GASGIANT, pd.PLANET_SZ_CORRECTION))
 	ssys.addTo(makePlanet(ssys, 'uranus', color.yellow, pd.OUTERPLANET, pd.GASGIANT, pd.PLANET_SZ_CORRECTION))
 	ssys.addTo(makeNeptune(ssys, color.orange, pd.OUTERPLANET, pd.GASGIANT, pd.PLANET_SZ_CORRECTION))
-	ssys.addTo(makePlanet(ssys, 'saturn', color.cyan, pd.OUTERPLANET, pd.GASGIANT, pd.PLANET_SZ_CORRECTION))
+
+	#ssys.addTo(makePlanet(ssys, 'saturn', color.cyan, pd.OUTERPLANET, pd.GASGIANT, pd.PLANET_SZ_CORRECTION))
+	ssys.addTo(makeSaturn(ssys, color.cyan, pd.OUTERPLANET, pd.GASGIANT, pd.PLANET_SZ_CORRECTION))
 	
 	# generate DWARF planets
 	ssys.addTo(makeDwarfPlanet(ssys, 'eris', color.yellow))

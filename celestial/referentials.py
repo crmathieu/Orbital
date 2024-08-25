@@ -1,6 +1,7 @@
 
 from vpython_interface import Color
 from objects import simpleArrow
+from planetsdata import J2000_REF_TILT
 import numpy as np
 from visual import *
 
@@ -9,7 +10,12 @@ class makeBasicReferential:
     def  __init__(self, params):
         self.referential        = frame()
         self.body               = None
-        self.tiltAngle          = params['tiltangle']
+        # the tilt angle is (90 - declination) in J2000 referential, but is
+        # (90 - declination + earthTilt) in ecliptic coordinate
+        if params['NPdeclination'] != None:
+            self.tilt  = -(90 - params['NPdeclination'] + J2000_REF_TILT)
+        else: 
+            self.tilt  = -J2000_REF_TILT
         self.referential.pos    = (0,0,0)
 
         if params['body'] is not None:
@@ -21,12 +27,14 @@ class makeBasicReferential:
     def display(self, trueFalse):
         self.referential.visible = trueFalse
 
-    def setAxisTilt(self, rightAscension):
+    def setAxisTilt(self, Ra):
 
-        self.referential.rotate(angle=(self.tiltAngle), axis=(1,0,0))
-        if rightAscension != 0:
-            print "Basic: Adjusting axis direction by ", rightAscension%360, " degrees"
-            self.referential.rotate(angle=deg2rad(rightAscension), axis=(0,0,1), origin=(self.body.Position[0]+self.body.Foci[0],self.body.Position[1]+self.body.Foci[1],self.body.Position[2]+self.body.Foci[2]))
+        self.referential.rotate(angle=deg2rad(self.tilt), axis=(1,0,0))
+        if Ra != 0:
+#            print "Adjusting axis direction by ", rightAscension%360, " degrees"
+            print "Adjusting NP direction by (", Ra, " degrees around z-J2000, ", self.tilt, " tilt) for ", self.body.Name
+#            self.referential.rotate(angle=deg2rad(rightAscension), axis=(0,0,1), origin=(self.body.Position[0]+self.body.Foci[0],self.body.Position[1]+self.body.Foci[1],self.body.Position[2]+self.body.Foci[2]))
+            self.referential.rotate(angle=deg2rad(Ra), axis=(0,0,1), origin=(self.body.Position[0]+self.body.Foci[0],self.body.Position[1]+self.body.Foci[1],self.body.Position[2]+self.body.Foci[2]))
 
         self.ZdirectionUnit = self.RotAxis = self.body.getRotAxis() #vector(0, sin(self.tiltAngle), cos(self.tiltAngle))
 
@@ -46,7 +54,10 @@ class make3DaxisReferential:
         self.AxisLabel 	        = ["","",""]
         radius                  = params['radius']
         self.body               = None
-        self.tiltAngle          = params['tiltangle']
+        if params['NPdeclination'] != None:
+            self.tilt  = -(90 - params['NPdeclination'] + J2000_REF_TILT)
+        else: 
+            self.tilt  = -J2000_REF_TILT
         self.referential.pos    = (0,0,0)
         self.rotMatrix          = None
 
@@ -91,13 +102,13 @@ class make3DaxisReferential:
             return None
         return self.referential.frame_to_world(self.Axis[n].pos[1])-self.referential.frame_to_world(self.Axis[n].pos[0])
 
-    def setAxisTilt(self, rightAscension):
+    def setAxisTilt(self, Ra):
 
         # rotate referential first
-        self.referential.rotate(angle=(self.tiltAngle), axis=(1,0,0))
-        if rightAscension != 0:
-            #print "3Dref: Adjusting axis direction by ", rightAscension%360, " degrees"
-            self.referential.rotate(angle=deg2rad(rightAscension % 360), axis=(0,0,1), origin=(self.body.Position[0]+self.body.Foci[0],self.body.Position[1]+self.body.Foci[1],self.body.Position[2]+self.body.Foci[2]))
+        self.referential.rotate(angle=deg2rad(self.tilt), axis=(1,0,0))
+        if Ra != 0:
+            print "Adjusting NP direction by (", Ra, " degrees around z-J2000, ", self.tilt, " tilt) for ", self.body.Name
+            self.referential.rotate(angle=deg2rad(Ra), axis=(0,0,1), origin=(self.body.Position[0]+self.body.Foci[0],self.body.Position[1]+self.body.Foci[1],self.body.Position[2]+self.body.Foci[2]))
 
 
         # determine unit vector for each direction

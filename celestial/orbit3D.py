@@ -176,11 +176,11 @@ class makeSolarSystem:
 		return w
 
 	def makeSolarSystemReferential(self):
-		print "building Solar System Referential"
+		print "\nbuilding ICRF/J2000 System Referential centered on the solar system barycenter With\nX coordinate pointing to Vernal Equinox as it was for J2000\nY coordinate orthogonal to X (using Right Hand Rule) on the Ecliptic plane\nZ coordinate orthogonal to (X,Y) plane (using Right Hand Rule)\nNote: for simplicity, we assume that the Solar System barycenter and the sun center are on the same point <0,0,0>\n"
 		return make3DaxisReferential({
 					'body':			None,
 					'radius': 		5*AU*DIST_FACTOR,
-					'tiltangle': 	0,
+					'NPdeclination': None,
 					'show':			True,
 					'color': 		Color.white,
 					'ratio': 		[1,1,0.1],
@@ -778,7 +778,7 @@ class makeBody:
 		##### self.shape = bodyShaper[bodyType]
 
 		# calculate North Pole direction based on Right Ascension information
-		self.RA = self.setNorthPoleRightAscensionAngle()
+		self.RA, self.Decl, self.PrimeM = self.setNorthPoleDirection()
 		
 		# Create referentials:
 		# The PCI referential (the "Planet-Centered Inertial" is fixed to the stars, in other words, 
@@ -790,7 +790,7 @@ class makeBody:
 		# For objects in space, the equations of motion that describe orbital motion are simpler in a non-rotating 
 		# frame such as PCI. The PCI frame is also useful for specifying the direction toward celestial objects:
 		#
-		# To represent the positions and velocities of terrestrial objects, it is convenient to use PCPF coordinates 
+		# To represent the positions and velocities of terrestrial objects, it is more convenient to use PCPF coordinates 
 		# or latitude, longitude, and altitude.
 		#
 		# In a nutshell: 
@@ -803,13 +803,13 @@ class makeBody:
 		# The default PCI is just None. Planets and Sun must override this 
 		# method with a make3DaxisReferential call as they display the referential
 		# upon user demand. 
-		self.make_PCI_referential(self.TiltAngle)
+		self.make_PCI_referential(self.Decl) #self.TiltAngle)
 
 		# determine axis of rotation
 		self.setRotAxis() #self.TiltAngle)
 
 		# set Planet-Centered-Planet_fixed referential (PCPF)
-		self.make_PCPF_referential(self.TiltAngle) #, defaultaxis=self.PCI.RotAxis) # this referential moves and rotates with the planet  ####self.radiusToShow/self.SizeCorrection[self.sizeType], self.Position) #(self.Position[0],self.Position[1],self.Position[2]))
+		self.make_PCPF_referential(self.Decl) #self.TiltAngle) #, defaultaxis=self.PCI.RotAxis) # this referential moves and rotates with the planet  ####self.radiusToShow/self.SizeCorrection[self.sizeType], self.Position) #(self.Position[0],self.Position[1],self.Position[2]))
 
 		# create body shape ...
 		self.makeShape()
@@ -837,22 +837,19 @@ class makeBody:
 
 	#### makeBody methods in the order they are called in the __init__ constructor ####
 
-	# makeBody::setNorthPoleRightAscensionAngle to determine the direction of a planet's North Pole)
-	def setNorthPoleRightAscensionAngle_XXXX(self):
-		if "RA_1" in self.SolarSystem.objects_data[self.ObjectIndex]:
+	# makeBody::setNorthPoleDirection to determine the direction of a planet's North Pole by
+	# providing its RightAscension, declination and Prime Meridian angles
+	def setNorthPoleDirection(self):
+		if "rotationalElts" in self.SolarSystem.objects_data[self.ObjectIndex]:
 			T = daysSinceJ2000UTC(self.locationInfo)/EARTH_CENTURY #36525. # T is in centuries
 			D = daysSinceJ2000UTC(self.locationInfo)
-#			return 90 + self.SolarSystem.objects_data[self.ObjectIndex]["RA_1"] + self.SolarSystem.objects_data[self.ObjectIndex]["RA_2"] * D #T
-			return self.SolarSystem.objects_data[self.ObjectIndex]["RA_1"] + self.SolarSystem.objects_data[self.ObjectIndex]["RA_2"] * D #T
-		return 0
-
-	def setNorthPoleRightAscensionAngle(self):
-		if "rotationalElts" in self.SolarSystem.objects_data[self.ObjectIndex]:
-			#T = daysSinceJ2000UTC(self.locationInfo)/EARTH_CENTURY #36525. # T is in centuries
-			D = daysSinceJ2000UTC(self.locationInfo)
 			RE = self.SolarSystem.objects_data[self.ObjectIndex]["rotationalElts"]
-			return RE["W_1"] + RE["W_2"] * D + RE["W_C"] # "W_C" is a correction factor
-		return 0
+			ra = RE["ra_1"] + RE["ra_2"] * T
+			decl = RE["dc_1"] + RE["dc_2"] * T
+			primeM = RE["W_1"] + RE["W_2"] * D
+			return ra % 360, decl, primeM
+			#return RE["W_1"] + RE["W_2"] * D # "W_C" is a correction factor
+		return 0,0,0
 
 	# this the referential fixed to the star. default is None (mostly for objects that don't
 	# require it such as PHA, comets, asteroids). Planets and the Sun must override this method
@@ -877,12 +874,12 @@ class makeBody:
 	# default PCPF referential: just a frame with no referential. Body texture is linked to
 	# this referential and rotate with it. Only the makeEarth class must override this 
 	# method as its PCPF requires to display its axis.
-	def make_PCPF_referential(self, tiltAngle): 
+	def make_PCPF_referential(self, decl): 
 	
 		#print "build PCPF ref for", self.Name
 		self.PCPF = makeBasicReferential({
 			'body': self,
-			'tiltangle': -tiltAngle,
+			'NPdeclination': decl, #-decl,
 			'show':	False,
 			'color': Color.cyan
 		})
@@ -1506,10 +1503,10 @@ class makePlanet(makeBody):
 		#self.BodyShape.visible = False
 		self.setRings()
 
-	def make_PCPF_referentialXX(self, tiltAngle): ###########################
+	def make_PCPF_referentialXX(self, decl): ###########################
 		self.PCPF = None
 
-	def make_PCI_referential(self, tiltAngle): ###, size, position):
+	def make_PCI_referential(self, decl): ###, size, position):
 		# This is the referential that doesn't rotate with the planet and is fixed to the stars.
 		# in other words, it always points to the same direction
 		
@@ -1517,7 +1514,7 @@ class makePlanet(makeBody):
 		self.PCI = make3DaxisReferential({
 			'body': self,
 			'radius': 0,
-			'tiltangle': -tiltAngle,
+			'NPdeclination': decl, #-decl,
 			'show':	False,
 			'color': Color.white,
 			'ratio': [1,1,1],
@@ -1754,7 +1751,7 @@ class makeEarth(makePlanet):
 	# makeEarth::make_PCI_referential (overrides the makePlanet method)
 	# This is the referential that is fixed to the stars
 
-	def make_PCI_referential(self, tiltAngle): 
+	def make_PCI_referential(self, decl): 
 		#print "makeEarth: build PCI ref for", self.Name
 		#	P: Polaris direction
 		#	y: 
@@ -1762,7 +1759,7 @@ class makeEarth(makePlanet):
 		self.PCI = make3DaxisReferential({
 			'body': 		self,
 			'radius': 		0,
-			'tiltangle': 	-tiltAngle,
+			'NPdeclination': 	decl, #-decl,
 			'show':			False,
 			'color': 		Color.white,
 			'ratio': 		[1,1,1],
@@ -1774,7 +1771,7 @@ class makeEarth(makePlanet):
 	# makeEarth::make_PCPF_referential (overrides the makePlanet method)
 	# This is the referential that rotates with the earth surface
 
-	def make_PCPF_referential(self, tiltAngle): #, size, position):
+	def make_PCPF_referential(self, decl): #, size, position):
 		#print "makeEarth: build PCPF ref for", self.Name
 		#	P: Polaris direction
 		#	y: 
@@ -1782,7 +1779,7 @@ class makeEarth(makePlanet):
 		self.PCPF = make3DaxisReferential({
 			'body': 			self,
 			'radius': 			0,
-			'tiltangle': 		-tiltAngle,
+			'NPdeclination': 	decl, #-decl,
 			'show':				True,
 			'color': 			Color.cyan,
 			'ratio': 			[-1,-1,1],
@@ -2746,13 +2743,13 @@ class makePha(makeBody):
 	def setAxisVisibility(self, setTo):
 		pass
 
-	def make_PCPF_referentialXX(self, tiltAngle): #, size, position):
+	def make_PCPF_referentialXX(self, decl): #, size, position):
 		# This is the referential that rotates with the earth surface
 		print "makPHA: build PCPF ref for", self.Name
 		self.PCPF = make3DaxisReferential({
 			'body': self,
 			'radius': 0,
-			'tiltangle': -tiltAngle,
+			'NPdeclination': decl, #-decl,
 			'show':	True,
 			'color': Color.cyan,
 			'ratio': [1,1,1],

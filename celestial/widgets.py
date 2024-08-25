@@ -95,7 +95,7 @@ class makePlanetWidgets():
         self.ECSS = make3DaxisReferential({
             'body': self.Planet,
             'radius': 0,
-            'tiltangle': 0,
+            'NPdeclination': None,
             'show':	False,
             'color': Color.yellow,
             'ratio': [1,1,1],
