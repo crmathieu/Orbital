@@ -2087,6 +2087,12 @@ class WIDGETSpanel(AbstractUI):
 		self.eqpcb.SetValue(False)
 		self.eqpcb.Bind(wx.EVT_CHECKBOX,self.OnDrawEquatorialPlane)
 
+		########################## NEW local ecliptic 
+		self.ecpcb = wx.CheckBox(self, label="Local Ecliptic Plane", pos=(230, CHK_L4)) #   CVT_Y+560))
+		self.ecpcb.SetValue(False)
+		self.ecpcb.Bind(wx.EVT_CHECKBOX,self.OnDrawLocalEclipticPlane)
+		##############################
+
 		self.ncb = wx.CheckBox(self, label="Nodes", pos=(50, CHK_L5)) #   CVT_Y+560))
 		self.ncb.SetValue(False)
 		self.ncb.Bind(wx.EVT_CHECKBOX,self.OnShowNodes)
@@ -2605,6 +2611,11 @@ class WIDGETSpanel(AbstractUI):
 
 	def OnDrawEquatorialPlane(self, e):
 		self.Earth.PlanetWidgets.showEquatorialPlane(self.eqpcb.GetValue())
+
+	################# NEW
+	def OnDrawLocalEclipticPlane(self, e):
+		self.Earth.PlanetWidgets.showLocalEclipticPlane(self.ecpcb.GetValue())
+	################
 
 	def OnDrawLongitudeLines(self, e):
 		self.Earth.PlanetWidgets.showLongitudes(self.mrcb.GetValue())

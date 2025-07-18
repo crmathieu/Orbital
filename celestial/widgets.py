@@ -158,11 +158,13 @@ class makePlanetWidgets():
         self.OVRL.rotate(angle=(self.SiderealCorrectionAngle), axis=self.Planet.RotAxis) #, origin=(0,0,0))
 #        self.Origin.rotate(angle=(self.SiderealCorrectionAngle), axis=self.Planet.RotAxis) #, origin=(0,0,0))
 
+
     def initWidgets(self):
         self.NumberOfSiderealDaysPerYear = self.Planet.NumberOfSiderealDaysPerYear
         self.Eq = makeEquator(self)
         self.Tr = makeTropics(self)
         self.EqPlane = makeEquatorialPlane(self, Color.orange, opacity=self.Planet.Opacity)
+        self.EcPlane = makeLocalEclipticPlane(self, Color.yellow, opacity=self.Planet.Opacity)
         self.Lons = makeLongitudes(self)
         self.Lats = makeLatitudes(self)
         self.tz = makeTimezones(self)
@@ -579,6 +581,9 @@ class makePlanetWidgets():
 
     def showEquatorialPlane(self, value):
         self.EqPlane.display(value)
+
+    def showLocalEclipticPlane(self, value):
+        self.EcPlane.display(value)
 
     def showEquator(self, value):
         self.Eq.display(value)
@@ -1705,6 +1710,34 @@ class makeTimezones(makeMeridians):
         self.draw(15, Color.white)
 
 
+class makeLocalEclipticPlane():
+
+    def __init__(self, widgets, color, opacity):
+        # ecliptic Plane is relative to the ECSS referential
+        
+        self.Planet = widgets.Planet
+        self.Origin = widgets.ECSS.referential #widgets.Planet.Origin
+        self.Opacity = opacity
+        self.Color = color 
+
+        side = 0.1*AU*DIST_FACTOR
+        # define plane in fix referential PCI
+        self.ecPlane = box(frame=self.Origin, pos=(0,0,0), length=side, width=0.0001, height=side, material=materials.emissive, visible=True, color=self.Color, opacity=0) #, axis=(0, 0, 1), opacity=0.8) #opacity=self.Opacity)
+
+
+    def display(self, trueFalse):
+        self.ecPlane.opacity = (0.6 if trueFalse == True else 0)
+        return
+
+        STEPS = 10
+        if trueFalse == True:
+            bound = 0
+        else:
+            bound = STEPS-1
+        
+        for i in range(STEPS):
+            self.eqPlane.opacity = float(abs(bound-i))/(3*STEPS)
+            sleep(1e-2)
 
 class doLatitude():
 
