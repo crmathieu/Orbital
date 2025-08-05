@@ -327,6 +327,49 @@ def getEarthMeanMotion2():
 #from visual import color
 from vpython_interface import Color
 
+"""
+# Right Ascension and declination for each planet/
+Planet_Pole_Data_J2000_Equatorial = {
+    "Mercury": {"alpha_0": 281.009, "delta_0": 61.414},
+    "Venus":   {"alpha_0": 272.76,  "delta_0": 67.16},
+    "Earth":   {"alpha_0": 0.0,     "delta_0": 90.0}, # Earth's pole defines the J2000 equatorial system
+    "Mars":    {"alpha_0": 317.681, "delta_0": 52.886},
+    "Jupiter": {"alpha_0": 268.05,  "delta_0": 64.49},
+    "Saturn":  {"alpha_0": 40.589,  "delta_0": 83.537},
+    "Uranus":  {"alpha_0": 257.31,  "delta_0": -15.10}, # Uranus's pole is tilted significantly below ecliptic
+    "Neptune": {"alpha_0": 299.36,  "delta_0": 43.46},
+    "Pluto":   {"alpha_0": 132.99,  "delta_0": -6.16},
+   # "Sedna":   {"alpha_0": 61.94,  "delta_0": 8.94},
+   # "Eris":    {"alpha_0": 27.7,   "delta_0": 0.0075},
+   # "Makemake":{"alpha_0": 200.15,  "delta_0": 20.99}, 
+   # "Haumea":  {"alpha_0": 218.74,  "delta_0": 14.68},
+}
+
+# Earth's obliquity to the ecliptic at J2000.0
+OBLIQUITY_ECLIPTIC_J2000 = 23.43928
+"""
+"""2
+# Coefficients (alpha0_J2000, alpha0_dot, delta0_J2000, delta0_dot)
+# alpha0_dot and delta0_dot are per Julian century
+# Periodic terms are added where applicable.
+# Data from IAU 2009 WGCCRE Report (Archinal et al. 2010), Table 2.
+# Note: For Earth, these simplified formulas are for comparison, IERS data is more precise.
+planet_data = {
+    "Sun":       (286.13,    0.0,     63.87,    0.0),
+    "Mercury":   (281.0097, -0.0328,  61.4143, -0.0049),
+    "Venus":     (272.76,    0.0,     67.16,    0.0), 	# Retrograde rotation, but pole is defined by north of invariable plane
+    "Earth":     (0.00,     -0.641,   90.00,   -0.557),
+    "Mars":      (317.68143, -0.1061,  52.88650, -0.0609),
+    # Jupiter includes periodic terms
+    "Jupiter":   (268.056595, -0.006499, 64.495303, 0.008391),
+    "Saturn":    (40.589,   -0.036,   83.537,  -0.004),
+    "Uranus":    (257.31,    0.0,    -15.18,    0.0), 	# Retrograde rotation, but pole is defined by north of invariable plane
+    "Neptune":   (299.36,    0.70,    43.46,    0.0),
+    # Pluto's pole model in IAU 2009 is linear, no periodic terms listed.
+    "Pluto":     (313.02,   -0.001,    9.09,    0.005)
+}
+"""
+
 # Note: the "rotationalElts" structure contains the information relevant to a planet's rotation axis 
 # direction. Each planet has its own algorithm to determine its orientation and therefore must have
 # a different "rotationalElts" structure, as well as a custom "setRightAscensionAngle" method to 
@@ -572,6 +615,7 @@ objects_data = {
 		"longitude_of_perihelion":92.43194,
 		"axial_tilt": 26.7,
 		"absolute_mag": 0.0,
+		
 		"rotationalElts": {
 			"a0_1": 40.589,
 			"a0_2": -0.036,

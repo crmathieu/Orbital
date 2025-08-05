@@ -66,6 +66,7 @@ def createSolarSystem():
 
 	ssys.addJTrojans(makeJtrojan(ssys, 'jupiterTrojan', 'Jupiter Trojans', pd.JTROJANS, color.green, 2, 5, 'jupiter'))
 	
+	
 
 	
 	MAX_OBJECTS = 1000
@@ -89,6 +90,7 @@ def bootLoader(story, recorder):
 
 	# Start control window
 	print (wx.version())
+
 
 	# start wxPython application
 	try:

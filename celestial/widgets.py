@@ -96,6 +96,11 @@ class makePlanetWidgets():
             'body': self.Planet,
             'radius': 0,
             'tiltangle': 0,
+            'orientation': {
+                'pole_vec': vector(0,0,0),
+                'w_angle': 0,
+                'omega_angle': 0,
+            },
             'show':	False,
             'color': Color.yellow,
             'ratio': [1,1,1],

@@ -11,6 +11,8 @@ class makeMercury(makePlanet):
 		makePlanet.__init__(self, system, "mercury", Color, ptype, sizeCorrectionType, defaultSizeCorrection)
 
 	def setRightAscensionAngle(self):
+		return 0   # TEST TEST TEST
+
 		# for now the method is just like the defaut method, but it should be upgraded 
 		# to refect the the complexity of the calculation
 		if "rotationalElts" in self.SolarSystem.objects_data[self.ObjectIndex]:
@@ -26,26 +28,41 @@ class makeVenus(makePlanet):
 	def __init__(self, system, Color, ptype, sizeCorrectionType, defaultSizeCorrection):
 		makePlanet.__init__(self, system, "venus", Color, ptype, sizeCorrectionType, defaultSizeCorrection)
 
+	def setRightAscensionAngle(self):
+		return 0   # TEST TEST TEST
+
 
 class makeMars(makePlanet):
 	
 	def __init__(self, system, Color, ptype, sizeCorrectionType, defaultSizeCorrection):
 		makePlanet.__init__(self, system, "mars", Color, ptype, sizeCorrectionType, defaultSizeCorrection)
 
+	def setRightAscensionAngle(self):
+		return 0   # TEST TEST TEST
+
 class makeSaturn(makePlanet):
 	
 	def __init__(self, system, Color, ptype, sizeCorrectionType, defaultSizeCorrection):
 		makePlanet.__init__(self, system, "saturn", Color, ptype, sizeCorrectionType, defaultSizeCorrection)
+
+	def setRightAscensionAngle(self):
+		return 0   # TEST TEST TEST
 
 class makeUranus(makePlanet):
 	
 	def __init__(self, system, Color, ptype, sizeCorrectionType, defaultSizeCorrection):
 		makePlanet.__init__(self, system, "uranus", Color, ptype, sizeCorrectionType, defaultSizeCorrection)
 
+	def setRightAscensionAngle(self):
+		return 0   # TEST TEST TEST
+
 class makeJupiter(makePlanet):
 	
 	def __init__(self, system, Color, ptype, sizeCorrectionType, defaultSizeCorrection):
 		makePlanet.__init__(self, system, "jupiter", Color, ptype, sizeCorrectionType, defaultSizeCorrection)
+
+	def setRightAscensionAngle(self):
+		return 0   # TEST TEST TEST
 
 class makeNeptune(makePlanet):
 	
@@ -53,6 +70,8 @@ class makeNeptune(makePlanet):
 		makePlanet.__init__(self, system, "neptune", Color, ptype, sizeCorrectionType, defaultSizeCorrection)
 
 	def setRightAscensionAngle(self):
+		return 0   # TEST TEST TEST
+
 		if "rotationalElts" in self.SolarSystem.objects_data[self.ObjectIndex]:
 
 			T = daysSinceJ2000UTC(self.locationInfo)/EARTH_CENTURY #36525. # T is in centuries

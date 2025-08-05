@@ -4,6 +4,7 @@ from objects import simpleArrow
 import numpy as np
 from visual import *
 
+
 class makeBasicReferential:
 
     def  __init__(self, params):
@@ -12,6 +13,17 @@ class makeBasicReferential:
         self.body               = None
         self.tiltAngle          = params['tiltangle']
         self.referential.pos    = (0,0,0)
+
+        self.NPole              = vector(0,0,0)
+        self.W                  = 0
+        self.Omega              = 0
+
+        if 'orientation' in params:
+            self.NPole = params['orientation']['pole_vec']
+            self.W     = params['orientation']['w_angle']
+            self.Omega = params['orientation']['omega_angle']
+
+
 #        self.defaultZAxis    = params['default_zaxis']
 
         #self.frame              = self.referential #if axisLock == True else None
@@ -98,21 +110,79 @@ class makeBasicReferential:
     def display(self, trueFalse):
         self.referential.visible = trueFalse
 
+    def setAxisOrientation(self, pole_vec):
+        pass
+
     def setAxisTilt(self, rightAscension):
+        
 
+        if is_zero_vector_epsilon(self.NPole) == False:
 
+            self.setNorthPole(self.NPole)
+            return
+
+        """
         self.referential.rotate(angle=(self.tiltAngle), axis=(1,0,0))
         if rightAscension != 0:
             print "Basic: Adjusting axis direction by ", rightAscension%360, " degrees"
             self.referential.rotate(angle=deg2rad(rightAscension), axis=(0,0,1), origin=(self.body.Position[0]+self.body.Foci[0],self.body.Position[1]+self.body.Foci[1],self.body.Position[2]+self.body.Foci[2]))
 
         self.ZdirectionUnit = self.RotAxis = self.body.getRotAxis() #vector(0, sin(self.tiltAngle), cos(self.tiltAngle))
+        """
 
     def updateReferential(self):
         self.referential.pos = self.body.Position
 
     def rotate(self, angle):
         self.referential.rotate(angle=(angle), axis=self.RotAxis) #ZdirectionUnit) #rotAxis)
+
+    def setNorthPole(self, NorthPoleVector):
+
+        J2000_Ecliptic_North = np.array([0, 0, 1])
+
+        # initialize the direction of North Pole for this body
+        # the original position is assumed to be vertical on 
+        # J2000 ecliptic with the vector [0,0,1] 
+
+        # first let's normalize the north Pole vector
+        normalizedNpole = NorthPoleVector / np.linalg.norm(NorthPoleVector)
+
+        # then Calculate the cross product to find the rotation axis to tilt the texture
+        cross_product = np.cross(J2000_Ecliptic_North, normalizedNpole)
+
+        # Calculate the dot product to figure out the angle between the vectors which
+        # corresponds to how many degrees do we need to tilt the axis, around the tilt rotation axis
+        dot_product = np.dot(J2000_Ecliptic_North, normalizedNpole)
+
+        # Handle cases where vectors are nearly collinear (dot_product close to 1 or -1)
+        # If vectors are almost identical, return identity matrix
+        if np.isclose(dot_product, 1.0):
+            return  # we are done, nothing to rotate here 
+
+        # If vectors are almost opposite, rotate by 180 degrees around an arbitrary perpendicular axis
+        elif np.isclose(dot_product, -1.0):
+            axis = np.array([1,0,0])
+            theta = np.pi # 180 degrees
+        else:
+            # Normalize the rotation axis
+            axis = cross_product / np.linalg.norm(cross_product)
+
+            # Calculate the angle
+            # since V1.V2 = |V1|.|V2|.cos(theta)
+            # and V1 and V2 are unit vectors, hence |V1| = |V2| = 1
+            # then cos(theta) = V1.V2, hence theta = arccos(V1.V2)
+            theta = np.arccos(dot_product) 
+
+
+        # perform rotation to align tilt with planet North Pole
+        self.referential.rotate(angle=theta, axis=axis) #, origin=(self.body.Position[0]+self.body.Foci[0],self.body.Position[1]+self.body.Foci[1],self.body.Position[2]+self.body.Foci[2]))
+       
+        # set axis of rotation
+        #self.ZdirectionUnit = normalizedNpole[2]
+        #self.YdirectionUnit = normalizedNpole[1]
+        #self.XdirectionUnit = normalizedNpole[0]
+
+        self.RotAxis = normalizedNpole
 
 
 class make3DaxisReferential:
@@ -127,8 +197,17 @@ class make3DaxisReferential:
         self.tiltAngle          = params['tiltangle']
         self.referential.pos    = (0,0,0)
         self.rotMatrix          = None
+        self.NPole              = vector(0,0,0)
+        self.W                  = 0
+        self.Omega              = 0
+        self.RotatingSign       = 1
 
         if 'initial_rotation' in params:
+
+            # In some instances, mostly for PCPI referentials, an initial rotation 
+            # is required to position the referential based on known land marks 
+            # (ie the Greenwitch meridian)
+
             cosv = cos(params['initial_rotation'])
             sinv = sin(params['initial_rotation'])
 
@@ -137,25 +216,24 @@ class make3DaxisReferential:
             [sinv,		cosv,   0],
             [0,			0, 	    1]])
 
-#        self.makeAxis           = params['make_axis']
-#        self.defaultZAxis       = None
-#        if 'default_zaxis' in params:
-            # this is normally provided when no referential axis are generated so that 
-            # a default rotation axis is defined for each dimension  
-#            self.defaultZAxis    = params['default_zaxis']
+        if 'orientation' in params:
 
-        #self.frame              = self.referential #if axisLock == True else None
-        #cosv = cos(tiltAngle)
-        #sinv = sin(tiltAngle)
-        
-        #self.Rotation_Obliquity = np.matrix([
-        #    [1,			0,		0	],
-        #    [0,			cosv,   sinv],
-        #    [0,			-sinv, 	cosv]]
-        #)
+            # For planets and the sun, we need to align the referential
+            # in the direction of its north Pole. This orientation is
+            # calculated during the body's initialization based on the 
+            # data provided in the North Pole calculation functions found
+            # in orbit3D.py
+            
+            self.NPole = params['orientation']['pole_vec']
+            self.W     = params['orientation']['w_angle']
+            self.Omega = params['orientation']['omega_angle']
+
 
         if params['body'] is not None:
             self.body               = params['body']
+            if self.body.Rotation < 0:
+                print "NEGATIVE ROTATION!\n"
+                self.RotatingSign = -1
 #            radius                  = self.body.radiusToShow/self.body.SizeCorrection[self.body.sizeType]
             radius                  = self.body.getBodyRadius()
             self.referential.pos    = (self.body.Position[0]+self.body.Foci[0], self.body.Position[1]+self.body.Foci[1], self.body.Position[2]+self.body.Foci[2])
@@ -170,6 +248,8 @@ class make3DaxisReferential:
 
         size = radius * 2
         self.directions = [vector(size*params['ratio'][0], 0, 0), vector(0, size*params['ratio'][1], 0), vector(0, 0, size*params['ratio'][2])]
+        
+                
 #        ve = 0.2
 #        if size < radius:
 #            ve = 0.4
@@ -179,10 +259,11 @@ class make3DaxisReferential:
 #            self.referential.rotate(angle=(-body.TiltAngle), axis=(1,0,0))
 #        if self.makeAxis ==  True:
             #position = vector(0,0,0) 
+
         for i in range (3): # Each direction
             if self.rotMatrix is not None:
                 A = np.matrix([[self.directions[i][0]],[self.directions[i][1]],[self.directions[i][2]]], np.float64)
-                self.directions[i] = self.rotMatrix * A
+                self.directions[i] = self.RotatingSign * self.rotMatrix * A
 
 
             self.Axis[i] = simpleArrow(params['color'], 0, 20, vector(0,0,0), axisp = self.directions[i], context=self.referential)
@@ -213,8 +294,19 @@ class make3DaxisReferential:
             return None
         return self.referential.frame_to_world(self.Axis[n].pos[1])-self.referential.frame_to_world(self.Axis[n].pos[0])
 
+ 
     def setAxisTilt(self, rightAscension):
 
+#        self.setNorthPole()
+ #       return
+
+        TEST = True
+        print "SET AXIAL TILT"
+        if is_zero_vector_epsilon(self.NPole) == False and TEST == True:
+            print "WE HAVE A NORTH POLE!! for ", self.NPole
+
+            self.setNorthPole()
+            return
 
         # rotate referential first
         self.referential.rotate(angle=(self.tiltAngle), axis=(1,0,0))
@@ -260,3 +352,82 @@ class make3DaxisReferential:
         #self.updateReferential()
 
 
+    def setNorthPole(self):
+
+        J2000_Ecliptic_North = np.array([0, 0, 1])
+
+        # initialize the direction of North Pole for this body
+        # the original position is assumed to be vertical on 
+        # J2000 ecliptic with the vector [0,0,1] 
+
+        # first let's normalize the north Pole vector
+        normalizedNpole = self.NPole / np.linalg.norm(self.NPole)
+
+        print "J2000_North=" + str(J2000_Ecliptic_North) + "NP=" + str(normalizedNpole)
+        # then Calculate the cross product to find the rotation axis
+        cross_product = np.cross(J2000_Ecliptic_North, normalizedNpole)
+
+        # Calculate the dot product to figure out the angle between the vectors
+        dot_product = np.dot(J2000_Ecliptic_North, normalizedNpole)
+
+        # Handle cases where vectors are nearly collinear (dot_product close to 1 or -1)
+        # If vectors are almost identical, return identity matrix
+        if np.isclose(dot_product, 1.0):
+            print "DING DING DING!!"
+            return  # we are done, nothing to rotate here 
+
+        # If vectors are almost opposite, rotate by 180 degrees around an arbitrary perpendicular axis
+        elif np.isclose(dot_product, -1.0):
+            print ">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>"
+            axis = np.array([1,0,0])
+            theta = np.pi # 180 degrees
+        else:
+            # Normalize the rotation axis
+            axis = cross_product / np.linalg.norm(cross_product)
+
+            # Calculate the angle
+            # since V1.V2 = |V1|.|V2|.cos(theta)
+            # and V1 and V2 are unit vectors, hence |V1| = |V2| = 1
+            # then cos(theta) = V1.V2, hence theta = arccos(V1.V2)
+            theta = np.arccos(dot_product) 
+
+
+        # perform rotation to align tilt with planet North Pole
+        #self.referential.rotate(angle=deg2rad(theta), axis=axis, origin=(self.body.Position[0]+self.body.Foci[0],self.body.Position[1]+self.body.Foci[1],self.body.Position[2]+self.body.Foci[2]))
+        print "------> TILT = ", rad2deg(theta), "\n"
+        self.referential.rotate(angle=theta, axis=axis)        
+
+        # set axis of rotation
+        self.ZdirectionUnit = normalizedNpole[2]
+        self.YdirectionUnit = normalizedNpole[1]
+        self.XdirectionUnit = normalizedNpole[0]
+
+        # check if the body has a retrograde motion, and in this case
+        # reverse the Z component
+
+        if self.body != None and self.body.Rotation < 0:
+            print "@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@"
+            normalizedNpole[2] = - normalizedNpole[2]
+            self.ZdirectionUnit = - self.ZdirectionUnit
+
+        self.RotAxis = normalizedNpole
+
+
+def is_zero_vector_epsilon(vec, epsilon=1e-9):
+    """Checks if a 3D vector is approximately (0.0, 0.0, 0.0) within a tolerance."""
+    return abs(vec[0]) < epsilon and abs(vec[1]) < epsilon and abs(vec[2]) < epsilon
+
+"""
+Body    North Pole Vector (J2000 Ecliptic Cartesian)    Tilt Angle (degrees)
+Sun     (0.0130, 0.0468, 0.9988)                        7.25
+Mercury (0.0000, -0.0039, 1.0000)                       0.01
+Venus   (0.0543, 0.0000, -0.9985)                       177.36
+Earth   (0.0000, 0.3978, 0.9175)                        23.44
+Mars    (0.0613, 0.2598, 0.9639)                        25.19
+Jupiter (-0.0381, 0.0090, 0.9992)                       3.13
+Saturn  (-0.0084, 0.0560, 0.9984)                       26.73
+Uranus  (0.7570, -0.6385, -0.1294)                      97.77
+Neptune (-0.0706, -0.2831, 0.9566)                      28.32
+Pluto   (0.5366, -0.7602, 0.3664)                       122.53 (or 57.47 to its orbit)
+
+"""

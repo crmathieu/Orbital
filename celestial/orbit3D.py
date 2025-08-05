@@ -74,6 +74,11 @@ class makeSolarSystem:
 		self.cameraViewTargetBody = None
 		self.cameraViewTargetSelection = SUN_NAME
 
+		# orientation parameters
+		self.Pole_vec = vector(0,0,0)
+		self.W_angle = 0
+		self.Omega_angle = 0
+
 		# create a base window to support adding overlay on Scene
 		#self.baseWindow = self.createBaseWindow()
 
@@ -157,6 +162,8 @@ class makeSolarSystem:
 
 		print "initial CAMERA POSITION ************************* ", self.Scene.mouse.camera
 
+		
+
 		#self.Scene.scale = self.Scene.scale * 10
 
 	def getBaseWindow(self):
@@ -181,6 +188,11 @@ class makeSolarSystem:
 					'body':			None,
 					'radius': 		5*AU*DIST_FACTOR,
 					'tiltangle': 	0,
+					#'orientation': {
+					#	'pole_vec': vector(0,0,0),
+					#	'w_angle': 0,
+					#	'omega_angle': 0,
+					#},
 					'show':			True,
 					'color': 		Color.white,
 					'ratio': 		[1,1,0.1],
@@ -697,6 +709,12 @@ class makeBody:
 		self.sizeCorrectionType = sizeCorrectionType
 
 		self.Foci = vector(0,0,0)
+
+		# orientation parameters
+		self.Pole_vec = vector(0,0,0)
+		self.W_angle = 0
+		self.Omega_angle = 0
+
 		if centralBody is not None:
 			self.Foci = vector(centralBody.Position[0], centralBody.Position[1], centralBody.Position[2])
 		
@@ -779,8 +797,18 @@ class makeBody:
 		##### self.shape = bodyShaper[bodyType]
 
 		# calculate North Pole direction based on Right Ascension information
-		self.RA = self.setRightAscensionAngle()
+		# TEST TEST TEST TEST (removes this line) ------> self.RA = self.setRightAscensionAngle()
 		
+		#self.NPole = self.InitializeEclipticVector()
+
+		# set North Pole direction and angular distance of Prime Meridian wirh ASC node
+		self.setBodyOrientation()
+
+		self.RA = 0	# JUST FOR TEST
+
+
+		print self.Name+ " North Pole:", self.Pole_vec
+
 		# Create referentials:
 		# The PCI referential (the "Planet-Centered Inertial" is fixed to the stars, in other words, 
 		# it doesn't rotate with the planet). PCI coordinate frames have their origins at the center of mass of the planet 
@@ -855,9 +883,140 @@ class makeBody:
 			return RE["W_1"] + RE["W_2"] * D + RE["W_C"] # "W_C" is a correction factor
 		return 0
 
+
+#/////////////////
+
+	def calculate_planet_pole_direction_SAVE(self, alpha_0_deg, delta_0_deg, obliquity_ecliptic_deg=23.43928):
+	    """
+	    Calculates the direction of a planet's north pole in heliocentric ecliptic
+	    coordinates (J2000 epoch).
+
+	    The input alpha_0 and delta_0 are the Right Ascension and Declination of
+	    the planet's north pole in the J2000 Mean Equator and Equinox (ICRF) system.
+
+	    In the output heliocentric ecliptic coordinate system:
+	    - The Sun is at the origin (0, 0, 0).
+	    - The XY-plane is the J2000 Ecliptic plane.
+	    - The X-axis points towards the J2000 Vernal Equinox.
+	    - The Z-axis points towards the J2000 North Ecliptic Pole.
+
+	    Args:
+	        alpha_0_deg (float): Right Ascension of the planet's North Pole in J2000 equatorial, in degrees.
+	        delta_0_deg (float): Declination of the planet's North Pole in J2000 equatorial, in degrees.
+	        obliquity_ecliptic_deg (float): Obliquity of the Earth's ecliptic at J2000.0, in degrees.
+	                                        Default is 23.43928 degrees.
+
+	    Returns:
+	        list: A 3-element list [X, Y, Z] representing the unit vector
+	              of the planet's north pole in heliocentric ecliptic coordinates.
+	    """
+	    # Convert angles from degrees to radians
+	    alpha_0_rad = math.radians(alpha_0_deg)
+	    delta_0_rad = math.radians(delta_0_deg)
+	    obliquity_ecliptic_rad = math.radians(obliquity_ecliptic_deg)
+
+	    # 1. Convert pole direction from J2000 Equatorial to Cartesian coordinates
+	    # X_eq = cos(delta_0) * cos(alpha_0)
+	    # Y_eq = cos(delta_0) * sin(alpha_0)
+	    # Z_eq = sin(delta_0)
+	    x_eq = math.cos(delta_0_rad) * math.cos(alpha_0_rad)
+	    y_eq = math.cos(delta_0_rad) * math.sin(alpha_0_rad)
+	    z_eq = math.sin(delta_0_rad)
+
+	    # 2. Rotate from J2000 Equatorial to J2000 Ecliptic coordinates
+	    # This is a rotation around the X-axis by -obliquity_ecliptic
+	    x_ecl = x_eq
+	    y_ecl = y_eq * math.cos(obliquity_ecliptic_rad) - z_eq * math.sin(obliquity_ecliptic_rad)
+	    z_ecl = y_eq * math.sin(obliquity_ecliptic_rad) + z_eq * math.cos(obliquity_ecliptic_rad)
+
+	    # The result should be a unit vector; normalize to ensure
+	    magnitude = math.sqrt(x_ecl**2 + y_ecl**2 + z_ecl**2)
+	    if magnitude == 0:
+	        return [0.0, 0.0, 0.0] # Should not happen for a pole direction
+	    return [x_ecl / magnitude, y_ecl / magnitude, z_ecl / magnitude]
+
+
+	def get_planet_data_ecliptic_with_perturbations(self, planetName): #, year, month, day, hour=0, minute=0, second=0):
+		"""
+		Calculates the north pole direction for the current planet for a given date
+		in the J2000 ecliptic coordinate system, including perturbations,
+		and their prime meridian angle W.
+		"""
+		cur = datetime.datetime.now()
+
+		#jd = julian_date_manual(year, month, day, hour, minute, second)
+		jd = julian_date_manual(cur.year, cur.month, cur.day, cur.hour, cur.minute, cur.second)
+		T = calculate_T_from_jd(jd)
+		d = calculate_d_from_jd(jd)
+
+		# Obliquity of the ecliptic for J2000.0 (in degrees)
+		obliquity_ecliptic_deg = 23.43928
+		obliquity_ecliptic_rad = np.radians(obliquity_ecliptic_deg)
+
+		# Rotation matrix from J2000 Equatorial to J2000 Ecliptic
+		eq_to_ecl_matrix = rotation_matrix_x(-obliquity_ecliptic_rad)
+
+		planets = ["Sun", "Mercury", "Venus", "Earth", "Mars", "Jupiter", "Saturn", "Uranus", "Neptune", "Pluto"]
+		planet_data_results = {}
+
+		# Re-using Omega values from the provided table for consistency with the request
+		# These are standard IAU parameters for the ecliptic longitude of the ascending node of the equator.
+		omega_values = {
+			"Sun": 345.717, "Mercury": 318.528, "Venus": 27.502, "Earth": 89.642,
+			"Mars": 352.883, "Jupiter": 272.072, "Saturn": 80.009, "Uranus": 18.232,
+			"Neptune": 320.083, "Pluto": 318.472
+		}
+
+		if planetName in planets:
+
+			#for planet in planets:
+			try:
+				# Get pole parameters in J2000 Equatorial, including perturbations
+				alpha0_eq, delta0_eq = get_planet_pole_parameters(planetName, T, d)
+				pole_vector_eq = equatorial_to_cartesian_vector(alpha0_eq, delta0_eq)
+
+				# Transform to J2000 Ecliptic
+				pole_vector_ecl = apply_rotation(pole_vector_eq, eq_to_ecl_matrix)
+
+				# Get prime meridian angle W
+				W_angle = get_planet_prime_meridian_W(planetName, d)
+
+				# Get Omega angle
+				Omega_angle = omega_values.get(planetName, np.nan) # Use np.nan for missing values
+
+				#	            planet_data_results[planetName] = {
+				planet_data_results = {
+				    "pole_vector_ecl": pole_vector_ecl,
+				    "W_angle": W_angle,
+				    "Omega_angle": Omega_angle
+				}
+				return pole_vector_ecl, W_angle, Omega_angle
+
+
+			except ValueError as e:
+				#         planet_data_results[planet] = f"Error: {e}"
+				#	            planet_data_results[planet] = "Error: {e}"
+				planet_data_results = "Error: {e}"
+
+		return [0,0,0], 0,0 #planet_data_results
+
+
+	#def InitializeEclipticVector(self):
+	def setBodyOrientation(self):
+
+		#now = datetime.now()
+
+		self.Pole_vec, self.W_angle, self.Omega_angle = self.get_planet_data_ecliptic_with_perturbations(self.Name)
+		#pole_vec = data["pole_vector_ecl"]
+		#W_angle = data["W_angle"]
+		#Omega_angle = data["Omega_angle"]
+	#	return pole_vec
+
+
 	# this the referential fixed to the star. default is None (mostly for objects that don't
 	# require it such as PHA, comets, asteroids). Planets and the Sun must override this method
 	# to create a 3D referential, as it can be displayed through the user interface.
+
 	def make_PCI_referential(self, tiltAngle): 
 		self.PCI = None 
 
@@ -869,7 +1028,8 @@ class makeBody:
 
 	def setObliquity(self): 
 		print "setObliquity for ", self.Name
-		return vector(0, sin(self.TiltAngle), cos(self.TiltAngle))
+		return self.Pole_vec
+		#####  TEST TEST remove return vector(0, sin(self.TiltAngle), cos(self.TiltAngle))
 
 	def getRotAxis(self):
 		return self.RotAxis
@@ -885,7 +1045,13 @@ class makeBody:
 			'body': self,
 			'tiltangle': -tiltAngle,
 			'show':	False,
-			'color': Color.cyan
+			'color': Color.cyan,
+			#'initial_rotation': pi/2,
+			'orientation': {
+				'pole_vec': self.Pole_vec,
+				'w_angle': self.W_angle,
+				'omega_angle': self.Omega_angle,
+			},
 		})
 		self.Origin 				= self.PCPF.referential
 		self.Origin.visible			= True
@@ -925,6 +1091,8 @@ class makeBody:
 			print "Failed to draw body", self.Name
 			return False
 
+	# this method is provided as a placeholder on this base class
+	# and should be overwritten by any child class
 	def initRotation(self):
 		return
 
@@ -1521,9 +1689,15 @@ class makePlanet(makeBody):
 			'body': self,
 			'radius': 0,
 			'tiltangle': -tiltAngle,
+			'orientation': {
+				'pole_vec': self.Pole_vec,
+				'w_angle': self.W_angle,
+				'omega_angle': self.Omega_angle,
+			},
 			'show':	False,
 			'color': Color.white,
 			'ratio': [1,1,1],
+			#'initial_rotation': pi/2,
 			'legend': ["x", "y", "z"],
 		})  
 
@@ -1766,6 +1940,11 @@ class makeEarth(makePlanet):
 			'body': 		self,
 			'radius': 		0,
 			'tiltangle': 	-tiltAngle,
+			'orientation': {
+				'pole_vec': self.Pole_vec,
+				'w_angle': self.W_angle,
+				'omega_angle': self.Omega_angle,
+			},
 			'show':			False,
 			'color': 		Color.white,
 			'ratio': 		[1,1,1],
@@ -1781,16 +1960,21 @@ class makeEarth(makePlanet):
 		#print "makeEarth: build PCPF ref for", self.Name
 		#	P: Polaris direction
 		#	y: 
-		#	A: Antimeridian
+		#	G: Greenwich meridian
 		self.PCPF = make3DaxisReferential({
 			'body': 			self,
 			'radius': 			0,
 			'tiltangle': 		-tiltAngle,
+			'orientation': {
+				'pole_vec': self.Pole_vec,
+				'w_angle': self.W_angle,
+				'omega_angle': self.Omega_angle,
+			},
 			'show':				True,
 			'color': 			Color.cyan,
 			'ratio': 			[1,1,1],
-			'initial_rotation': pi/2,
-			'legend': 			["A", "y", "P"]
+			'initial_rotation': -pi/2, #
+			'legend': 			["G", "y", "P"]
 		})
 
 		# set planet origin as the PCPF referential (rotates with the planet)
@@ -3288,40 +3472,298 @@ def utc_to_local_fromDatetime(utc_datetime, locationInfo):
 	return utc_datetime + datetime.timedelta(seconds=locationInfo.TimeToUtcInSec())
 	#return utc_datetime - datetime.timedelta(seconds=locationInfo.TimeToUtcInSec())
 
-	
-# Convert date/time from UTC to local date/time
 """
-def utc_to_localXX():
-	UTC_datetime = datetime.datetime.utcnow()
-	UTC_datetime_timestamp = datetime.datetime.timestamp(UTC_datetime) #float(UTC_datetime.strftime("%S"))
-	local_datetime_converted = datetime.datetime.fromtimestamp(UTC_datetime_timestamp)
-	print "local datetime from utc", local_datetime_converted
-	return local_datetime_converted
+North Pole direction functions
+"""
 
-def UTC_to_localXX(utc_naivedatetime):
-	utc_time = pytz.utc #timezone(locationInfo.getTZ())
-	utc_datetime = utc_time.localize(utc_naivedatetime, is_dst=None)
-	local_datetime = utc_datetime.astimezone(pytz.timezone(locationInfo.getTZ()))
-	print "UTC=", utc_naivedatetime, "local=", local_datetime
-	return local_datetime, utc_datetime
+def julian_date_manual(year, month, day, hour=0, minute=0, second=0):
+    
+    #Calculates the Julian Date for a given Gregorian calendar date and time.
+    #This function avoids the 'datetime' library as per constraint.
+    # J2000.0 epoch is JD 2451545.0 TDB.
+
+    # Algorithm from Fliegel and Van Flandern (1968)
+    # Simplified for positive Julian Dates (after 4713 BC)
+    if month <= 2:
+        year -= 1
+        month += 12
+
+    A = np.floor(year / 100)
+    B = 2 - A + np.floor(A / 4)
+
+    JD = np.floor(365.25 * (year + 4716)) + \
+         np.floor(30.6001 * (month + 1)) + \
+         day + B - 1524.5
+
+    # Add fractional part for time
+    JD += (hour + minute / 60 + second / 3600) / 24.0
+    return JD
 
 
-def to_timestampXX(a_date):
+def calculate_T_from_jd(jd):
 
-    if a_date.tzinfo:
-    	pass
-    	
-    	#print "TZINFO", a_date.tzinfo
-        #epoch = datetime.datetime(1970, 1, 1, tzinfo=pytz.UTC)
-        #diff = a_date.astimezone(pytz.UTC) - epoch
-        
+    # Calculates T, the interval in Julian centuries (36525 days) from J2000.0.
+    # J2000.0 epoch Julian Date (JD) = 2451545.0
+    
+    return (jd - 2451545.0) / 36525.0
+
+
+def calculate_d_from_jd(jd):
+    
+    # Calculates d, the interval in days from J2000.0.
+    # J2000.0 epoch Julian Date (JD) = 2451545.0
+
+    return jd - 2451545.0
+
+
+def equatorial_to_cartesian_vector(ra_deg, dec_deg):
+
+    # Converts Right Ascension (RA) and Declination (Dec) to a Cartesian
+    # unit vector [X, Y, Z] in the J2000 equatorial coordinate system (ICRF).
+
+    ra_rad = np.radians(ra_deg)
+    dec_rad = np.radians(dec_deg)
+    x = np.cos(dec_rad) * np.cos(ra_rad)
+    y = np.cos(dec_rad) * np.sin(ra_rad)
+    z = np.sin(dec_rad)
+    magnitude = np.sqrt(x**2 + y**2 + z**2)
+    if magnitude == 0:
+        return np.array([0.0, 0.0, 0.0]) # Return numpy array
+    return np.array([x / magnitude, y / magnitude, z / magnitude]) # Return numpy array
+
+
+def get_planet_pole_parameters(planet_name, T, d):
+
+    # Retrieves the time-dependent pole parameters (alpha0, delta0) for a given planet.
+    # These coefficients are based on the IAU 2009 WGCCRE report (Archinal et al. 2010),
+    # including periodic terms for Jupiter.
+    # 
+    # Args:
+    #    planet_name (str): The name of the planet (e.g., "Earth", "Mars").
+    #    T (float): Julian centuries from J2000.0.
+    #    d (float): Days from J2000.0.
+    #
+    # Returns:
+    #    tuple: (alpha0_deg, delta0_deg) in degrees, representing the pole in J2000 
+    #           equatorial coordinates.
+    # -----------------------------------------------------------------------------
+    # Coefficients (alpha0_J2000, alpha0_dot, delta0_J2000, delta0_dot)
+    # alpha0_dot and delta0_dot are per Julian century
+    # Periodic terms are added where applicable.
+    # Data from IAU 2009 WGCCRE Report (Archinal et al. 2010), Table 2.
+    # Note: For Earth, these simplified formulas are for comparison, IERS data is more precise.
+
+    planet_data = {
+        "Sun":       (286.13,    0.0,     63.87,    0.0),
+        "Mercury":   (281.0097, -0.0328,  61.4143, -0.0049),
+        "Venus":     (272.76,    0.0,     67.16,    0.0), # Retrograde rotation, but pole is defined by north of invariable plane
+        "Earth":     (0.00,     -0.641,   90.00,   -0.557),
+        "Mars":      (317.68143, -0.1061,  52.88650, -0.0609),
+        # Jupiter includes periodic terms
+        "Jupiter":   (268.056595, -0.006499, 64.495303, 0.008391),
+        "Saturn":    (40.589,   -0.036,   83.537,  -0.004),
+        "Uranus":    (257.31,    0.0,    -15.18,    0.0), # Retrograde rotation, but pole is defined by north of invariable plane
+        "Neptune":   (299.36,    0.70,    43.46,    0.0),
+        # Pluto's pole model in IAU 2009 is linear, no periodic terms listed.
+        "Pluto":     (313.02,   -0.001,    9.09,    0.005)
+    }
+
+    if planet_name not in planet_data:
+        raise ValueError("Data for {planet_name} not available.")
+
+    alpha0_j2000, alpha0_dot, delta0_j2000, delta0_dot = planet_data[planet_name]
+
+    alpha0 = alpha0_j2000 + alpha0_dot * T
+    delta0 = delta0_j2000 + delta0_dot * T
+
+    # Add periodic terms for specific planets
+    if planet_name == "Jupiter":
+        # Ja angle in degrees
+        Ja = 286.098 + 879.792 * d
+        Ja_rad = np.radians(Ja)
+        alpha0 += 0.000117 * np.sin(Ja_rad)
+        delta0 += 0.000050 * np.cos(Ja_rad)
+    elif planet_name == "Pluto":
+        # Based on IAU 2009, Pluto's pole has only linear time dependence.
+        # No additional periodic terms are commonly provided in this format.
+        pass # Already handled by linear terms
+
+    return alpha0, delta0
+
+def get_planet_prime_meridian_W(planet_name, d):
+    
+    # Retrieves the time-dependent prime meridian angle (W) for a given planet.
+    # These coefficients are based on the IAU 2009 WGCCRE report (Archinal et al. 2010).
+    # W is measured eastward along the planet's equator from the ascending node
+    # on the Earth's mean equator of J2000.0.
+    
+    # W = W0 + W_dot * d + sum(A_i * sin(M_i))
+    # W0 is the angle at J2000.0, W_dot is the daily rate.
+    # d is days from J2000.0.
+    # M_i are arguments of periodic terms.
+
+    # Simplified to linear terms and major periodic terms where applicable.
+    # For full precision, more periodic terms for some planets would be needed.
+    
+    prime_meridian_data = {
+        "Sun":       (84.176, 14.1844000, []),
+        "Mercury":   (329.5469, 6.1385025, [
+            (0.00993822, 174.7948 + 17179159.230*d/360.0),  # M1
+            (-0.00104581, 349.5896 + 34358318.460*d/360.0), # M2
+            (-0.00010280, 164.3844 + 51537477.690*d/360.0), # M3
+            (-0.00002364, 339.1792 + 68716636.920*d/360.0), # M4
+            (-0.00000532, 153.9740 + 85895796.150*d/360.0)  # M5
+        ]),
+        "Venus":     (160.20, -1.4813688, []), 	 # Retrograde rotation, W decreases
+        "Earth":     (190.147, 360.9856235, []), # Earth's prime meridian (Greenwich)
+        "Mars":      (176.630, 350.89198226, []),
+        "Jupiter":   (268.056595, 879.792, []),  # W for Jupiter is often given as alpha0, but here we use the specific W formula
+        "Saturn":    (40.589, 810.7939024, []),
+        "Uranus":    (257.31, 810.7939024, []),  # Retrograde rotation, but W increases
+        "Neptune":   (299.36, 810.7939024, []),
+        "Pluto":     (313.02, 56.3625225, [])
+    }
+
+    if planet_name not in prime_meridian_data:
+        raise ValueError("Prime meridian data for {planet_name} not available.")
+
+    W0, W_dot, periodic_terms = prime_meridian_data[planet_name]
+
+    W = W0 + W_dot * d
+
+    for amplitude, argument_deg_per_cycle in periodic_terms:
+        W += amplitude * np.sin(np.radians(argument_deg_per_cycle))
+
+    # Ensure W is within 0-360 degrees
+    W = W % 360.0
+    if W < 0:
+        W += 360.0
+    return W
+
+
+def rotation_matrix_x(angle_rad):
+    """
+    Creates a 3x3 rotation matrix for rotation around the X-axis 
+    to convert Equatorial coordinates to Ecliptic coordinates.
+    (we rotate around the X axis by an angle corresponding to 
+    the inclination of the equatorial plane on the ecliptic, 
+    which is the earth inclination)
+    """
+    cos_a = np.cos(angle_rad)
+    sin_a = np.sin(angle_rad)
+    return np.array([
+        [1.0, 0.0, 0.0],
+        [0.0, cos_a, -sin_a],
+        [0.0, sin_a, cos_a]
+    ])
+
+def apply_rotation(vector, matrix):
+    """
+    Applies a 3x3 rotation matrix to a 3D vector.
+    """
+    return np.dot(matrix, vector)
+
+def get_all_planet_data_ecliptic_with_perturbations(year, month, day, hour=0, minute=0, second=0):
+    """
+    Calculates the north pole direction for all major planets for a given date
+    in the J2000 ecliptic coordinate system, including perturbations,
+    and their prime meridian angle W.
+    """
+    jd = julian_date_manual(year, month, day, hour, minute, second)
+    T = calculate_T_from_jd(jd)
+    d = calculate_d_from_jd(jd)
+
+    # Obliquity of the ecliptic for J2000.0 (in degrees)
+    obliquity_ecliptic_deg = 23.43928
+    obliquity_ecliptic_rad = np.radians(obliquity_ecliptic_deg)
+
+    # Rotation matrix from J2000 Equatorial to J2000 Ecliptic
+    eq_to_ecl_matrix = rotation_matrix_x(-obliquity_ecliptic_rad)
+
+    planets = ["Sun", "Mercury", "Venus", "Earth", "Mars", "Jupiter", "Saturn", "Uranus", "Neptune", "Pluto"]
+    planet_data_results = {}
+
+    # Re-using Omega values from the provided table for consistency with the request
+    # These are standard IAU parameters for the ecliptic longitude of the ascending node of the equator.
+    omega_values = {
+        "Sun": 345.717, "Mercury": 318.528, "Venus": 27.502, "Earth": 89.642,
+        "Mars": 352.883, "Jupiter": 272.072, "Saturn": 80.009, "Uranus": 18.232,
+        "Neptune": 320.083, "Pluto": 318.472
+    }
+
+    for planet in planets:
+        try:
+            # Get pole parameters in J2000 Equatorial, including perturbations
+            alpha0_eq, delta0_eq = get_planet_pole_parameters(planet, T, d)
+            pole_vector_eq = equatorial_to_cartesian_vector(alpha0_eq, delta0_eq)
+
+            # Transform to J2000 Ecliptic
+            pole_vector_ecl = apply_rotation(pole_vector_eq, eq_to_ecl_matrix)
+
+            # Get prime meridian angle W
+            W_angle = get_planet_prime_meridian_W(planet, d)
+
+            # Get Omega angle
+            Omega_angle = omega_values.get(planet, np.nan) # Use np.nan for missing values
+
+            planet_data_results[planet] = {
+                "pole_vector_ecl": pole_vector_ecl,
+                "W_angle": W_angle,
+                "Omega_angle": Omega_angle
+            }
+        except ValueError as e:
+   #         planet_data_results[planet] = f"Error: {e}"
+            planet_data_results[planet] = "Error: {e}"
+    return planet_data_results
+
+# --- Example Usage ---
+# Define a specific date for calculation
+# Using a fixed date instead of datetime.now() due to the "no external libraries except numpy" constraint
+calculation_year = 2025
+calculation_month = 7
+calculation_day = 22
+calculation_hour = 8
+calculation_minute = 42
+calculation_second = 15
+
+# Get all planet data
+all_planet_data = get_all_planet_data_ecliptic_with_perturbations(
+    calculation_year, calculation_month, calculation_day,
+    calculation_hour, calculation_minute, calculation_second
+)
+
+# Format and print the table
+#current_date_str = f"{calculation_year}-{calculation_month:02d}-{calculation_day:02d} {calculation_hour:02d}:{calculation_minute:02d}:{calculation_second:02d} UTC"
+current_date_str = "{calculation_year}-{calculation_month:02d}-{calculation_day:02d} {calculation_hour:02d}:{calculation_minute:02d}:{calculation_second:02d} UTC"
+
+print("Calculations for: {current_date_str}")
+print("| Planet  | X (J2000 Ecliptic) | Y (J2000 Ecliptic) | Z (J2000 Ecliptic) | W (Prime Meridian Angle, deg) | $\Omega$ (Ecliptic Ascending Node, deg) |")
+print("|---------|--------------------|--------------------|--------------------|-------------------------------|------------------------------------------|")
+
+for planet, data in all_planet_data.items():
+    if isinstance(data, dict):
+        pole_vec = data["pole_vector_ecl"]
+        W_angle = data["W_angle"]
+        Omega_angle = data["Omega_angle"]
+#        print(f"| {planet.ljust(7)} | {pole_vec[0]:<18.6f} | {pole_vec[1]:<18.6f} | {pole_vec[2]:<18.6f} | {W_angle:<29.4f} | {Omega_angle:<40.3f} |")
+        print("| {:7} | {:<18.6f} | {:<18.6f} | {:<18.6f} | {:<29.4f} | {:<40.3f} |".
+        format(planet, pole_vec[0], pole_vec[1], pole_vec[2], W_angle, Omega_angle))
     else:
-        epoch = datetime.datetime(1970, 1, 1)
-        diff = a_date - epoch
-    return int(diff.total_seconds())
+        print("| {planet.ljust(7)} | {data.ljust(18)} | {'':<18} | {'':<18} | {'':<29} | {'':<40} |")
 
 
-def from_timestampXX(timestamp):
-    return datetime.datetime.fromtimestamp(timestamp, pytz.UTC)
+'''
+Good values:
+Body	North Pole Vector (J2000 Ecliptic Cartesian)	Tilt Angle (degrees)
+Sun		(0.0130, 0.0468, 0.9988)						7.25
+Mercury	(0.0000, -0.0039, 1.0000)						0.01
+Venus	(0.0543, 0.0000, -0.9985)						177.36
+Earth	(0.0000, 0.3978, 0.9175)						23.44
+Mars	(0.0613, 0.2598, 0.9639)						25.19
+Jupiter	(-0.0381, 0.0090, 0.9992)						3.13
+Saturn	(-0.0084, 0.0560, 0.9984)						26.73
+Uranus	(0.7570, -0.6385, -0.1294)						97.77
+Neptune	(-0.0706, -0.2831, 0.9566)						28.32
+Pluto	(0.5366, -0.7602, 0.3664)						122.53 (or 57.47 to its orbit)
 
-"""
+'''
