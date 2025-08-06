@@ -7,16 +7,21 @@ from visual import *
 
 class makeBasicReferential:
 
+    # basic referentials are essentially used for 
     def  __init__(self, params):
         # axisLock is used when the referential needs to have its axis linked to the frame
         self.referential        = frame()
         self.body               = None
-        self.tiltAngle          = params['tiltangle']
+        #self.tiltAngle          = params['tiltangle']
         self.referential.pos    = (0,0,0)
 
-        self.NPole              = vector(0,0,0)
+        self.NPole              = vector(0,0,1)
         self.W                  = 0
         self.Omega              = 0
+        self.RotAxis            = self.NPole
+
+        if 'name' in params:
+            print "creating "+ params['name']
 
         if 'orientation' in params:
             self.NPole = params['orientation']['pole_vec']
@@ -40,6 +45,7 @@ class makeBasicReferential:
         #sinv = sin(self.tiltAngle)
         #self.defaultZaxis = vector(0, sin(self.tiltAngle), cos(self.tiltAngle))
 
+        """
         if False:
             # this rotation happens around the x-axis
             self.Rotation_Obliquity = np.matrix([
@@ -59,6 +65,8 @@ class makeBasicReferential:
             self.defaultZaxis = self.defaultZaxis/mag(self.defaultZaxis)
             print "default Z-AXIS = ", self.defaultZaxis
             print "MANUALLY: = ",[0, sinv, cosv]
+
+        """    
 
         if params['body'] is not None:
             self.body               = params['body']
@@ -113,13 +121,15 @@ class makeBasicReferential:
     def setAxisOrientation(self, pole_vec):
         pass
 
-    def setAxisTilt(self, rightAscension):
+    def setAxisTilt(self): #, rightAscension):
+        print "REF::setAxisTilt: WE HAVE A NORTH POLE!! for ", self.NPole
         
-
         if is_zero_vector_epsilon(self.NPole) == False:
 
             self.setNorthPole(self.NPole)
             return
+        else:
+            print "REF::setAxisTilt: No North Pole"
 
         """
         self.referential.rotate(angle=(self.tiltAngle), axis=(1,0,0))
@@ -138,6 +148,7 @@ class makeBasicReferential:
 
     def setNorthPole(self, NorthPoleVector):
 
+        print "SetNP in Simple REF for ", self.body.Name
         J2000_Ecliptic_North = np.array([0, 0, 1])
 
         # initialize the direction of North Pole for this body
@@ -194,18 +205,23 @@ class make3DaxisReferential:
         self.AxisLabel 	        = ["","",""]
         radius                  = params['radius']
         self.body               = None
-        self.tiltAngle          = params['tiltangle']
+        #self.tiltAngle          = params['tiltangle']
         self.referential.pos    = (0,0,0)
         self.rotMatrix          = None
         self.NPole              = vector(0,0,0)
         self.W                  = 0
         self.Omega              = 0
+       # self.RotAxis            = self.NPole
+
         self.RotatingSign       = 1
+
+        if 'name' in params:
+            print "creating 3D "+ params['name']
 
         if 'initial_rotation' in params:
 
             # In some instances, mostly for PCPI referentials, an initial rotation 
-            # is required to position the referential based on known land marks 
+            # is required to position the referential based on known landmarks 
             # (ie the Greenwitch meridian)
 
             cosv = cos(params['initial_rotation'])
@@ -295,36 +311,46 @@ class make3DaxisReferential:
         return self.referential.frame_to_world(self.Axis[n].pos[1])-self.referential.frame_to_world(self.Axis[n].pos[0])
 
  
-    def setAxisTilt(self, rightAscension):
+    def setAxisTilt(self): #, rightAscension):
 
-#        self.setNorthPole()
- #       return
+        # set North Pole for main planets and Sun, and for other objects
+        # such as PHAs, Comets, Asteroids, set some arbitrary values
+        Npole = vector(0,0,0)
+        if is_zero_vector_epsilon(self.NPole) == False:
+            print "3DAXIS::setAxisTilt: WE HAVE A NORTH POLE!! for ", self.NPole
 
-        TEST = True
-        print "SET AXIAL TILT"
-        if is_zero_vector_epsilon(self.NPole) == False and TEST == True:
-            print "WE HAVE A NORTH POLE!! for ", self.NPole
+            Npole = self.setNorthPole()
+            #return
 
-            self.setNorthPole()
-            return
+        else:
+            print "3DAXIS::setAxisTilt: No North Pole"
 
-        # rotate referential first
-        self.referential.rotate(angle=(self.tiltAngle), axis=(1,0,0))
-        if rightAscension != 0:
-            print "3Dref: Adjusting axis direction by ", rightAscension%360, " degrees"
-            self.referential.rotate(angle=deg2rad(rightAscension % 360), axis=(0,0,1), origin=(self.body.Position[0]+self.body.Foci[0],self.body.Position[1]+self.body.Foci[1],self.body.Position[2]+self.body.Foci[2]))
+            # if we reach here, it means that we don't have a valid north pole
+            # information. 
+            #rightAscension = 0
+            
+            # rotate referential first
+            """
+            self.referential.rotate(angle=(self.tiltAngle), axis=(1,0,0))
+            if rightAscension != 0:
+                print "3Dref: Adjusting axis direction by ", rightAscension%360, " degrees"
+                self.referential.rotate(angle=deg2rad(rightAscension % 360), axis=(0,0,1), origin=(self.body.Position[0]+self.body.Foci[0],self.body.Position[1]+self.body.Foci[1],self.body.Position[2]+self.body.Foci[2]))
+            """
+
+            # determine unit vector for each direction
+            ZdirectionVec = self.referential.frame_to_world(self.Axis[2].pos[1])-self.referential.frame_to_world(self.Axis[2].pos[0])
+            YdirectionVec = self.referential.frame_to_world(self.Axis[1].pos[1])-self.referential.frame_to_world(self.Axis[1].pos[0])
+            XdirectionVec = self.referential.frame_to_world(self.Axis[0].pos[1])-self.referential.frame_to_world(self.Axis[0].pos[0])
+
+            # Npole = vec(XdirectionVec, YdirectionVec, ZdirectionVec)
+            
+            self.ZdirectionUnit = ZdirectionVec/mag(ZdirectionVec)
+            self.YdirectionUnit = YdirectionVec/mag(YdirectionVec)
+            self.XdirectionUnit = XdirectionVec/mag(XdirectionVec)
+
+            self.RotAxis = self.ZdirectionUnit
 
 
-        # determine unit vector for each direction
-        ZdirectionVec = self.referential.frame_to_world(self.Axis[2].pos[1])-self.referential.frame_to_world(self.Axis[2].pos[0])
-        YdirectionVec = self.referential.frame_to_world(self.Axis[1].pos[1])-self.referential.frame_to_world(self.Axis[1].pos[0])
-        XdirectionVec = self.referential.frame_to_world(self.Axis[0].pos[1])-self.referential.frame_to_world(self.Axis[0].pos[0])
-
-        self.ZdirectionUnit = ZdirectionVec/mag(ZdirectionVec)
-        self.YdirectionUnit = YdirectionVec/mag(YdirectionVec)
-        self.XdirectionUnit = XdirectionVec/mag(XdirectionVec)
-
-        self.RotAxis = self.ZdirectionUnit
 
     def updateReferential(self):
         self.referential.pos = (self.body.Position[0]+self.body.Foci[0], self.body.Position[1]+self.body.Foci[1], self.body.Position[2]+self.body.Foci[2])
@@ -354,6 +380,8 @@ class make3DaxisReferential:
 
     def setNorthPole(self):
 
+        print "SetNP in 3Daxis REF for ", self.body.Name
+
         J2000_Ecliptic_North = np.array([0, 0, 1])
 
         # initialize the direction of North Pole for this body
@@ -374,7 +402,7 @@ class make3DaxisReferential:
         # If vectors are almost identical, return identity matrix
         if np.isclose(dot_product, 1.0):
             print "DING DING DING!!"
-            return  # we are done, nothing to rotate here 
+            return  normalizedNpole # we are done, nothing to rotate here 
 
         # If vectors are almost opposite, rotate by 180 degrees around an arbitrary perpendicular axis
         elif np.isclose(dot_product, -1.0):
@@ -392,25 +420,32 @@ class make3DaxisReferential:
             theta = np.arccos(dot_product) 
 
 
-        # perform rotation to align tilt with planet North Pole
-        #self.referential.rotate(angle=deg2rad(theta), axis=axis, origin=(self.body.Position[0]+self.body.Foci[0],self.body.Position[1]+self.body.Foci[1],self.body.Position[2]+self.body.Foci[2]))
-        print "------> TILT = ", rad2deg(theta), "\n"
+        # perform rotation to align tilt with planet North Pole. This
+        # rotation is performed around the axis perpendicular to the
+        # plane formed by the north pole vector and the J2000 ecliptic
+        # north pole.
+
+        print "------> TILT = ", rad2deg(theta)
         self.referential.rotate(angle=theta, axis=axis)        
+
+        # check if the body has a retrograde motion, and in this case
+        # reverse the North Pole vector
+
+        if self.body != None and self.body.Rotation < 0:
+            normalizedNpole = - normalizedNpole
+            print self.body.Name + ": Inversing North Pole - ", normalizedNpole, "\n"
+        else:
+            print "\n"
 
         # set axis of rotation
         self.ZdirectionUnit = normalizedNpole[2]
         self.YdirectionUnit = normalizedNpole[1]
         self.XdirectionUnit = normalizedNpole[0]
 
-        # check if the body has a retrograde motion, and in this case
-        # reverse the Z component
-
-        if self.body != None and self.body.Rotation < 0:
-            print "@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@"
-            normalizedNpole[2] = - normalizedNpole[2]
-            self.ZdirectionUnit = - self.ZdirectionUnit
 
         self.RotAxis = normalizedNpole
+
+        return normalizedNpole
 
 
 def is_zero_vector_epsilon(vec, epsilon=1e-9):

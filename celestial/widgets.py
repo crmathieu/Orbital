@@ -92,22 +92,24 @@ class makePlanetWidgets():
         # The ECSS referential (the "Earth-Centered Sun Synchronous") always has its x-axis
         # tangent to the earth orbit and its y-axis pointing towards the sun. Its z-axis
         # is always aligned with the ecliptic's z-axis
+
         self.ECSS = make3DaxisReferential({
             'body': self.Planet,
             'radius': 0,
-            'tiltangle': 0,
-            'orientation': {
-                'pole_vec': vector(0,0,0),
-                'w_angle': 0,
-                'omega_angle': 0,
-            },
+            #'tiltangle': 0,
+            #'orientation': {
+            #    'pole_vec': self.Planet.Pole_vec,
+            #    'w_angle': self.Planet.W_angle,
+            #    'omega_angle': self.Planet.Omega_angle,
+            #},
             'show':	False,
             'color': Color.yellow,
             'ratio': [1,1,1],
-            'legend': ["tg","orth","z"],
+            'legend': ["Orbit tg","Sun","North-Ecliptic"],
+            'name': "EarthECSS",
    			'make_axis': True
         })
-        self.ECSS.setAxisTilt(0) 
+        self.ECSS.setAxisTilt() #0) 
 
         # calculate initial angle of planet on its ecliptic based on current coordinates
         self.ECSSangle = atan2(self.Planet.Position[1], self.Planet.Position[0])
@@ -124,10 +126,12 @@ class makePlanetWidgets():
         #   - analemmas 
         #   - rocket trajectories 
         #   - earth widgets (meridiens, latitudes, nodes, equator, tropics etc...) 
+
         self.OVRL = frame()
 
         # link the overlay to earth's PCPF (ECEF) referential that rotates 
         # with the earth, so that the widgets rotation will happen through the PCPF ref
+
         self.OVRL.frame = self.Planet.PCPF.referential
         self.OVRL.pos = (0,0,0)
 

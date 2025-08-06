@@ -154,8 +154,8 @@ class makeSolarSystem:
 		self.toggleSize(False)
 
 		######################################################
-		self.CenterRef = self.makeSolarSystemReferential()
-		self.CenterRef.setAxisTilt(0)
+		self.CenterRef = self.createJ2000EclipticReferential()
+		self.CenterRef.setAxisTilt() #0)
 		######################################################
 		self.makeCelestialSphere()
 		self.makeConstellations()
@@ -182,7 +182,7 @@ class makeSolarSystem:
 		#w.win.SetTransparent(0)
 		return w
 
-	def makeSolarSystemReferential(self):
+	def createJ2000EclipticReferential(self):
 		print "building Solar System Referential"
 		return make3DaxisReferential({
 					'body':			None,
@@ -196,7 +196,7 @@ class makeSolarSystem:
 					'show':			True,
 					'color': 		Color.white,
 					'ratio': 		[1,1,0.1],
-					'legend': 		[u"\u2648", u"\u2649", "z"]
+					'legend': 		[u"\u2648", u"\u2649", "J2000-North-Ecliptic"]
 #					'legend': 		["x","y","z"],
 				})		
 
@@ -290,7 +290,7 @@ class makeSolarSystem:
 	# celestialSphere::animate
 	def animate(self, deltaT):
 		pass
-		#self.setRotation()
+		#self.animateBodyRotation()
 
 	def isFeatured(self, type):
 		return self.ShowFeatures & type
@@ -442,6 +442,7 @@ class makeSolarSystem:
 			self.Scene.ambient = Color.nightshade #Color.black
 			self.sunLight.visible = True
 			self.Sun.BodyShape.material = materials.emissive
+#			self.Sun.BodyShape.material = materials.texture(data=self.Sun.Texture, mapping="spherical", interpolate=False)
 			
 		setRefTo = True if self.ShowFeatures & REFERENTIAL != 0 else False
 		
@@ -624,6 +625,7 @@ class makeBelt:
 		if self.SolarSystem.ShowFeatures & self.BodyType != 0:
 			if self.BodyShape.visible == False:
 				self.BodyShape.visible = True
+
 			labelVisible = True if self.SolarSystem.ShowFeatures & LABELS != 0 else False
 
 			for i in range(len(self.Labels)):
@@ -801,13 +803,15 @@ class makeBody:
 		
 		#self.NPole = self.InitializeEclipticVector()
 
-		# set North Pole direction and angular distance of Prime Meridian wirh ASC node
+		# set North Pole direction and angular distance 
+		# of Prime Meridian wirh ASC node
+
 		self.setBodyOrientation()
 
 		self.RA = 0	# JUST FOR TEST
 
-
-		print self.Name+ " North Pole:", self.Pole_vec
+		print "---------------------------------------------"
+		print self.Name, " North Pole:", self.Pole_vec
 
 		# Create referentials:
 		# The PCI referential (the "Planet-Centered Inertial" is fixed to the stars, in other words, 
@@ -876,6 +880,7 @@ class makeBody:
 		return 0
 
 	def setRightAscensionAngle(self):
+		return 0
 		if "rotationalElts" in self.SolarSystem.objects_data[self.ObjectIndex]:
 			#T = daysSinceJ2000UTC(self.locationInfo)/EARTH_CENTURY #36525. # T is in centuries
 			D = daysSinceJ2000UTC(self.locationInfo)
@@ -1001,23 +1006,21 @@ class makeBody:
 		return [0,0,0], 0,0 #planet_data_results
 
 
-	#def InitializeEclipticVector(self):
 	def setBodyOrientation(self):
 
-		#now = datetime.now()
+		# setBodyOrientation will determine the direction of the North Pole
+		# and the angle between the prime meridian and the descending node.
 
 		self.Pole_vec, self.W_angle, self.Omega_angle = self.get_planet_data_ecliptic_with_perturbations(self.Name)
-		#pole_vec = data["pole_vector_ecl"]
-		#W_angle = data["W_angle"]
-		#Omega_angle = data["Omega_angle"]
-	#	return pole_vec
+		
 
-
-	# this the referential fixed to the star. default is None (mostly for objects that don't
-	# require it such as PHA, comets, asteroids). Planets and the Sun must override this method
-	# to create a 3D referential, as it can be displayed through the user interface.
-
+	#
 	def make_PCI_referential(self, tiltAngle): 
+
+		# this the referential fixed to the star. default is None (mostly for objects that don't
+		# require it such as PHA, comets, asteroids). Planets and the Sun must override this method
+		# to create a 3D referential, as it can be displayed through the user interface.
+
 		self.PCI = None 
 
 	def setRotAxis(self): 
@@ -1034,25 +1037,29 @@ class makeBody:
 	def getRotAxis(self):
 		return self.RotAxis
 
-	# This is the referential that rotates with the body:
-	# default PCPF referential: just a frame with no referential. Body texture is linked to
-	# this referential and rotate with it. Only the makeEarth class must override this 
-	# method as its PCPF requires to display its axis.
+	# makebody::make_PCPF_referential default
 	def make_PCPF_referential(self, tiltAngle): 
+
+		# This is the referential that rotates with the body:
+		# default PCPF referential: just a frame with no axis. Body texture is linked to
+		# this referential and rotate with it. Only the makeEarth class must override this 
+		# method as its PCPF requires to display its axis.
 	
-		#print "build PCPF ref for", self.Name
+		
 		self.PCPF = makeBasicReferential({
 			'body': self,
-			'tiltangle': -tiltAngle,
+			#'tiltangle': -tiltAngle,
 			'show':	False,
 			'color': Color.cyan,
-			#'initial_rotation': pi/2,
 			'orientation': {
 				'pole_vec': self.Pole_vec,
 				'w_angle': self.W_angle,
 				'omega_angle': self.Omega_angle,
 			},
+            'name':  self.Name+"PCPF",
 		})
+		
+
 		self.Origin 				= self.PCPF.referential
 		self.Origin.visible			= True
 
@@ -1078,7 +1085,7 @@ class makeBody:
 
 	def setPCPFAxisTilt(self):
 		if self.PCPF is not None:
-			self.PCPF.setAxisTilt(self.RA)
+			self.PCPF.setAxisTilt() #self.RA)
 
 	def makeOrbit(self):
 		# attach a curve to the object to display its orbit
@@ -1091,9 +1098,9 @@ class makeBody:
 			print "Failed to draw body", self.Name
 			return False
 
-	# this method is provided as a placeholder on this base class
-	# and should be overwritten by any child class
 	def initRotation(self):
+		# this method is provided as a placeholder on this base class
+		# and should be overwritten by any child class
 		return
 
 	def getRealisticSizeCorrection(self):
@@ -1118,6 +1125,11 @@ class makeBody:
 
 	# makeBody::animate default
 	def animate(self, timeIncrement):
+
+		# this method takes care of moving the current body on 
+		# its orbit as well as rotating it around its North Pole
+		# given the provided time increment
+
 		if self.hasRenderedOrbit == False:
 			self.draw()
 
@@ -1151,7 +1163,7 @@ class makeBody:
 
 		self.Origin.pos = self.Labels[0].pos = vector(self.Position[0]+self.Foci[0],self.Position[1]+self.Foci[1],self.Position[2]+self.Foci[2])
 		#self.Labels[0].pos = vector(self.Position[0]+self.Foci[0],self.Position[1]+self.Foci[1],self.Position[2]+self.Foci[2])
-		self.setRotation()
+		self.animateBodyRotation()
 		return self.getCurrentVelocity(), self.getCurrentDistanceFromEarth(), self.getCurrentDistanceFromSun()
 
 	# makeBody::setOrbitalElements (default)
@@ -1229,7 +1241,7 @@ class makeBody:
 		if success == False:
 			print (self.Name+" Warning Could not converge - E = "+str(self.E))
 
-	def update_referentials(self):
+	def updateAllReferentials(self):
 		if self.PCI is not None:
 			self.PCI.updateReferential()
 		#if self.PCPF is not None:	
@@ -1285,7 +1297,8 @@ class makeBody:
 	"""
 	# makeBody::computeOrbitalEltFromPlanetPositionApproximation default
 	def computeOrbitalEltFromPlanetPositionApproximation(self, elts, timeincrement):
-		# will calculate current value of approximate position of the major planets
+
+		# will calculate the current value of approximate position of the major planets
 		# including pluto. This won't work for Asteroid, Comets or Dwarf planets.
 		# Principle: for every timeIncrement, all orbital elements are recalculated. 
 		# This include aphelion, eccentricity and inclinaison, followed by 
@@ -1295,7 +1308,9 @@ class makeBody:
 
 		# get number of days since J2000 epoch and obtain the fraction of century
 		# (the rate adjustment is given as a rate per century)
+
 		days = daysSinceJ2000UTC(self.locationInfo) + timeincrement #- ADJUSTMENT_FACTOR_PLANETS # - 1.43
+		
 		#T = (daysSinceJ2000UTC() + timeincrement)/36525. # T is in centuries
 
         # These formulas use 'days' based on days since 1/Jan/2000 12:00 UTC ("J2000.0"), 
@@ -1306,24 +1321,29 @@ class makeBody:
 #		T = days/36525. # T is in centuries
 # 		T = (days-1.5)/36525. # T is in centuries
 
-		self.a = (elts["a"] + (elts["ar"] * T)) * AU
-		self.e = elts["EC_e"] + (elts["er"] * T)
-		self.Inclination = elts["i"] + (elts["ir"] * T)
+		self.a 			 = (elts["a"]   + (elts["ar"] * T)) * AU
+		self.e 			 = elts["EC_e"] + (elts["er"] * T)
+		self.Inclination = elts["i"]    + (elts["ir"] * T)
 
 		# compute mean Longitude with correction factors beyond jupiter M = L - W + bT^2 +ccos(ft) + ssin(ft)
+		
 		L = elts["L"] + (elts["Lr"] * T) + (elts["b"] * T**2  +
 											elts["c"] * cos(elts["f"] * T) +
 											elts["s"] * sin(elts["f"] * T))
-		self.Longitude_of_perihelion = elts["W"] + (elts["Wr"] * T)
+
+		self.Longitude_of_perihelion 	= elts["W"] + (elts["Wr"] * T)
 		self.Longitude_of_ascendingnode = elts["N"] + (elts["Nr"] * T)
 
 		# compute Argument of perihelion w
+
 		self.Argument_of_perihelion = self.Longitude_of_perihelion - self.Longitude_of_ascendingnode
 
 		# compute mean Anomaly M = L - W
+		
 		M = toRange(L - self.Longitude_of_perihelion) #W)
 
 		# Obtain ecc. Anomaly E (in degrees) from M using an approx method of resolution:
+		
 		success, self.E, dE, it = solveKepler(M, self.e, 12000)
 		if success == False:
 			print ("Could not converge for "+self.Name+", E = "+str(self.E)+", last precision = "+str(dE))
@@ -1333,14 +1353,15 @@ class makeBody:
 		return pi/180
 
 	def draw(self):
-		#print "Rendering orbit for ", self.Name
+		
+		# this method will render the orbit shape 
+		# of the current body
+
 		self.Trail.visible = False
 		rad_E = deg2rad(self.E)
 		increment = self.getIncrement()
-#		print("draw: X = ", self.a * (cos(rad_E) - self.e), "Y =", self.a * sqrt(1 - self.e**2) * sin(rad_E))
 
-#		for E in np.arange(increment, 2*pi+increment, increment):
-#		for E in np.arange(0, 2*pi, increment):
+		# draw small segments between 2 angulars loop for 0 to 2PI
 		for E in np.arange(0, 2*pi+increment, increment):
 			self.setPolarCoordinates(E+rad_E)
 			# from R and Nu, calculate 3D coordinates and update current position
@@ -1462,8 +1483,8 @@ class makeBody:
 		self.PCPF.referential.rotate(angle=RotAngle, axis=self.PCPF.RotAxis) #, origin=(0,0,0)) #self.PCPF.referential.pos) #(self.Position[0]+self.Foci[0],self.Position[1]+self.Foci[1],self.Position[2]+self.Foci[2]))
 #		self.PCPF.referential.rotate(angle=RotAngle, axis=self.PCPF.ZdirectionUnit) #, origin=(0,0,0)) #self.PCPF.referential.pos) #(self.Position[0]+self.Foci[0],self.Position[1]+self.Foci[1],self.Position[2]+self.Foci[2]))
 
-	# default
-	def setRotation(self):
+	# makeBody::animateBodyRotation default 
+	def animateBodyRotation(self):
 		ti = self.SolarSystem.getTimeIncrement()
 		self.RotAngle = (2*pi/self.Rotation)*ti
 
@@ -1474,7 +1495,7 @@ class makeBody:
 		if self.RotAxis[2] < 0:
 			self.RotAngle *= -1
 
-		self.update_referentials()
+		self.updateAllReferentials()
 		#self.PCPF.rotate(angle=self.RotAngle)
 
 		#self.Origin.rotate(angle=self.RotAngle, axis=self.RotAxis, origin=(self.Position[0]+self.Foci[0],self.Position[1]+self.Foci[1],self.Position[2]+self.Foci[2]))
@@ -1495,8 +1516,19 @@ class makeBody:
 		self.Origin.rotate(angle=self.RotAngle, axis=self.RotAxis, origin=(self.Position[0]+self.Foci[0],self.Position[1]+self.Foci[1],self.Position[2]+self.Foci[2]))
 
 	def drawSegment(self, trace = True):
+		
+		# append the orbit segment corresponding to the 
+		# current coordinate
+
 		self.Position = self.setCartesianCoordinates()
+
+		# update origin
+
 		self.Origin.pos = vector(self.Position[0]+self.Foci[0],self.Position[1]+self.Foci[1],self.Position[2]+self.Foci[2])
+		
+		# when we want to visualize the orbit, we show the 
+		# section under the ecliptic with dimmer colors
+
 		if trace:
 			# display orbit in brighter Color when above ecliptic
 			if self.Position[2]+self.Foci[2] < 0:
@@ -1513,12 +1545,13 @@ class makeBody:
 			else:
 				self.Trail.append(pos=self.Origin.pos, color=(self.Color[0]*0.6, self.Color[1]*0.6, self.Color[2]*0.6))
 
+
 	def setCartesianCoordinates(self):
-		# from polar coordinates, deduct cartesian coordinates in ecliptic referential, using the current distance to object (R), the 
-		# True anomaly (Nu), and the orbital parameters pertaining to the orbit's orientation: (N, i, w) 
-#		self.Position[0] = self.R * DIST_FACTOR * ( cos(self.N) * cos(self.Nu+self.w) - sin(self.N) * sin(self.Nu+self.w) * cos(self.i) )
-#		self.Position[1] = self.R * DIST_FACTOR * ( sin(self.N) * cos(self.Nu+self.w) + cos(self.N) * sin(self.Nu+self.w) * cos(self.i) )
-#		self.Position[2] = self.R * DIST_FACTOR * ( sin(self.Nu+self.w) * sin(self.i) )
+
+		# from polar coordinates, deduct cartesian coordinates in ecliptic referential, 
+		# using the current distance to object (R), the True anomaly (Nu), and the 
+		# orbital parameters pertaining to the orbit's orientation: (N, i, w) 
+
 		return (self.R * DIST_FACTOR * ( cos(self.N) * cos(self.Nu+self.w) - sin(self.N) * sin(self.Nu+self.w) * cos(self.i) ),
 				self.R * DIST_FACTOR * ( sin(self.N) * cos(self.Nu+self.w) + cos(self.N) * sin(self.Nu+self.w) * cos(self.i) ),
 				self.R * DIST_FACTOR * ( sin(self.Nu+self.w) * sin(self.i) ))
@@ -1527,6 +1560,7 @@ class makeBody:
 		########## self.Position = self.Rotation_VernalEquinox * self.Position  # modified on 06/11/22
 
 	def show(self):
+
 		if self.hasRenderedOrbit == False:
 			self.draw()
 
@@ -1559,12 +1593,14 @@ class makeBody:
 		#print "display PCI for ", self.Name, "as ", setTo
 		if self.PCI is not None: 
 			self.PCI.display(setTo)
+		"""	
 		return
 
 		for i in range(3):
 #			self.Axis[i].visible = setTo
 			self.PCI.Axis[i].display(setTo)
 			self.PCI.AxisLabel[i].visible = setTo
+		"""
 
 	def refresh(self):
 		if 	self.SolarSystem.SlideShowInProgress and \
@@ -1576,8 +1612,9 @@ class makeBody:
 			self.Details == True:
 			if self.Origin.visible == False:
 				self.show()
+
 			# if this is the cameraViewTargetBody, check for local referential attribute
-#			if 	self.SolarSystem.cameraViewTargetSelection == self.JPL_designation and \
+
 			if 	self.SolarSystem.cameraViewTargetSelection == self.Name.lower() and \
 				self.SolarSystem.ShowFeatures & LOCAL_REFERENTIAL:
 					setTo = True
@@ -1627,7 +1664,7 @@ class makeSun(makeBody):
 		#print "loading"+"./img/"+self.Tga
 		self.Texture = materials.loadTGA("./img/"+self.Tga) if self.SolarSystem.objects_data[key]["material"] != 0 else materials.loadTGA("./img/asteroid")
 		#self.BodyShape.material = materials.texture(data=self.Texture, mapping="spherical", interpolate=False)
-		print "setting sun as emissive"
+		#print "setting sun as emissive"
 		self.BodyShape.material = materials.emissive
 
 	def updateStillPosition(self, timeinsec):
@@ -1681,9 +1718,12 @@ class makePlanet(makeBody):
 	def make_PCPF_referentialXX(self, tiltAngle): ###########################
 		self.PCPF = None
 
-	def make_PCI_referential(self, tiltAngle): ###, size, position):
-		# This is the referential that doesn't rotate with the planet and is fixed to the stars.
-		# in other words, it always points to the same direction
+	def make_PCI_referential(self, tiltAngle): 
+
+		# This is the referential that doesn't rotate with the 
+		# planet and is fixed to the stars. In other words, it 
+		# always points to the same direction
+		
 		print "Planet: build PCI ref for", self.Name
 		self.PCI = make3DaxisReferential({
 			'body': self,
@@ -1697,6 +1737,7 @@ class makePlanet(makeBody):
 			'show':	False,
 			'color': Color.white,
 			'ratio': [1,1,1],
+            'name':  self.Name+"PCI",
 			#'initial_rotation': pi/2,
 			'legend': ["x", "y", "z"],
 		})  
@@ -1704,7 +1745,7 @@ class makePlanet(makeBody):
 		self.Origin 				= self.PCI.referential
 		self.Origin.visible			= True
 
-		self.PCI.setAxisTilt(self.RA)
+		self.PCI.setAxisTilt() #self.RA)
 		self.PCI.display(False)
 		#self.setRotAxis()
 
@@ -1857,7 +1898,7 @@ class makePlanet(makeBody):
 
 	def displayRings(self, trueFalse):
 		if self.nRings > 0:
-			print "setting rings to ", trueFalse
+			#print "setting rings to ", trueFalse
 			self.RingsFrame.visible = trueFalse
 
 	def hideRings(self):
@@ -1939,7 +1980,7 @@ class makeEarth(makePlanet):
 		self.PCI = make3DaxisReferential({
 			'body': 		self,
 			'radius': 		0,
-			'tiltangle': 	-tiltAngle,
+			#'tiltangle': 	-tiltAngle,
 			'orientation': {
 				'pole_vec': self.Pole_vec,
 				'w_angle': self.W_angle,
@@ -1948,23 +1989,27 @@ class makeEarth(makePlanet):
 			'show':			False,
 			'color': 		Color.white,
 			'ratio': 		[1,1,1],
-			'legend': 		[u"\u2648", "y", "P"]
+            'name': 		"EarthPCI",
+			'legend': 		[u"\u2648", "y", "North-Equatorial"]
 		})  
-		self.PCI.setAxisTilt(0)
+		self.PCI.setAxisTilt() #0)
 		self.PCI.display(False)		
 
-	# makeEarth::make_PCPF_referential (overrides the makePlanet method)
-	# This is the referential that rotates with the earth surface
+	# makeEarth::make_PCPF_referential 
 
 	def make_PCPF_referential(self, tiltAngle): #, size, position):
-		#print "makeEarth: build PCPF ref for", self.Name
-		#	P: Polaris direction
+		
+		# This method overrides the parent class (makePlanet) method
+		# This is the referential that rotates with the earth surface
+			
+		#	Polaris direction: North-Equatorial
 		#	y: 
-		#	G: Greenwich meridian
+		#	Prime -Meridian:
+
 		self.PCPF = make3DaxisReferential({
 			'body': 			self,
 			'radius': 			0,
-			'tiltangle': 		-tiltAngle,
+			#'tiltangle': 		-tiltAngle,
 			'orientation': {
 				'pole_vec': self.Pole_vec,
 				'w_angle': self.W_angle,
@@ -1973,8 +2018,9 @@ class makeEarth(makePlanet):
 			'show':				True,
 			'color': 			Color.cyan,
 			'ratio': 			[1,1,1],
+            'name': 			"EarthPCPF",
 			'initial_rotation': -pi/2, #
-			'legend': 			["G", "y", "P"]
+			'legend': 			["Prime-Meridian", "y", "North-Equatorial"]
 		})
 
 		# set planet origin as the PCPF referential (rotates with the planet)
@@ -2541,7 +2587,7 @@ class makeGenericSpacecraft(makeBody):
 		
 		#print "ANIMATING-2 ", self.Name, "Origin=",self.Origin.pos, "Foci =",self.Foci
 #		self.Labels[0].pos = vector(self.Position[0]+self.Foci[0],self.Position[1]+self.Foci[1],self.Position[2]+self.Foci[2])
-		self.setRotation()
+		self.animateBodyRotation()
 		#print "ANIMATING-3 ", self.Name, "Origin=",self.Origin.pos, "Foci =",self.Foci
 
 		return self.getCurrentVelocity(), self.getCurrentDistanceFromEarth(), self.getCurrentDistanceFromSun()
@@ -2692,7 +2738,7 @@ class makeGenericSpacecraft(makeBody):
 		self.RotAngle = pi/400
 		self.RotAxis = (5, 5, -5)
 		
-	def setRotation(self):
+	def animateBodyRotation(self):
 		# I used to set the rotation using the origin parameter, but the end result would send the
 		# spacecraft off its trajectory. So I took it off. FYI, down bellow was the call
 		# self.Origin.rotate(angle=self.RotAngle, axis=self.RotAxis, origin=(0,0,0)) #origin=(10*self.length, 10*self.length, 0)) #-sin(alpha), cos(alpha)))
@@ -2877,7 +2923,7 @@ class makeComet(makeBody):
 		self.RotAngle = pi/512
 		self.RotAxis = (0,1,1)
 
-	def setRotation(self):
+	def animateBodyRotation(self):
 		#self.updateAxis()
 #		self.Origin.pos = vector(self.Position[0],self.Position[1],self.Position[2])
 #		self.BodyShape.rotate(angle=self.RotAngle, axis=self.RotAxis, origin=(0,0,0)) #-sin(alpha), cos(alpha)))
@@ -2916,7 +2962,7 @@ class makeAsteroid(makeBody):
 		self.RotAngle = pi/512
 		self.RotAxis = (1,1,1)
 
-	def setRotation(self):
+	def animateBodyRotation(self):
 #		self.Origin.pos = vector(self.Position[0],self.Position[1],self.Position[2]) ### !!!!!
 #		self.BodyShape.rotate(angle=self.RotAngle, axis=self.RotAxis, origin=(0,0,0)) #-sin(alpha), cos(alpha)))
 		self.Origin.rotate(angle=self.RotAngle, axis=self.RotAxis) #, origin=(0,0,0)) #-sin(alpha), cos(alpha)))
@@ -2982,9 +3028,9 @@ class makePha(makeBody):
 	def initRotation(self):
 		self.RotAngle = pi/48
 		self.RotAxis = (1,1,1)
-		print "LABEL position:", self.Labels[0].pos
+		#print "LABEL position:", self.Labels[0].pos
 
-	def setRotation(self):
+	def animateBodyRotation(self):
 		#print "PHA rotates"
 		#self.updateAxis()
 		#self.Origin.pos = vector(self.Position[0],self.Position[1],self.Position[2])
@@ -3030,7 +3076,7 @@ class makeSmallAsteroid(makeBody):
 		self.RotAngle = pi/512
 		#self.RotAxis = (1,1,1)
 
-	def setRotation(self):
+	def animateBodyRotation(self):
 #		self.Origin.pos= vector(self.Position[0],self.Position[1],self.Position[2])
 #		self.BodyShape.rotate(angle=self.RotAngle, axis=self.RotAxis, origin=(0,0,0)) #-sin(alpha), cos(alpha)))
 		self.Origin.rotate(angle=self.RotAngle, axis=self.RotAxis) #, origin=(0,0,0)) #-sin(alpha), cos(alpha)))
@@ -3096,7 +3142,7 @@ class makeTransNeptunian(makeBody):
 		self.RotAngle = pi/512
 		self.RotAxis = (0,1,1)
 
-	def setRotation(self):
+	def animateBodyRotation(self):
 #		self.Origin.pos = vector(self.Position[0],self.Position[1],self.Position[2])
 #		self.BodyShape.rotate(angle=self.RotAngle, axis=self.RotAxis, origin=(0,0,0)) #-sin(alpha), cos(alpha)))
 		self.Origin.rotate(angle=self.RotAngle, axis=self.RotAxis) #, origin=(0,0,0)) #-sin(alpha), cos(alpha)))
