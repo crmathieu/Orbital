@@ -32,6 +32,8 @@ from utils import getOrthogonalVector #, sleep
 #from concurrent.futures import ThreadPoolExecutor, ProcessPoolExecutor, as_completed
 
 from numberfmt import *
+import ssl
+
 import urllib2, urllib
 #import httplib
 from video import * #VideoRecorder
@@ -839,7 +841,10 @@ class SEARCHpanel(AbstractUI):
 			opener = urllib2.build_opener()
 			opener.addheaders = [('User-Agent', 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_12_2) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/55.0.2883.95 Safari/537.36')]
 			print "Querying: ", host+target
-			response = opener.open(host+target)
+			#response = opener.open(host+target, context=unverified_context)
+
+			unverified_context = ssl._create_unverified_context()	
+			response = urllib2.urlopen(host+target, context=unverified_context)		
 			rawResp = response.read()
 			print rawResp
 

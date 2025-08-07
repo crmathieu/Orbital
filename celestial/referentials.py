@@ -264,8 +264,9 @@ class make3DaxisReferential:
 
         size = radius * 2
         self.directions = [vector(size*params['ratio'][0], 0, 0), vector(0, size*params['ratio'][1], 0), vector(0, 0, size*params['ratio'][2])]
-        
-                
+        self.directions[2] = self.RotatingSign * self.directions[2]
+                      
+                      
 #        ve = 0.2
 #        if size < radius:
 #            ve = 0.4
@@ -278,8 +279,9 @@ class make3DaxisReferential:
 
         for i in range (3): # Each direction
             if self.rotMatrix is not None:
+                print ".............WE HAVE A ROTATION MATRIX................"
                 A = np.matrix([[self.directions[i][0]],[self.directions[i][1]],[self.directions[i][2]]], np.float64)
-                self.directions[i] = self.RotatingSign * self.rotMatrix * A
+                self.directions[i] = self.rotMatrix * A
 
 
             self.Axis[i] = simpleArrow(params['color'], 0, 20, vector(0,0,0), axisp = self.directions[i], context=self.referential)

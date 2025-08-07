@@ -79,6 +79,8 @@ class makeSolarSystem:
 		self.W_angle = 0
 		self.Omega_angle = 0
 
+		self.J2000_Equatorial_obliquity = 23.43928
+
 		# create a base window to support adding overlay on Scene
 		#self.baseWindow = self.createBaseWindow()
 
@@ -257,7 +259,7 @@ class makeSolarSystem:
 
 			# adjust constellations layout on our 3d window to match our coordinates system
 			self.Constellations.rotate(angle=(pi/2), 		axis=self.CenterRef.XdirectionUnit, origin=(0,0,0))
-			self.Constellations.rotate(angle=deg2rad(25), 	axis=self.CenterRef.YdirectionUnit, origin=(0,0,0))
+			self.Constellations.rotate(angle=deg2rad(self.J2000_Equatorial_obliquity), axis=self.CenterRef.YdirectionUnit, origin=(0,0,0))
 			self.Constellations.rotate(angle=(pi/2), 		axis=self.CenterRef.ZdirectionUnit, origin=(0,0,0))
 
 		else:
@@ -279,7 +281,7 @@ class makeSolarSystem:
 			
 			# adjust celestial sphere layout on our 3d window to match our coordinates system
 			self.Universe.rotate(angle=(pi/2), 		axis=self.CenterRef.XdirectionUnit, origin=(0,0,0))
-			self.Universe.rotate(angle=deg2rad(25), axis=self.CenterRef.YdirectionUnit, origin=(0,0,0))
+			self.Universe.rotate(angle=deg2rad(self.J2000_Equatorial_obliquity), axis=self.CenterRef.YdirectionUnit, origin=(0,0,0))
 			self.Universe.rotate(angle=(pi/2), 		axis=self.CenterRef.ZdirectionUnit, origin=(0,0,0))
 
 		else:
@@ -990,11 +992,13 @@ class makeBody:
 				Omega_angle = omega_values.get(planetName, np.nan) # Use np.nan for missing values
 
 				#	            planet_data_results[planetName] = {
+				"""
 				planet_data_results = {
 				    "pole_vector_ecl": pole_vector_ecl,
 				    "W_angle": W_angle,
 				    "Omega_angle": Omega_angle
 				}
+				"""
 				return pole_vector_ecl, W_angle, Omega_angle
 
 
@@ -1003,7 +1007,7 @@ class makeBody:
 				#	            planet_data_results[planet] = "Error: {e}"
 				planet_data_results = "Error: {e}"
 
-		return [0,0,0], 0,0 #planet_data_results
+		return [0,0,0], 0, 0 #planet_data_results
 
 
 	def setBodyOrientation(self):
@@ -1245,8 +1249,10 @@ class makeBody:
 		if self.PCI is not None:
 			self.PCI.updateReferential()
 		#if self.PCPF is not None:	
-		self.PCPF.updateReferential()
-		self.PCPF.rotate(angle=self.RotAngle)
+
+		if self.PCPF is not None:
+			self.PCPF.updateReferential()
+			self.PCPF.rotate(angle=self.RotAngle)
 
 		#self.PCI.referential.pos = self.Position
 		#self.update_PCPF_PositionRotation()
@@ -1492,7 +1498,7 @@ class makeBody:
 #		if self.PCI.ZdirectionUnit[2] < 0:
 #			self.RotAngle *= -1
 
-		if self.RotAxis[2] < 0:
+		if False and self.RotAxis[2] < 0: # TESTTESTTESTTEST
 			self.RotAngle *= -1
 
 		self.updateAllReferentials()
@@ -1797,9 +1803,11 @@ class makePlanet(makeBody):
 			ringData = rings_data[self.Name.lower()]["rings"]
 			if ringData is not None:
 				self.RingsFrame = frame()
+
 				# make each ring element relative to the PCI Referential
 				# so that they are aligned with the planet tilt and 
 				# won't have to rotate
+
 				self.RingsFrame.frame = self.PCI.referential				
 				self.makeRings(ringData)
 
@@ -1963,7 +1971,12 @@ class makeEarth(makePlanet):
 		# Create widgets. This must be done after initializing earth. This will correctly
 		# position the widgets with the earth current appearence
 		
-		self.PlanetWidgets = makePlanetWidgets(self)	
+		self.PlanetWidgets = makePlanetWidgets(self)
+
+		# reposition the celestial sphere on the earth location:
+		self.SolarSystem.CelestialSphereOrigin = self.Origin.pos
+		self.SolarSystem.ConstellationsOrigin = self.Origin.pos
+
 
 	# .--------------------------------------------.
 	# | Called by the superclass __init__ methods. |
@@ -2139,6 +2152,9 @@ class makeEarth(makePlanet):
 		if self.PlanetWidgets is not None:
 			self.PlanetWidgets.animate() #timeIncrement)
 
+		self.SolarSystem.CelestialSphereOrigin = self.Origin.pos
+		self.SolarSystem.ConstellationsOrigin = self.Origin.pos
+		
 		return velocity, dte, dts
 
 	def resetTexture(self): # TO REVIEW!!!!

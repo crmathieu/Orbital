@@ -23,6 +23,10 @@ class makeMercury(makePlanet):
 			return RE["W_1"] + RE["W_2"] * D + RE["W_C"]
 		return 0
 
+#	def make_PCI_referential(self, tiltAngle): 
+#		self.PCI = None 
+
+
 class makeVenus(makePlanet):
 	
 	def __init__(self, system, Color, ptype, sizeCorrectionType, defaultSizeCorrection):
@@ -30,6 +34,9 @@ class makeVenus(makePlanet):
 
 	def setRightAscensionAngle(self):
 		return 0   # TEST TEST TEST
+
+#	def make_PCI_referential(self, tiltAngle): 
+#		self.PCI = None 
 
 
 class makeMars(makePlanet):
@@ -40,6 +47,9 @@ class makeMars(makePlanet):
 	def setRightAscensionAngle(self):
 		return 0   # TEST TEST TEST
 
+#	def make_PCI_referential(self, tiltAngle): 
+#		self.PCI = None 
+
 class makeSaturn(makePlanet):
 	
 	def __init__(self, system, Color, ptype, sizeCorrectionType, defaultSizeCorrection):
@@ -47,6 +57,10 @@ class makeSaturn(makePlanet):
 
 	def setRightAscensionAngle(self):
 		return 0   # TEST TEST TEST
+
+#	def make_PCI_referential(self, tiltAngle): 
+#		self.PCI = None 
+
 
 class makeUranus(makePlanet):
 	
@@ -56,6 +70,10 @@ class makeUranus(makePlanet):
 	def setRightAscensionAngle(self):
 		return 0   # TEST TEST TEST
 
+#	def make_PCI_referential(self, tiltAngle): 
+#		self.PCI = None 
+
+
 class makeJupiter(makePlanet):
 	
 	def __init__(self, system, Color, ptype, sizeCorrectionType, defaultSizeCorrection):
@@ -63,6 +81,10 @@ class makeJupiter(makePlanet):
 
 	def setRightAscensionAngle(self):
 		return 0   # TEST TEST TEST
+
+#	def make_PCI_referential(self, tiltAngle): 
+#		self.PCI = None 
+
 
 class makeNeptune(makePlanet):
 	
@@ -82,3 +104,17 @@ class makeNeptune(makePlanet):
 			print "NEPTUNE !!!!!!!!!!!!!!!!!!!!!!!!", toto  % 360
 			return toto % 360
 		return 0
+
+#	def make_PCI_referential(self, tiltAngle): 
+#		self.PCI = None 
+
+class makePluto(makePlanet):
+	
+	def __init__(self, system, Color, ptype, sizeCorrectionType, defaultSizeCorrection):
+		makePlanet.__init__(self, system, "pluto", Color, ptype, sizeCorrectionType, defaultSizeCorrection)
+
+	def setRightAscensionAngle(self):
+		return 0   # TEST TEST TEST
+
+#	def make_PCI_referential(self, tiltAngle): 
+#		self.PCI = None 
