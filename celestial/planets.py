@@ -35,6 +35,7 @@ class makeVenus(makePlanet):
 	def setRightAscensionAngle(self):
 		return 0   # TEST TEST TEST
 
+		
 #	def make_PCI_referential(self, tiltAngle): 
 #		self.PCI = None 
 

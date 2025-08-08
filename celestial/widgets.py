@@ -578,6 +578,9 @@ class makePlanetWidgets():
             db.widgetsTab.infoWindowActions[db.widgetsTab.currentInfoAction]()
 
     def animate(self):
+        # animates widgets features. This method is 
+        # called by the makeEarth::animate method
+
         self.update_PCI_PCPF_ECSS_Position()
         self.update_ECSS_Rotation()
         self.updateInfoWindow() #DateTime()

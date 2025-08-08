@@ -7,7 +7,14 @@ from visual import *
 
 class makeBasicReferential:
 
-    # basic referentials are essentially used for 
+    # basic referentials are used to display PCPF referentials
+    # which rotate with the planet. There is no visible axis to display, 
+    # but we still need to know what the North Pole direction is in 
+    # order to rotate the body's texture properly. For Planets and the 
+    # Sun, the North Pole vector is calculated from tables provided by 
+    # the IAU working group. For other bodies, the North Pole is 
+    # arbitrarily the J2000 Ecliptic North Pole.
+
     def  __init__(self, params):
         # axisLock is used when the referential needs to have its axis linked to the frame
         self.referential        = frame()
@@ -122,14 +129,14 @@ class makeBasicReferential:
         pass
 
     def setAxisTilt(self): #, rightAscension):
-        print "REF::setAxisTilt: WE HAVE A NORTH POLE!! for ", self.NPole
+        print "BASIC-REF::setAxisTilt: NPole: ", self.NPole
         
         if is_zero_vector_epsilon(self.NPole) == False:
 
             self.setNorthPole(self.NPole)
             return
         else:
-            print "REF::setAxisTilt: No North Pole"
+            print "BASIC-REF::setAxisTilt: No North Pole"
 
         """
         self.referential.rotate(angle=(self.tiltAngle), axis=(1,0,0))
@@ -148,7 +155,7 @@ class makeBasicReferential:
 
     def setNorthPole(self, NorthPoleVector):
 
-        print "SetNP in Simple REF for ", self.body.Name
+        #print "SetNP in Simple REF for ", self.body.Name
         J2000_Ecliptic_North = np.array([0, 0, 1])
 
         # initialize the direction of North Pole for this body
@@ -198,22 +205,25 @@ class makeBasicReferential:
 
 class make3DaxisReferential:
 
+    # 3Daxis Referentials are used to illustrate the direction of a body's
+    # North Pole and other directions such as the Point of Aries. Axis are
+    # 
+
     def  __init__(self, params):
         # axisLock is used when the referential needs to have its axis linked to the frame
         self.referential        = frame()
         self.Axis 		        = [None,None,None]
         self.AxisLabel 	        = ["","",""]
-        radius                  = params['radius']
         self.body               = None
-        #self.tiltAngle          = params['tiltangle']
+
         self.referential.pos    = (0,0,0)
         self.rotMatrix          = None
         self.NPole              = vector(0,0,0)
         self.W                  = 0
         self.Omega              = 0
-       # self.RotAxis            = self.NPole
-
         self.RotatingSign       = 1
+
+        radius                  = params['radius']
 
         if 'name' in params:
             print "creating 3D "+ params['name']
@@ -247,10 +257,11 @@ class make3DaxisReferential:
 
         if params['body'] is not None:
             self.body               = params['body']
+            # check for rotation direction
             if self.body.Rotation < 0:
                 print "NEGATIVE ROTATION!\n"
                 self.RotatingSign = -1
-#            radius                  = self.body.radiusToShow/self.body.SizeCorrection[self.body.sizeType]
+
             radius                  = self.body.getBodyRadius()
             self.referential.pos    = (self.body.Position[0]+self.body.Foci[0], self.body.Position[1]+self.body.Foci[1], self.body.Position[2]+self.body.Foci[2])
             #if body.Name.lower() not in objects_data.keys():
@@ -264,6 +275,10 @@ class make3DaxisReferential:
 
         size = radius * 2
         self.directions = [vector(size*params['ratio'][0], 0, 0), vector(0, size*params['ratio'][1], 0), vector(0, 0, size*params['ratio'][2])]
+
+        # Set the direction of the North Pole according 
+        # to the orientation of the rotation 
+               
         self.directions[2] = self.RotatingSign * self.directions[2]
                       
                       
@@ -277,9 +292,10 @@ class make3DaxisReferential:
 #        if self.makeAxis ==  True:
             #position = vector(0,0,0) 
 
+        # Add 3D axis
         for i in range (3): # Each direction
             if self.rotMatrix is not None:
-                print ".............WE HAVE A ROTATION MATRIX................"
+                #print ".............WE HAVE A ROTATION MATRIX................"
                 A = np.matrix([[self.directions[i][0]],[self.directions[i][1]],[self.directions[i][2]]], np.float64)
                 self.directions[i] = self.rotMatrix * A
 
@@ -319,13 +335,13 @@ class make3DaxisReferential:
         # such as PHAs, Comets, Asteroids, set some arbitrary values
         Npole = vector(0,0,0)
         if is_zero_vector_epsilon(self.NPole) == False:
-            print "3DAXIS::setAxisTilt: WE HAVE A NORTH POLE!! for ", self.NPole
+            print "3DAXIS-REF::setAxisTilt: NPole = ", self.NPole
 
             Npole = self.setNorthPole()
             #return
 
         else:
-            print "3DAXIS::setAxisTilt: No North Pole"
+            print "3DAXIS-REF::setAxisTilt: No North Pole"
 
             # if we reach here, it means that we don't have a valid north pole
             # information. 
@@ -382,7 +398,7 @@ class make3DaxisReferential:
 
     def setNorthPole(self):
 
-        print "SetNP in 3Daxis REF for ", self.body.Name
+        #print "SetNP in 3Daxis REF for ", self.body.Name
 
         J2000_Ecliptic_North = np.array([0, 0, 1])
 
