@@ -273,8 +273,12 @@ class make3DaxisReferential:
 
 #        self.referential.rotate(angle=(initialRotation), axis=(1,0,0))
 
+        # create an array of vectors, each for a dimension of the 3D space
         size = radius * 2
-        self.directions = [vector(size*params['ratio'][0], 0, 0), vector(0, size*params['ratio'][1], 0), vector(0, 0, size*params['ratio'][2])]
+        self.directions = [ vector(size*params['ratio'][0], 0, 0), 
+                            vector(0, size*params['ratio'][1], 0), 
+                            vector(0, 0, size*params['ratio'][2])]
+
 
         # Set the direction of the North Pole according 
         # to the orientation of the rotation 
@@ -299,10 +303,13 @@ class make3DaxisReferential:
                 A = np.matrix([[self.directions[i][0]],[self.directions[i][1]],[self.directions[i][2]]], np.float64)
                 self.directions[i] = self.rotMatrix * A
 
+            if params['ratio'][i] != 0:
+                if self.body and self.body.Name == "Venus":
+                    print "--------->", params['ratio'][i]
 
-            self.Axis[i] = simpleArrow(params['color'], 0, 20, vector(0,0,0), axisp = self.directions[i], context=self.referential)
-            self.Axis[i].display(True) # allows axis visibility to be dependent upon their frame visibility when axisLock = True
-            self.AxisLabel[i] = label( frame = self.referential, color = params['color'],  text = params['legend'][i],
+                self.Axis[i] = simpleArrow(params['color'], 0, 20, vector(0,0,0), axisp = self.directions[i], context=self.referential)
+                self.Axis[i].display(True) # allows axis visibility to be dependent upon their frame visibility when axisLock = True
+                self.AxisLabel[i] = label( frame = self.referential, color = params['color'],  text = params['legend'][i],
                                         #pos = self.referential.pos+self.directions[i]*(1.07+ve), opacity = 0, box = False, visible=show )
                                         pos = self.directions[i]*(1.07), opacity = 0, box = False, visible=True )
 
@@ -320,8 +327,9 @@ class make3DaxisReferential:
     def display(self, trueFalse):
         #self.referential.visible = trueFalse
         for i in range(3):
-            self.Axis[i].display(trueFalse)
-            self.AxisLabel[i].visible = trueFalse
+            if self.Axis[i] != None:
+                self.Axis[i].display(trueFalse)
+                self.AxisLabel[i].visible = trueFalse
 
     def getAbsoluteAxisVector(self, n):
         if n < 0 or n > 2:

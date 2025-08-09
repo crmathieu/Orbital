@@ -32,6 +32,7 @@ class makeVenus(makePlanet):
 	def __init__(self, system, Color, ptype, sizeCorrectionType, defaultSizeCorrection):
 		makePlanet.__init__(self, system, "venus", Color, ptype, sizeCorrectionType, defaultSizeCorrection)
 
+
 	def setRightAscensionAngle(self):
 		return 0   # TEST TEST TEST
 

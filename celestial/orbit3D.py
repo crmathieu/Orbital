@@ -764,6 +764,7 @@ class makeBody:
 		self.Rings 					= []
 		self.nRings 				= 0
 		self.RingThickness 			= self.RING_BASE_THICKNESS / self.SizeCorrection[self.sizeType]
+		self.Ratio 					= [1,1,1]
 
 		if self.BodyRadius < DEFAULT_RADIUS:
 			self.radiusToShow 		= DEFAULT_RADIUS
@@ -1249,16 +1250,16 @@ class makeBody:
 			print (self.Name+" Warning Could not converge - E = "+str(self.E))
 
 	def updateAllReferentials(self):
+		# update position and the 
+		# rotation (when non-inertial)
+
 		if self.PCI is not None:
 			self.PCI.updateReferential()
-		#if self.PCPF is not None:	
-
+		
 		if self.PCPF is not None:
 			self.PCPF.updateReferential()
 			self.PCPF.rotate(angle=self.RotAngle)
 
-		#self.PCI.referential.pos = self.Position
-		#self.update_PCPF_PositionRotation()
 
 	# unused
 	"""
@@ -1501,8 +1502,8 @@ class makeBody:
 #		if self.PCI.ZdirectionUnit[2] < 0:
 #			self.RotAngle *= -1
 
-		if False and self.RotAxis[2] < 0: # TESTTESTTESTTEST
-			self.RotAngle *= -1
+#		if False and self.RotAxis[2] < 0: # TESTTESTTESTTEST
+#			self.RotAngle *= -1
 
 		self.updateAllReferentials()
 		#self.PCPF.rotate(angle=self.RotAngle)
@@ -1722,10 +1723,16 @@ class makePlanet(makeBody):
 	def __init__(self, system, key, Color, ptype, sizeCorrectionType, defaultSizeCorrection):
 		makeBody.__init__(self, system, key, Color, ptype, sizeCorrectionType, defaultSizeCorrection, system.Sun)
 		#self.BodyShape.visible = False
+
 		self.setRings()
 
-	def make_PCPF_referentialXX(self): ###########################
-		self.PCPF = None
+	def setRatio(self):
+		# overwrites the makebody::setRatio
+		# this is the default ratio for planets' referential axis:
+		# we only show the "z" axis to show the north Pole
+
+		self.Ratio = [0,0,1]
+
 
 	def make_PCI_referential(self): 
 
@@ -1733,6 +1740,8 @@ class makePlanet(makeBody):
 		# planet and is fixed to the stars. In other words, it 
 		# always points to the same direction
 		
+		self.setRatio()
+
 		print "Planet: build PCI ref for", self.Name
 		self.PCI = make3DaxisReferential({
 			'body': self,
@@ -1745,10 +1754,11 @@ class makePlanet(makeBody):
 			},
 			'show':	False,
 			'color': Color.white,
-			'ratio': [1,1,1],
+#			'ratio': [1,1,1],
+			'ratio': self.Ratio,
             'name':  self.Name+"PCI",
 			#'initial_rotation': pi/2,
-			'legend': ["x", "y", "z"],
+			'legend': ["x", "y", "North\n\rPole"],
 		})  
 
 		self.Origin 				= self.PCI.referential
@@ -2005,7 +2015,7 @@ class makeEarth(makePlanet):
 			'color': 		Color.white,
 			'ratio': 		[1,1,1],
             'name': 		"EarthPCI",
-			'legend': 		[u"\u2648", "y", "North-Equatorial"]
+			'legend': 		[u"\u2648", "y", "North\n\rEquatorial"]
 		})  
 		self.PCI.setAxisTilt() #0)
 		self.PCI.display(False)		
@@ -2016,9 +2026,9 @@ class makeEarth(makePlanet):
 		# This method overrides the parent class (makePlanet) method
 		# This is the referential that rotates with the earth surface
 			
-		#	Polaris direction: North-Equatorial
+		#	z: Polaris direction: North-Equatorial
 		#	y: 
-		#	Prime -Meridian:
+		#	x: Prime -Meridian:
 
 		self.PCPF = make3DaxisReferential({
 			'body': 			self,
@@ -2034,7 +2044,7 @@ class makeEarth(makePlanet):
 			'ratio': 			[1,1,1],
             'name': 			"EarthPCPF",
 			'initial_rotation': -pi/2, #
-			'legend': 			["Prime-Meridian", "y", "North-Equatorial"]
+			'legend': 			["Prime\n\rMeridian", "y", "North\n\rEquatorial"]
 		})
 
 		# set planet origin as the PCPF referential (rotates with the planet)
@@ -3830,3 +3840,95 @@ Neptune	(-0.0706, -0.2831, 0.9566)						28.32
 Pluto	(0.5366, -0.7602, 0.3664)						122.53 (or 57.47 to its orbit)
 
 '''
+
+"""
+This is the code that calculates the Sun's coordinates in the J2000 ecliptic 
+referential. The key principle is that the Sun's position is the negative of the solar 
+system's barycenter position, if the barycenter is calculated with the Sun as the origin.
+
+I've modified the previous script to create a function that directly deduces the Sun's 
+position based on this principle. The example now calculates the barycenter of all bodies 
+(including the Sun, which is initially at (0,0,0)) and then returns the negative of that 
+value as the Sun's coordinate in the barycentric J2000 frame.
+
+This script provides a function that explicitly deduces the Sun's coordinates and also 
+returns the barycenter's coordinates as a reference. This is a common method used in 
+celestial mechanics to shift from a heliocentric (Sun-centered) frame to a barycentric 
+(center of mass) frame.
+"""
+
+def deduce_sun_position(celestial_bodies):
+    """
+    Deduces the Sun's coordinates in the J2000 Ecliptic referential (where the
+    barycenter is the origin) based on the positions and masses of all bodies.
+
+    The method works by calculating the barycenter of the system, assuming
+    the Sun's initial position is the origin (0, 0, 0). The resulting barycenter
+    vector points from the Sun to the system's center of mass.
+    Therefore, the Sun's position relative to the barycenter is simply the
+    negative of this barycenter vector.
+
+    Args:
+        celestial_bodies (list of dict): A list where each dictionary
+            represents a celestial body and must contain:
+            - 'mass' (float): The mass of the body.
+            - 'position' (list or np.array): A list/array of [x, y, z] coordinates.
+            - 'name' (str): The name of the body (used to find the Sun's position).
+
+    Returns:
+        tuple: A tuple containing two items:
+            - np.array: A numpy array of the [x, y, z] coordinates of the Sun
+              in the J2000 Ecliptic referential.
+            - np.array: A numpy array of the [x, y, z] coordinates of the barycenter,
+              which will be approximately [0, 0, 0] in this frame.
+    """
+    total_mass = 0
+    weighted_position_sum = np.zeros(3)
+
+    # Sum the masses and the mass-weighted positions
+    for body in celestial_bodies:
+        mass = body['mass']
+        position = np.array(body['position'])
+
+        # Accumulate total mass
+        total_mass += mass
+        
+        # Accumulate the sum of (mass * position) for each coordinate
+        weighted_position_sum += mass * position
+
+    # Calculate the barycenter assuming the Sun is at the origin.
+    # This vector represents the displacement of the barycenter from the Sun.
+    barycenter_from_sun = weighted_position_sum / total_mass
+    
+    # In the J2000 Ecliptic referential (origin = barycenter), the Sun's position
+    # is the negative of the barycenter's position relative to the Sun.
+    sun_position_j2000 = -barycenter_from_sun
+    
+    # The barycenter's position in this referential is the origin, [0,0,0].
+    barycenter_position_j2000 = np.zeros(3)
+    
+    return sun_position_j2000, barycenter_position_j2000
+
+# Example usage:
+# The masses are given in kilograms.
+# The positions are in a hypothetical heliocentric coordinate system
+# (e.g., millions of kilometers) where the Sun's center is at (0,0,0).
+solar_system_bodies = [
+    # Data is simplified for demonstration purposes.
+    {'name': 'Sun',     'mass': 1.989e30, 'position': np.array([0, 0, 0])},
+    {'name': 'Mercury', 'mass': 3.301e23, 'position': np.array([57.9e6, 0, 0])},
+    {'name': 'Venus',   'mass': 4.867e24, 'position': np.array([108.2e6, 0, 0])},
+    {'name': 'Earth',   'mass': 5.972e24, 'position': np.array([149.6e6, 0, 0])},
+    {'name': 'Mars',    'mass': 6.417e23, 'position': np.array([227.9e6, 0, 0])},
+    {'name': 'Jupiter', 'mass': 1.898e27, 'position': np.array([778.5e6, 0, 0])},
+    {'name': 'Saturn',  'mass': 5.683e26, 'position': np.array([1433.5e6, 0, 0])},
+    {'name': 'Uranus',  'mass': 8.681e25, 'position': np.array([2872.5e6, 0, 0])},
+    {'name': 'Neptune', 'mass': 1.024e26, 'position': np.array([4495.1e6, 0, 0])},
+]
+
+def getJ2000EclipticSunCoordinates():
+	# Deduce the Sun's position in the barycentric frame
+	sun_pos_j2000, barycenter_pos_j2000 = deduce_sun_position(solar_system_bodies)
+
+	print("The Sun's coordinates in the J2000 Ecliptic referential are: ",sun_pos_j2000)
+	print("The barycenter's coordinates in this referential are: ",barycenter_pos_j2000)

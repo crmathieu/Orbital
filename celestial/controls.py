@@ -397,9 +397,9 @@ class FOCUSpanel(AbstractUI):
 		self.rbox.SetFont(self.RegFont)
 		self.rbox.Bind(wx.EVT_RADIOBOX,self.OnRadioBox)
 
-		self.cb = wx.CheckBox(self, label="Show Local Referential", pos=(200, CVT_FOCUS_Y+40)) #   CVT_Y+560))
+		self.cb = wx.CheckBox(self, label="Show Local North Pole", pos=(200, CVT_FOCUS_Y+40)) #   CVT_Y+560))
 		self.cb.SetValue(False)
-		self.cb.Bind(wx.EVT_CHECKBOX,self.OnLocalRef)
+		self.cb.Bind(wx.EVT_CHECKBOX,self.OnLocalNorthPole)
 
 		self.cbst = wx.CheckBox(self, label="Smooth Transition", pos=(200, CVT_FOCUS_Y+60)) #   CVT_Y+560))
 		self.cbst.SetValue(False)
@@ -451,11 +451,11 @@ class FOCUSpanel(AbstractUI):
 			print "failed to obtain destination"
 	"""
 
-	def OnLocalRef(self, e):
+	def OnLocalNorthPole(self, e):
 		#print ("cameraViewTargetBody:",self.SolarSystem.cameraViewTargetSelection)
-		self.setLocalRef()
+		self.setLocalNorthPole()
 
-	def setLocalRef(self):
+	def setLocalNorthPole(self):
 		#### self.parentFrame.widgetsTab.lrcb.SetValue(self.cb.GetValue())
 		self.SolarSystem.setFeature(LOCAL_REFERENTIAL, self.cb.GetValue())
 		orbit3D.glbRefresh(self.SolarSystem, self.parentFrame.orbitalTab.AnimationInProgress)
@@ -606,7 +606,7 @@ class FOCUSpanel(AbstractUI):
 		# 18: self.setPlanetFocus }[index]()
 
 		self.FocusFuncionsSet[index]()
-		self.setLocalRef()
+		self.setLocalNorthPole()
 
 	def getcameraViewTargetSelection(self):
 		return self.SolarSystem.cameraViewTargetSelection
@@ -2133,7 +2133,7 @@ class WIDGETSpanel(AbstractUI):
 
 		self.lrcb = wx.CheckBox(self, label="Earth-Centered-Inertial (ECI) Referential", pos=(50, CHK_L15B)) #   CVT_Y+560))
 		self.lrcb.SetValue(False)
-		self.lrcb.Bind(wx.EVT_CHECKBOX,self.OnLocalRef)
+		self.lrcb.Bind(wx.EVT_CHECKBOX,self.OnLocalNorthPole)
 
 		self.lr2cb = wx.CheckBox(self, label="Earth-Centered-Earth-Fixed (ECEF) Referential", pos=(50, CHK_L16)) #   CVT_Y+560))
 		self.lr2cb.SetValue(False)
@@ -2631,7 +2631,7 @@ class WIDGETSpanel(AbstractUI):
 	def OnDrawLatitudeLines(self, e):
 		self.Earth.PlanetWidgets.showLatitudes(self.latcb.GetValue())
 
-	def OnLocalRef(self, e):
+	def OnLocalNorthPole(self, e):
 		self.parentFrame.focusTab.cb.SetValue(self.lrcb.GetValue())
 		self.SolarSystem.setFeature(LOCAL_REFERENTIAL, self.lrcb.GetValue())
 		orbit3D.glbRefresh(self.SolarSystem, self.parentFrame.orbitalTab.AnimationInProgress)
