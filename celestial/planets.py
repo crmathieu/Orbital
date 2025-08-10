@@ -10,7 +10,7 @@ class makeMercury(makePlanet):
 	def __init__(self, system, Color, ptype, sizeCorrectionType, defaultSizeCorrection):
 		makePlanet.__init__(self, system, "mercury", Color, ptype, sizeCorrectionType, defaultSizeCorrection)
 
-	def setRightAscensionAngle(self):
+	def setRightAscensionAngleWWWW(self):
 		return 0   # TEST TEST TEST
 
 		# for now the method is just like the defaut method, but it should be upgraded 
@@ -23,9 +23,6 @@ class makeMercury(makePlanet):
 			return RE["W_1"] + RE["W_2"] * D + RE["W_C"]
 		return 0
 
-#	def make_PCI_referential(self, tiltAngle): 
-#		self.PCI = None 
-
 
 class makeVenus(makePlanet):
 	
@@ -33,35 +30,17 @@ class makeVenus(makePlanet):
 		makePlanet.__init__(self, system, "venus", Color, ptype, sizeCorrectionType, defaultSizeCorrection)
 
 
-	def setRightAscensionAngle(self):
-		return 0   # TEST TEST TEST
-
-		
-#	def make_PCI_referential(self, tiltAngle): 
-#		self.PCI = None 
-
 
 class makeMars(makePlanet):
 	
 	def __init__(self, system, Color, ptype, sizeCorrectionType, defaultSizeCorrection):
 		makePlanet.__init__(self, system, "mars", Color, ptype, sizeCorrectionType, defaultSizeCorrection)
 
-	def setRightAscensionAngle(self):
-		return 0   # TEST TEST TEST
-
-#	def make_PCI_referential(self, tiltAngle): 
-#		self.PCI = None 
 
 class makeSaturn(makePlanet):
 	
 	def __init__(self, system, Color, ptype, sizeCorrectionType, defaultSizeCorrection):
 		makePlanet.__init__(self, system, "saturn", Color, ptype, sizeCorrectionType, defaultSizeCorrection)
-
-	def setRightAscensionAngle(self):
-		return 0   # TEST TEST TEST
-
-#	def make_PCI_referential(self, tiltAngle): 
-#		self.PCI = None 
 
 
 class makeUranus(makePlanet):
@@ -69,23 +48,11 @@ class makeUranus(makePlanet):
 	def __init__(self, system, Color, ptype, sizeCorrectionType, defaultSizeCorrection):
 		makePlanet.__init__(self, system, "uranus", Color, ptype, sizeCorrectionType, defaultSizeCorrection)
 
-	def setRightAscensionAngle(self):
-		return 0   # TEST TEST TEST
-
-#	def make_PCI_referential(self, tiltAngle): 
-#		self.PCI = None 
-
 
 class makeJupiter(makePlanet):
 	
 	def __init__(self, system, Color, ptype, sizeCorrectionType, defaultSizeCorrection):
 		makePlanet.__init__(self, system, "jupiter", Color, ptype, sizeCorrectionType, defaultSizeCorrection)
-
-	def setRightAscensionAngle(self):
-		return 0   # TEST TEST TEST
-
-#	def make_PCI_referential(self, tiltAngle): 
-#		self.PCI = None 
 
 
 class makeNeptune(makePlanet):
@@ -93,7 +60,7 @@ class makeNeptune(makePlanet):
 	def __init__(self, system, Color, ptype, sizeCorrectionType, defaultSizeCorrection):
 		makePlanet.__init__(self, system, "neptune", Color, ptype, sizeCorrectionType, defaultSizeCorrection)
 
-	def setRightAscensionAngle(self):
+	def setRightAscensionAngleWWWW(self):
 		return 0   # TEST TEST TEST
 
 		if "rotationalElts" in self.SolarSystem.objects_data[self.ObjectIndex]:
@@ -115,8 +82,4 @@ class makePluto(makePlanet):
 	def __init__(self, system, Color, ptype, sizeCorrectionType, defaultSizeCorrection):
 		makePlanet.__init__(self, system, "pluto", Color, ptype, sizeCorrectionType, defaultSizeCorrection)
 
-	def setRightAscensionAngle(self):
-		return 0   # TEST TEST TEST
 
-#	def make_PCI_referential(self, tiltAngle): 
-#		self.PCI = None 

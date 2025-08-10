@@ -871,153 +871,73 @@ class makeBody:
 		# set body specific rotation characteristics
 		self.initRotation()
 
-	#### makeBody methods in the order they are called in the __init__ constructor ####
-
-	# makeBody::setRightAscensionAngle to determine the direction of a planet's North Pole)
-	def setRightAscensionAngle_XXXX(self):
-		if "RA_1" in self.SolarSystem.objects_data[self.ObjectIndex]:
-			T = daysSinceJ2000UTC(self.locationInfo)/EARTH_CENTURY #36525. # T is in centuries
-			D = daysSinceJ2000UTC(self.locationInfo)
-#			return 90 + self.SolarSystem.objects_data[self.ObjectIndex]["RA_1"] + self.SolarSystem.objects_data[self.ObjectIndex]["RA_2"] * D #T
-			return self.SolarSystem.objects_data[self.ObjectIndex]["RA_1"] + self.SolarSystem.objects_data[self.ObjectIndex]["RA_2"] * D #T
-		return 0
-
-	def setRightAscensionAngle(self):
-		return 0
-		if "rotationalElts" in self.SolarSystem.objects_data[self.ObjectIndex]:
-			#T = daysSinceJ2000UTC(self.locationInfo)/EARTH_CENTURY #36525. # T is in centuries
-			D = daysSinceJ2000UTC(self.locationInfo)
-			RE = self.SolarSystem.objects_data[self.ObjectIndex]["rotationalElts"]
-			return RE["W_1"] + RE["W_2"] * D + RE["W_C"] # "W_C" is a correction factor
-		return 0
-
-
-#/////////////////
-
-	def calculate_planet_pole_direction_SAVE(self, alpha_0_deg, delta_0_deg, obliquity_ecliptic_deg=23.43928):
-	    """
-	    Calculates the direction of a planet's north pole in heliocentric ecliptic
-	    coordinates (J2000 epoch).
-
-	    The input alpha_0 and delta_0 are the Right Ascension and Declination of
-	    the planet's north pole in the J2000 Mean Equator and Equinox (ICRF) system.
-
-	    In the output heliocentric ecliptic coordinate system:
-	    - The Sun is at the origin (0, 0, 0).
-	    - The XY-plane is the J2000 Ecliptic plane.
-	    - The X-axis points towards the J2000 Vernal Equinox.
-	    - The Z-axis points towards the J2000 North Ecliptic Pole.
-
-	    Args:
-	        alpha_0_deg (float): Right Ascension of the planet's North Pole in J2000 equatorial, in degrees.
-	        delta_0_deg (float): Declination of the planet's North Pole in J2000 equatorial, in degrees.
-	        obliquity_ecliptic_deg (float): Obliquity of the Earth's ecliptic at J2000.0, in degrees.
-	                                        Default is 23.43928 degrees.
-
-	    Returns:
-	        list: A 3-element list [X, Y, Z] representing the unit vector
-	              of the planet's north pole in heliocentric ecliptic coordinates.
-	    """
-	    # Convert angles from degrees to radians
-	    alpha_0_rad = math.radians(alpha_0_deg)
-	    delta_0_rad = math.radians(delta_0_deg)
-	    obliquity_ecliptic_rad = math.radians(obliquity_ecliptic_deg)
-
-	    # 1. Convert pole direction from J2000 Equatorial to Cartesian coordinates
-	    # X_eq = cos(delta_0) * cos(alpha_0)
-	    # Y_eq = cos(delta_0) * sin(alpha_0)
-	    # Z_eq = sin(delta_0)
-	    x_eq = math.cos(delta_0_rad) * math.cos(alpha_0_rad)
-	    y_eq = math.cos(delta_0_rad) * math.sin(alpha_0_rad)
-	    z_eq = math.sin(delta_0_rad)
-
-	    # 2. Rotate from J2000 Equatorial to J2000 Ecliptic coordinates
-	    # This is a rotation around the X-axis by -obliquity_ecliptic
-	    x_ecl = x_eq
-	    y_ecl = y_eq * math.cos(obliquity_ecliptic_rad) - z_eq * math.sin(obliquity_ecliptic_rad)
-	    z_ecl = y_eq * math.sin(obliquity_ecliptic_rad) + z_eq * math.cos(obliquity_ecliptic_rad)
-
-	    # The result should be a unit vector; normalize to ensure
-	    magnitude = math.sqrt(x_ecl**2 + y_ecl**2 + z_ecl**2)
-	    if magnitude == 0:
-	        return [0.0, 0.0, 0.0] # Should not happen for a pole direction
-	    return [x_ecl / magnitude, y_ecl / magnitude, z_ecl / magnitude]
-
-
-	def get_planet_data_ecliptic_with_perturbations(self, planetName): #, year, month, day, hour=0, minute=0, second=0):
-		"""
-		Calculates the north pole direction for the current planet for a given date
-		in the J2000 ecliptic coordinate system, including perturbations,
-		and their prime meridian angle W.
-		"""
-		cur = datetime.datetime.now()
-
-		#jd = julian_date_manual(year, month, day, hour, minute, second)
-		jd = julian_date_manual(cur.year, cur.month, cur.day, cur.hour, cur.minute, cur.second)
-		T = calculate_T_from_jd(jd)
-		d = calculate_d_from_jd(jd)
-
-		# Obliquity of the ecliptic for J2000.0 (in degrees)
-		obliquity_ecliptic_deg = 23.43928
-		obliquity_ecliptic_rad = np.radians(obliquity_ecliptic_deg)
-
-		# Rotation matrix from J2000 Equatorial to J2000 Ecliptic
-		eq_to_ecl_matrix = rotation_matrix_x(-obliquity_ecliptic_rad)
-
-		planets = ["Sun", "Mercury", "Venus", "Earth", "Mars", "Jupiter", "Saturn", "Uranus", "Neptune", "Pluto"]
-		planet_data_results = {}
-
-		# Re-using Omega values from the provided table for consistency with the request
-		# These are standard IAU parameters for the ecliptic longitude of the ascending node of the equator.
-		omega_values = {
-			"Sun": 345.717, "Mercury": 318.528, "Venus": 27.502, "Earth": 89.642,
-			"Mars": 352.883, "Jupiter": 272.072, "Saturn": 80.009, "Uranus": 18.232,
-			"Neptune": 320.083, "Pluto": 318.472
-		}
-
-		if planetName in planets:
-
-			#for planet in planets:
-			try:
-				# Get pole parameters in J2000 Equatorial, including perturbations
-				alpha0_eq, delta0_eq = get_planet_pole_parameters(planetName, T, d)
-				pole_vector_eq = equatorial_to_cartesian_vector(alpha0_eq, delta0_eq)
-
-				# Transform to J2000 Ecliptic
-				pole_vector_ecl = apply_rotation(pole_vector_eq, eq_to_ecl_matrix)
-
-				# Get prime meridian angle W
-				W_angle = get_planet_prime_meridian_W(planetName, d)
-
-				# Get Omega angle
-				Omega_angle = omega_values.get(planetName, np.nan) # Use np.nan for missing values
-
-				#	            planet_data_results[planetName] = {
-				"""
-				planet_data_results = {
-				    "pole_vector_ecl": pole_vector_ecl,
-				    "W_angle": W_angle,
-				    "Omega_angle": Omega_angle
-				}
-				"""
-				return pole_vector_ecl, W_angle, Omega_angle
-
-
-			except ValueError as e:
-				#         planet_data_results[planet] = f"Error: {e}"
-				#	            planet_data_results[planet] = "Error: {e}"
-				planet_data_results = "Error: {e}"
-
-		return [0,0,0], 0, 0 #planet_data_results
-
 
 	def setBodyOrientation(self):
 
 		# setBodyOrientation will determine the direction of the North Pole
 		# and the angle between the prime meridian and the descending node.
 
-		self.Pole_vec, self.W_angle, self.Omega_angle = self.get_planet_data_ecliptic_with_perturbations(self.Name)
+		self.Pole_vec, self.W_angle, self.Omega_angle = self.get_northpole_ecliptic_data_including_pertubations(self.Name)
 		
+
+	def get_northpole_ecliptic_data_including_pertubations(self, bodyName):
+		"""
+		Calculates the north pole direction for the current body for a given date
+		in the J2000 ecliptic coordinate system, including perturbations,
+		and their prime meridian angle W.
+		"""
+		bodies = ["Sun", "Mercury", "Venus", "Earth", "Mars", "Jupiter", "Saturn", "Uranus", "Neptune", "Pluto"]
+
+		if bodyName in bodies:
+
+			cur = datetime.datetime.now()
+
+			#jd = julian_date_manual(year, month, day, hour, minute, second)
+			jd = julian_date_manual(cur.year, cur.month, cur.day, cur.hour, cur.minute, cur.second)
+			T = calculate_T_from_jd(jd)
+			d = calculate_d_from_jd(jd)
+
+			# Obliquity of the ecliptic for J2000.0 (in degrees)
+			obliquity_ecliptic_deg = 23.43928
+			obliquity_ecliptic_rad = np.radians(obliquity_ecliptic_deg)
+
+			# Rotation matrix from J2000 Equatorial to J2000 Ecliptic
+			eq_to_ecl_matrix = rotation_matrix_x(-obliquity_ecliptic_rad)
+
+			planet_data_results = {}
+
+			# Re-using Omega values from the provided table for consistency with the request
+			# These are standard IAU parameters for the ecliptic longitude of the ascending node of the equator.
+			omega_values = {
+				"Sun": 345.717, "Mercury": 318.528, "Venus": 27.502, "Earth": 89.642,
+				"Mars": 352.883, "Jupiter": 272.072, "Saturn": 80.009, "Uranus": 18.232,
+				"Neptune": 320.083, "Pluto": 318.472
+			}
+
+			#for planet in planets:
+			try:
+				# Get pole parameters in J2000 Equatorial, including perturbations
+				alpha0_eq, delta0_eq = get_planet_pole_parameters(bodyName, T, d)
+				pole_vector_eq = equatorial_to_cartesian_vector(alpha0_eq, delta0_eq)
+
+				# Transform to J2000 Ecliptic
+				pole_vector_ecl = apply_rotation(pole_vector_eq, eq_to_ecl_matrix)
+
+				# Get prime meridian angle W
+				W_angle = get_planet_prime_meridian_W(bodyName, d)
+
+				# Get Omega angle
+				Omega_angle = omega_values.get(bodyName, np.nan) # Use np.nan for missing values
+
+				return pole_vector_ecl, W_angle, Omega_angle
+
+			except ValueError as e:
+				#         planet_data_results[planet] = f"Error: {e}"
+				#	            planet_data_results[planet] = "Error: {e}"
+				print "Error: {e}"
+
+		return [0,0,0], 0, 0
+
 
 
 	def make_PCI_referential(self): 
@@ -1094,7 +1014,10 @@ class makeBody:
 			self.PCPF.setAxisTilt() #self.RA)
 
 	def makeOrbit(self):
-		# attach a curve to the object to display its orbit
+
+		# attach a curve to the object to 
+		# display its orbit
+
 		if self.BodyShape is not None:
 			# create an orbit in the solar system central referential
 			self.Trail = curve(Color=(self.Color[0]*0.8, self.Color[1]*0.8, self.Color[2]*0.8))
@@ -1364,26 +1287,30 @@ class makeBody:
 
 	def draw(self):
 		
-		# this method will render the orbit shape 
-		# of the current body
+		# this method will render the 
+		# orbit shape of the current body
 
 		self.Trail.visible = False
 		rad_E = deg2rad(self.E)
 		increment = self.getIncrement()
 
-		# draw small segments between 2 angulars loop for 0 to 2PI
+		# draw small segments between 2 
+		# angulars steps looping between 0 to 2PI
+
 		for E in np.arange(0, 2*pi+increment, increment):
 			self.setPolarCoordinates(E+rad_E)
-			# from R and Nu, calculate 3D coordinates and update current position
+
+			# from R and Nu, calculate 3D coordinates 
+			# and update current position
+			
 			self.drawSegment(trace = True) #E*180/pi)
 			### rate(5000) # ??
 
-#		if self.BodyShape.visible:
 		if self.Origin.visible:
 			self.Trail.visible = True
 
 		self.hasRenderedOrbit = True
-		#print "DRAW: origin.pos=",self.Origin.pos, "label.pos=", self.Labels[0].pos
+
 
 	def setPolarCoordinates(self, E_rad):
 		X = self.a * (cos(E_rad) - self.e)
@@ -1525,10 +1452,11 @@ class makeBody:
 		self.updateAxis()
 		self.Origin.rotate(angle=self.RotAngle, axis=self.RotAxis, origin=(self.Position[0]+self.Foci[0],self.Position[1]+self.Foci[1],self.Position[2]+self.Foci[2]))
 
+
 	def drawSegment(self, trace = True):
 		
-		# append the orbit segment corresponding to the 
-		# current coordinate
+		# append the orbit segment corresponding 
+		# to the current coordinate
 
 		self.Position = self.setCartesianCoordinates()
 
@@ -1551,7 +1479,7 @@ class makeBody:
 					self.Trail.append(pos=self.BodyShape.pos, color=Color.black) #, interval=50)
 				"""
 				# new
-				self.Trail.append(pos=self.Origin.pos, color=(self.Color[0]*0.3, self.Color[1]*0.3, self.Color[2]*0.3))
+				self.Trail.append(pos=self.Origin.pos, color=(self.Color[0]*0.2, self.Color[1]*0.2, self.Color[2]*0.2))
 			else:
 				self.Trail.append(pos=self.Origin.pos, color=(self.Color[0]*0.6, self.Color[1]*0.6, self.Color[2]*0.6))
 
@@ -1746,7 +1674,6 @@ class makePlanet(makeBody):
 		self.PCI = make3DaxisReferential({
 			'body': self,
 			'radius': 0,
-			
 			'orientation': {
 				'pole_vec': self.Pole_vec,
 				'w_angle': self.W_angle,
@@ -1754,7 +1681,6 @@ class makePlanet(makeBody):
 			},
 			'show':	False,
 			'color': Color.white,
-#			'ratio': [1,1,1],
 			'ratio': self.Ratio,
             'name':  self.Name+"PCI",
 			#'initial_rotation': pi/2,
@@ -1995,14 +1921,16 @@ class makeEarth(makePlanet):
 	# | Called by the superclass __init__ methods. |
 	# `--------------------------------------------'	
 
-	# makeEarth::make_PCI_referential (overrides the makePlanet method)
-	# This is the referential that is fixed to the stars
-
 	def make_PCI_referential(self): 
-		#print "makeEarth: build PCI ref for", self.Name
-		#	P: Polaris direction
+
+		# makeEarth::make_PCI_referential overrides the makePlanet 
+		# method as we want all axis to be visible for earth
+
+		# This is the referential that is fixed to the stars
+		#	z: North Equatorial: Polaris direction
 		#	y: 
-		#	u"\u2648": Point of Aries
+		#	x: u"\u2648": Vernal equinox
+
 		self.PCI = make3DaxisReferential({
 			'body': 		self,
 			'radius': 		0,
@@ -2017,18 +1945,20 @@ class makeEarth(makePlanet):
             'name': 		"EarthPCI",
 			'legend': 		[u"\u2648", "y", "North\n\rEquatorial"]
 		})  
-		self.PCI.setAxisTilt() #0)
+
+		# orientate the North Pole
+		self.PCI.setAxisTilt()
 		self.PCI.display(False)		
 
 	def make_PCPF_referential(self): #, size, position):
 		
-		# makeEarth::make_PCPF_referential 
-		# This method overrides the parent class (makePlanet) method
-		# This is the referential that rotates with the earth surface
+		# makeEarth::make_PCPF_referential overrides the parent class 
+		# (makePlanet). This is the referential that rotates with the 
+		# earth surface
 			
-		#	z: Polaris direction: North-Equatorial
+		#	z:North-Equatorial: Polaris direction: 
 		#	y: 
-		#	x: Prime -Meridian:
+		#	x: Prime Meridian
 
 		self.PCPF = make3DaxisReferential({
 			'body': 			self,
@@ -2056,9 +1986,7 @@ class makeEarth(makePlanet):
 
 		self.PCPF.display(False)
 
-	# This overrides the default initRotation method provided in the makeBody superclass. 
-	# This is where we initially position the earth texture
-
+	
 	def toggleSize(self, realisticSize):
 		makePlanet.toggleSize(self, realisticSize)
 		self.PlanetWidgets.OVRL.visible = False if self.sizeType == SCALE_NORMALIZED else True
@@ -2066,41 +1994,10 @@ class makeEarth(makePlanet):
 
 	def initRotation(self):
 
-		# we need to rotate around X axis by pi/2 to properly align the planet's texture,
-		# and also, we need to take into account planet tilt around X axis 
-#		self.BodyShape.rotate(angle=(pi/2+self.TiltAngle), axis=self.XdirectionUnit, origin=(0,0,0))
+		# This overrides the default initRotation method provided in the 
+		# makeBody superclass. This is where we initially position the earth texture
 
-		# here we use "-" tilt angle to make it point to the correct direction
-		print "XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX"
-		#self.BodyShape.rotate(angle=(pi/2 - self.TiltAngle), axis=self.PCPF.XdirectionUnit, origin=(0,0,0))
-
-#		self.BodyShape.rotate(angle=pi/2, axis=self.PCPF.XdirectionUnit, origin=(0,0,0))
-
-		#self.PCI.referential.rotate(angle=(self.TiltAngle), axis=self.PCI.XdirectionUnit, origin=(0,0,0))
-		#self.PCPF.referential.rotate(angle=(self.TiltAngle), axis=self.PCPF.XdirectionUnit, origin=(0,0,0))
-
-		# rotate texture by 90 degrees along x
-		#self.BodyShape.rotate(angle=(pi/2), axis=self.PCPF.XdirectionUnit)
-
-		# then further rotation will apply to Z axis
-		
-		##### self.RotAxis = self.PCPF.ZdirectionUnit
-
-#		planet.initRotation(self)
-		#self.BodyShape.rotate(angle=(pi/2), axis=self.PCPF.XdirectionUnit, origin=(0,0,0))
-
-		# induce initial tilt
-		#self.PCPF.referential.rotate(angle=(-self.TiltAngle), axis=self.PCPF.XdirectionUnit, origin=(0,0,0))
-
-		# then further rotation will apply to Z axis
-		#self.RotAxis = self.PCPF.RotAxis #self.PCPF.ZdirectionUnit
-		### self.RotAxis = self.PCPF.referential.frame_to_world(self.PCPF.ZdirectionUnit)
-		#print self.RotAxis , "for", self.Name
-
-		# adjust earth texture based on solar time
-		################################
 		self.setTextureFromSolarTime(None)
-		################################
 		return
 
 	def setTextureFromSolarTime(self, localDatetime):
@@ -2135,6 +2032,7 @@ class makeEarth(makePlanet):
 			print "adjust "+self.Name+": Psi ...............  ", Psi
 
 		if self.SiderealCorrectionAngle != 0.0:
+
 			# there has been a previous manual reset of the UTC date which has resulted in a sidereal 
 			# correction. We need to undo it prior to reposition the texture for the new date
 
@@ -2494,6 +2392,7 @@ class makeSatellite(makeBody):
 		rad_E = deg2rad(self.E)
 		increment = self.getIncrement()
 
+	
 		for E in np.arange(increment, 2*pi+increment, increment):
 			self.setPolarCoordinates(E+rad_E)
 			# from R and Nu, calculate 3D coordinates and update current position
@@ -3707,7 +3606,7 @@ def get_planet_prime_meridian_W(planet_name, d):
     for amplitude, argument_deg_per_cycle in periodic_terms:
         W += amplitude * np.sin(np.radians(argument_deg_per_cycle))
 
-    # Ensure W is within 0-360 degrees
+    # Normalize W (ensure its value is within 0-360 degrees)
     W = W % 360.0
     if W < 0:
         W += 360.0
@@ -3779,16 +3678,20 @@ def get_all_planet_data_ecliptic_with_perturbations(year, month, day, hour=0, mi
             # Get Omega angle
             Omega_angle = omega_values.get(planet, np.nan) # Use np.nan for missing values
 
+            # add Orientation data set to planet result
+
             planet_data_results[planet] = {
                 "pole_vector_ecl": pole_vector_ecl,
                 "W_angle": W_angle,
                 "Omega_angle": Omega_angle
             }
+
         except ValueError as e:
-   #         planet_data_results[planet] = f"Error: {e}"
             planet_data_results[planet] = "Error: {e}"
+
     return planet_data_results
 
+"""
 # --- Example Usage ---
 # Define a specific date for calculation
 # Using a fixed date instead of datetime.now() due to the "no external libraries except numpy" constraint
@@ -3825,6 +3728,9 @@ for planet, data in all_planet_data.items():
         print("| {planet.ljust(7)} | {data.ljust(18)} | {'':<18} | {'':<18} | {'':<29} | {'':<40} |")
 
 
+"""
+
+
 '''
 Good values:
 Body	North Pole Vector (J2000 Ecliptic Cartesian)	Tilt Angle (degrees)
@@ -3842,6 +3748,8 @@ Pluto	(0.5366, -0.7602, 0.3664)						122.53 (or 57.47 to its orbit)
 '''
 
 """
+NEW NEW. to integrate with the rest ....
+
 This is the code that calculates the Sun's coordinates in the J2000 ecliptic 
 referential. The key principle is that the Sun's position is the negative of the solar 
 system's barycenter position, if the barycenter is calculated with the Sun as the origin.
