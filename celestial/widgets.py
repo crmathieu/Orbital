@@ -105,7 +105,7 @@ class makePlanetWidgets():
             'show':	False,
             'color': Color.yellow,
             'ratio': [1,1,1],
-            'legend': ["Orbit tg","Sun","North-Ecliptic"],
+            'legend': ["Orbit tg","Sun","Ecl.North"],
             'name': "EarthECSS",
    			'make_axis': True
         })

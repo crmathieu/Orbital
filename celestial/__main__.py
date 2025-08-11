@@ -86,6 +86,8 @@ def createSolarSystem():
 		loadBodies(ssys, SPACECRAFT, "data/spacecrafts_orbital_elements.txt.json", MAX_OBJECTS)
 		print "FINISHED ..."
 
+	loadBodies(ssys, SPACECRAFT, "data/spacecrafts_orbital_elements.txt.json", MAX_OBJECTS)
+
 	ssys.drawAllBodiesTrajectory()
 	glbRefresh(ssys, False)
 	return ssys
