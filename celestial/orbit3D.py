@@ -698,8 +698,10 @@ class makeJtrojan(makeBelt):
 class makeBody:
 
 	"""
-	Main class describing system bodies, from star, 
-	to planets, asteroids, comets, spacecrafts etc 
+	Main class describing system bodies, from star 
+	to planets, asteroids, comets, spacecrafts etc
+	underlying category specific subclass derive from
+	the makeBody class  
 	"""
 
 	RING_BASE_THICKNESS = 2000
@@ -721,6 +723,7 @@ class makeBody:
 		self.Omega_angle = 0
 
 		if centralBody is not None:
+			# this happens for moons
 			self.Foci = vector(centralBody.Position[0], centralBody.Position[1], centralBody.Position[2])
 		
 		# load body data to data structure
@@ -809,10 +812,17 @@ class makeBody:
 
 
 		# Create referentials:
-		# The PCI referential (the "Planet-Centered Inertial" is fixed to the stars, in other words, 
-		# it doesn't rotate with the planet). PCI coordinate frames have their origins at the center of mass of the planet 
-		# and are fixed with respect to the stars. "I" in "PCI" stands for inertial (i.e. "not accelerating"), in 
-		# contrast to the "Planet-centered - Planet-fixed" (PCPF) frames, which remains fixed with respect to 
+		# for each body, 2 types of referentials can be created:
+		# - Inertial (fixed to the stars and won't rotate with the planet)
+		# - Non-inertial (rotating with the body's surface)
+		#
+		# PCI referentials are inertial ("Planet-Centered Inertial"). Its coordinate frames have their origins 
+		# at the center of mass of the planet and are fixed with respect to the stars. "I" in "PCI" stands for 
+		# inertial (i.e. "not accelerating"),
+		#
+		# In contrast
+		#
+		# PCPF referentials are non-inertial ("Planet-Centered Planet-Fixed"). They remains fixed with respect to 
 		# the planet's surface in its rotation, and then rotates with respect to stars.
 		#
 		# For objects in space, the equations of motion that describe orbital motion are simpler in a non-rotating 
@@ -881,6 +891,15 @@ class makeBody:
 		print "---------------------------------------------"
 		print self.Name, " North Pole:", self.Pole_vec
 
+	def AdjustNPforPeriodicTerms(self, RA, decl, T, d):
+		# default is we do not provide adjustment for RA and declination.
+		# It is up to the planet to provide these adjustements
+		return RA, decl
+
+	def AdjustPMforPeriodicTerms(self, W, T, d):
+		# default is we do not provide adjustment for the Prime Meridian.
+		# It is up to the planet to provide these adjustements
+		return W
 
 	def get_northpole_ecliptic_data_including_pertubations(self, bodyName):
 		"""
@@ -920,6 +939,11 @@ class makeBody:
 			try:
 				# Get pole parameters in J2000 Equatorial, including perturbations
 				alpha0_eq, delta0_eq = get_planet_pole_parameters(bodyName, T, d)
+				print self.Name, " : Right ASC: ", alpha0_eq, ", Decl: ", delta0_eq
+
+				# Adjust for periodic terms
+				alpha0_eq, delta0_eq = self.AdjustNPforPeriodicTerms(alpha0_eq, delta0_eq, T, d)
+
 				pole_vector_eq = equatorial_to_cartesian_vector(alpha0_eq, delta0_eq)
 
 				# Transform to J2000 Ecliptic
@@ -927,6 +951,9 @@ class makeBody:
 
 				# Get prime meridian angle W
 				W_angle = get_planet_prime_meridian_W(bodyName, d)
+
+				# Adjust for periodic terms
+				W_angle = self.AdjustPMforPeriodicTerms(W_angle, T, d)
 
 				# Get Omega angle
 				Omega_angle = omega_values.get(bodyName, np.nan) # Use np.nan for missing values
@@ -1686,7 +1713,7 @@ class makePlanet(makeBody):
 			'ratio': self.Ratio,
             'name':  self.Name+"PCI",
 			#'initial_rotation': pi/2,
-			'legend': ["x", "y", "North P."],
+			'legend': ["x", "y", "Eq.North"],
 		})  
 
 		self.Origin 				= self.PCI.referential
@@ -1917,8 +1944,6 @@ class makeEarth(makePlanet):
 		# reposition the celestial sphere on the earth location:
 		self.SolarSystem.CelestialSphereOrigin = self.Origin.pos
 		self.SolarSystem.ConstellationsOrigin = self.Origin.pos
-
-
 
 
 	
@@ -2237,121 +2262,6 @@ class makeEarth(makePlanet):
 		success, self.E, dE, it = solveKepler(M, self.e, 12000)
 		if success == False:
 			print ("Could not converge for "+self.Name+", E = "+str(self.E)+", last precision = "+str(dE))
-
-##########################################################################################
-class makeEarthTest(makePlanet):
-
-	
-	def __init__(self, system, ccolor, type, sizeCorrectionType, defaultSizeCorrection):
-	
-		makePlanet.__init__(self, system, EARTH_NAME_2, ccolor, type, sizeCorrectionType, defaultSizeCorrection)
-
-
-
-	def initRotation(self):
-
-		# we need to rotate around X axis by pi/2 to properly align the planet's texture,
-		# and also, we need to take into account planet tilt around X axis 
-#		self.BodyShape.rotate(angle=(pi/2+self.TiltAngle), axis=self.XdirectionUnit, origin=(0,0,0))
-
-		# here we use "-" tilt angle to make it point to the correct direction
-		print "XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX"
-		#self.BodyShape.rotate(angle=(pi/2 - self.TiltAngle), axis=self.PCPF.XdirectionUnit, origin=(0,0,0))
-
-#		self.BodyShape.rotate(angle=pi/2, axis=self.PCPF.XdirectionUnit, origin=(0,0,0))
-
-		#self.PCI.referential.rotate(angle=(self.TiltAngle), axis=self.PCI.XdirectionUnit, origin=(0,0,0))
-		#self.PCPF.referential.rotate(angle=(self.TiltAngle), axis=self.PCPF.XdirectionUnit, origin=(0,0,0))
-
-		# rotate texture by 90 degrees along x
-		#self.BodyShape.rotate(angle=(pi/2), axis=self.PCPF.XdirectionUnit)
-
-		# then further rotation will apply to Z axis
-		
-		##### self.RotAxis = self.PCPF.ZdirectionUnit
-
-#		planet.initRotation(self)
-		#self.BodyShape.rotate(angle=(pi/2), axis=self.PCPF.XdirectionUnit, origin=(0,0,0))
-
-		# induce initial tilt
-		#self.PCPF.referential.rotate(angle=(-self.TiltAngle), axis=self.PCPF.XdirectionUnit, origin=(0,0,0))
-
-		# then further rotation will apply to Z axis
-		#self.RotAxis = self.PCPF.RotAxis #self.PCPF.ZdirectionUnit
-		### self.RotAxis = self.PCPF.referential.frame_to_world(self.PCPF.ZdirectionUnit)
-		#print self.RotAxis , "for", self.Name
-
-		# adjust earth texture based on solar time
-		################################
-		################################
-		return
-
-
-
-	# makeEarth::computeOrbitalEltFromPlanetPositionApproximation (overrides makeBody's) 
-	def computeOrbitalEltFromPlanetPositionApproximation(self, elements, timeincrement):
-
-		ns = NasaSpice(10)
-		id = 399 # earth
-
-		elts = ns.getPlanetElements(id, datetime.datetime.today().strftime('%Y %b %d, %H:%M:%S'))
-
-
-		self.a = getSemiMajor(elts[0], elts[1]) * 1000 * AU # perihelion, eccentricity
-
-		self.e = elts[1]
-		self.Inclination = elts[2]
-
-		self.Longitude_of_perihelion = elts[4]
-		self.Longitude_of_ascendingnode = elts[3]
-
-		self.Argument_of_perihelion = self.Longitude_of_perihelion - self.Longitude_of_ascendingnode
-
-		M = elts[5]
-
-		success, self.E, dE, it = solveKepler(M, self.e, 12000)
-		if success == False:
-			print ("Could not converge for "+self.Name+", E = "+str(self.E)+", last precision = "+str(dE))
-
-
-
-		if False:
-
-			Adjustment = 0 #0.35
-
-			# get number of days since J2000 epoch and obtain the fraction of century
-			# (the rate adjustment is given as a rate per century)
-			days = daysSinceJ2000UTC(self.locationInfo) + timeincrement
-			
-			# These formulas use 'days' based on days since 1/Jan/2000 12:00 UTC ("J2000.0"), 
-			# instead of 0/Jan/2000 0:00 UTC ("day value"). Correct by subtracting 1.5 days...
-
-			T = (days - Adjustment)/EARTH_CENTURY # T is in Julian centuries since J2000.0
-
-			self.a = (elts["a"] + (elts["ar"] * T)) * AU
-			self.e = elts["EC_e"] + (elts["er"] * T)
-			self.Inclination = elts["i"] + (elts["ir"] * T)
-
-			# compute mean Longitude with correction factors beyond jupiter M = L - W + bT^2 +ccos(ft) + ssin(ft)
-			L = elts["L"] + (elts["Lr"] * T) + (elts["b"] * T**2  +
-												elts["c"] * cos(elts["f"] * T) +
-												elts["s"] * sin(elts["f"] * T))
-			self.Longitude_of_perihelion = elts["W"] + (elts["Wr"] * T)
-			self.Longitude_of_ascendingnode = elts["N"] + (elts["Nr"] * T)
-
-			# compute Argument of perihelion w
-			self.Argument_of_perihelion = self.Longitude_of_perihelion - self.Longitude_of_ascendingnode
-
-			# compute mean Anomaly M = L - W
-			M = toRange(L - self.Longitude_of_perihelion) #W)
-
-			# Obtain ecc. Anomaly E (in degrees) from M using an approx method of resolution:
-			success, self.E, dE, it = solveKepler(M, self.e, 12000)
-			if success == False:
-				print ("Could not converge for "+self.Name+", E = "+str(self.E)+", last precision = "+str(dE))
-
-##########################################################################################
-
 
 
 # CLASS SATELLITE -------------------------------------------------------------
@@ -3479,18 +3389,18 @@ def get_planet_pole_parameters(planet_name, T, d):
     # Note: For Earth, these simplified formulas are for comparison, IERS data is more precise.
 
     planet_data = {
-        "Sun":       (286.13,    0.0,     63.87,    0.0),
-        "Mercury":   (281.0097, -0.0328,  61.4143, -0.0049),
-        "Venus":     (272.76,    0.0,     67.16,    0.0), # Retrograde rotation, but pole is defined by north of invariable plane
-        "Earth":     (0.00,     -0.641,   90.00,   -0.557),
+        "Sun":       (286.13,     0.0,     63.87,     0.0),
+        "Mercury":   (281.0097,  -0.0328,  61.4143,  -0.0049),
+        "Venus":     (272.76,     0.0,     67.16,     0.0), # Retrograde rotation, but pole is defined by north of invariable plane
+        "Earth":     (0.00,      -0.641,   90.00,    -0.557),
         "Mars":      (317.68143, -0.1061,  52.88650, -0.0609),
         # Jupiter includes periodic terms
-        "Jupiter":   (268.056595, -0.006499, 64.495303, 0.008391),
-        "Saturn":    (40.589,   -0.036,   83.537,  -0.004),
-        "Uranus":    (257.31,    0.0,    -15.18,    0.0), # Retrograde rotation, but pole is defined by north of invariable plane
-        "Neptune":   (299.36,    0.70,    43.46,    0.0),
+        "Jupiter":   (268.056595,-0.006499,64.495303, 0.008391),
+        "Saturn":    (40.589,    -0.036,   83.537,   -0.004),
+        "Uranus":    (257.311,    0.0,    -15.175,    0.0), # Retrograde rotation, but pole is defined by north of invariable plane
+        "Neptune":   (299.36,     0.70,    43.46,     0.0),
         # Pluto's pole model in IAU 2009 is linear, no periodic terms listed.
-        "Pluto":     (313.02,   -0.001,    9.09,    0.005)
+        "Pluto":     (313.02,    -0.001,   9.09,      0.005)
     }
 
     if planet_name not in planet_data:
@@ -3501,17 +3411,31 @@ def get_planet_pole_parameters(planet_name, T, d):
     alpha0 = alpha0_j2000 + alpha0_dot * T
     delta0 = delta0_j2000 + delta0_dot * T
 
+    """
     # Add periodic terms for specific planets
     if planet_name == "Jupiter":
         # Ja angle in degrees
-        Ja = 286.098 + 879.792 * d
+        #Ja = 286.098 + 879.792 * d
+        Ja = 99.360714 + 4850.4046 * T
+        Jb = 175.895369 + 1191.9605 * T 
+        Jc = 300.323162 + 262.5475 * T
+        Jd = 114.012305 + 6070.2476 * T
+        Je = 49.511251 + 64.3000 * T
         Ja_rad = np.radians(Ja)
-        alpha0 += 0.000117 * np.sin(Ja_rad)
-        delta0 += 0.000050 * np.cos(Ja_rad)
+        Jb_rad = np.radians(Jb)
+        Jc_rad = np.radians(Jc)
+        Jd_rad = np.radians(Jd)
+        Je_rad = np.radians(Je)
+        alpha0 += 0.000117 * np.sin(Ja_rad) + 0.000938 * np.sin(Jb_rad) + \
+				  0.001432 * np.sin(Jc_rad) + 0.000030 * np.sin(Jd_rad) + 0.002150 * np.sin(Je)
+
+        delta0 += 0.000050 * np.cos(Ja_rad) + 0.000404 * np.cos(Jb_rad) + \
+				  0.000617 * np.cos(Jc_rad) - 0.000013 * np.cos(Jd_rad) + 0.000926 * np.cos(Je)
     elif planet_name == "Pluto":
         # Based on IAU 2009, Pluto's pole has only linear time dependence.
         # No additional periodic terms are commonly provided in this format.
         pass # Already handled by linear terms
+	"""
 
     return alpha0, delta0
 
@@ -3542,10 +3466,14 @@ def get_planet_prime_meridian_W(planet_name, d):
         "Venus":     (160.20, -1.4813688, []), 	 # Retrograde rotation, W decreases
         "Earth":     (190.147, 360.9856235, []), # Earth's prime meridian (Greenwich)
         "Mars":      (176.630, 350.89198226, []),
-        "Jupiter":   (268.056595, 879.792, []),  # W for Jupiter is often given as alpha0, but here we use the specific W formula
-        "Saturn":    (40.589, 810.7939024, []),
-        "Uranus":    (257.31, 810.7939024, []),  # Retrograde rotation, but W increases
-        "Neptune":   (299.36, 810.7939024, []),
+#        "Jupiter":   (268.056595, 879.792, []),  # W for Jupiter is often given as alpha0, but here we use the specific W formula
+        "Jupiter":   (284.95, 870.536, []),  # W for Jupiter is often given as alpha0, but here we use the specific W formula
+#        "Saturn":    (40.589, 810.7939024, []),
+        "Saturn":    (38.90,  810.7939024, []),
+#        "Uranus":    (257.31, 810.7939024, []),  # Retrograde rotation, but W increases
+        "Uranus":    (203.81, -501.1600928, []),  # Retrograde rotation, but W increases
+#        "Neptune":   (299.36, 810.7939024, []),
+        "Neptune":   (253.18, 536.3128492, []),
         "Pluto":     (313.02, 56.3625225, [])
     }
 
