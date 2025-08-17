@@ -329,7 +329,7 @@ class camera3D:
 		# For a planet, Foci(x, y, z) is (0,0,0). For a moon, Foci represents the 
 		# position of the planet the moon orbits around in the ecliptic referential
 
-		######self.surfaceRadius = (1.1 * self.ssys.cameraViewTargetBody.BodyShape.radius) if self.ssys.SurfaceView == True else 0
+		######self.surfaceRadius = (1.1 * self.ssys.cameraViewTargetBody.BodyGeometry.radius) if self.ssys.SurfaceView == True else 0
 		#print "UPDATING Scene Center with ViewTarget origin"
 		self.ssys.Scene.center = (
 			self.ssys.cameraViewTargetBody.Position[0] + self.ssys.cameraViewTargetBody.Foci[0],

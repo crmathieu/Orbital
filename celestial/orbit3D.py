@@ -156,11 +156,14 @@ class makeSolarSystem:
 		self.toggleSize(False)
 
 		######################################################
-		self.CenterRef = self.createJ2000EclipticReferential()
-		self.CenterRef.setAxisTilt() #0)
+		self.RootFrame = frame(pos=(0,0,0))
+		self.CenterRef = self.createJ2000EclipticReferential(self.RootFrame)
+		self.Origin = self.CenterRef.referential.pos
+		self.CenterRef.setAxisTilt()
+
 		######################################################
-		self.makeCelestialSphere()
-		self.makeConstellations()
+		#self.makeCelestialSphere()
+		#self.makeConstellations()
 
 		print "initial CAMERA POSITION ************************* ", self.Scene.mouse.camera
 
@@ -184,23 +187,26 @@ class makeSolarSystem:
 		#w.win.SetTransparent(0)
 		return w
 
-	def createJ2000EclipticReferential(self):
-		print "building Solar System Referential"
+	def createJ2000EclipticReferential(self, parent_frame):
+		# we do not provide any orientation information,
+		# as this initial referential determines the Vernal
+		# equinox as X and the North ecliptic a Z. This
+		# correspond to a vector (0,0,1) that is set by
+		# default in make3DaxisReferential
+
+		#print "building Solar System Referential"
 		return make3DaxisReferential({
+					'parent_frame': parent_frame,
 					'body':			None,
+					'parent_frame': None,
 					'radius': 		5*AU*DIST_FACTOR,
 					'tiltangle': 	0,
-					#'orientation': {
-					#	'pole_vec': vector(0,0,0),
-					#	'w_angle': 0,
-					#	'omega_angle': 0,
-					#},
 					'show':			True,
 					'color': 		Color.white,
-					'ratio': 		[1,1,0.1],
+					'ratio': 		[1,1,0.2],
 					'legend': 		[u"\u2648", u"\u2649", "Ecl.North"]
-#					'legend': 		["x","y","z"],
 				})		
+		#self.Origin = 
 
 	def rotateSolarSystemReferential(self, axis = vector(0,0,1)):
 		self.Scene.up = axis
@@ -225,7 +231,7 @@ class makeSolarSystem:
 			return
 		else:
 			self.sizeType = x
-		self.BodyShape.radius = self.radiusToShow  / self.SizeCorrection[self.sizeType]
+		self.BodyGeometry.radius = self.radiusToShow  / self.SizeCorrection[self.sizeType]
 
 	def setEarthLocations(self, db):
 		self.setDashboard(db)
@@ -237,7 +243,7 @@ class makeSolarSystem:
 	def setDashboard(self, db):
 		self.Dashboard = db
 
-	def makeConstellations(self):
+	def makeConstellations2(self):
 		import os.path
 		#print "CELESTIAL SPHERE"
 #		CELESTIAL_RADIUS = 2000 #10000
@@ -266,7 +272,7 @@ class makeSolarSystem:
 			print ("Could not find "+file)
 		#self.Scene.scale = self.Scene.scale / 1e10
 
-	def makeCelestialSphere(self): # Unused
+	def makeCelestialSphere2(self): # Unused
 		import os.path
 		#print "CELESTIAL SPHERE"
 #		CELESTIAL_RADIUS = 2000 #10000
@@ -360,7 +366,7 @@ class makeSolarSystem:
 		else:
 			for i in range(len(self.bodies[self.JTrojansIndex].Labels)):
 				self.bodies[self.JTrojansIndex].Labels[i].visible = False
-			self.bodies[self.JTrojansIndex].BodyShape.visible = False
+			self.bodies[self.JTrojansIndex].BodyGeometry.visible = False
 			self.bodies[self.JTrojansIndex].Labels = []
 			self.bodies[self.JTrojansIndex] = body
 
@@ -414,6 +420,7 @@ class makeSolarSystem:
 				if body.Origin.visible == True:
 					if body.Trail is not None:
 						body.Trail.visible = orbitTrace
+
 					if body.isMoon == True:
 						# apply label on/off when moon in real size, otherwise do not show label
 						value = labelVisible if body.sizeType == SCALE_NORMALIZED else False
@@ -428,8 +435,8 @@ class makeSolarSystem:
 			else: # belts / rings
 				if body.BodyType != ECLIPTIC_PLANE:
 					
-					if body.BodyShape.visible == True and animationInProgress == True:
-						body.BodyShape.visible = False
+					if body.BodyGeometry.visible == True and animationInProgress == True:
+						body.BodyGeometry.visible = False
 						for i in range(len(body.Labels)):
 							body.Labels[i].visible = False
 		
@@ -437,14 +444,14 @@ class makeSolarSystem:
 			print "LITE"
 			self.Scene.ambient = Color.white
 			self.sunLight.visible = False
-			self.Sun.BodyShape.material = materials.texture(data=self.Sun.Texture, mapping="spherical", interpolate=False)
-			self.Sun.BodyShape.opacity = 1.0
+			self.Sun.BodyGeometry.material = materials.texture(data=self.Sun.Texture, mapping="spherical", interpolate=False)
+			self.Sun.BodyGeometry.opacity = 1.0
 		else:
 			print "DARK", self.Sun
 			self.Scene.ambient = Color.nightshade #Color.black
 			self.sunLight.visible = True
-			self.Sun.BodyShape.material = materials.emissive
-#			self.Sun.BodyShape.material = materials.texture(data=self.Sun.Texture, mapping="spherical", interpolate=False)
+			self.Sun.BodyGeometry.material = materials.emissive
+#			self.Sun.BodyGeometry.material = materials.texture(data=self.Sun.Texture, mapping="spherical", interpolate=False)
 			
 		setRefTo = True if self.ShowFeatures & REFERENTIAL != 0 else False
 		
@@ -497,8 +504,8 @@ class makeSolarSystem:
 			else: # belts / rings
 				if body.BodyType != ECLIPTIC_PLANE:
 					
-					if body.BodyShape.visible == True and animationInProgress == True:
-						body.BodyShape.visible = False
+					if body.BodyGeometry.visible == True and animationInProgress == True:
+						body.BodyGeometry.visible = False
 						for i in range(len(body.Labels)):
 							body.Labels[i].visible = False
 		
@@ -506,13 +513,13 @@ class makeSolarSystem:
 			print "LITE"
 			self.Scene.ambient = Color.white
 			self.sunLight.visible = False
-			self.Sun.BodyShape.material = materials.texture(data=self.Sun.Texture, mapping="spherical", interpolate=False)
-			self.Sun.BodyShape.opacity = 1.0
+			self.Sun.BodyGeometry.material = materials.texture(data=self.Sun.Texture, mapping="spherical", interpolate=False)
+			self.Sun.BodyGeometry.opacity = 1.0
 		else:
 			print "DARK", self.Sun
 			self.Scene.ambient = Color.nightshade #Color.black
 			self.sunLight.visible = True
-			self.Sun.BodyShape.material = materials.emissive
+			self.Sun.BodyGeometry.material = materials.emissive
 			
 		setRefTo = True if self.ShowFeatures & REFERENTIAL != 0 else False
 		
@@ -530,8 +537,9 @@ class makeSolarSystem:
 
 	def setAxisVisibility(self, setRefTo, setRelTo):
 		self.CenterRef.display(setRefTo)
-		self.Sun.PCPF.updateReferential()
-		self.Sun.PCPF.display(setRelTo)
+		if self.Sun.PCPF != None:
+			self.Sun.PCPF.updateReferential()
+			self.Sun.PCPF.display(setRelTo)
 
 		return
 		for i in range(3):
@@ -561,7 +569,7 @@ class makeEcliptic:
 		self.Opacity = opacity
 		self.Lines = []
 		self.BodyType = ECLIPTIC_PLANE
-		self.Origin = frame()
+		self.Origin = frame(frame=system.RootFrame)
 		self.Labels.append(label(pos=(250*AU*DIST_FACTOR, 250*AU*DIST_FACTOR, 0), text=self.Name, xoffset=20, yoffset=12, space=0, height=10, border=6, box=false, font='sans', visible = False))
 
 	def toggleSize(self, realisticSize):
@@ -576,7 +584,7 @@ class makeEcliptic:
 	def draw(self):
 		#print ("Drawing ecliptic")
 		side = 250*AU*DIST_FACTOR
-		self.BodyShape = box(frame=self.Origin, pos=vector(0, 0, 0), length=side, width=0.0001, height=side, material=materials.emissive, color=self.Color, opacity=0.1) #, axis=(0, 0, 1), opacity=0.8) #opacity=self.Opacity)
+		self.BodyGeometry = box(frame=self.Origin, pos=vector(0, 0, 0), length=side, width=0.0001, height=side, material=materials.emissive, color=self.Color, opacity=0.1) #, axis=(0, 0, 1), opacity=0.8) #opacity=self.Opacity)
 		self.Origin.visible = False
 
 	def refresh(self):
@@ -601,9 +609,9 @@ class makeBelt:
 		self.PlanetName = planetname
 		self.Color = color
 		self.BodyType = bodyType
-		self.BodyShape = points(pos=(self.RadiusMinAU, 0, 0), size=size, color=(color[0]*0.5, color[1]*0.5, color[2]*0.5))
+		self.BodyGeometry = points(pos=(self.RadiusMinAU, 0, 0), size=size, color=(color[0]*0.5, color[1]*0.5, color[2]*0.5))
 
-		self.BodyShape.visible = False
+		self.BodyGeometry.visible = False
 		if self.Thickness == 0:
 			self.Thickness = (self.RadiusMinAU + self.RadiusMaxAU)/2 * math.tan(math.pi/6)
 		#shape = "cube"
@@ -619,14 +627,14 @@ class makeBelt:
 			RandomRadius = randint(round(self.RadiusMinAU * AU * DIST_FACTOR, 3) * 1000, round(self.RadiusMaxAU * AU * DIST_FACTOR, 3) * 1000) / 1000
 			MAX = self.getGaussian(RandomRadius) * self.Thickness * AU * DIST_FACTOR * self.ThicknessFactor
 			heightToEcliptic = {0: 0, 1:1, 2:-1}[randint(0,2)] * randint(0, int(round(MAX, 6)*1.e6))/1.e6
-			self.BodyShape.append(pos=(RandomRadius * cos(i), RandomRadius * sin(i), heightToEcliptic))
+			self.BodyGeometry.append(pos=(RandomRadius * cos(i), RandomRadius * sin(i), heightToEcliptic))
 
 		self.Labels.append(label(pos=(self.RadiusMaxAU * AU * DIST_FACTOR * cos(i), self.RadiusMaxAU * AU * DIST_FACTOR * sin(i), 0), text=self.Name, xoffset=20, yoffset=12, space=0, height=10, border=6, box=False, font='sans', visible = False))
 
 	def refresh(self):
 		if self.SolarSystem.ShowFeatures & self.BodyType != 0:
-			if self.BodyShape.visible == False:
-				self.BodyShape.visible = True
+			if self.BodyGeometry.visible == False:
+				self.BodyGeometry.visible = True
 
 			labelVisible = True if self.SolarSystem.ShowFeatures & LABELS != 0 else False
 
@@ -634,8 +642,8 @@ class makeBelt:
 				self.Labels[i].visible = labelVisible
 
 		else:
-			if self.BodyShape.visible == true:
-				self.BodyShape.visible = false
+			if self.BodyGeometry.visible == true:
+				self.BodyGeometry.visible = false
 				for i in range(len(self.Labels)):
 					self.Labels[i].visible = False
 
@@ -682,13 +690,13 @@ class makeJtrojan(makeBelt):
 			heightToEcliptic = {0:1, 1:-1}[randint(0,1)] * uniform(1 * AU * DIST_FACTOR, int(round(MAX*sqrt(19*i), 6)*1.e6))/1e6
 			heightToEclipticTail = {0:1, 1:-1}[randint(0,1)] * uniform(1 * AU * DIST_FACTOR, int(round(MAXTAIL*sqrt(delta-i), 6)*1.e6))/1e6
 			# calculate positions on 1/2 values for small tail
-			self.BodyShape.append(pos=(RandomTail * cos(L4+delta+i), RandomTail * sin(L4+delta+i), heightToEclipticTail))
-			self.BodyShape.append(pos=(RandomTail * cos(L5-delta-i), RandomTail * sin(L5-delta-i), heightToEclipticTail))
+			self.BodyGeometry.append(pos=(RandomTail * cos(L4+delta+i), RandomTail * sin(L4+delta+i), heightToEclipticTail))
+			self.BodyGeometry.append(pos=(RandomTail * cos(L5-delta-i), RandomTail * sin(L5-delta-i), heightToEclipticTail))
 			# calculate positions on 1/2 values and complete by symetry for the rest
-			self.BodyShape.append(pos=(RandomRadius * cos(L4-delta+i), RandomRadius * sin(L4-delta+i), heightToEcliptic))
-			self.BodyShape.append(pos=(RandomRadius * cos(L4+delta-i), RandomRadius * sin(L4+delta-i), heightToEcliptic))
-			self.BodyShape.append(pos=(RandomRadius * cos(L5-delta+i), RandomRadius * sin(L5-delta+i), heightToEcliptic))
-			self.BodyShape.append(pos=(RandomRadius * cos(L5+delta-i), RandomRadius * sin(L5+delta-i), heightToEcliptic))
+			self.BodyGeometry.append(pos=(RandomRadius * cos(L4-delta+i), RandomRadius * sin(L4-delta+i), heightToEcliptic))
+			self.BodyGeometry.append(pos=(RandomRadius * cos(L4+delta-i), RandomRadius * sin(L4+delta-i), heightToEcliptic))
+			self.BodyGeometry.append(pos=(RandomRadius * cos(L5-delta+i), RandomRadius * sin(L5-delta+i), heightToEcliptic))
+			self.BodyGeometry.append(pos=(RandomRadius * cos(L5+delta-i), RandomRadius * sin(L5+delta-i), heightToEcliptic))
 
 		self.Labels.append(label(pos=(self.RadiusMaxAU * AU * DIST_FACTOR * cos(L4), self.RadiusMaxAU * AU * DIST_FACTOR * sin(L4), 0), text="L4 Trojans", xoffset=20, yoffset=12, space=0, height=10, border=6, box=false, font='sans', visible = False))
 		self.Labels.append(label(pos=(self.RadiusMaxAU * AU * DIST_FACTOR * cos(L5), self.RadiusMaxAU * AU * DIST_FACTOR * sin(L5), 0), text="L5 Trojans", xoffset=20, yoffset=12, space=0, height=10, border=6, box=false, font='sans', visible = False))
@@ -710,7 +718,20 @@ class makeBody:
 
 		self.Labels = []
 		self.compounded = False
+		
+		
 		self.CentralBody = centralBody
+
+		if False:
+			# if the central body is None, it is assumed that 
+			# the central body is the solar sustem barycenter
+
+			
+			if centralBody == None:
+				self.CentralBody = system
+			else:
+				self.CentralBody = centralBody
+
 		self.isMoon = False
 		self.RealisticCorrectionSize = RealisticCorrectionSize
 		self.sizeCorrectionType = sizeCorrectionType
@@ -722,9 +743,9 @@ class makeBody:
 		self.W_angle = 0
 		self.Omega_angle = 0
 
-		if centralBody is not None:
-			# this happens for moons
-			self.Foci = vector(centralBody.Position[0], centralBody.Position[1], centralBody.Position[2])
+		#if centralBody is not None:
+		#	# this happens for moons
+		#	self.Foci = vector(centralBody.Position[0], centralBody.Position[1], centralBody.Position[2])
 		
 		# load body data to data structure
 
@@ -733,17 +754,19 @@ class makeBody:
 		self.locationInfo 			= system.locationInfo
 		self.AxialTilt				= system.objects_data[key]["axial_tilt"]
 		self.Name					= system.objects_data[key]["name"]				# body name
+		
 		if "symbol" in system.objects_data[key]:
 			self.Symbol				= system.objects_data[key]["symbol"]			# body symbol
 		else:
 			self.Symbol				= " "
+		
 		self.Iau_name				= system.objects_data[key]["iau_name"]			# body iau name
 		self.JPL_designation 		= system.objects_data[key]["jpl_designation"]
 		self.Mass 					= system.objects_data[key]["mass"]				# body mass
 		self.BodyRadius 			= system.objects_data[key]["radius"]			# body radius
 		self.Color 					= color
 		self.BodyType 				= bodyType
-		self.BodyShape 				= None
+		self.BodyGeometry 			= None
 
 		self.Revolution 			= system.objects_data[key]["PR_revolution"]
 		self.Perihelion 			= system.objects_data[key]["QR_perihelion"]		# body perhelion
@@ -782,7 +805,11 @@ class makeBody:
 
 		self.Moid = system.objects_data[key]["earth_moid"] if "earth_moid" in system.objects_data[key] else 0
 
+		self.E = 0
+
+		# Calculate orbital elements
 		self.setOrbitalElements(key)
+
 		self.b = self.getSemiMinor(self.a, self.e)
 		self.Aphelion = getAphelion(self.a, self.e)	# body aphelion
 
@@ -800,15 +827,20 @@ class makeBody:
 		self.w = deg2rad(self.Argument_of_perihelion)
 		self.i = deg2rad(self.Inclination)
 
+
 		# convert polar to Cartesian in Sun referential
 
 		self.Position = self.setCartesianCoordinates()
-		##### self.shape = bodyShaper[bodyType]
+
+		##### self.shape = BodyGeometryr[bodyType]
 
 		# set North Pole orientation and angular distance 
 		# of Prime Meridian wirh DESC node
 
 		self.setBodyOrientation()
+
+		# set the tracking Frame
+		self.setTrackingFrame()
 
 
 		# Create referentials:
@@ -870,7 +902,7 @@ class makeBody:
 
 		# add label
 
-		self.Labels.append(label(pos=(self.Position[0]+self.Foci[0],self.Position[1]+self.Foci[1],self.Position[2]+self.Foci[2]), text=self.Symbol+self.Name, xoffset=20, yoffset=12, space=0, height=10, color=color, border=6, box=False, font='sans'))
+		self.Labels.append(label(pos=(self.Position[0],self.Position[1],self.Position[2]), text=self.Symbol+self.Name, xoffset=20, yoffset=12, space=0, height=10, color=color, border=6, box=False, font='sans'))
 
 		# hide body if not required
 		if (self.SolarSystem.ShowFeatures & bodyType) == 0:
@@ -886,7 +918,7 @@ class makeBody:
 		# setBodyOrientation will determine the direction of the North Pole
 		# and the angle between the prime meridian and the descending node.
 
-		self.Pole_vec, self.W_angle, self.Omega_angle = self.get_northpole_ecliptic_data_including_pertubations(self.Name)
+		self.Pole_vec, self.W_angle, self.Omega_angle = self.compute_Ecliptic_NorthPole_data()
 		
 		print "---------------------------------------------"
 		print self.Name, " North Pole:", self.Pole_vec
@@ -901,15 +933,16 @@ class makeBody:
 		# It is up to the planet to provide these adjustements
 		return W
 
-	def get_northpole_ecliptic_data_including_pertubations(self, bodyName):
+	def compute_Ecliptic_NorthPole_data(self):
 		"""
 		Calculates the north pole direction for the current body for a given date
-		in the J2000 ecliptic coordinate system, including perturbations,
-		and their prime meridian angle W.
+		and their prime meridian angle W in the J2000 ecliptic coordinate system, 
+		including perturbations.
 		"""
-		bodies = ["Sun", "Mercury", "Venus", "Earth", "Mars", "Jupiter", "Saturn", "Uranus", "Neptune", "Pluto"]
+		bodies = [	"Sun", 	  "Mercury", "Venus",   "Earth", "Mars", "Jupiter", 
+					"Saturn", "Uranus",  "Neptune", "Pluto"]
 
-		if bodyName in bodies:
+		if self.Name in bodies:
 
 			cur = datetime.datetime.now()
 
@@ -927,21 +960,22 @@ class makeBody:
 
 			planet_data_results = {}
 
-			# Re-using Omega values from the provided table for consistency with the request
-			# These are standard IAU parameters for the ecliptic longitude of the ascending node of the equator.
+			# Re-using Omega values from the provided table for consistency with 
+			# the request. These are standard IAU parameters for the ecliptic longitude 
+			# of the ascending node of the equator.
+
 			omega_values = {
-				"Sun": 345.717, "Mercury": 318.528, "Venus": 27.502, "Earth": 89.642,
-				"Mars": 352.883, "Jupiter": 272.072, "Saturn": 80.009, "Uranus": 18.232,
-				"Neptune": 320.083, "Pluto": 318.472
+				"Sun":     345.717, "Mercury": 318.528, "Venus":  27.502, "Earth":  89.642,
+				"Mars":    352.883, "Jupiter": 272.072, "Saturn": 80.009, "Uranus": 18.232,
+				"Neptune": 320.083, "Pluto":   318.472
 			}
 
-			#for planet in planets:
 			try:
-				# Get pole parameters in J2000 Equatorial, including perturbations
-				alpha0_eq, delta0_eq = get_planet_pole_parameters(bodyName, T, d)
+				# Get pole parameters in J2000 Equatorial ...
+				alpha0_eq, delta0_eq = get_planet_pole_parameters(self.Name, T, d)
 				print self.Name, " : Right ASC: ", alpha0_eq, ", Decl: ", delta0_eq
 
-				# Adjust for periodic terms
+				# ... and adjust for periodic terms
 				alpha0_eq, delta0_eq = self.AdjustNPforPeriodicTerms(alpha0_eq, delta0_eq, T, d)
 
 				pole_vector_eq = equatorial_to_cartesian_vector(alpha0_eq, delta0_eq)
@@ -949,14 +983,14 @@ class makeBody:
 				# Transform to J2000 Ecliptic
 				pole_vector_ecl = apply_rotation(pole_vector_eq, eq_to_ecl_matrix)
 
-				# Get prime meridian angle W
-				W_angle = get_planet_prime_meridian_W(bodyName, d)
+				# Get prime meridian angle W ...
+				W_angle = get_planet_prime_meridian_W(self.Name, d)
 
-				# Adjust for periodic terms
+				# ... and adjust for periodic terms
 				W_angle = self.AdjustPMforPeriodicTerms(W_angle, T, d)
 
 				# Get Omega angle
-				Omega_angle = omega_values.get(bodyName, np.nan) # Use np.nan for missing values
+				Omega_angle = omega_values.get(self.Name, np.nan) # Use np.nan for missing values
 
 				return pole_vector_ecl, W_angle, Omega_angle
 
@@ -997,7 +1031,17 @@ class makeBody:
 	def getRotAxis(self):
 		return self.RotAxis
 
-	
+
+	def setTrackingFrame(self):
+		# tracking frame is used mainly for planets acting as a central body,
+		# meaning planets with moon(s). The trackingFrame allows the moon(s)
+		# orbits to be calculated related to the referential, instead of the
+		# J2000 ecliptic referential.
+
+		self.TrackingFrame = frame(frame=self.SolarSystem.RootFrame)
+		self.TrackingFrame.pos = self.Position
+
+
 	def make_PCPF_referential(self): 
 		
 		# This is the default makebody::make_PCPF_referential method.
@@ -1006,7 +1050,13 @@ class makeBody:
 		# this referential and rotate with it. Only the makeEarth class must override this 
 		# method as its PCPF requires to display its axis.
 	
+		referenceFrame = self.SolarSystem.RootFrame
+		if self.CentralBody != None:
+#			referenceFrame = self.CentralBody.Origin
+			referenceFrame = self.CentralBody.TrackingFrame
+
 		self.PCPF = makeBasicReferential({
+			'parent_frame': referenceFrame,
 			'body': self,
 			'show':	False,
 			'color': Color.cyan,
@@ -1036,11 +1086,12 @@ class makeBody:
 
 	def setAspect(self, key):
 		self.Texture = materials.loadTGA("./img/"+self.Tga) if self.SolarSystem.objects_data[key]["material"] != 0 else materials.loadTGA("./img/asteroid")
-		self.BodyShape.material = materials.texture(data=self.Texture, mapping="spherical", interpolate=False)
+		self.BodyGeometry.material = materials.texture(data=self.Texture, mapping="spherical", interpolate=False)
 
 	def makeShape(self):
-		self.Origin.pos=(self.Position[0]+self.Foci[0],self.Position[1]+self.Foci[1],self.Position[2]+self.Foci[2])
-		self.BodyShape = sphere(frame=self.Origin, pos=(0,0,0), np=64, radius=self.getBodyRadius(), make_trail=false, up=(0,0,1))
+		# default makebody::makeShape
+		self.Origin.pos= self.Position #(self.Position[0]+self.Foci[0],self.Position[1]+self.Foci[1],self.Position[2]+self.Foci[2])
+		self.BodyGeometry = sphere(frame=self.Origin, pos=(0,0,0), np=64, radius=self.getBodyRadius(), make_trail=false, up=(0,0,1))
 
 	def getBodyRadius(self):
 		return self.radiusToShow/self.SizeCorrection[self.sizeType]
@@ -1051,16 +1102,26 @@ class makeBody:
 
 	def makeOrbit(self):
 
-		# attach a curve to the object to 
-		# display its orbit
+		# attach a curve to the body to display its orbit
 
-		if self.BodyShape is not None:
+		if self.BodyGeometry is not None:
+			# determine what the reference frame is:
+
+			referenceFrame = self.SolarSystem.RootFrame
+			if self.CentralBody != None:
+				#raw_input("ZOB")
+				referenceFrame = self.CentralBody.TrackingFrame
+
 			# create an orbit in the solar system central referential
-			self.Trail = curve(Color=(self.Color[0]*0.8, self.Color[1]*0.8, self.Color[2]*0.8))
-			self.Trail.append(pos=self.Origin.pos)
+			self.Trail = curve(frame=referenceFrame, Color=(self.Color[0]*0.8, self.Color[1]*0.8, self.Color[2]*0.8))
+
+			self.Trail.visible=True
+#			self.Trail.append(pos=self.Origin.pos)
+			self.Trail.append(pos=self.Position)
+
 			return True
 		else:
-			print "Failed to draw body", self.Name
+			print "Failed to initiate orbit for ", self.Name
 			return False
 
 	def initRotation(self):
@@ -1080,7 +1141,7 @@ class makeBody:
 			return
 		else:
 			self.sizeType = x
-		self.BodyShape.radius = self.radiusToShow  / self.SizeCorrection[self.sizeType]
+		self.BodyGeometry.radius = self.radiusToShow  / self.SizeCorrection[self.sizeType]
 
 	def setTraceAndLabelVisibility(self, trueFalse):
 		if self.Origin.visible == True:
@@ -1119,15 +1180,19 @@ class makeBody:
 		
 		# update foci position
 
-		if self.CentralBody is not None:
+		if False and self.CentralBody is not None and self.CentralBody.Position != (0,0,0):
+			print "BODY: ", self.Name, " - central body position", self.CentralBody.Position #self.Foci 
 			self.Foci = self.CentralBody.Position
 
-			#print "central body position", self.Foci
-			#raw_input("type a key...")
+			
+			print "...trail.pos=", self.Trail.pos
+			#raw_input("type a key")
 
-			#self.Trail.pos = self.Foci
+			self.Trail.pos = self.Foci
+			#raw_input("type another one...")
 
-		self.Origin.pos = self.Labels[0].pos = vector(self.Position[0]+self.Foci[0],self.Position[1]+self.Foci[1],self.Position[2]+self.Foci[2])
+
+		self.Origin.pos = self.Labels[0].pos = self.Position #vector(self.Position[0]+self.Foci[0],self.Position[1]+self.Foci[1],self.Position[2]+self.Foci[2])
 
 		# finally, rotate the body's 
 		# surface around its North Pole
@@ -1236,6 +1301,8 @@ class makeBody:
 		if self.PCPF is not None:
 			self.PCPF.updateReferential()
 			self.PCPF.rotate(angle=self.RotAngle)
+
+		self.TrackingFrame.pos = self.Position
 
 
 	# unused
@@ -1396,44 +1463,6 @@ class makeBody:
 
 		self.PCPF.rotate(RotAngle)
 
-		# update RotAxis vector
-		#self.PCPF.RotAxis = self.PCPF.referential.frame_to_world(self.PCPF.ZdirectionUnit)
-		#print self.PCPF.RotAxis
-
-		# if polar axis inverted, reverse rotational direction
-		#print self.RotAxis
-#		if self.PCPF.ZdirectionUnit[2] < 0:
-		#if self.PCPF.RotAxis[2] < 0:
-		#	RotAngle *= -1
-
-		# follow planet rotation
-		#self.PCPF.referential.rotate(angle=RotAngle, axis=self.PCPF.RotAxis) #, origin=(0,0,0)) #self.PCPF.referential.pos) #(self.Position[0]+self.Foci[0],self.Position[1]+self.Foci[1],self.Position[2]+self.Foci[2]))
-#		self.PCPF.referential.rotate(angle=RotAngle, axis=self.PCPF.ZdirectionUnit) #, origin=(0,0,0)) #self.PCPF.referential.pos) #(self.Position[0]+self.Foci[0],self.Position[1]+self.Foci[1],self.Position[2]+self.Foci[2]))
-
-	def update_PCPF_PositionRotationXX(self):
-		# here the widgets rotates by the same amount the earth texture is rotated
-		self.PCPF.referential.pos = self.Position
-		ti = self.SolarSystem.getTimeIncrement()
-		RotAngle = (2*pi/self.Rotation)*ti
-
-		# update RotAxis vector
-		self.PCPF.RotAxis = self.PCPF.referential.frame_to_world(self.PCPF.ZdirectionUnit)
-
-		if self.PCPF.RotAxis[2] < 0:
-			RotAngle *= -1
-
-	###	self.PCPF.rotate(RotAngle)
-
-		# update RotAxis vector
-		#self.PCPF.RotAxis = self.PCPF.referential.frame_to_world(self.PCPF.ZdirectionUnit)
-		#print self.PCPF.RotAxis
-
-		# if polar axis inverted, reverse rotational direction
-		#print self.RotAxis
-#		if self.PCPF.ZdirectionUnit[2] < 0:
-		#if self.PCPF.RotAxis[2] < 0:
-		#	RotAngle *= -1
-
 		# follow planet rotation
 		self.PCPF.referential.rotate(angle=RotAngle, axis=self.PCPF.RotAxis) #, origin=(0,0,0)) #self.PCPF.referential.pos) #(self.Position[0]+self.Foci[0],self.Position[1]+self.Foci[1],self.Position[2]+self.Foci[2]))
 #		self.PCPF.referential.rotate(angle=RotAngle, axis=self.PCPF.ZdirectionUnit) #, origin=(0,0,0)) #self.PCPF.referential.pos) #(self.Position[0]+self.Foci[0],self.Position[1]+self.Foci[1],self.Position[2]+self.Foci[2]))
@@ -1454,21 +1483,24 @@ class makeBody:
 
 		# update origin
 
-		self.Origin.pos = vector(self.Position[0]+self.Foci[0],self.Position[1]+self.Foci[1],self.Position[2]+self.Foci[2])
+		#self.Origin.pos = vector(self.Position[0],self.Position[1],self.Position[2])
+		self.Origin.pos = self.Position
 		
 		# when we want to visualize the orbit, we show the 
 		# section under the ecliptic with dimmer colors
 
 		if trace:
+			#if self.Name == "Moon":
+			#	print"CACA"
 			# display orbit in brighter Color when above ecliptic
-			if self.Position[2]+self.Foci[2] < 0:
+			if self.Position[2] < 0:
 				"""
 				self.Interval += 1
 				if self.Interval % 2 == 0:
-					#self.Trail.append(pos=self.BodyShape.pos, color=self.Color) #, interval=50)
-					self.Trail.append(pos=self.BodyShape.pos, color=(self.Color[0]*0.3, self.Color[1]*0.3, self.Color[2]*0.3))			
+					#self.Trail.append(pos=self.BodyGeometry.pos, color=self.Color) #, interval=50)
+					self.Trail.append(pos=self.BodyGeometry.pos, color=(self.Color[0]*0.3, self.Color[1]*0.3, self.Color[2]*0.3))			
 				else:
-					self.Trail.append(pos=self.BodyShape.pos, color=Color.black) #, interval=50)
+					self.Trail.append(pos=self.BodyGeometry.pos, color=Color.black) #, interval=50)
 				"""
 				# new
 				self.Trail.append(pos=self.Origin.pos, color=(self.Color[0]*0.3, self.Color[1]*0.3, self.Color[2]*0.3))
@@ -1581,10 +1613,11 @@ class makeSun(makeBody):
 	
 	def __init__(self, system, Color, ptype, sizeCorrectionType, defaultSizeCorrection):
 		makeBody.__init__(self, system, SUN_NAME, Color, ptype, sizeCorrectionType, defaultSizeCorrection, None) #system)
-		self.BodyShape.visible = True
+		self.BodyGeometry.visible = True
 		self.Trail = emptyTrail()
+		self.Labels[0].visible = False
 
-	def setRatio(self):
+	def setReferentialProfile(self):
 		self.Ratio = [0,0,1]
 
 	def make_PCI_referential(self): 
@@ -1593,10 +1626,11 @@ class makeSun(makeBody):
 		# planet and is fixed to the stars. In other words, it 
 		# always points to the same direction
 		
-		self.setRatio()
+		self.setReferentialProfile()
 
 		print "Planet: build PCI ref for", self.Name
 		self.PCI = make3DaxisReferential({
+			'parent_frame': self.SolarSystem.RootFrame,
 			'body': self,
 			'radius': 0,
 			'orientation': {
@@ -1617,17 +1651,21 @@ class makeSun(makeBody):
 		self.PCI.setAxisTilt()
 		self.PCI.display(False)
 
+	def make_PCPF_referential(self):
+		self.PCPF = None
+		pass 		
+
 	def makeShape(self):
-		self.Origin.pos=(self.Position[0]+self.Foci[0],self.Position[1]+self.Foci[1],self.Position[2]+self.Foci[2])
-		self.BodyShape = sphere(frame=self.Origin, pos=(0,0,0), np=64, radius=self.getBodyRadius(), make_trail=False, color=Color.yellow)
+		self.Origin.pos=self.Position #(self.Position[0]+self.Foci[0],self.Position[1]+self.Foci[1],self.Position[2]+self.Foci[2])
+		self.BodyGeometry = sphere(frame=self.Origin, pos=(0,0,0), np=64, radius=self.getBodyRadius(), make_trail=False, color=Color.yellow)
 		#self.PCPF.referential.visible = True
 
 	def setAspect(self, key):
 		#print "loading"+"./img/"+self.Tga
 		self.Texture = materials.loadTGA("./img/"+self.Tga) if self.SolarSystem.objects_data[key]["material"] != 0 else materials.loadTGA("./img/asteroid")
-		#self.BodyShape.material = materials.texture(data=self.Texture, mapping="spherical", interpolate=False)
+		#self.BodyGeometry.material = materials.texture(data=self.Texture, mapping="spherical", interpolate=False)
 		#print "setting sun as emissive"
-		self.BodyShape.material = materials.emissive
+		self.BodyGeometry.material = materials.emissive
 
 	def updateStillPosition(self, timeinsec):
 		pass
@@ -1670,21 +1708,21 @@ class makeSun(makeBody):
 		else:
 			self.sizeType = x
 
-		self.BodyShape.radius = self.radiusToShow  / self.SizeCorrection[self.sizeType]
+		self.BodyGeometry.radius = self.radiusToShow  / self.SizeCorrection[self.sizeType]
 
 
 # CLASS PLANET ----------------------------------------------------------------
 class makePlanet(makeBody):
 	
 	def __init__(self, system, key, Color, ptype, sizeCorrectionType, defaultSizeCorrection):
-		makeBody.__init__(self, system, key, Color, ptype, sizeCorrectionType, defaultSizeCorrection, system.Sun)
-		#self.BodyShape.visible = False
+		makeBody.__init__(self, system, key, Color, ptype, sizeCorrectionType, defaultSizeCorrection, None) #system.Sun)
+		#self.BodyGeometry.visible = False
 
 		self.setRings()
 
-	def setRatio(self):
+	def setReferentialProfile(self):
 
-		# overwrites the makebody::setRatio
+		# overwrites the makebody::setReferentialProfile
 		# this is the default ratio for planets' referential axis:
 		# we only show the "z" axis to show the north Pole
 
@@ -1697,10 +1735,12 @@ class makePlanet(makeBody):
 		# planet and is fixed to the stars. In other words, it 
 		# always points to the same direction
 		
-		self.setRatio()
+		self.setReferentialProfile()
 
 		print "Planet: build PCI ref for", self.Name
+
 		self.PCI = make3DaxisReferential({
+			'parent_frame': self.SolarSystem.RootFrame,
 			'body': self,
 			'radius': 0,
 			'orientation': {
@@ -1722,6 +1762,7 @@ class makePlanet(makeBody):
 		self.PCI.setAxisTilt()
 		self.PCI.display(False)
 		#self.setRotAxis()
+
 
 	# makePlanet::setOrbitalElements  (overrides makeBody)
 	def setOrbitalElements(self, key, timeincrement = 0):
@@ -1759,7 +1800,7 @@ class makePlanet(makeBody):
 			self.sizeType = x
 
 		print "TOGGLING!"
-		self.BodyShape.radius = self.radiusToShow  / self.SizeCorrection[self.sizeType]
+		self.BodyGeometry.radius = self.radiusToShow  / self.SizeCorrection[self.sizeType]
 		if self.nRings > 0:
 			print "toggling rings for", self.Name
 			#self.hideRings()
@@ -1790,35 +1831,7 @@ class makePlanet(makeBody):
 			self.Rings.insert(self.nRings, self.makeRingElt(curRadius, width, thickness, ring["color"]))
 			self.nRings += 1
 
-	def makeRingElt_SAVE(self, radius, width, thickness, colour):
-
-		ringframe = frame()
-		straight = [(0,0,0),(0,0,thickness)]
-
-		# shape of outer edge
-		outerEdge = shapes.circle(pos=(0, 0), radius=radius, np=128)
-
-		# shape of inner edge
-		innerEdge = shapes.circle(pos=(0,0), radius=radius-width, np=128)
-
-		# create ring body from extrusion
-		body = extrusion(pos=straight, 
-						shape=outerEdge-innerEdge,
-						color=colour)
-
-		body.frame = ringframe
-
-#		ringframe.frame = self.Origin
-
-		# make each ring element relative to the PCI Referential
-		# so that they are aligned with the planet tilt and 
-		# won't have to rotate
-		ringframe.frame = self.PCI.referential
-
-		#ringframe.rotate(angle=pi/2, axis=(1,0,0))
-		#ringframe.rotate(angle=(self.TiltAngle), axis=(1,0,0))
-		return ringframe
-
+	
 	def makeRingElt(self, radius, width, thickness, colour):
 
 		#ringframe = frame()
@@ -1843,6 +1856,8 @@ class makePlanet(makeBody):
 		# so that they are aligned with the planet tilt and 
 		# won't have to rotate
 		#ringframe.frame = self.PCI.referential
+		
+		self.RingsFrame.frame = self.PCI.referential
 
 		#ringframe.rotate(angle=pi/2, axis=(1,0,0))
 		#ringframe.rotate(angle=(self.TiltAngle), axis=(1,0,0))
@@ -1941,11 +1956,18 @@ class makeEarth(makePlanet):
 		
 		self.PlanetWidgets = makePlanetWidgets(self)
 
+		self.makeCelestialSphere()
+		self.makeConstellations()
+
 		# reposition the celestial sphere on the earth location:
-		self.SolarSystem.CelestialSphereOrigin = self.Origin.pos
-		self.SolarSystem.ConstellationsOrigin = self.Origin.pos
+		#self.SolarSystem.CelestialSphereOrigin = self.Origin.pos
+		#self.SolarSystem.ConstellationsOrigin = self.Origin.pos
 
-
+	#def refresh(self):
+	#	makePlanet.refresh(self)
+	#	self.Universe.visible = self.isFeatured(CELESTIAL_SPHERE)
+	#	self.Constellations.visible = self.isFeatured(CONSTELLATIONS)
+	
 	
 	def toggleSize(self, realisticSize):
 		makePlanet.toggleSize(self, realisticSize)
@@ -1958,7 +1980,7 @@ class makeEarth(makePlanet):
 		# makeBody superclass. This is where we initially position the earth texture
 
 		self.setTextureFromSolarTime(None)
-		return
+		
 
 	def setTextureFromSolarTime(self, localDatetime):
 		# Called when a full update is required for the texture position, 
@@ -2023,6 +2045,7 @@ class makeEarth(makePlanet):
 		#	x: u"\u2648": Vernal equinox
 
 		self.PCI = make3DaxisReferential({
+			'parent_frame': self.SolarSystem.RootFrame,
 			'body': 		self,
 			'radius': 		0,
 			'orientation': {
@@ -2039,7 +2062,13 @@ class makeEarth(makePlanet):
 
 		# orientate the North Pole
 		self.PCI.setAxisTilt()
-		self.PCI.display(False)		
+		self.PCI.display(False)
+
+		# set planet origin as the PCPF referential (rotates with the planet)
+
+#		self.Origin 				= self.PCI.referential #frame()
+#		self.Origin.visible			= True
+
 
 	def make_PCPF_referential(self): #, size, position):
 		
@@ -2052,6 +2081,7 @@ class makeEarth(makePlanet):
 		#	x: Prime Meridian
 
 		self.PCPF = make3DaxisReferential({
+			'parent_frame': 	self.SolarSystem.RootFrame,
 			'body': 			self,
 			'radius': 			0,
 
@@ -2065,15 +2095,15 @@ class makeEarth(makePlanet):
 			'ratio': 			[1,1,1],
             'name': 			"EarthPCPF",
 			'initial_rotation': -pi/2, #
-			'legend': 			["Pr.Merid", "y", "Eq.North"]
+			'legend': 			["Prime M", "y", "Eq.North"]
 		})
 
+
+		# Note: the referential tilt will be initiated after loading the body texture
 		# set planet origin as the PCPF referential (rotates with the planet)
 
 		self.Origin 				= self.PCPF.referential #frame()
 		self.Origin.visible			= True
-
-		# Note: the referential tilt will be initiated after loading the body texture
 
 		self.PCPF.display(False)
 
@@ -2086,20 +2116,20 @@ class makeEarth(makePlanet):
 		if self.PlanetWidgets is not None:
 			self.PlanetWidgets.animate() #timeIncrement)
 
-		self.SolarSystem.CelestialSphereOrigin = self.Origin.pos
-		self.SolarSystem.ConstellationsOrigin = self.Origin.pos
+		#self.SolarSystem.CelestialSphereOrigin = self.Origin.pos
+		#self.SolarSystem.ConstellationsOrigin = self.Origin.pos
 		
 		return velocity, dte, dts
 
 	def resetTexture(self): # TO REVIEW!!!!
-		self.BodyShape = None
+		self.BodyGeometry = None
 		self.Origin.visible = False
 		New_Origin = frame(pos=self.Origin.pos)
 		del self.Origin
-		del self.BodyShape
+		del self.BodyGeometry
 		self.Origin = New_Origin
-		self.BodyShape = sphere(frame=self.Origin, pos=(0,0,0), np=64, radius=self.getBodyRadius(), make_trail=false)
-		self.BodyShape.material = materials.texture(data=self.Texture, mapping="spherical", interpolate=False)
+		self.BodyGeometry = sphere(frame=self.Origin, pos=(0,0,0), np=64, radius=self.getBodyRadius(), make_trail=false)
+		self.BodyGeometry.material = materials.texture(data=self.Texture, mapping="spherical", interpolate=False)
 		self.SiderealCorrectionAngle = 0.0  
 		self.Psi = 0.0
 
@@ -2148,7 +2178,7 @@ class makeEarth(makePlanet):
 		if self.SiderealCorrectionAngle != 0.0:
 			# there has been a previous manual reset of the UTC date which has resulted in a sidereal 
 			# correction. We need to undo it prior to reposition the texture for the new date
-			self.BodyShape.rotate(angle=(-self.SiderealCorrectionAngle), axis=self.RotAxis, origin=(0,0,0))
+			self.BodyGeometry.rotate(angle=(-self.SiderealCorrectionAngle), axis=self.RotAxis, origin=(0,0,0))
 			self.SiderealCorrectionAngle = 0.0
 
 			# alternate method would be to reapply the earth texture to start from scratch
@@ -2156,10 +2186,10 @@ class makeEarth(makePlanet):
 		"""
 
 		# Reverse the previous texture initial angle 
-		#self.BodyShape.rotate(angle=(-self.Psi), axis=self.RotAxis, origin=(0,0,0))
+		#self.BodyGeometry.rotate(angle=(-self.Psi), axis=self.RotAxis, origin=(0,0,0))
 		# ...and apply the new one
-######		self.BodyShape.rotate(angle=(Psi-self.Psi), axis=self.RotAxis, origin=(0,0,0))
-		self.BodyShape.rotate(angle=(Psi), axis=self.RotAxis, origin=(0,0,0))
+######		self.BodyGeometry.rotate(angle=(Psi-self.Psi), axis=self.RotAxis, origin=(0,0,0))
+		self.BodyGeometry.rotate(angle=(Psi), axis=self.RotAxis, origin=(0,0,0))
 		self.Psi = Psi
 
 		# also reflect the same reset amount with the widgets, if they already exist
@@ -2221,7 +2251,7 @@ class makeEarth(makePlanet):
 					 		   + self.Theta 
 
 		# rotate for the difference between updated angle and its formal value
-#		self.BodyShape.rotate(angle=(newLocalInitialAngle - self.Gamma), axis=self.RotAxis, origin=(0,0,0))
+#		self.BodyGeometry.rotate(angle=(newLocalInitialAngle - self.Gamma), axis=self.RotAxis, origin=(0,0,0))
 		self.Origin.rotate(angle=(newLocalInitialAngle - self.Gamma), axis=self.RotAxis, origin=(0,0,0))
 		print "rotating by ", newLocalInitialAngle - self.Gamma, " degree"
 
@@ -2264,11 +2294,94 @@ class makeEarth(makePlanet):
 			print ("Could not converge for "+self.Name+", E = "+str(self.E)+", last precision = "+str(dE))
 
 
+	def makeConstellations(self):
+		import os.path
+		#print "CELESTIAL SPHERE"
+#		CELESTIAL_RADIUS = 2000 #10000
+		#file = "./img/stars_const.tga"
+		#file = "./img/starmap.tga"
+		#file = "./img/star-map-normalized-4096x2048-reversed.tga"
+		#file = "./img/8K-constellations-4-reversed.tga"
+		#file = "./img/constellations_stars_to_MAG_21_RA_DEC_8192x4096_MONO-trimmed-deep-reversed.tga"
+		#file = "./img/constellation_figures_8k-reversed.tga"
+		#file = "./img/constellation_bounds_and_figures_8k-reversed.tga"
+		#file = "./img/constellation_bounds_and_figures-8k-colored-reversed.tga"
+		file = "./img/NASA/constellation_bounds_and_figures_colored_legend_reversed_8k.tga"
+
+		if os.path.isfile(file):
+			# adjust celestial Sphere position
+			#self.ConstellationOrigin = frame(frame=self.TrackingFrame, pos=vector(0,0,0))
+#			self.SolarSystem.Constellations = sphere(frame=self.TrackingFrame, pos=vector(0,0,0), visible = False, radius=self.SolarSystem.UniversRadius, color=Color.white, opacity=0.2) #, up=vector(0,0,1))
+			self.SolarSystem.Constellations = sphere(frame=self.PCI.referential, pos=vector(0,0,0), visible = False, radius=self.SolarSystem.UniversRadius, color=Color.white, opacity=0.2) #, up=vector(0,0,1))
+			self.SolarSystem.Constellations.material = materials.texture(data=materials.loadTGA(file), mapping="spherical", interpolate=False)
+
+			# adjust constellations layout on our 3d window to match our coordinates system
+			self.SolarSystem.Constellations.rotate(angle=(pi/2), 		axis=self.SolarSystem.CenterRef.XdirectionUnit, origin=(0,0,0))
+#			self.SolarSystem.Constellations.rotate(angle=deg2rad(self.SolarSystem.J2000_Equatorial_obliquity), axis=self.SolarSystem.CenterRef.YdirectionUnit, origin=(0,0,0))
+			self.SolarSystem.Constellations.rotate(angle=(pi/2), 		axis=self.SolarSystem.CenterRef.ZdirectionUnit, origin=(0,0,0))
+
+		else:
+			print ("Could not find "+file)
+		#self.Scene.scale = self.Scene.scale / 1e10
+
+	def makeCelestialSphere(self): # Unused
+		import os.path
+		#print "CELESTIAL SPHERE"
+#		CELESTIAL_RADIUS = 2000 #10000
+		#file = "./img/8k_stars_milky_way-reversed.tga"
+		file = "./img/NASA/starmap_8k-reversed.tga"
+
+		if os.path.isfile(file):
+			# adjust celestial Sphere position
+			#self.CelestialSphereOrigin = frame(pos=vector(0,0,0))
+#			self.SolarSystem.Universe = sphere(frame=self.TrackingFrame, pos=vector(0,0,0), visible = False, radius=self.SolarSystem.UniversRadius, color=Color.white, opacity=1.0) #, up=vector(0,0,1)) #0.8)
+			self.SolarSystem.Universe = sphere(frame=self.PCI.referential, pos=vector(0,0,0), visible = False, radius=self.SolarSystem.UniversRadius, color=Color.white, opacity=1.0) #, up=vector(0,0,1)) #0.8)
+			self.SolarSystem.Universe.material = materials.texture(data=materials.loadTGA(file), mapping="spherical", interpolate=False)
+			
+			# adjust celestial sphere layout on our 3d window to match our coordinates system
+			self.SolarSystem.Universe.rotate(angle=(pi/2), 		axis=self.SolarSystem.CenterRef.XdirectionUnit, origin=(0,0,0))
+#			self.SolarSystem.Universe.rotate(angle=deg2rad(self.SolarSystem.J2000_Equatorial_obliquity), axis=self.SolarSystem.CenterRef.YdirectionUnit, origin=(0,0,0))
+			self.SolarSystem.Universe.rotate(angle=(pi/2), 		axis=self.SolarSystem.CenterRef.ZdirectionUnit, origin=(0,0,0))
+
+		else:
+			print ("Could not find "+file)
+		#self.Scene.scale = self.Scene.scale / 1e10
+
+
 # CLASS SATELLITE -------------------------------------------------------------
 class makeSatellite(makeBody):
-	def __init__(self, system, key, color, planetBody):
-		makeBody.__init__(self, system, key, color, SATELLITE, SATELLITE, SATELLITE_SZ_CORRECTION, planetBody)
+	def __init__(self, system, key, color, centralBody):
+		makeBody.__init__(self, system, key, color, SATELLITE, SATELLITE, SATELLITE_SZ_CORRECTION, centralBody)
 		self.isMoon = True
+		#self.setTrackingFrame(centralBody)
+		print "MOON::::::position:", self.Position
+
+	def updateBodyPosition(self, timeIncrement):
+		# this overwrites the default makeBody::updateBodyPosition
+		print "zobby "
+		return
+
+		# calculate current position based on orbital 
+		# elements (timeIncrement comes in days as a float)
+		
+		dT = daysSinceEpochJD(self.Epoch, self.locationInfo) + timeIncrement # - ADJUSTMENT_COEFFICIENT # substracting 0.5 to match for earth correction
+
+		# compute Longitude of Ascending node taking 
+		# into account the time elapsed since epoch
+
+		incrementYears = timeIncrement / EARTH_PERIOD # 365.25
+		self.Longitude_of_ascendingnode +=  0.013967 * (2000.0 - (getCurrentYear() + incrementYears)) + 3.82394e-5 * dT
+
+		# adjust Mean Anomaly with time elapsed since epoch
+		M = toRange(self.Mean_anomaly + self.Mean_motion * dT)
+
+		# since we can't solve Kepler's equation analytically,
+		# we use an iterative numerical method
+
+		success, self.E, dE, it = solveKepler(M, self.e, 20000)
+		if success == False:
+			print (self.Name+" Warning Could not converge - E = "+str(self.E))
+
 
 	def getRealisticSizeCorrectionXX(self):
 		#SATELLITE_SZ_CORRECTION = 1/(DIST_FACTOR * 5)
@@ -2294,11 +2407,11 @@ class makeSatellite(makeBody):
 			else:
 				self.Labels[0].visible = True
 
-		self.BodyShape.radius = self.radiusToShow  / self.SizeCorrection[self.sizeType]
+		self.BodyGeometry.radius = self.radiusToShow  / self.SizeCorrection[self.sizeType]
 
 	def draw(self):
 		#print "drawing "+self.Name
-		self.Trail.visible = False
+		self.Trail.visible = True
 		rad_E = deg2rad(self.E)
 		increment = self.getIncrement()
 
@@ -2306,7 +2419,7 @@ class makeSatellite(makeBody):
 		for E in np.arange(increment, 2*pi+increment, increment):
 			self.setPolarCoordinates(E+rad_E)
 			# from R and Nu, calculate 3D coordinates and update current position
-			self.drawSegment(trace = False) #E*180/pi, False)
+			self.drawSegment(trace =True) #E*180/pi, False)
 			
 			#### rate(5000) # ?!
 
@@ -2315,7 +2428,7 @@ class makeSatellite(makeBody):
 # CLASS HYBERBOLIC ------------------------------------------------------------
 class hyperbolic(makeBody):
 	def __init__(self, system, key, color, planetBody):
-		makeBody.__init__(self, system, key, color, HYPERBOLIC, HYPERBOLIC, HYPERBOLIC_SZ_CORRECTION, planetBody)
+		makeBody.__init__(self, system, key, color, HYPERBOLIC, HYPERBOLIC, HYPERBOLIC_SZ_CORRECTION, None) #planetBody)
 		self.isMoon = false
 
 	def setAxisVisibility(self, setTo):
@@ -2338,7 +2451,7 @@ class hyperbolic(makeBody):
 			else:
 				self.Labels[0].visible = True
 
-		self.BodyShape.radius = self.radiusToShow  / self.SizeCorrection[self.sizeType]
+		self.BodyGeometry.radius = self.radiusToShow  / self.SizeCorrection[self.sizeType]
 
 	def setPolarCoordinates(self, E_rad):
 		# calculate coordinates for an hyperbolic curve
@@ -2365,12 +2478,18 @@ class hyperbolic(makeBody):
 
 		self.hasRenderedOrbit = True
 
+	def make_PCPF_referential(self):
+		self.Origin = frame()
+		self.Origin.visible	= True
+		self.PCPF = None
+
+
 
 # CLASS GENERICSPACECRAFT -----------------------------------------------------
 class makeGenericSpacecraft(makeBody):
 	def __init__(self, system, key, color):
 		#print "makeGenericSpacecraft: CALLED FOR KEY=", key
-		makeBody.__init__(self, system, key, color, SPACECRAFT, SPACECRAFT, SMALLBODY_SZ_CORRECTION, system.Sun)
+		makeBody.__init__(self, system, key, color, SPACECRAFT, SPACECRAFT, SMALLBODY_SZ_CORRECTION, None) #system.Sun)
 		self.BARYCENTER = 0.0
 		self.AFT_TANK_RADIUS = 0.0
 		self.AFT_TANK_CENTER_XCOOR = 0.0
@@ -2432,7 +2551,7 @@ class makeGenericSpacecraft(makeBody):
 	def setAspect(self, key):
 		if self.SolarSystem.objects_data[key]["material"] != 0:
 			data = materials.loadTGA("./img/"+ self.Tga)
-			self.BodyShape.objects[0].material = materials.texture(data=data, mapping="cylinder", interpolate=False)
+			self.BodyGeometry.objects[0].material = materials.texture(data=data, mapping="cylinder", interpolate=False)
 
 
 	def makeShape(self):
@@ -2442,7 +2561,7 @@ class makeGenericSpacecraft(makeBody):
 		self.compounded = True
 
 		# create compound object
-		self.BodyShape = self.Origin
+		self.BodyGeometry = self.Origin
 
 		# create fuselage
 		self.BARYCENTER_XCOOR = -self.length/2
@@ -2463,14 +2582,14 @@ class makeGenericSpacecraft(makeBody):
 		"""
 		self.ENGINE_HEIGHT = self.length/13
 		self.ENGINE_TOP_XCOOR = self.AFT_TANK_CENTER_XCOOR - self.AFT_TANK_RADIUS - self.ENGINE_HEIGHT/2 - self.length/30
-		cylinder(frame=self.BodyShape, pos=(self.ENGINE_TOP_XCOOR,0,0), radius=self.AFT_TANK_RADIUS/5, length=self.length/13, color=Color.darkgrey)
+		cylinder(frame=self.BodyGeometry, pos=(self.ENGINE_TOP_XCOOR,0,0), radius=self.AFT_TANK_RADIUS/5, length=self.length/13, color=Color.darkgrey)
 
 		# create COPV
 		self.COPV_RADIUS = self.length/17
-		sphere(frame=self.BodyShape, pos=(self.ENGINE_TOP_XCOOR + self.length/31, self.length/9, 0), radius=self.COPV_RADIUS, color=Color.grey)		
+		sphere(frame=self.BodyGeometry, pos=(self.ENGINE_TOP_XCOOR + self.length/31, self.length/9, 0), radius=self.COPV_RADIUS, color=Color.grey)		
 	
 		nozzle = self.makeNozzle()
-		nozzle.frame = self.BodyShape
+		nozzle.frame = self.BodyGeometry
 		"""
 		self.Origin.pos = self.Position[0]+self.Foci[0],self.Position[1]+self.Foci[1],self.Position[2]+self.Foci[2]
 		#print "GenericSpacecraft: MakeShape: self.Origin.pos=", self.Origin.pos
@@ -2580,6 +2699,11 @@ class makeGenericSpacecraft(makeBody):
 		# self.Origin.rotate(angle=self.RotAngle, axis=self.RotAxis, origin=(0,0,0)) #origin=(10*self.length, 10*self.length, 0)) #-sin(alpha), cos(alpha)))
 		self.Origin.rotate(angle=self.RotAngle, axis=self.RotAxis) 
 
+	def make_PCPF_referential(self):
+		self.Origin = frame()
+		self.Origin.visible	= True
+		self.PCPF = None
+
 	#def make_PCI_referential(self): #, size, position):
 	#	return
 
@@ -2591,13 +2715,18 @@ class makeGenericSpacecraft(makeBody):
 class starman(makeBody):
 	def __init__(self, system, key, color):
 		print "starman: CALLED FOR KEY=", key
-		makeBody.__init__(self, system, key, color, SPACECRAFT, SPACECRAFT, SMALLBODY_SZ_CORRECTION, system.Sun)
+		makeBody.__init__(self, system, key, color, SPACECRAFT, SPACECRAFT, SMALLBODY_SZ_CORRECTION, None) #system.Sun)
 
 		print "*** FINISHED init starman ***"
 		print ""
 
 	def setAxisVisibility(self, setTo):
 		pass
+
+	def make_PCPF_referential(self):
+		self.Origin = frame()
+		self.Origin.visible	= True
+		self.PCPF = None
 
 	def makeShape(self):
 		#print "====================making FUSELAGE\n"
@@ -2737,18 +2866,18 @@ class makeSpacecraft(makeGenericSpacecraft, starman):
 # CLASS COMET -----------------------------------------------------------------
 class makeComet(makeBody):
 	def __init__(self, system, key, color):
-		makeBody.__init__(self, system, key, color, COMET, COMET, SMALLBODY_SZ_CORRECTION, system.Sun)
+		makeBody.__init__(self, system, key, color, COMET, COMET, SMALLBODY_SZ_CORRECTION, None) #system.Sun)
 
 	def makeShape(self):
 		self.Origin.pos = vector(self.Position[0],self.Position[1],self.Position[2])
-		self.BodyShape = ellipsoid(	frame=self.Origin, pos=(0,0,0),
+		self.BodyGeometry = ellipsoid(	frame=self.Origin, pos=(0,0,0),
 									length=(self.radiusToShow * randint(10, 20)/10)/self.SizeCorrection[self.sizeType],
 									height=(self.radiusToShow * randint(10, 20)/10)/self.SizeCorrection[self.sizeType],
 									width=(self.radiusToShow * randint(10, 20)/10)/self.SizeCorrection[self.sizeType], make_trail=false)
 	def setAspect(self, key):
 		# we don't need key for comets
 		data = materials.loadTGA("./img/comet")
-		self.BodyShape.material = materials.texture(data=data, mapping="spherical", interpolate=False)
+		self.BodyGeometry.material = materials.texture(data=data, mapping="spherical", interpolate=False)
 
 	def setAxisVisibility(self, setTo):
 		pass
@@ -2760,9 +2889,6 @@ class makeComet(makeBody):
 	def animateBodyRotation(self):
 		self.Origin.rotate(angle=self.RotAngle, axis=self.RotAxis)
 
-	def make_PCI_referential(self):
-		return
-
 	def toggleSize(self, realisticSize):
 		x = SCALE_NORMALIZED if realisticSize == True else SCALE_OVERSIZED
 		if x == self.sizeType:
@@ -2772,19 +2898,25 @@ class makeComet(makeBody):
 
 		asteroidRandom = {SCALE_OVERSIZED: (randint(10, 20)/10, randint(10, 20)/10, randint(10, 20)/10), SCALE_NORMALIZED: (1,1,1)}
 
-		self.BodyShape.length = self.radiusToShow * asteroidRandom[self.sizeType][0] / self.SizeCorrection[self.sizeType]
-		self.BodyShape.height = self.radiusToShow * asteroidRandom[self.sizeType][1] / self.SizeCorrection[self.sizeType]
-		self.BodyShape.width  = self.radiusToShow * asteroidRandom[self.sizeType][2] / self.SizeCorrection[self.sizeType]
+		self.BodyGeometry.length = self.radiusToShow * asteroidRandom[self.sizeType][0] / self.SizeCorrection[self.sizeType]
+		self.BodyGeometry.height = self.radiusToShow * asteroidRandom[self.sizeType][1] / self.SizeCorrection[self.sizeType]
+		self.BodyGeometry.width  = self.radiusToShow * asteroidRandom[self.sizeType][2] / self.SizeCorrection[self.sizeType]
 
 	def getIncrement(self):
 		# for comets, due to their sometimes high eccentricity, an increment of 1 deg may not be small enough
 		# to insure a smooth curve, hence we need to take smaller increments of 12.5 arcminutes or less in radians
 		return pi/(180 * 4)
 
+	def make_PCPF_referential(self):
+		self.Origin = frame()
+		self.Origin.visible	= True
+		self.PCPF = None
+
+
 # CLASS ASTEROID --------------------------------------------------------------
 class makeAsteroid(makeBody):
 	def __init__(self, system, key, color):
-		makeBody.__init__(self, system, key, color, BIG_ASTEROID, BIG_ASTEROID, ASTEROID_SZ_CORRECTION, system.Sun)
+		makeBody.__init__(self, system, key, color, BIG_ASTEROID, BIG_ASTEROID, ASTEROID_SZ_CORRECTION, None)
 
 	def setAxisVisibility(self, setTo):
 		pass
@@ -2796,11 +2928,14 @@ class makeAsteroid(makeBody):
 	def animateBodyRotation(self):
 		self.Origin.rotate(angle=self.RotAngle, axis=self.RotAxis)
 
-	def make_PCI_referential(self):
-		return
-
 	def getRealisticSizeCorrectionXX(self):
 		return 1e-2/(DIST_FACTOR*5)
+
+	def make_PCPF_referential(self):
+		self.Origin = frame()
+		self.Origin.visible	= True
+		self.PCPF = None
+
 
 # CLASS PHA -------------------------------------------------------------------
 class makePha(makeBody):
@@ -2813,12 +2948,12 @@ class makePha(makeBody):
 	def makeShape(self):
 		asteroidRandom = [(1.5, 2, 1), (1.5, 2, 1)]
 		self.Origin.pos = vector(self.Position[0],self.Position[1],self.Position[2])
-		self.BodyShape = ellipsoid(	frame = self.Origin, pos=(0,0,0),
+		self.BodyGeometry = ellipsoid(	frame = self.Origin, pos=(0,0,0),
 									length=(self.radiusToShow * asteroidRandom[self.sizeType][0])/self.SizeCorrection[self.sizeType],
 									height=(self.radiusToShow * asteroidRandom[self.sizeType][1])/self.SizeCorrection[self.sizeType],
 									width=(self.radiusToShow * asteroidRandom[self.sizeType][2])/self.SizeCorrection[self.sizeType], make_trail=false)
 		if self.JPL_designation == '4179':
-			print "makePHA:", self.Name,", position=:", self.Position, ", body position=",self.BodyShape.pos, "body Origin=", self.Origin.pos
+			print "makePHA:", self.Name,", position=:", self.Position, ", body position=",self.BodyGeometry.pos, "body Origin=", self.Origin.pos
 
 	def toggleSize(self, realisticSize):
 		x = SCALE_NORMALIZED if realisticSize == True else SCALE_OVERSIZED
@@ -2830,9 +2965,9 @@ class makePha(makeBody):
 		#asteroidRandom = [(randint(10, 20)/10, randint(10, 20)/10, randint(10, 20)/10), (1,1,1)]
 		asteroidRandom = {SCALE_OVERSIZED: (1.5, 2, 1), SCALE_NORMALIZED: (1.5/3.95, 2/3.95, 1/3.95)}
 
-		self.BodyShape.length = self.radiusToShow * asteroidRandom[self.sizeType][0] / self.SizeCorrection[self.sizeType]
-		self.BodyShape.height = self.radiusToShow * asteroidRandom[self.sizeType][1] / self.SizeCorrection[self.sizeType]
-		self.BodyShape.width  = self.radiusToShow * asteroidRandom[self.sizeType][2] / self.SizeCorrection[self.sizeType]
+		self.BodyGeometry.length = self.radiusToShow * asteroidRandom[self.sizeType][0] / self.SizeCorrection[self.sizeType]
+		self.BodyGeometry.height = self.radiusToShow * asteroidRandom[self.sizeType][1] / self.SizeCorrection[self.sizeType]
+		self.BodyGeometry.width  = self.radiusToShow * asteroidRandom[self.sizeType][2] / self.SizeCorrection[self.sizeType]
 
 	def initRotation(self):
 		self.RotAngle = pi/48
@@ -2841,18 +2976,24 @@ class makePha(makeBody):
 	def animateBodyRotation(self):
 		self.Origin.rotate(angle=self.RotAngle, axis=self.RotAxis) 
 
+	def make_PCPF_referential(self):
+		self.Origin = frame()
+		self.Origin.visible	= True
+		self.PCPF = None
+
+
 
 # CLASS SMALLASTEROID ---------------------------------------------------------
 class makeSmallAsteroid(makeBody):
 	def __init__(self, system, key, color):
-		makeBody.__init__(self, system, key, color, SMALL_ASTEROID, SMALL_ASTEROID, SMALLBODY_SZ_CORRECTION, system.Sun)
+		makeBody.__init__(self, system, key, color, SMALL_ASTEROID, SMALL_ASTEROID, SMALLBODY_SZ_CORRECTION, None) #system.Sun)
 
 	def setAxisVisibility(self, setTo):
 		pass
 
 	def makeShape(self):
 		self.Origin.pos = vector(self.Position[0],self.Position[1],self.Position[2])
-		self.BodyShape = ellipsoid(	frame=self.Origin, pos=(0,0,0),
+		self.BodyGeometry = ellipsoid(	frame=self.Origin, pos=(0,0,0),
 									length=(self.radiusToShow * randint(10, 20)/10)/self.SizeCorrection[self.sizeType],
 									height=(self.radiusToShow * randint(10, 20)/10)/self.SizeCorrection[self.sizeType],
 									width=(self.radiusToShow * randint(10, 20)/10)/self.SizeCorrection[self.sizeType], make_trail=false)
@@ -2865,9 +3006,9 @@ class makeSmallAsteroid(makeBody):
 			self.sizeType = x
 
 		asteroidRandom = {SCALE_OVERSIZED: (randint(10, 20)/10, randint(10, 20)/10, randint(10, 20)/10), SCALE_NORMALIZED: (1,1,1)}
-		self.BodyShape.length = self.radiusToShow * asteroidRandom[self.sizeType][0] / self.SizeCorrection[self.sizeType]
-		self.BodyShape.height = self.radiusToShow * asteroidRandom[self.sizeType][1] / self.SizeCorrection[self.sizeType]
-		self.BodyShape.width  = self.radiusToShow * asteroidRandom[self.sizeType][2] / self.SizeCorrection[self.sizeType]
+		self.BodyGeometry.length = self.radiusToShow * asteroidRandom[self.sizeType][0] / self.SizeCorrection[self.sizeType]
+		self.BodyGeometry.height = self.radiusToShow * asteroidRandom[self.sizeType][1] / self.SizeCorrection[self.sizeType]
+		self.BodyGeometry.width  = self.radiusToShow * asteroidRandom[self.sizeType][2] / self.SizeCorrection[self.sizeType]
 
 	def initRotation(self):
 		self.RotAngle = pi/512
@@ -2876,20 +3017,23 @@ class makeSmallAsteroid(makeBody):
 		self.Origin.rotate(angle=self.RotAngle, axis=self.RotAxis)
 
 	def make_PCI_referential(self):
-		self.Origin = frame()
-		self.Origin.visible	= True
+		pass
+		#self.Origin = frame()
+		#self.Origin.visible	= True
 
 	def setRotAxis(self):
 		self.RotAxis = (1,1,1)
 
 	def make_PCPF_referential(self):
-		pass
+		self.Origin = frame()
+		self.Origin.visible	= True
+		self.PCPF = None
 
 
 # CLASS DWARFPLANET -----------------------------------------------------------
 class makeDwarfPlanet(makeBody):
 	def __init__(self, system, key, color):
-		makeBody.__init__(self, system, key, color, DWARFPLANET, DWARFPLANET, DWARFPLANET_SZ_CORRECTION, system.Sun)
+		makeBody.__init__(self, system, key, color, DWARFPLANET, DWARFPLANET, DWARFPLANET_SZ_CORRECTION, None) #system.Sun)
 
 	def setAxisVisibility(self, setTo):
 		pass
@@ -2901,17 +3045,23 @@ class makeDwarfPlanet(makeBody):
 		#DWARFPLANET_SZ_CORRECTION = 1e-2/(DIST_FACTOR*5)
 		return 1e-2/(DIST_FACTOR*5)
 
+	def make_PCPF_referential(self):
+		self.Origin = frame()
+		self.Origin.visible	= True
+		self.PCPF = None
+
+
 # CLASS TRANSNEPTUNIAN --------------------------------------------------------
 class makeTransNeptunian(makeBody):
 	def __init__(self, system, key, color):
-		makeBody.__init__(self, system, key, color, TRANS_NEPT, TRANS_NEPT, SMALLBODY_SZ_CORRECTION, system.Sun)
+		makeBody.__init__(self, system, key, color, TRANS_NEPT, TRANS_NEPT, SMALLBODY_SZ_CORRECTION, None) #system.Sun)
 
 	def setAxisVisibility(self, setTo):
 		pass
 
 	def makeShape(self):
 		self.Origin.pos = vector(self.Position[0],self.Position[1],self.Position[2])
-		self.BodyShape = ellipsoid(	frame=self.Origin, pos=(0,0,0),
+		self.BodyGeometry = ellipsoid(	frame=self.Origin, pos=(0,0,0),
 									length=(self.radiusToShow * randint(10, 20)/10)/self.SizeCorrection[self.sizeType],
 									height=(self.radiusToShow * randint(10, 20)/10)/self.SizeCorrection[self.sizeType],
 									width=(self.radiusToShow * randint(10, 20)/10)/self.SizeCorrection[self.sizeType], make_trail=false)
@@ -2924,9 +3074,9 @@ class makeTransNeptunian(makeBody):
 			self.sizeType = x
 
 		asteroidRandom = [(randint(10, 20)/10, randint(10, 20)/10, randint(10, 20)/10), (1,1,1)]
-		self.BodyShape.length = self.radiusToShow * asteroidRandom[self.sizeType][0] / self.SizeCorrection[self.sizeType]
-		self.BodyShape.height = self.radiusToShow * asteroidRandom[self.sizeType][1] / self.SizeCorrection[self.sizeType]
-		self.BodyShape.width  = self.radiusToShow * asteroidRandom[self.sizeType][2] / self.SizeCorrection[self.sizeType]
+		self.BodyGeometry.length = self.radiusToShow * asteroidRandom[self.sizeType][0] / self.SizeCorrection[self.sizeType]
+		self.BodyGeometry.height = self.radiusToShow * asteroidRandom[self.sizeType][1] / self.SizeCorrection[self.sizeType]
+		self.BodyGeometry.width  = self.radiusToShow * asteroidRandom[self.sizeType][2] / self.SizeCorrection[self.sizeType]
 
 	def initRotation(self):
 		self.RotAngle = pi/512
@@ -2934,8 +3084,13 @@ class makeTransNeptunian(makeBody):
 
 	def animateBodyRotation(self):
 #		self.Origin.pos = vector(self.Position[0],self.Position[1],self.Position[2])
-#		self.BodyShape.rotate(angle=self.RotAngle, axis=self.RotAxis, origin=(0,0,0)) #-sin(alpha), cos(alpha)))
+#		self.BodyGeometry.rotate(angle=self.RotAngle, axis=self.RotAxis, origin=(0,0,0)) #-sin(alpha), cos(alpha)))
 		self.Origin.rotate(angle=self.RotAngle, axis=self.RotAxis) #, origin=(0,0,0)) #-sin(alpha), cos(alpha)))
+
+	def make_PCPF_referential(self):
+		self.Origin = frame()
+		self.Origin.visible	= True
+		self.PCPF = None
 
 
 #
@@ -2976,11 +3131,11 @@ def glbRefresh(solarSystem, animationInProgress):
 		body.refresh()
 
 def hideBelt(beltname):
-	beltname.BodyShape.visible = false
+	beltname.BodyGeometry.visible = false
 	beltname.Labels[0].visible = false
 
 def showBelt(beltname):
-	beltname.BodyShape.visible = true
+	beltname.BodyGeometry.visible = true
 	beltname.Labels[0].visible = true
 
 def getColor():
@@ -3411,31 +3566,10 @@ def get_planet_pole_parameters(planet_name, T, d):
     alpha0 = alpha0_j2000 + alpha0_dot * T
     delta0 = delta0_j2000 + delta0_dot * T
 
-    """
-    # Add periodic terms for specific planets
-    if planet_name == "Jupiter":
-        # Ja angle in degrees
-        #Ja = 286.098 + 879.792 * d
-        Ja = 99.360714 + 4850.4046 * T
-        Jb = 175.895369 + 1191.9605 * T 
-        Jc = 300.323162 + 262.5475 * T
-        Jd = 114.012305 + 6070.2476 * T
-        Je = 49.511251 + 64.3000 * T
-        Ja_rad = np.radians(Ja)
-        Jb_rad = np.radians(Jb)
-        Jc_rad = np.radians(Jc)
-        Jd_rad = np.radians(Jd)
-        Je_rad = np.radians(Je)
-        alpha0 += 0.000117 * np.sin(Ja_rad) + 0.000938 * np.sin(Jb_rad) + \
-				  0.001432 * np.sin(Jc_rad) + 0.000030 * np.sin(Jd_rad) + 0.002150 * np.sin(Je)
-
-        delta0 += 0.000050 * np.cos(Ja_rad) + 0.000404 * np.cos(Jb_rad) + \
-				  0.000617 * np.cos(Jc_rad) - 0.000013 * np.cos(Jd_rad) + 0.000926 * np.cos(Je)
-    elif planet_name == "Pluto":
-        # Based on IAU 2009, Pluto's pole has only linear time dependence.
-        # No additional periodic terms are commonly provided in this format.
-        pass # Already handled by linear terms
-	"""
+    # additional periodic terms will be used to adjust the current values 
+    # of RA (alpha0) and DECL (delta0) for Jupiter and Neptune by overwriting 
+    # the " AdjustNPforPeriodicTerms" method of the makeBody class, which by
+    # default leaves RA and DECL unchanged. 
 
     return alpha0, delta0
 
@@ -3446,51 +3580,39 @@ def get_planet_prime_meridian_W(planet_name, d):
     # W is measured eastward along the planet's equator from the ascending node
     # on the Earth's mean equator of J2000.0.
     
-    # W = W0 + W_dot * d + sum(A_i * sin(M_i))
+    # W = W0 + W_dot * d
     # W0 is the angle at J2000.0, W_dot is the daily rate.
     # d is days from J2000.0.
-    # M_i are arguments of periodic terms.
 
     # Simplified to linear terms and major periodic terms where applicable.
     # For full precision, more periodic terms for some planets would be needed.
     
     prime_meridian_data = {
-        "Sun":       (84.176, 14.1844000, []),
-        "Mercury":   (329.5469, 6.1385025, [
-            (0.00993822, 174.7948 + 17179159.230*d/360.0),  # M1
-            (-0.00104581, 349.5896 + 34358318.460*d/360.0), # M2
-            (-0.00010280, 164.3844 + 51537477.690*d/360.0), # M3
-            (-0.00002364, 339.1792 + 68716636.920*d/360.0), # M4
-            (-0.00000532, 153.9740 + 85895796.150*d/360.0)  # M5
-        ]),
-        "Venus":     (160.20, -1.4813688, []), 	 # Retrograde rotation, W decreases
-        "Earth":     (190.147, 360.9856235, []), # Earth's prime meridian (Greenwich)
-        "Mars":      (176.630, 350.89198226, []),
-#        "Jupiter":   (268.056595, 879.792, []),  # W for Jupiter is often given as alpha0, but here we use the specific W formula
-        "Jupiter":   (284.95, 870.536, []),  # W for Jupiter is often given as alpha0, but here we use the specific W formula
-#        "Saturn":    (40.589, 810.7939024, []),
-        "Saturn":    (38.90,  810.7939024, []),
-#        "Uranus":    (257.31, 810.7939024, []),  # Retrograde rotation, but W increases
-        "Uranus":    (203.81, -501.1600928, []),  # Retrograde rotation, but W increases
-#        "Neptune":   (299.36, 810.7939024, []),
-        "Neptune":   (253.18, 536.3128492, []),
-        "Pluto":     (313.02, 56.3625225, [])
+        "Sun":       (84.176,   14.1844000),
+        "Mercury":   (329.5469,  6.1385025),
+        "Venus":     (160.20,   -1.4813688), # Retrograde rotation, W decreases
+        "Earth":     (190.147, 360.9856235), # Earth's prime meridian (Greenwich)
+        "Mars":      (176.630, 350.89198226),
+        "Jupiter":   (284.95,  870.536),  	 # W for Jupiter is often given as alpha0, but here we use the specific W formula
+        "Saturn":    (38.90,   810.7939024),
+        "Uranus":    (203.81, -501.1600928), # Retrograde rotation, but W increases
+        "Neptune":   (253.18,  536.3128492),
+        "Pluto":     (313.02,   56.3625225)
     }
 
     if planet_name not in prime_meridian_data:
         raise ValueError("Prime meridian data for {planet_name} not available.")
 
-    W0, W_dot, periodic_terms = prime_meridian_data[planet_name]
+    W0, W_dot = prime_meridian_data[planet_name]
 
     W = W0 + W_dot * d
-
-    for amplitude, argument_deg_per_cycle in periodic_terms:
-        W += amplitude * np.sin(np.radians(argument_deg_per_cycle))
 
     # Normalize W (ensure its value is within 0-360 degrees)
     W = W % 360.0
     if W < 0:
         W += 360.0
+
+    #print planet_name, ": W=", W
     return W
 
 
@@ -3516,61 +3638,6 @@ def apply_rotation(vector, matrix):
     """
     return np.dot(matrix, vector)
 
-def get_all_planet_data_ecliptic_with_perturbations(year, month, day, hour=0, minute=0, second=0):
-    """
-    Calculates the north pole direction for all major planets for a given date
-    in the J2000 ecliptic coordinate system, including perturbations,
-    and their prime meridian angle W.
-    """
-    jd = julian_date_manual(year, month, day, hour, minute, second)
-    T = calculate_T_from_jd(jd)
-    d = calculate_d_from_jd(jd)
-
-    # Obliquity of the ecliptic for J2000.0 (in degrees)
-    obliquity_ecliptic_deg = 23.43928
-    obliquity_ecliptic_rad = np.radians(obliquity_ecliptic_deg)
-
-    # Rotation matrix from J2000 Equatorial to J2000 Ecliptic
-    eq_to_ecl_matrix = rotation_matrix_x(-obliquity_ecliptic_rad)
-
-    planets = ["Sun", "Mercury", "Venus", "Earth", "Mars", "Jupiter", "Saturn", "Uranus", "Neptune", "Pluto"]
-    planet_data_results = {}
-
-    # Re-using Omega values from the provided table for consistency with the request
-    # These are standard IAU parameters for the ecliptic longitude of the ascending node of the equator.
-    omega_values = {
-        "Sun": 345.717, "Mercury": 318.528, "Venus": 27.502, "Earth": 89.642,
-        "Mars": 352.883, "Jupiter": 272.072, "Saturn": 80.009, "Uranus": 18.232,
-        "Neptune": 320.083, "Pluto": 318.472
-    }
-
-    for planet in planets:
-        try:
-            # Get pole parameters in J2000 Equatorial, including perturbations
-            alpha0_eq, delta0_eq = get_planet_pole_parameters(planet, T, d)
-            pole_vector_eq = equatorial_to_cartesian_vector(alpha0_eq, delta0_eq)
-
-            # Transform to J2000 Ecliptic
-            pole_vector_ecl = apply_rotation(pole_vector_eq, eq_to_ecl_matrix)
-
-            # Get prime meridian angle W
-            W_angle = get_planet_prime_meridian_W(planet, d)
-
-            # Get Omega angle
-            Omega_angle = omega_values.get(planet, np.nan) # Use np.nan for missing values
-
-            # add Orientation data set to planet result
-
-            planet_data_results[planet] = {
-                "pole_vector_ecl": pole_vector_ecl,
-                "W_angle": W_angle,
-                "Omega_angle": Omega_angle
-            }
-
-        except ValueError as e:
-            planet_data_results[planet] = "Error: {e}"
-
-    return planet_data_results
 
 """
 # --- Example Usage ---
@@ -3721,3 +3788,97 @@ def getJ2000EclipticSunCoordinates():
 
 	print("The Sun's coordinates in the J2000 Ecliptic referential are: ",sun_pos_j2000)
 	print("The barycenter's coordinates in this referential are: ",barycenter_pos_j2000)
+
+
+def get_moon_position_precise(dt):
+    """
+    Calculates the more precise geocentric Cartesian coordinates (x, y, z)
+    of the Moon for a given datetime object.
+
+    This function uses a more detailed astronomical model, including
+    more terms for the Moon's orbital elements. The output is in a
+    geocentric equatorial reference frame.
+
+    Args:
+        dt (datetime): The date and time for which to calculate the position.
+
+    Returns:
+        tuple: A tuple (x, y, z) of the Moon's Cartesian coordinates in kilometers.
+    """
+    # === Step 1: Calculate Julian Day and Epoch Time ===
+    year = dt.year
+    month = dt.month
+    day = dt.day + dt.hour / 24.0 + dt.minute / (24.0 * 60.0) + dt.second / (24.0 * 3600.0)
+
+    if month <= 2:
+        year -= 1
+        month += 12
+
+    a = math.floor(year / 100)
+    b = 2 - a + math.floor(a / 4)
+    jd = math.floor(365.25 * (year + 4716)) + math.floor(30.6001 * (month + 1)) + day + b - 1524.5
+
+    # Time since J2000.0 epoch in Julian centuries
+    t = (jd - 2451545.0) / 36525.0
+
+    # === Step 2: More Precise Lunar Orbital Calculations (Simplified Ecliptic Coordinates) ===
+    # Using more terms for a more accurate result.
+    
+    # Mean longitude of the Moon (degrees)
+    L0 = 218.3164477 + 481267.88123421 * t - 0.00157864 * t**2 + t**3 / 189474.0 - t**4 / 189474000.0
+    L0 = math.fmod(L0, 360)
+
+    # Mean anomaly of the Moon (degrees)
+    M = 134.9634114 + 477198.86763 * t + 0.008997 * t**2 + t**3 / 69699.0 - t**4 / 14712000.0
+    M = math.fmod(M, 360)
+
+    # Elongation of the Moon from the Sun (degrees)
+    D = 297.8501921 + 445267.11152 * t - 0.00163004 * t**2 + t**3 / 545860.0 - t**4 / 153300000.0
+    D = math.fmod(D, 360)
+
+    # Mean anomaly of the Sun (degrees)
+    M_sun = 357.5291092 + 35999.05029 * t - 0.0001536 * t**2 + t**3 / 24490000.0
+    M_sun = math.fmod(M_sun, 360)
+
+    # Longitude of the Moon's ascending node (degrees)
+    F = 93.2720993 + 483202.01753 * t - 0.00368257 * t**2 + t**3 / 327270.0 + t**4 / 4300000.0
+    F = math.fmod(F, 360)
+    
+    # Arguments in radians for trigonometric functions
+    M_rad = math.radians(M)
+    M_sun_rad = math.radians(M_sun)
+    D_rad = math.radians(D)
+    F_rad = math.radians(F)
+
+    # Ecliptic longitude terms (degrees)
+    ecliptic_longitude = L0 + (6.289 * math.sin(M_rad)) + (1.274 * math.sin(2 * D_rad - M_rad)) + \
+                         (0.658 * math.sin(2 * D_rad)) + (0.214 * math.sin(2 * M_rad))
+    ecliptic_longitude = math.fmod(ecliptic_longitude, 360)
+    if ecliptic_longitude < 0:
+        ecliptic_longitude += 360
+
+    # Ecliptic latitude terms (degrees)
+    ecliptic_latitude = (5.128 * math.sin(F_rad)) + (0.280 * math.sin(M_rad + F_rad))
+    
+    # Distance terms (kilometers)
+    distance_km = 384400.0 * (1 - 0.0549 * math.cos(M_rad) - 0.00412 * math.cos(2*M_rad) - 0.00282 * math.cos(2*D_rad-M_rad))
+    
+    # === Step 3: Convert from Ecliptic to Cartesian Equatorial Coordinates ===
+    lambda_rad = math.radians(ecliptic_longitude)
+    beta_rad = math.radians(ecliptic_latitude)
+    
+    # Obliquity of the Ecliptic (tilt of the Earth's axis) in degrees
+    epsilon_degrees = 23.439 - 0.013 * t
+    epsilon_rad = math.radians(epsilon_degrees)
+
+    # Calculate x, y, z in geocentric ecliptic coordinates
+    x_ecliptic = distance_km * math.cos(beta_rad) * math.cos(lambda_rad)
+    y_ecliptic = distance_km * math.cos(beta_rad) * math.sin(lambda_rad)
+    z_ecliptic = distance_km * math.sin(beta_rad)
+
+    # Convert from ecliptic to equatorial Cartesian coordinates using the obliquity
+    x_eq = x_ecliptic
+    y_eq = y_ecliptic * math.cos(epsilon_rad) - z_ecliptic * math.sin(epsilon_rad)
+    z_eq = y_ecliptic * math.sin(epsilon_rad) + z_ecliptic * math.cos(epsilon_rad)
+
+    return x_eq, y_eq, z_eq

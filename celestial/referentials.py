@@ -17,15 +17,20 @@ class makeBasicReferential:
 
     def  __init__(self, params):
         # axisLock is used when the referential needs to have its axis linked to the frame
-        self.referential        = frame()
+        self.referential        = None
         self.body               = None
         #self.tiltAngle          = params['tiltangle']
-        self.referential.pos    = (0,0,0)
 
         self.NPole              = vector(0,0,1)
         self.W                  = 0
         self.Omega              = 0
         self.RotAxis            = self.NPole
+
+        if 'parent_frame' in params and params['parent_frame'] != None:
+            self.referential = frame(pos=(0,0,0), frame=params['parent_frame'])
+        else:
+            # that should not happen
+            self.referential = frame(pos=(0,0,0))
 
         if 'name' in params:
             print "creating "+ params['name']
@@ -35,46 +40,6 @@ class makeBasicReferential:
             self.W     = params['orientation']['w_angle']
             self.Omega = params['orientation']['omega_angle']
 
-
-#        self.defaultZAxis    = params['default_zaxis']
-
-        #self.frame              = self.referential #if axisLock == True else None
-        #cosv = cos(tiltAngle)
-        #sinv = sin(tiltAngle)
-        
-        #self.Rotation_Obliquity = np.matrix([
-        #    [1,			0,		0	],
-        #    [0,			cosv,   sinv],
-        #    [0,			-sinv, 	cosv]]
-        #)
-
-        #cosv = cos(self.tiltAngle)
-        #sinv = sin(self.tiltAngle)
-        #self.defaultZaxis = vector(0, sin(self.tiltAngle), cos(self.tiltAngle))
-
-        """
-        if False:
-            # this rotation happens around the x-axis
-            self.Rotation_Obliquity = np.matrix([
-                [1,			0,		0	],
-                [0,			cosv,   sinv],
-                [0,			-sinv, 	cosv]]
-            )
-
-    #		directions = [vector(1, 0, 0), vector(0, 1, 0), vector(0, 0, 1)]
-    #		for i in range (3)
-    #			A = np.matrix([[directions[i][0]],[directions[i][1]],directions[i][2]]], np.float64)
-    #			directions[i] = self.Rotation_Obliquity * A
-
-    #		return directions[2]
-            A = np.matrix([[0],[0],[1]], np.float64)
-            self.defaultZaxis = self.Rotation_Obliquity * A
-            self.defaultZaxis = self.defaultZaxis/mag(self.defaultZaxis)
-            print "default Z-AXIS = ", self.defaultZaxis
-            print "MANUALLY: = ",[0, sinv, cosv]
-
-        """    
-
         if params['body'] is not None:
             self.body               = params['body']
 #            radius                  = self.body.radiusToShow/self.body.SizeCorrection[self.body.sizeType]
@@ -82,45 +47,8 @@ class makeBasicReferential:
             #if body.Name.lower() not in objects_data.keys():
             #    return
 
-
-        # based on whether or not we want our 3 axis locked with frame, set position absolutely or relatively
-#        position = self.referential.pos# if self.frame == None else vector(0,0,0)
-
-#        self.referential.rotate(angle=(initialRotation), axis=(1,0,0))
-
-#        size = radius * 2
-#        self.directions = [vector(size*params['ratio'][0], 0, 0), vector(0, size*params['ratio'][1], 0), vector(0, 0, size*params['ratio'][2])]
-#        ve = 0.2
-#        if size < radius:
-#            ve = 0.4
-
-#        if tilt:
-#            #self.referential.rotate(angle=(-body.TiltAngle), axis=(1,0,0))
-#            self.referential.rotate(angle=(-body.TiltAngle), axis=(1,0,0))
-#        if self.makeAxis ==  True:
-#            position = vector(0,0,0)
-#            for i in range (3): # Each direction
-                #A = np.matrix([[self.directions[i][0]],[self.directions[i][1]],[self.directions[i][2]]], np.float64)
-                #self.directions[i] = self.Rotation_Obliquity * A
-
-#                self.Axis[i] = simpleArrow(params['color'], 0, 20, position, axisp = self.directions[i], context=self.referential)
-#                self.Axis[i].display(False) # allows axis visibility to be dependent upon their frame visibility when axisLock = True
-#                self.AxisLabel[i] = label( frame = self.referential, color = params['color'],  text = params['legend'][i],
-                                            #pos = self.referential.pos+self.directions[i]*(1.07+ve), opacity = 0, box = False, visible=show )
-#                                            pos = position+self.directions[i]*(1.07+ve), opacity = 0, box = False, visible=False )
-#                ve = 0.07 #####
-
-            #ZdirectionVec = self.Axis[2].pos[1]-self.Axis[2].pos[0]
-            #YdirectionVec = self.Axis[1].pos[1]-self.Axis[1].pos[0]
-            #XdirectionVec = self.Axis[0].pos[1]-self.Axis[0].pos[0]
-
-            #self.ZdirectionUnit = ZdirectionVec/mag(ZdirectionVec)
-            #self.YdirectionUnit = YdirectionVec/mag(YdirectionVec)
-            #self.XdirectionUnit = XdirectionVec/mag(XdirectionVec)
-
-            #self.RotAxis = self.ZdirectionUnit
-
         self.display(params['show'])
+
 
     def display(self, trueFalse):
         self.referential.visible = trueFalse
@@ -128,9 +56,8 @@ class makeBasicReferential:
     def setAxisOrientation(self, pole_vec):
         pass
 
-    def setAxisTilt(self): #, rightAscension):
-        print "BASIC-REF::setAxisTilt: NPole: ", self.NPole
-        
+    def setAxisTilt(self): 
+        # determine north pole to set axis of rotation
         if is_zero_vector_epsilon(self.NPole) == False:
 
             self.setNorthPole(self.NPole)
@@ -138,14 +65,6 @@ class makeBasicReferential:
         else:
             print "BASIC-REF::setAxisTilt: No North Pole"
 
-        """
-        self.referential.rotate(angle=(self.tiltAngle), axis=(1,0,0))
-        if rightAscension != 0:
-            print "Basic: Adjusting axis direction by ", rightAscension%360, " degrees"
-            self.referential.rotate(angle=deg2rad(rightAscension), axis=(0,0,1), origin=(self.body.Position[0]+self.body.Foci[0],self.body.Position[1]+self.body.Foci[1],self.body.Position[2]+self.body.Foci[2]))
-
-        self.ZdirectionUnit = self.RotAxis = self.body.getRotAxis() #vector(0, sin(self.tiltAngle), cos(self.tiltAngle))
-        """
 
     def updateReferential(self):
         self.referential.pos = self.body.Position
@@ -155,7 +74,6 @@ class makeBasicReferential:
 
     def setNorthPole(self, NorthPoleVector):
 
-        #print "SetNP in Simple REF for ", self.body.Name
         J2000_Ecliptic_North = np.array([0, 0, 1])
 
         # initialize the direction of North Pole for this body
@@ -211,19 +129,24 @@ class make3DaxisReferential:
 
     def  __init__(self, params):
         # axisLock is used when the referential needs to have its axis linked to the frame
-        self.referential        = frame()
+        self.referential        = None
         self.Axis 		        = [None,None,None]
         self.AxisLabel 	        = ["","",""]
         self.body               = None
 
-        self.referential.pos    = (0,0,0)
         self.rotMatrix          = None
         self.NPole              = vector(0,0,0)
         self.W                  = 0
         self.Omega              = 0
         self.RotatingSign       = 1
-
+ 
         radius                  = params['radius']
+
+        if 'parent_frame' in params and params['parent_frame'] != None:
+            self.referential = frame(pos=(0,0,0), frame=params['parent_frame'])
+        else:
+            # this should not happen
+            self.referential = frame(pos=(0,0,0))
 
         if 'name' in params:
             print "creating 3D "+ params['name']
@@ -268,17 +191,11 @@ class make3DaxisReferential:
             #    return
 
 
-        # based on whether or not we want our 3 axis locked with frame, set position absolutely or relatively
-#        position = self.referential.pos# if self.frame == None else vector(0,0,0)
-
-#        self.referential.rotate(angle=(initialRotation), axis=(1,0,0))
-
         # create an array of vectors, each for a dimension of the 3D space
         size = radius * 2
         self.directions = [ vector(size*params['ratio'][0], 0, 0), 
                             vector(0, size*params['ratio'][1], 0), 
                             vector(0, 0, size*params['ratio'][2])]
-
 
         # Set the direction of the North Pole according 
         # to the orientation of the rotation 
@@ -342,6 +259,7 @@ class make3DaxisReferential:
         # set North Pole for main planets and Sun, and for other objects
         # such as PHAs, Comets, Asteroids, set some arbitrary values
         Npole = vector(0,0,0)
+
         if is_zero_vector_epsilon(self.NPole) == False:
             print "3DAXIS-REF::setAxisTilt: NPole = ", self.NPole
 
@@ -351,9 +269,8 @@ class make3DaxisReferential:
         else:
             print "3DAXIS-REF::setAxisTilt: No North Pole"
 
-            # if we reach here, it means that we don't have a valid north pole
-            # information. 
-            #rightAscension = 0
+            # if we reach here, it means that we don't 
+            # have a valid north pole information. 
             
             # rotate referential first
             """

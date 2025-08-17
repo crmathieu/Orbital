@@ -10,6 +10,31 @@ class makeMercury(makePlanet):
 	def __init__(self, system, Color, ptype, sizeCorrectionType, defaultSizeCorrection):
 		makePlanet.__init__(self, system, "mercury", Color, ptype, sizeCorrectionType, defaultSizeCorrection)
 
+	def AdjustPMforPeriodicTerms(self, W, T, d):
+
+		# For Mercury, we need adjust extra periodic terms:
+    	# W += sum(A_i * sin(M_i))
+    	# M_i are arguments of periodic terms.
+
+		periodicTerms = [ # A_i, M_i
+            ( 0.00993822, 174.7948 + 17179159.230*d/360.0), # M1
+            (-0.00104581, 349.5896 + 34358318.460*d/360.0), # M2
+            (-0.00010280, 164.3844 + 51537477.690*d/360.0), # M3
+            (-0.00002364, 339.1792 + 68716636.920*d/360.0), # M4
+            (-0.00000532, 153.9740 + 85895796.150*d/360.0)  # M5
+        ]		
+
+		# take into account periodic terms in the W calculation
+		for amplitude, argument_deg_per_cycle in periodicTerms:
+			W += amplitude * np.sin(np.radians(argument_deg_per_cycle))
+
+		# Normalize W (ensure its value is within 0-360 degrees)
+		W = W % 360.0
+		if W < 0:
+			W += 360.0
+		#print "Mercury: adjusting W to ", W
+		return W
+
 
 class makeVenus(makePlanet):
 	

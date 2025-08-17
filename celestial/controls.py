@@ -527,7 +527,7 @@ class FOCUSpanel(AbstractUI):
 				#print "MAKING OBJECT VISIBLE"
 				# if the body is not visible, Make it so
 				#print "Making "+Body.Name+" visible! bodyType = "+str(Body.BodyType)
-				#for i in range(len(body.BodyShape)):
+				#for i in range(len(body.BodyGeometry)):
 
 				Body.Origin.visible = True
 				Body.Labels[0].visible = True
@@ -1231,7 +1231,7 @@ class ORBITALpanel(AbstractUI):
 			#print "Current body SET-1 with ", self.currentBody.Name, "Origin=",self.currentBody.Origin.pos
 			#print ""
 			self.showObjectDetails(self.currentBody)
-			print "\nBODY:",body.Name, "\nposition=",body.Position, "\nbody.pos=",body.BodyShape.pos, "\nlabels.pos=", body.Labels[0].pos, "\norigin.pos=",body.Origin.pos
+			print "\nBODY:",body.Name, "\nposition=",body.Position, "\nbody.pos=",body.BodyGeometry.pos, "\nlabels.pos=", body.Labels[0].pos, "\norigin.pos=",body.Origin.pos
 		else:
 			print "SetCurrentBodyFromId: could not find", id
 		#print "Current body SET-2 with ", self.currentBody.Name, "Origin=",self.currentBody.Origin.pos
@@ -1434,10 +1434,10 @@ class ORBITALpanel(AbstractUI):
 
 		#self.SolarSystem.Scene.forward = (0, 0, -1)
 		# For a planet, Foci(x, y, z) is (0,0,0). For a moon, Foci represents the position of the planet the moon orbits around
-		####surfaceRadius = (1.1 * self.SolarSystem.cameraViewTargetBody.BodyShape.radius) if self.SolarSystem.SurfaceView == True else 0
+		####surfaceRadius = (1.1 * self.SolarSystem.cameraViewTargetBody.BodyGeometry.radius) if self.SolarSystem.SurfaceView == True else 0
 		surfaceRadius = 0.0
 		if self.SolarSystem.SurfaceView == True:
-			surfaceRadius = (1.3 * self.SolarSystem.cameraViewTargetBody.BodyShape.radius)
+			surfaceRadius = (1.3 * self.SolarSystem.cameraViewTargetBody.BodyGeometry.radius)
 		#print "surfaceRadius = ", surfaceRadius
 
 		self.SolarSystem.Scene.center = (
@@ -1487,7 +1487,7 @@ class ORBITALpanel(AbstractUI):
 		# For a planet, Foci(x, y, z) is (0,0,0). For a moon, Foci represents the 
 		# position of the planet the moon orbits around in the ecliptic referential
 
-		######self.surfaceRadius = (1.1 * self.SolarSystem.cameraViewTargetBody.BodyShape.radius) if self.SolarSystem.SurfaceView == True else 0
+		######self.surfaceRadius = (1.1 * self.SolarSystem.cameraViewTargetBody.BodyGeometry.radius) if self.SolarSystem.SurfaceView == True else 0
 		#print "UPDATING Scene Center with ViewTarget origin"
 		self.SolarSystem.Scene.center = (
 			self.SolarSystem.cameraViewTargetBody.Position[0] + self.SolarSystem.cameraViewTargetBody.Foci[0],
@@ -1763,7 +1763,7 @@ class ORBITALpanel(AbstractUI):
 
 		############ self.refreshDate() 
 
-		#for i in range(len(body.BodyShape)):
+		#for i in range(len(body.BodyGeometry)):
 		print ">>>>DETAILS:\norigin.pos=", body.Origin.pos, "\nlabel.pos", body.Labels[0].pos
 		body.Origin.visible = True
 		for i in range(len(body.Labels)):
@@ -1824,7 +1824,7 @@ class ORBITALpanel(AbstractUI):
 		self.resetSlideShow()
 
 	def hideCurrentObject(self, body):
-		#body.BodyShape.visible = False
+		#body.BodyGeometry.visible = False
 		body.Origin.visible = False
 		for i in range(len(body.Labels)):
 			body.Labels[i].visible = False
@@ -2594,7 +2594,7 @@ class WIDGETSpanel(AbstractUI):
 	def OnCenterToSurface(self, e):
 		# focus on surface rather than center
 		self.SolarSystem.SurfaceView = self.flcb.GetValue()
-		self.parentFrame.orbitalTab.surfaceRadius = (1.1 * self.SolarSystem.cameraViewTargetBody.BodyShape.radius) if self.SolarSystem.SurfaceView == True else 0
+		self.parentFrame.orbitalTab.surfaceRadius = (1.1 * self.SolarSystem.cameraViewTargetBody.BodyGeometry.radius) if self.SolarSystem.SurfaceView == True else 0
 
 		#self.SolarSystem.SurfaceDirection[0] = 0		
 		#self.SolarSystem.SurfaceDirection[1] = 0		
