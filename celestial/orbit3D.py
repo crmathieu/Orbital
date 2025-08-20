@@ -817,22 +817,23 @@ class makeBody:
 		# towards periapsis. Make sure to convert degree to radians before using
 		# any sin or cos function
 
-		self.setPolarCoordinates(deg2rad(self.E))
+		self.R, self.Nu = self.setPolarCoordinates(deg2rad(self.E))
+
 
 		# calculate current position of body on its orbit knowing
 		# its current distance from Sun (R) and angle (Nu) that
-		# were set up in setPolarCoordinates
+		# were set up by setPolarCoordinates
 
 		self.N = deg2rad(self.Longitude_of_ascendingnode)
 		self.w = deg2rad(self.Argument_of_perihelion)
 		self.i = deg2rad(self.Inclination)
 
 
-		# convert polar to Cartesian in Sun referential
+		# convert polar to Cartesian in body referential. It is the J2000 ecliptic
+		# for planets and asteroids, and a planet's own PCPF referential for moons
+		# of this planet
 
 		self.Position = self.setCartesianCoordinates()
-
-		##### self.shape = BodyGeometryr[bodyType]
 
 		# set North Pole orientation and angular distance 
 		# of Prime Meridian wirh DESC node
@@ -1107,20 +1108,22 @@ class makeBody:
 		if self.BodyGeometry is not None:
 			# determine what the reference frame is:
 
-			referenceFrame = self.SolarSystem.RootFrame
+			referenceFrame = self.SolarSystem.RootFrame	# default is J2000 ecliptic ref
 			if self.CentralBody != None:
 				#raw_input("ZOB")
-				referenceFrame = self.CentralBody.TrackingFrame
+				referenceFrame = self.CentralBody.TrackingFrame # for a moon, the referential is its planet tracking frame 
 
-			# create an orbit in the solar system central referential
+			# create an orbit either in the J2000 ecliptic referential centered 
+			# in the SS Barycenter or a planet centric ecliptic referential
+
 			self.Trail = curve(frame=referenceFrame, Color=(self.Color[0]*0.8, self.Color[1]*0.8, self.Color[2]*0.8))
 
 			self.Trail.visible=True
 #			self.Trail.append(pos=self.Origin.pos)
 			self.Trail.append(pos=self.Position)
-
 			return True
 		else:
+
 			print "Failed to initiate orbit for ", self.Name
 			return False
 
@@ -1165,7 +1168,8 @@ class makeBody:
 		# update position
 
 		self.updateOrbitalElements(self.ObjectIndex, timeIncrement)
-		self.setPolarCoordinates(deg2rad(self.E))
+		self.R, self.Nu = self.setPolarCoordinates(deg2rad(self.E))
+
 
 		# calculate current body position in its orbit knowing
 		# its current distance from Sun (R) and True anomaly (Nu)
@@ -1238,7 +1242,11 @@ class makeBody:
 		self.Initial_longitude_of_ascendingNode = self.Longitude_of_ascendingnode
 
 		# calculate current position based on orbital elements
-		self.updateBodyPosition(timeincrement)
+		#self.updateBodyPosition(timeincrement)
+		success, self.E, dE, it = self.updateBodyPosition(timeincrement)
+		if success == False:
+			print (self.Name+" Warning Could not converge - E = "+str(self.E))
+
 		"""
 		#dT = daysSinceEpochJD(self.Epoch) + timeincrement # timeincrement comes in days
 		
@@ -1265,6 +1273,7 @@ class makeBody:
 
 		self.Longitude_of_ascendingnode = self.Initial_longitude_of_ascendingNode
 		self.updateBodyPosition(timeincrement)
+
 
 	def updateBodyPosition(self, timeIncrement):
 
@@ -1420,7 +1429,9 @@ class makeBody:
 		# angulars steps looping between 0 to 2PI
 
 		for E in np.arange(0, 2*pi+increment, increment):
-			self.setPolarCoordinates(E+rad_E)
+			#self.setPolarCoordinates(E+rad_E)
+			self.R, self.Nu = self.setPolarCoordinates(E+rad_E)
+
 
 			# from R and Nu, calculate 3D coordinates 
 			# and update current position
@@ -1435,14 +1446,21 @@ class makeBody:
 
 
 	def setPolarCoordinates(self, E_rad):
+
+		# given the provided Excentric Anomaly E, we can calculate
+		# the coordinates X,Y of the body and its in the orbit plane 
+		# by using the semi-major a and the orbit excentricity e 
+		# using the formulas:
+
 		X = self.a * (cos(E_rad) - self.e)
 		Y = self.a * sqrt(1 - self.e**2) * sin(E_rad)
 
 		# Now calculate current 
 		# Radius and true Anomaly
-		
-		self.R = sqrt(X**2 + Y**2)
-		self.Nu = atan2(Y, X)
+
+		return sqrt(X**2 + Y**2), atan2(Y, X)
+		#self.R = sqrt(X**2 + Y**2)
+		#self.Nu = atan2(Y, X)
 
 		# Note that atan2 returns an angle in
 		# radian, so Nu is always in radian
@@ -1674,8 +1692,9 @@ class makeSun(makeBody):
 		self.hasRenderedOrbit = True
 		
 	def setPolarCoordinates(self, E_rad):
-		self.R = 0
-		self.Nu = 0
+		return 0.0, 0.0 
+		#self.R = 0
+		#self.Nu = 0
 
 	def getCurrentVelocity(self):
 		return 0
@@ -2355,12 +2374,11 @@ class makeSatellite(makeBody):
 		self.isMoon = True
 		#self.setTrackingFrame(centralBody)
 		print "MOON::::::position:", self.Position
+		print "MOON::::::restting to zero:"
+		#self.Position = (344000,0,0)
 
-	def updateBodyPosition(self, timeIncrement):
+	def updateBodyPosition2(self, timeIncrement):
 		# this overwrites the default makeBody::updateBodyPosition
-		print "zobby "
-		return
-
 		# calculate current position based on orbital 
 		# elements (timeIncrement comes in days as a float)
 		
@@ -2417,13 +2435,15 @@ class makeSatellite(makeBody):
 
 	
 		for E in np.arange(increment, 2*pi+increment, increment):
-			self.setPolarCoordinates(E+rad_E)
+			#self.setPolarCoordinates(E+rad_E)
+			self.R, self.Nu = self.setPolarCoordinates(E+rad_E)
 			# from R and Nu, calculate 3D coordinates and update current position
 			self.drawSegment(trace =True) #E*180/pi, False)
 			
 			#### rate(5000) # ?!
 
 		self.hasRenderedOrbit = True
+
 
 # CLASS HYBERBOLIC ------------------------------------------------------------
 class hyperbolic(makeBody):
@@ -2454,12 +2474,14 @@ class hyperbolic(makeBody):
 		self.BodyGeometry.radius = self.radiusToShow  / self.SizeCorrection[self.sizeType]
 
 	def setPolarCoordinates(self, E_rad):
+		# TBD
 		# calculate coordinates for an hyperbolic curve
 		X = self.a * (cos(E_rad) - self.e)
 		Y = self.a * sqrt(1 - self.e**2) * sin(E_rad)
+
 		# Now calculate current Radius and true Anomaly
-		self.R = sqrt(X**2 + Y**2)
-		self.Nu = atan2(Y, X)
+		return sqrt(X**2 + Y**2), atan2(Y, X)
+		
 		# Note that atan2 returns an angle in
 		# radian, so Nu is always in radian
 
@@ -2470,7 +2492,9 @@ class hyperbolic(makeBody):
 		increment = self.getIncrement()
 
 		for E in np.arange(increment, 2*pi+increment, increment):
-			self.setPolarCoordinates(E+rad_E)
+			#self.setPolarCoordinates(E+rad_E)
+			self.R, self.Nu = self.setPolarCoordinates(E+rad_E)
+
 			# from R and Nu, calculate 3D coordinates and update current position
 			self.drawSegment(trace = False) #E*180/pi, False)
 			
@@ -2517,7 +2541,9 @@ class makeGenericSpacecraft(makeBody):
 
 		# update position
 		self.setOrbitalElements(self.ObjectIndex, timeIncrement)
-		self.setPolarCoordinates(deg2rad(self.E))
+		#self.setPolarCoordinates(deg2rad(self.E))
+		self.R, self.Nu = self.setPolarCoordinates(deg2rad(self.E))
+
 
 		# initial acceleration
 		#self.Acceleration = vector(0,0,0)
@@ -3141,15 +3167,6 @@ def showBelt(beltname):
 def getColor():
 	return { 0: Color.white, 1: Color.red, 2: Color.orange, 3: Color.yellow, 4: Color.cyan, 5: Color.magenta, 6: Color.green}[randint(0,6)]
 
-def bessel_E(M, e, depth):
-
-	# Calculates Eccentric Anomaly (E) given the mean anomaly (M) 
-	# and the depth of the Bessel first kind functions
-
-    return (M + sum(2.0 / n * sp.jv(n, n * e) * np.sin(n * M)
-                    for n in range(1, depth, 1)))
-
-
 def solveKepler(M, e, depth, precision = 1.e-8):
 
 	# Calculates Eccentric Anomaly (E) given the mean anomaly (M), the depth and the
@@ -3169,6 +3186,15 @@ def solveKepler(M, e, depth, precision = 1.e-8):
 		if it > depth:
 			return False, rad2deg(E0), rad2deg(E1-E0), it
 		E0 = E1
+
+def bessel_E(M, e, depth):
+
+	# Alternate method to solve the kepler equation:
+	# calculates Eccentric Anomaly (E) given the mean anomaly (M) 
+	# and the depth of the Bessel first kind functions
+
+    return (M + sum(2.0 / n * sp.jv(n, n * e) * np.sin(n * M)
+                    for n in range(1, depth, 1)))
 
 def toRange (angle):
 	n = angle % 360
