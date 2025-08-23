@@ -26,6 +26,10 @@ class makeBasicReferential:
         self.Omega              = 0
         self.RotAxis            = self.NPole
 
+        # create a frame for this referential. This frame should be linked to the J2000
+        # ecliptic ref if it is a normal body, or a planet trackingFrame referential if 
+        # is orbiting a central body
+
         if 'parent_frame' in params and params['parent_frame'] != None:
             self.referential = frame(pos=(0,0,0), frame=params['parent_frame'])
         else:
@@ -42,10 +46,10 @@ class makeBasicReferential:
 
         if params['body'] is not None:
             self.body               = params['body']
-#            radius                  = self.body.radiusToShow/self.body.SizeCorrection[self.body.sizeType]
             self.referential.pos    = self.body.Position
-            #if body.Name.lower() not in objects_data.keys():
-            #    return
+        else:
+            raise ValueError("Missing body object in parameter call")
+
 
         self.display(params['show'])
 
@@ -124,8 +128,8 @@ class makeBasicReferential:
 class make3DaxisReferential:
 
     # 3Daxis Referentials are used to illustrate the direction of a body's
-    # North Pole and other directions such as the Point of Aries. Axis are
-    # 
+    # North Pole and other directions such as the Point of Aries. It can
+    # be used for sun-synchronous or inertial referentials
 
     def  __init__(self, params):
         # axisLock is used when the referential needs to have its axis linked to the frame
@@ -150,6 +154,8 @@ class make3DaxisReferential:
 
         if 'name' in params:
             print "creating 3D "+ params['name']
+
+
 
         if 'initial_rotation' in params:
 
@@ -186,9 +192,8 @@ class make3DaxisReferential:
                 self.RotatingSign = -1
 
             radius                  = self.body.getBodyRadius()
-            self.referential.pos    = (self.body.Position[0]+self.body.Foci[0], self.body.Position[1]+self.body.Foci[1], self.body.Position[2]+self.body.Foci[2])
-            #if body.Name.lower() not in objects_data.keys():
-            #    return
+            self.referential.pos    = self.body.Position
+
 
 
         # create an array of vectors, each for a dimension of the 3D space

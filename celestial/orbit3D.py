@@ -767,6 +767,7 @@ class makeBody:
 		self.Color 					= color
 		self.BodyType 				= bodyType
 		self.BodyGeometry 			= None
+		self.TrackingFrame 			= None
 
 		self.Revolution 			= system.objects_data[key]["PR_revolution"]
 		self.Perihelion 			= system.objects_data[key]["QR_perihelion"]		# body perhelion
@@ -1039,9 +1040,16 @@ class makeBody:
 		# orbits to be calculated related to the referential, instead of the
 		# J2000 ecliptic referential.
 
-		self.TrackingFrame = frame(frame=self.SolarSystem.RootFrame)
+		self.TrackingFrame = frame(frame=self.SolarSystem.RootFrame, axis=self.SolarSystem.RootFrame.axis) #, up=self.SolarSystem.RootFrame.up) #####, axis=vector(0.33,-0.4,0))
 		self.TrackingFrame.pos = self.Position
 
+		if self.Name == "Earth":
+			print ">>>>>>>>>>>>>> AXIS = ", self.TrackingFrame.axis
+		# we must also align the first point of aries with the frame's X axis!!!!!
+
+		# WRITE CODE HERE THAT ALIGN THE VERNAL EQUINOX
+		# WRITE CODE HERE THAT ALIGN THE VERNAL EQUINOX
+		# WRITE CODE HERE THAT ALIGN THE VERNAL EQUINOX
 
 	def make_PCPF_referential(self): 
 		
@@ -1069,7 +1077,7 @@ class makeBody:
             'name':  self.Name+"PCPF",
 		})
 		
-
+		#self.TrackingFrame 			= self.PCPF.referential
 		self.Origin 				= self.PCPF.referential
 		self.Origin.visible			= True
 
@@ -1111,6 +1119,10 @@ class makeBody:
 			referenceFrame = self.SolarSystem.RootFrame	# default is J2000 ecliptic ref
 			if self.CentralBody != None:
 				#raw_input("ZOB")
+			#	if self.CentralBody.PCI != None:
+			#		referenceFrame = self.CentralBody.PCI.referential
+			#	else:
+			#		referenceFrame = self.CentralBody.TrackingFrame # for a moon, the referential is its planet tracking frame 
 				referenceFrame = self.CentralBody.TrackingFrame # for a moon, the referential is its planet tracking frame 
 
 			# create an orbit either in the J2000 ecliptic referential centered 
@@ -1170,7 +1182,6 @@ class makeBody:
 		self.updateOrbitalElements(self.ObjectIndex, timeIncrement)
 		self.R, self.Nu = self.setPolarCoordinates(deg2rad(self.E))
 
-
 		# calculate current body position in its orbit knowing
 		# its current distance from Sun (R) and True anomaly (Nu)
 		# that were set in setPolarCoordinates
@@ -1202,6 +1213,9 @@ class makeBody:
 		# surface around its North Pole
 
 		self.animateBodyRotation()
+
+		if self.Name == "Earth":
+			print "TR-X -> " , self.TrackingFrame.frame_to_world(self.TrackingFrame.axis)
 
 		return self.getCurrentVelocity(), self.getCurrentDistanceFromEarth(), self.getCurrentDistanceFromSun()
 
@@ -1243,7 +1257,7 @@ class makeBody:
 
 		# calculate current position based on orbital elements
 		#self.updateBodyPosition(timeincrement)
-		success, self.E, dE, it = self.updateBodyPosition(timeincrement)
+		success, self.E = self.updateBodyPosition(timeincrement)
 		if success == False:
 			print (self.Name+" Warning Could not converge - E = "+str(self.E))
 
@@ -1272,7 +1286,11 @@ class makeBody:
 		# first restore original longitude of ascending node
 
 		self.Longitude_of_ascendingnode = self.Initial_longitude_of_ascendingNode
-		self.updateBodyPosition(timeincrement)
+		#self.updateBodyPosition(timeincrement)
+		success, self.E = self.updateBodyPosition(timeincrement)
+		if success == False:
+			print (self.Name+" Warning Could not converge - E = "+str(self.E))
+
 
 
 	def updateBodyPosition(self, timeIncrement):
@@ -1294,9 +1312,10 @@ class makeBody:
 		# since we can't solve Kepler's equation analytically,
 		# we use an iterative numerical method
 
-		success, self.E, dE, it = solveKepler(M, self.e, 20000)
-		if success == False:
-			print (self.Name+" Warning Could not converge - E = "+str(self.E))
+#		success, self.E, dE, it = solveKepler(M, self.e, 20000)
+		return solveKepler(M, self.e, 20000)
+#		if success == False:
+#			print (self.Name+" Warning Could not converge - E = "+str(self.E))
 
 
 	def updateAllReferentials(self):
@@ -1407,9 +1426,9 @@ class makeBody:
 		# Obtain ecc. Anomaly E (in degrees) from M 
 		# using an approx method of resolution:
 		
-		success, self.E, dE, it = solveKepler(M, self.e, 12000)
+		success, self.E = solveKepler(M, self.e, 12000)
 		if success == False:
-			print ("Could not converge for "+self.Name+", E = "+str(self.E)+", last precision = "+str(dE))
+			print ("Could not converge for "+self.Name+", E = "+str(self.E))
 
 
 	def getIncrement(self):
@@ -1780,6 +1799,7 @@ class makePlanet(makeBody):
 
 		self.PCI.setAxisTilt()
 		self.PCI.display(False)
+
 		#self.setRotAxis()
 
 
@@ -1792,10 +1812,13 @@ class makePlanet(makeBody):
 		#self.computeOrbitalEltFromPlanetPositionApproximation(elt, timeincrement)
 
 	# makePlanet::updateOrbitalElements (overrides makeBody::updateOrbitalElements)
-	# Called from the makeBody::animate method
 	def updateOrbitalElements(self, key, timeincrement = 0):
-		# updateOrbitalElements for planet consists of recalculating every single elements 
-		# through the NASA formula. Hence it has the same functionality as the initial setOrbitalElements method
+		
+		# Called from the makeBody::animate method
+		# updateOrbitalElements for planet consists of recalculating every 
+		# single elements through the NASA formula. Hence it has the same 
+		# functionality as the initial setOrbitalElements method
+
 		elt = self.SolarSystem.objects_data[key]["kep_elt_1"] if "kep_elt_1" in self.SolarSystem.objects_data[key] else self.SolarSystem.objects_data[key]["kep_elt"]
 		self.computeOrbitalEltFromPlanetPositionApproximation(elt, timeincrement)
 
@@ -1981,12 +2004,33 @@ class makeEarth(makePlanet):
 		# reposition the celestial sphere on the earth location:
 		#self.SolarSystem.CelestialSphereOrigin = self.Origin.pos
 		#self.SolarSystem.ConstellationsOrigin = self.Origin.pos
+#-----------------------------------------------
+
+
+
+#-----------------------------------------------------
+
 
 	#def refresh(self):
 	#	makePlanet.refresh(self)
 	#	self.Universe.visible = self.isFeatured(CELESTIAL_SPHERE)
 	#	self.Constellations.visible = self.isFeatured(CONSTELLATIONS)
 	
+	def showTrackingReferentialVernalEq(self):
+
+		self.TrackingFrameAxis = simpleArrow(Color.yellow, 0, 5, vector(0,0,0), axisp = self.TrackingFrame.axis*100, context=self.TrackingFrame) #self.Origin) #self.referential)
+		self.TrackingFrameAxis.display(True)
+
+		# Calculate angle between TrackingFrame X-axis and PCI X-axis
+		dot_product = np.dot(np.linalg.norm(self.TrackingFrame.axis), np.linalg.norm(self.PCI.referential.axis))
+	#	cross_product = np.cross(np.linalg.norm(self.TrackingFrame.axis), np.linalg.norm(self.PCI.referential.axis))
+
+	#	axis = cross_product / np.linalg.norm(cross_product)
+
+		print ">>>>>>>>>>>>>>>>>> ANGLE=", dot_product, " - ", rad2deg(dot_product)
+
+		# now rotate the trackingFrame referential to align with PCI
+		#self.TrackingFrame.rotate(angle=rad2deg(dot_product), axis=self.PCI.referential.axis)        
 	
 	def toggleSize(self, realisticSize):
 		makePlanet.toggleSize(self, realisticSize)
@@ -2122,6 +2166,7 @@ class makeEarth(makePlanet):
 		# set planet origin as the PCPF referential (rotates with the planet)
 
 		self.Origin 				= self.PCPF.referential #frame()
+#		self.TrackingFrame 			= self.PCPF.referential
 		self.Origin.visible			= True
 
 		self.PCPF.display(False)
@@ -2278,7 +2323,7 @@ class makeEarth(makePlanet):
 		self.Gamma = newLocalInitialAngle
 
 	# makeEarth::computeOrbitalEltFromPlanetPositionApproximation (overrides makeBody's) 
-	def computeOrbitalEltFromPlanetPositionApproximation(self, elts, timeincrement):
+	def computeOrbitalEltFromPlanetPositionApproximation2(self, elts, timeincrement):
 		Adjustment = 0 #0.35
 
 		# get number of days since J2000 epoch and obtain the fraction of century
@@ -2308,9 +2353,9 @@ class makeEarth(makePlanet):
 		M = toRange(L - self.Longitude_of_perihelion) #W)
 
 		# Obtain ecc. Anomaly E (in degrees) from M using an approx method of resolution:
-		success, self.E, dE, it = solveKepler(M, self.e, 12000)
+		success, self.E = solveKepler(M, self.e, 12000)
 		if success == False:
-			print ("Could not converge for "+self.Name+", E = "+str(self.E)+", last precision = "+str(dE))
+			print ("Could not converge for "+self.Name+", E = "+str(self.E))
 
 
 	def makeConstellations(self):
@@ -2396,9 +2441,11 @@ class makeSatellite(makeBody):
 		# since we can't solve Kepler's equation analytically,
 		# we use an iterative numerical method
 
-		success, self.E, dE, it = solveKepler(M, self.e, 20000)
-		if success == False:
-			print (self.Name+" Warning Could not converge - E = "+str(self.E))
+		return solveKepler(M, self.e, 20000)
+
+		#success, self.E, dE, it = solveKepler(M, self.e, 20000)
+		#if success == False:
+		#	print (self.Name+" Warning Could not converge - E = "+str(self.E))
 
 
 	def getRealisticSizeCorrectionXX(self):
@@ -2427,7 +2474,7 @@ class makeSatellite(makeBody):
 
 		self.BodyGeometry.radius = self.radiusToShow  / self.SizeCorrection[self.sizeType]
 
-	def draw(self):
+	def draw2(self):
 		#print "drawing "+self.Name
 		self.Trail.visible = True
 		rad_E = deg2rad(self.E)
@@ -2881,8 +2928,7 @@ class makeSpacecraft(makeGenericSpacecraft, starman):
 			# call appropriate class based on profile name
 			globals()[self.profile].__init__(self, system, key, color)
 		else:
-			print "Could not find spacecraft profile for ", key
-			raise 
+			raise ValueError("Could not find spacecraft profile for {key}")
 	
 	def makeShape(self):
 		# call appropriate makeShape method based on required profile
@@ -3181,10 +3227,12 @@ def solveKepler(M, e, depth, precision = 1.e-8):
 	while True:
 		E1 = M + e*sin(E0)
 		if abs(E1-E0) < threshold:
-			return True, rad2deg(E0), rad2deg(E1-E0), it
+			#return True, rad2deg(E0), rad2deg(E1-E0), it
+			return True, rad2deg(E0)
 		it = it + 1
 		if it > depth:
-			return False, rad2deg(E0), rad2deg(E1-E0), it
+			#return False, rad2deg(E0), rad2deg(E1-E0), it
+			return False, rad2deg(E0)
 		E0 = E1
 
 def bessel_E(M, e, depth):
