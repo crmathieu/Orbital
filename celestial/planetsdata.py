@@ -376,8 +376,7 @@ planet_data = {
 # handle its specific content. These methods are defined in each planet class in planets.py.
 # see document: doc/"method to determine north Pole orientation"
 
-objects_data = {
-		"""
+"""
 Jupiter 	Io 	501 	JUP365 	Laplace 	2000-01-01.5 	421800. 	0.004 	49.1 	330.9 	0.0 	0.0 	1.762732 	1.333 	0.000 	268.1 	64.5 	0.0 	28
 Jupiter 	Europa 	502 	JUP365 	Laplace 	2000-01-01.5 	671100. 	0.009 	45.0 	345.4 	0.5 	184.0 	3.525463 	1.394 	30.202 	268.1 	64.5 	0.0 	28
 Jupiter 	Ganymede 	503 	JUP365 	Laplace 	2000-01-01.5 	1070400. 	0.001 	198.3 	324.8 	0.2 	58.5 	7.155588 	68.301 	137.812 	268.2 	64.6 	0.1 	28
@@ -411,6 +410,41 @@ Jupiter 	Callisto 	504 	JUP365 	Laplace 	2000-01-01.5 	1882700. 	0.007 	43.8 	87
 		"tga_name": "Moon"
 	},
 	"""
+objects_data = {
+	"moonX" :{
+
+		# Note:
+		# For moons, and since orbital elements are always expressed in term 
+		# of the ecliptic plane, the trackingFrame must be also have its x,y
+		# plane in the ecliptic 
+
+		"type": TYPE_SATELLITE,
+		"material":1,
+		"name": "Moon",
+		"symbol": u"\u263D ",
+		"iau_name": "Moon",
+		"jpl_designation": "moon",
+		"mass": 7.342e+22,
+		"radius": 1738.1e+3,
+		"QR_perihelion":0.00237529455014751*AU,
+		"aphelion":0.00270352798850*AU,
+		"EC_e":0.0554,
+		"PR_revolution":27.321582,
+		"rotation":27.321582 * SOLAR_DAY_RATIO, # in days
+		"IN_orbital_inclination":5.16, #23.44, # to earth eq.
+		"OM_longitude_of_ascendingnode":125.08,
+		"longitude_of_perihelion":296.9775666926365+143.9091328687446,
+		"MA_mean_anomaly": 135.27,
+		"N_mean_motion": 0.22887985088124729, #13.42988221368860,
+		"epochJD": 2457994.50,
+		"Tp_Time_of_perihelion_passage_JD": 2457982.706097905825,
+
+		"axial_tilt": 6.67, # to its own orbital plane1.263=
+		"absolute_mag": 0.0,
+		"orbit_class": "E-SAT",
+		"tga_name": "Moon"
+		},
+		
 	"moon" :{
 
 		# Note:

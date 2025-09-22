@@ -43,6 +43,7 @@ from utils import deg2rad, rad2deg #, sleep
 from camera import camera3D
 from objects import simpleArrow
 from referentials import make3DaxisReferential, makeBasicReferential
+from moon_chatGPT import moon_orbital_elements
 
 import json
 
@@ -2413,51 +2414,48 @@ class makeEarth(makePlanet):
 
 
 # CLASS SATELLITE -------------------------------------------------------------
-class makeSatellite(makeBody):
+
+def nodePrecession():
+	MOON_CYCLE = 18.6 # years
+	CORRECTION_PER_YEAR = 360 / 18.6
+	CYCLE_START_YEAR = 2024
+
+
+class makePlanetMoon(makeBody):
 	def __init__(self, system, key, color, centralBody):
+
+		if key == "moon":
+			print "MOONMOONMOONMOONMOONMOONMOONMOONMOONMOONMOONMOONMOONMOON\n"
+			elements = moon_orbital_elements(2025, 8, 27, 17, 8, 0.0)
+			print elements, "\n"
+			print "MOONMOONMOONMOONMOONMOONMOONMOONMOONMOONMOONMOONMOONMOON\n"
+			# update osculting elements
+			moon = system.objects_data[key]
+			system.objects_data[key]["epochJD"] = elements["epochJD"]
+			system.objects_data[key]["Tp_Time_of_perihelion_passage_JD"] = elements["Tp_Time_of_perihelion_passage_JD"]
+
+			#moon["aphelion"] = elements["aphelion"]
+			system.objects_data[key]["EC_e"] = elements["orbital_elements"]["EC_e"]
+			system.objects_data[key]["IN_orbital_inclination"] = elements["orbital_elements"]["IN_orbital_inclination"]
+			system.objects_data[key]["OM_longitude_of_the_ascendingnode"] = elements["orbital_elements"]["OM_longitude_of_the_ascendingnode"] 
+			system.objects_data[key]["OM_longitude_of_the_ascendingnode"] -= 19.35
+
+			system.objects_data[key]["longitude_of_perihelion"] = elements["orbital_elements"]["longitude_of_perihelion"]
+			system.objects_data[key]["MA_mean_anomaly"] = elements["orbital_elements"]["MA_mean_anomaly"]
+			system.objects_data[key]["N_mean_motion"] = rad2deg(elements["orbital_elements"]["N_mean_motion"])
+
+
+			for k, v in elements.items():
+				print k, ": ", v
+
+
+
 		makeBody.__init__(self, system, key, color, SATELLITE, SATELLITE, SATELLITE_SZ_CORRECTION, centralBody)
 		self.isMoon = True
-		#self.setTrackingFrame(centralBody)
-		print "MOON::::::position:", self.Position
-		print "MOON::::::restting to zero:"
-		#self.Position = (344000,0,0)
-
-	def updateBodyPosition2(self, timeIncrement):
-		# this overwrites the default makeBody::updateBodyPosition
-		# calculate current position based on orbital 
-		# elements (timeIncrement comes in days as a float)
-		
-		dT = daysSinceEpochJD(self.Epoch, self.locationInfo) + timeIncrement # - ADJUSTMENT_COEFFICIENT # substracting 0.5 to match for earth correction
-
-		# compute Longitude of Ascending node taking 
-		# into account the time elapsed since epoch
-
-		incrementYears = timeIncrement / EARTH_PERIOD # 365.25
-		self.Longitude_of_ascendingnode +=  0.013967 * (2000.0 - (getCurrentYear() + incrementYears)) + 3.82394e-5 * dT
-
-		# adjust Mean Anomaly with time elapsed since epoch
-		M = toRange(self.Mean_anomaly + self.Mean_motion * dT)
-
-		# since we can't solve Kepler's equation analytically,
-		# we use an iterative numerical method
-
-		return solveKepler(M, self.e, 20000)
-
-		#success, self.E, dE, it = solveKepler(M, self.e, 20000)
-		#if success == False:
-		#	print (self.Name+" Warning Could not converge - E = "+str(self.E))
-
 
 	def getRealisticSizeCorrectionXX(self):
 		#SATELLITE_SZ_CORRECTION = 1/(DIST_FACTOR * 5)
 		return 1/(DIST_FACTOR * 5)
-
-	def setCartesianCoordinatesXX(self): # added tis to avoid correcting for vernal equinox rotation when dealing with moons
-		self.Position[0] = self.R * DIST_FACTOR * ( cos(self.N) * cos(self.Nu+self.w) - sin(self.N) * sin(self.Nu+self.w) * cos(self.i) )
-		self.Position[1] = self.R * DIST_FACTOR * ( sin(self.N) * cos(self.Nu+self.w) + cos(self.N) * sin(self.Nu+self.w) * cos(self.i) )
-		self.Position[2] = self.R * DIST_FACTOR * ( sin(self.Nu+self.w) * sin(self.i) )
-
-		#self.Position = self.Rotation_VernalEquinox * self.Position
 
 	def toggleSize(self, realisticSize):
 		x = SCALE_NORMALIZED if realisticSize == True else SCALE_OVERSIZED
@@ -2473,23 +2471,6 @@ class makeSatellite(makeBody):
 				self.Labels[0].visible = True
 
 		self.BodyGeometry.radius = self.radiusToShow  / self.SizeCorrection[self.sizeType]
-
-	def draw2(self):
-		#print "drawing "+self.Name
-		self.Trail.visible = True
-		rad_E = deg2rad(self.E)
-		increment = self.getIncrement()
-
-	
-		for E in np.arange(increment, 2*pi+increment, increment):
-			#self.setPolarCoordinates(E+rad_E)
-			self.R, self.Nu = self.setPolarCoordinates(E+rad_E)
-			# from R and Nu, calculate 3D coordinates and update current position
-			self.drawSegment(trace =True) #E*180/pi, False)
-			
-			#### rate(5000) # ?!
-
-		self.hasRenderedOrbit = True
 
 
 # CLASS HYBERBOLIC ------------------------------------------------------------
@@ -3307,7 +3288,7 @@ def loadBodies(SolarSystem, type, filename, maxentries = 0):
 					BIG_ASTEROID: 	makeAsteroid,
 					PHA:			makePha,
 					TRANS_NEPT:		makeTransNeptunian,
-					SATELLITE:		makeSatellite,
+					SATELLITE:		makePlanetMoon,
 					SMALL_ASTEROID:	makeSmallAsteroid,
 					}[type](SolarSystem, JPL_designation, getColor())
 
@@ -3363,7 +3344,7 @@ def loadBodiesOldway(SolarSystem, type, filename, maxentries = 0):
 						BIG_ASTEROID: 	makeAsteroid,
 						PHA:			makePha,
 						TRANS_NEPT:		makeTransNeptunian,
-						SATELLITE:		makeSatellite,
+						SATELLITE:		makePlanetMoon,
 						SMALL_ASTEROID:	makeSmallAsteroid,
 						}[type](SolarSystem, token[JPL_DESIGNATION], getColor())
 
@@ -3871,7 +3852,8 @@ def get_moon_position_precise(dt):
 
     This function uses a more detailed astronomical model, including
     more terms for the Moon's orbital elements. The output is in a
-    geocentric equatorial reference frame.
+    geocentric ecliptic reference frame (can be returned also as coordinates
+    in the geocentric equatorial reference frame).
 
     Args:
         dt (datetime): The date and time for which to calculate the position.
@@ -3951,8 +3933,11 @@ def get_moon_position_precise(dt):
     z_ecliptic = distance_km * math.sin(beta_rad)
 
     # Convert from ecliptic to equatorial Cartesian coordinates using the obliquity
+    """
     x_eq = x_ecliptic
     y_eq = y_ecliptic * math.cos(epsilon_rad) - z_ecliptic * math.sin(epsilon_rad)
     z_eq = y_ecliptic * math.sin(epsilon_rad) + z_ecliptic * math.cos(epsilon_rad)
-
+	
     return x_eq, y_eq, z_eq
+	"""
+    return x_ecliptic, y_ecliptic, z_ecliptic

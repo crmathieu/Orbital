@@ -40,12 +40,12 @@ def createSolarSystem():
 	ssys.addTo(pluto)
 
 	# generate pd.SATELLITE
-	ssys.addTo(makeSatellite(ssys, 'charon', color.white, pluto))
+	ssys.addTo(makePlanetMoon(ssys, 'charon', color.white, pluto))
 	
-	ssys.addTo(makeSatellite(ssys, 'moon', color.white, earth))
+	ssys.addTo(makePlanetMoon(ssys, 'moon', color.white, earth))
 	
-	ssys.addTo(makeSatellite(ssys, 'phobos', color.red, mars))
-	ssys.addTo(makeSatellite(ssys, 'deimos', color.white, mars))
+	ssys.addTo(makePlanetMoon(ssys, 'phobos', color.red, mars))
+	ssys.addTo(makePlanetMoon(ssys, 'deimos', color.white, mars))
 
 	ssys.addTo(makeEcliptic(ssys, color.white, 0.4))
 
@@ -140,7 +140,7 @@ def bootLoader(story, recorder):
 			#print I
 			#I += 1
 			#rate(1)
-			sleep(2)
+			sleep(1) #2)
 		#	earth.updateStillPosition(cw.orbitalBox, 2)
 
 	except RuntimeError as err:
