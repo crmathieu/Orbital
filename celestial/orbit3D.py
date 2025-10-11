@@ -43,7 +43,7 @@ from utils import deg2rad, rad2deg #, sleep
 from camera import camera3D
 from objects import simpleArrow
 from referentials import make3DaxisReferential, makeBasicReferential
-from moon_chatGPT import moon_orbital_elements
+from moon_cgpt import moon_orbital_elements
 
 import json
 
