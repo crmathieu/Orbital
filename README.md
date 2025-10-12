@@ -1,22 +1,22 @@
 # Orbital
 
-"Orbital" is an accurate interactive 3D representation of the solar system featuring inner and outer planets, asteroids, comets and Trans-Neptunian objects. It also includes the asteroid belt, Jupiter Trojans, Kuiper belt, the inner Oort cloud and daily "Close Approach" bodies from the Jet Propulsion Laboratory database.
+"Orbital" is an accurate interactive 3D representation of the solar system featuring inner and outer planets, asteroids, comets and Trans-Neptunian objects. It also includes the asteroid belt, Jupiter Trojans, Kuiper belt, the celestial sphere and a constellations map. 
 
-The 3D orbits of major objects in the solar system are rendered and can be zoomed in and out as well as rotated. Each object is located on its actual orbit position at the time of rendering. For a demo of the simulation go to https://youtu.be/WjiwySvZY3g. (Note: When the video was made, body rotation was not implemented yet, hence you won't see the planets spinning, but this repository includes the code that implements body rotation).
+The 3D orbits of the major planets are rendered and because the window is interactive, the user can zoom in and out as well as rotate the scene. Each object is located on its actual orbit position at the time of rendering. For a demo of the simulation go to https://youtu.be/WjiwySvZY3g. (Note: When the video was made, body rotation was not implemented yet, hence you won't see the planets spinning, but this repository includes the code that implements body rotation).
 
 # Interacting with the simulation:
 
 To zoom in/out: click on both mouse buttons and drag the mouse forward or backward.
 To rotate the scene: click on the mouse left button only and drag the mouse sideways.
 
-The data was collected from the JPL Small-Body Database Search Engine and the Nasa planetary factsheets. The Celestial mechanic concepts required to develop this program can be found in the Roger Bates's book "Introduction to Astrodynamics", as well as the document "Keplerian Elements for Approximate Positions of the Major Planets" (E.M. Standish from JPL Caltech).
+Objects listed in the drop down were collected from the JPL Small-Body Database Search Engine and the Nasa planetary factsheets. The Celestial mechanics concepts required to develop this program can be found in the Roger Bates's book "Introduction to Astrodynamics", as well as the document "Keplerian Elements for Approximate Positions of the Major Planets" (E.M. Standish from JPL Caltech).
 
 Keep in mind that
 
-	- All distances between each object and the sun are proportional to the actual distance.
+	- Distances between each object and the sun are proportional to the actual distance.
 	- Objects sizes are NOT proportional to their actual size (this is by design in order to
 	  view all objects properly).
-	- Asteroid belt, Kuiper belt, Jupiter Trojans and Oort Cloud are included for illustration purpose
+	- Asteroid belt, Kuiper belt, Jupiter Trojans are included for illustration purpose
 	  only. Even though their size and thickness is somehow proportional to their actual dimension, the
 	  distribution pattern within the belt is purely random/aesthetic.
 
@@ -33,7 +33,7 @@ you will also need the following libraries:
 
 To launch the application, go to the folder where the project was downloaded and type:
 
-	> python2.7.exe solarsys.py
+	> python2.7.exe orbital.py
 
 The vpython display window and the Orbital control modal window will take only a few seconds to load. PHA, Asteroids, Comets and trans-Neptunian objects orbits get calculated and rendered as needed, but inner and outter planets orbits are displayed right away and can be interacted with. The constant MAX_OBJECTS in solarsys.py specifies the upper limit of objects to load per data file.
 
@@ -66,27 +66,39 @@ Legend is:
 
 You have the ability to change the Point Of View (POV) to reset the center of the scene on any object of your choice. By default, the POV is focused on the Sun, but it can be set on any of the major inner / outer planets, the dwarf planets - or - on the body that you are currently studying.
 
-<img src="./screenshot-3.jpg">
+<img src="./screenshot-2.jpg">
 
-# Files:
-
-	solarsys.py: 	Main file
-	orbital.py:  	Orbits trajectory and belts calculations classes
-	controls.py:	Orbital controller class used in the "Orbital Control" user interface
-	planetsdata.py:	Orbital elements for major planets and belts
-	numberfmt: 	String precision formatting
+# Main Files:
+```text
+orbital.py ....................... Orbital entry point
+celestial/__main__.py ............ bootloader
+celestial/camera.py .............. Camera movements
+celestial/controls.py ............ Orbital controller class used in the "Orbital Control" user interface
+celestial/location.py ............ Earth location functions
+celestial/numberfmt.py ........... String precision formatting
+celestial/objects.py ............. Library of 3D objects
+celestial/orbit3D.py ............. Orbit trajectories and belts calculations classes
+celestial/orbitalLIB.py .......... library class allowing to create an animation (story) programmatically
+celestial/planetsdata.py ......... Orbital elements for major planets and belts
+celestial/rate_func.py ........... Rate functions defined for animations
+celestial/referentials.py ........ Planet Referentials classes
+celestial/utils.py ............... Linear Algebra utility functions
+celestial/video.py ............... Animation recording class
+celestial/vpython_interface.py ... Modifies vpython "display" class
+celestial/widgets.py ............. Earth widgets classes
+```
 
 # Close Approach Data:
 
-"Orbital" allows you to find out which asteroids "close encounters" with earth are happening on a daily basis. If you click on the "Close Approach Data" tab, you will be able to directly fetch from the JPL database the list of objects that are at their closest position to earth for the current day.
+"Orbital" allows you to find out which asteroids "close encounters" with earth are happening on a daily basis. If you click on the "Search" tab, the "Close Approach Data" section will directly fetch from the JPL database the list of objects that are at their closest position to earth for the current day (If you would rather look for information on a particular object, use the Search input field in the lower section).
 
-<img src="./screenshot-2.jpg">
+<img src="./screenshot-3.jpg">
 
 Once the list has been downloaded, you may also get the list from the previous or the next day. Double clicking on a row in that list will automatically display the orbit and position of the corresponding object, as well as switch back to the "Main" tab to detail its orbital elements.
 
 Note: The autoscale feature in vpython is a bit erratic. If you are in a very expansive view that includes far objects such as dwarf planets and also closer to the sun objects like inner planets, unchecking the far objects and refreshing the scene may "autoscale" you back inside the sun (even though everything looks black). To eliminate the problem, simply perform a zoom out.
 
-The planets and the sun rotate on their axis in a realistic way, according to their rotation rate. You may note that Venus and Pluto have a retrograde motion and it is because of their north pole reversion. A good way to clarify what is happening is to check the "Show Local Referential" checkbox in the"Animation POV" tab. Also note the great range of rotation rate among the planets, from really fast (the outter planets) to really slow (Venus).
+The planets and the sun rotate on their axis in a realistic way, according to their rotation rate. You may note that Venus and Pluto have a retrograde motion and it is because of their north pole reversion. A good way to clarify what is happening is to check the "Show Local Referential" checkbox in the"Animation POV" tab. Also note the great range of rotation rates among the planets, from really fast (the outter planets) to really slow (Venus).
 
 List of a few close encounters between Potentially Harzardous Asteroids and earth:
 
@@ -96,22 +108,48 @@ List of a few close encounters between Potentially Harzardous Asteroids and eart
 	2004 XK50 	12/24/2025
 
 
-# How to install the platform on Windows computer:
+# How to install 
+Orbital creates graphics though the vpython module. because *vpython* has evolved into a web based system, support for the standalone version has been neglected and never got uograded to be compatible with python3.x. Instead python2.7 must be used. 
 
-	1) Install python2.7 64 bits:
-	go to "https://www.python.org/downloads/release/python-279/" and under "Files",
-	click on "Windows x86-64 MSI installer". Download the installer and run it.
+### on Windows computer:
 
-	use the default install configuration. Your python folder should be
-	in c:\python27
+Install python2.7 64 bits:
 
-	If you get the error "error: Microsoft Visual C++ 9.0 is required. Get it from http://aka.ms/vcpython27"
-	then from "https://www.microsoft.com/en-us/download/confirmation.aspx?id=44266" download the VC runtime
-	installer: VCForPython27.msi and run it to install the missing runtime library. Then try to run the python27
-	installer again to finish installing python.
+go to "https://www.python.org/downloads/release/python-279/" and under "Files",
+click on "Windows x86-64 MSI installer". Download the installer and run it.
 
-	Add "c:\python27" and "c:\python27\scripts" to your PATH environment variable
+use the default install configuration. Your python folder should be
+in **c:\python27**
 
+If you get the error "error: Microsoft Visual C++ 9.0 is required. Get it from http://aka.ms/vcpython27"
+then from "https://www.microsoft.com/en-us/download/confirmation.aspx?id=44266" download the VC runtime
+installer: VCForPython27.msi and run it to install the missing runtime library. Then try to run the python27
+installer again to finish installing python.
+
+Add *c:\python27* and *c:\python27\scripts* to your **PATH** environment variable
+
+For hassle free install, it is recommanded to do the manual installation instead of using the pip command. After installing python 2.7, simply go to the "manual-install" folder:
+```text
+cv2.zip
+numpy.zip
+pyautogui.zip
+pytz.zip
+vpython.zip
+wx-python-3.0-msw.zip
+```
+Then unzip each package into the python2.7 **site-packages** folder. 
+
+Create an environment variable **PYTHONPATH** that contains the absolute path to the cvisual.pyd file. Assuming python2.7 is installed in c:\python2.7, that would be:
+
+**PYTHONPATH=c:\python2.7\Lib\site-packages\visual_common**
+
+To start the simulation, from the orbital folder type:
+
+```text
+c:\python2.7\python orbital.py
+```
+
+<!--
 	2) Install Numpy and Scipy libraries:
 	go to http://www.lfd.uci.edu/~gohlke/pythonlibs
 	- download numpy+mkl: "numpy-1.13.1+mkl-cp27-cp27m-win_amd64.whl"
@@ -138,7 +176,7 @@ List of a few close encounters between Potentially Harzardous Asteroids and eart
 	Once downloaded, run it. This installer will also install the wxPython 3.0 library.
 	That's it!
 
-# How to install on a Mac
+### on a Mac
 
 	If you already have a version of VPython 6, it's a good idea to uninstall it before installing
 	the new VPython 6.11. (If you have VPython 5 installed, you need to delete the old folders visual,
@@ -155,6 +193,7 @@ List of a few close encounters between Potentially Harzardous Asteroids and eart
 	one from python.org.
 
 	Open the VPython installer (Doubleclick VPython-Mac-Py2.7-6.11.pkg.)
+-->
 
 
 Enjoy the simulation!

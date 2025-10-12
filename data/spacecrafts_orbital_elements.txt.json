@@ -60,14 +60,14 @@
         }
     },    
     {
-        "Starman": {
+        "-143205": {
             "OM_longitude_of_ascendingnode": 316.9309737966489,
             "diameter": 90.0,
             "PR_revolution": 557.0700255728293,
             "EC_e":0.2560164693382557,
             "name": "SpaceX Starman",
             "orbit_class": "",
-            "iau_name": "Starman",
+            "iau_name": "'SpaceX Roadster (spacecraft)",
             "N_mean_motion":  0.6462383245801383,
             "IN_orbital_inclination": 1.075889015816495,
             "epochJD": 2459257.50,
@@ -76,7 +76,7 @@
             "MA_mean_anomaly": 353.4572266365098,
             "tga_name": "FH2Sreversed",
             "QR_perihelion": 0.9857593335066440,
-            "jpl_designation": "Starman",
+            "jpl_designation": "-143205",
             "earth_moid": 0.0,
             "Tp_Time_of_perihelion_passage_JD": 2459267.624397013802,
             "W_argument_of_perihelion": 177.6739622413102,

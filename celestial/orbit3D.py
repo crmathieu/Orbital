@@ -789,7 +789,6 @@ class makeBody:
 		self.SizeCorrection 		= {	SCALE_OVERSIZED: 	bodyScaler[sizeCorrectionType], 
 										SCALE_NORMALIZED: 	self.RealisticCorrectionSize} 
 		# for planets with rings
-		self.Ring 					= False
 		self.Rings 					= []
 		self.nRings 				= 0
 		self.RingThickness 			= self.RING_BASE_THICKNESS / self.SizeCorrection[self.sizeType]
@@ -1586,9 +1585,6 @@ class makeBody:
 		for i in range(len(self.Labels)):
 			self.Labels[i].visible = False
 		self.Trail.visible = False
-		#if self.Ring:
-#		if self.nRings > 0:
-#			self.SolarSystem.hideRings(self)
 
 	def setAxisVisibility(self, setTo):
 		if self.PCI is not None: 
@@ -2351,7 +2347,7 @@ class makeEarth(makePlanet):
 		self.Argument_of_perihelion = self.Longitude_of_perihelion - self.Longitude_of_ascendingnode
 
 		# compute mean Anomaly M = L - W
-		M = toRange(L - self.Longitude_of_perihelion) #W)
+		self.Mean_anomaly = toRange(L - self.Longitude_of_perihelion) #W)
 
 		# Obtain ecc. Anomaly E (in degrees) from M using an approx method of resolution:
 		success, self.E = solveKepler(M, self.e, 12000)

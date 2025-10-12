@@ -615,6 +615,9 @@ class makePlanetWidgets():
     def showNodes(self, value):
         self.Eq.showNodes(value)
 
+    def showPlanetNutation(self, value):
+        self.nut.showNutation(value)
+
 
 class makeAnalemma():
     SUN_VERTEX = 0
@@ -777,9 +780,9 @@ class makeAnalemma():
                     (axis[self.SUN_VERTEX][1] - axis[self.EARTH_VERTEX][1])*Normal[1] + \
                     (axis[self.SUN_VERTEX][2] - axis[self.EARTH_VERTEX][2])*Normal[2])
             # second, deduct the coordinates
-            self.Intersec =       ( axis[self.SUN_VERTEX][0] + t * (axis[self.SUN_VERTEX][0] - axis[self.EARTH_VERTEX][0]),
-                                    axis[self.SUN_VERTEX][1] + t * (axis[self.SUN_VERTEX][1] - axis[self.EARTH_VERTEX][1]),
-                                    axis[self.SUN_VERTEX][2] + t * (axis[self.SUN_VERTEX][2] - axis[self.EARTH_VERTEX][2]))
+            self.Intersec = ( axis[self.SUN_VERTEX][0] + t * (axis[self.SUN_VERTEX][0] - axis[self.EARTH_VERTEX][0]),
+                              axis[self.SUN_VERTEX][1] + t * (axis[self.SUN_VERTEX][1] - axis[self.EARTH_VERTEX][1]),
+                              axis[self.SUN_VERTEX][2] + t * (axis[self.SUN_VERTEX][2] - axis[self.EARTH_VERTEX][2]))
             #print "intersec=",self.Intersec
             #print "geoLocAB=", self.EclipticPosition
             if self.Shape is None:
@@ -927,7 +930,7 @@ class makeEarthLocation():
             self.updateEclipticPosition()
             #self.makeSunAxis()
             #self.setNormalToSurface()
-            #self.setOrientation(self.NormalVec)
+            #self.setOrientation(self.topoVecUp)
         else:
             self.Name = "None"
 
@@ -1056,7 +1059,7 @@ class makeEarthLocation():
     def display(self, trueFalse):
         self.GeoLoc.visible = trueFalse
 
-    def setNormalToSurfaceALT(self):
+    def setNormalToSurfaceALT_XX(self):
         # the equation of the earth surface is S: (x-xcenter)^2 + (y-ycenter)^2 + (z-zcenter)^2 = R^2
         # the coordinates of a vector normal to the earth surface is given by the earth's surface gradient:
         #   Gradient(S) = (DS/Dx, DS/Dy, DS/Dz)
@@ -1083,9 +1086,9 @@ class makeEarthLocation():
 
         #self.NormalVec = vector(self.GradientX, self.GradientY, self.GradientZ)
         #self.NormalVec = theGrad * 1/mag(theGrad)
-#        self.topoZ = simpleArrow(Color.white, 0, 10, self.GeoLoc.pos, axisp = (self.NormalVec/10), context = self.Origin)
-        self.topoZ = simpleArrow(Color.white, 0, 10, self.GeoLoc.pos, axisp = (1000 * self.NormalVec), context = self.Origin)
-        self.topoZ.display(False)
+#        self.topoUp = simpleArrow(Color.white, 0, 10, self.GeoLoc.pos, axisp = (self.NormalVec/10), context = self.Origin)
+        self.topoUp = simpleArrow(Color.white, 0, 10, self.GeoLoc.pos, axisp = (1000 * self.NormalVec), context = self.Origin)
+        self.topoUp.display(False)
 
     def setTopoCentricRef(self):
         # the direction of the vector normal to the location is given by (Loc - center). Since we are
@@ -1114,14 +1117,14 @@ class makeEarthLocation():
         # create topocentric referential:
         #################################
 
-        self.topoX = self.topoY = None
+        self.topoEast = self.topoNorth = None
 
         # Normal to location
-        self.NormalVec = vector(self.getGeoPosition())
-        self.UnitNormal = norm(self.NormalVec)
-        self.topoZ = simpleArrow(Color.white, 0, 2, self.GeoLoc.pos, axisp = (self.NormalVec/5), context = self.Origin)
-        #self.zLabel = label( frame = self.Origin, color = Color.white,  text = "z",
-        #                     pos = self.GeoLoc.pos + (self.NormalVec/5)*(1.17), opacity = 0, box = False, visible=False )
+        self.topoVecUp = vector(self.getGeoPosition())
+        self.UnitNormal = norm(self.topoVecUp)
+        self.zLabel = label( frame = self.Origin, color = Color.white,  text = "Up",
+                             pos = self.GeoLoc.pos + (self.topoVecUp/5)*(1.17), opacity = 0, box = False, visible=False )
+        self.topoUp = simpleArrow(Color.white, 0, 2, self.GeoLoc.pos, axisp = (self.topoVecUp/5), context = self.Origin)
 
 
         # create a vector projection of goeloc on equatorial plane. 
@@ -1134,26 +1137,26 @@ class makeEarthLocation():
         # are in opposite direction, hence we need to reverse the localRadiusVector 
         # to keep the topX vector always pointing East
 
-        if dot(self.NormalVec, self.Planet.PCPF.RotAxis) < 0:
+        if dot(self.topoVecUp, self.Planet.PCPF.RotAxis) < 0:
             localRadiusVector = -localRadiusVector
 
-        # Now the localRadiusVector and the normal vectors form either a plane or are colinear 
-        # Now get the vector x, orthogonal to both (self.GeoLoc.pos[0], self.GeoLoc.pos[1], 0) and Normal-z pointing east
-        self.topoVecX = getVectorOrthogonalToPlane(self.NormalVec, localRadiusVector) #getOrthogonalVector(self.NormalVec) * mag(self.NormalVec)
-        if self.topoVecX is None:
+        # Now the localRadiusVector and the normal vectors form either a plane or are colinear. 
+        # Get the vector x, orthogonal to both (self.GeoLoc.pos[0], self.GeoLoc.pos[1], 0) and Normal-Up pointing east
+        self.topoVecEast = getVectorOrthogonalToPlane(self.topoVecUp, localRadiusVector) #getOrthogonalVector(self.topoVecUp) * mag(self.topoVecUp)
+        if self.topoVecEast is None:
             # the vectors are collinear. let's use the PCPF.RotAxis instead:
-            self.topoVecX = getVectorOrthogonalToPlane(self.Origin.world_to_frame(self.Planet.PCPF.RotAxis), self.NormalVec) #getOrthogonalVector(self.NormalVec) * mag(self.NormalVec)
+            self.topoVecEast = getVectorOrthogonalToPlane(self.Origin.world_to_frame(self.Planet.PCPF.RotAxis), self.topoVecUp) #getOrthogonalVector(self.topoVecUp) * mag(self.topoVecUp)
 
-        self.topoVecX *= mag(self.NormalVec)
-        self.topoX = simpleArrow(Color.green, 0, 2, self.GeoLoc.pos, axisp = (self.topoVecX/5), context = self.Origin)
-        #self.xLabel = label( frame = self.Origin, color = Color.green,  text = "E",
-        #                     pos = self.GeoLoc.pos + (self.topoVecX/5)*(1.17), opacity = 0, box = False, visible=False )
+        self.topoVecEast *= mag(self.topoVecUp)
+        self.xLabel = label( frame = self.Origin, color = Color.green,  text = "East",
+                             pos = self.GeoLoc.pos + (self.topoVecEast/5)*(1.17), opacity = 0, box = False, visible=False )
+        self.topoEast = simpleArrow(Color.green, 0, 2, self.GeoLoc.pos, axisp = (self.topoVecEast/5), context = self.Origin)
 
         # Finally get the vector y, orthogonal to the plane (x, z), pointing North
-        self.topoVecY = getVectorOrthogonalToPlane(self.NormalVec, self.topoVecX) * mag(self.NormalVec) #getOrthogonalVector(self.NormalVec) * mag(self.NormalVec)
-        self.topoY = simpleArrow(Color.white, 0, 2, self.GeoLoc.pos, axisp = (self.topoVecY/5), context = self.Origin)
-        #self.yLabel = label( frame = self.Origin, color = Color.white,  text = "N",
-        #                     pos = self.GeoLoc.pos + (self.topoVecY/5)*(1.17), opacity = 0, box = False, visible=False )
+        self.topoVecNorth = getVectorOrthogonalToPlane(self.topoVecUp, self.topoVecEast) * mag(self.topoVecUp) #getOrthogonalVector(self.topoVecUp) * mag(self.topoVecUp)
+        self.yLabel = label( frame = self.Origin, color = Color.white,  text = "North",
+                             pos = self.GeoLoc.pos + (self.topoVecNorth/5)*(1.17), opacity = 0, box = False, visible=False )
+        self.topoNorth = simpleArrow(Color.white, 0, 2, self.GeoLoc.pos, axisp = (self.topoVecNorth/5), context = self.Origin)
             
         # Last but not least, SET THE VIEW VECTOR: 
         # The view vector determines the direction we see from the location
@@ -1173,7 +1176,7 @@ class makeEarthLocation():
         self.sunViewVector = simpleArrow(Color.red, 0, 2, self.GeoLoc.pos, axisp = (self.sunVector/15), context = self.Origin)
 
         # compensate for the latitude correction
-        self.locViewVector = rotate(vector=self.sunVector, angle=angle, axis=self.topoVecX)
+        self.locViewVector = rotate(vector=self.sunVector, angle=angle, axis=self.topoVecEast)
 
         # make sure we still point in the general direction of the sun: use the projection
         # of locViewVector on the (z, sunVector) plane
@@ -1182,11 +1185,14 @@ class makeEarthLocation():
         # if the dot product between viewVector and the normal is negative,
         # it means that the sun isn't visible, hence use the Normal
         # vector as view vector
-#        if dot(self.locViewVector, self.NormalVec) < 0:
-        if dot(self.locViewVector, self.NormalVec) < 0:
+#        if dot(self.locViewVector, self.topoVecUp) < 0:
+        if dot(self.locViewVector, self.topoVecUp) < 0:
             self.ViewHiddenArrow = simpleArrow(Color.yellow, 0, 2, self.GeoLoc.pos, axisp = (self.locViewVector/15), context = self.Origin)
-            self.locViewVector = self.NormalVec
+            self.locViewVector = self.topoVecUp
 
+        ###############
+        self.locViewVector = self.topoVecUp
+        ###############
         self.ViewArrowSouth = simpleArrow(Color.magentish, 0, 10, self.GeoLoc.pos, axisp = (self.locViewVector/15), context = self.Origin)
 
         self.displayTopoCentricRef(False)
@@ -1227,10 +1233,10 @@ class makeEarthLocation():
 
         # Note: the vector coordinates are made in the OVRL referential
 
-        self.NormalVec = vector(self.getGeoPosition()) #vector(base[0], base[1], base[2])
-        self.UnitNormal = norm(self.NormalVec)
-        self.topoZ = simpleArrow(Color.white, 0, 10, self.GeoLoc.pos, axisp = (self.NormalVec/5), context = self.Origin)
-        self.topoX = self.topoY = None
+        self.topoVecUp = vector(self.getGeoPosition()) #vector(base[0], base[1], base[2])
+        self.UnitNormal = norm(self.topoVecUp)
+        self.topoUp = simpleArrow(Color.white, 0, 10, self.GeoLoc.pos, axisp = (self.topoVecUp/5), context = self.Origin)
+        self.topoEast = self.topoNorth = None
 
         # create a vector projection of goeloc on equatorial plane. 
         localRadiusVector = vector(self.GeoLoc.pos[0], self.GeoLoc.pos[1], 0) 
@@ -1241,30 +1247,30 @@ class makeEarthLocation():
         # When the projection of the normal on the rotation axis is negative, they
         # are in opposite direction, hence we need to reverse the localRadiusVector 
         # to keep the topX vector always pointing East
-        if dot(self.NormalVec, self.Planet.PCPF.RotAxis) < 0:
+        if dot(self.topoVecUp, self.Planet.PCPF.RotAxis) < 0:
             localRadiusVector = -localRadiusVector
 
         # Now the localRadiusVector and the normal vectors form either a plane or are collinear 
         # Now get the vector x, orthogonal to both (self.GeoLoc.pos[0], self.GeoLoc.pos[1], 0) and Normal-z pointing east
-        self.topoVecX = getVectorOrthogonalToPlane(self.NormalVec, localRadiusVector) #getOrthogonalVector(self.NormalVec) * mag(self.NormalVec)
-        if self.topoVecX is None:
+        self.topoVecEast = getVectorOrthogonalToPlane(self.topoVecUp, localRadiusVector) #getOrthogonalVector(self.topoVecUp) * mag(self.topoVecUp)
+        if self.topoVecEast is None:
             # the vectors are collinear. let's use the PCPF.RotAxis instead:
-            self.topoVecX = getVectorOrthogonalToPlane(self.Origin.world_to_frame(self.Planet.PCPF.RotAxis), self.NormalVec) #getOrthogonalVector(self.NormalVec) * mag(self.NormalVec)
+            self.topoVecEast = getVectorOrthogonalToPlane(self.Origin.world_to_frame(self.Planet.PCPF.RotAxis), self.topoVecUp) #getOrthogonalVector(self.topoVecUp) * mag(self.topoVecUp)
         
-        self.topoVecX *= mag(self.NormalVec)
-        self.topoX = simpleArrow(Color.green, 0, 10, self.GeoLoc.pos, axisp = (self.topoVecX/5), context = self.Origin)
+        self.topoVecEast *= mag(self.topoVecUp)
+        self.topoEast = simpleArrow(Color.green, 0, 10, self.GeoLoc.pos, axisp = (self.topoVecEast/5), context = self.Origin)
 
         # Finally get the vector y, orthogonal to the plane (x, z), pointing North
-        self.topoVecY = getVectorOrthogonalToPlane(self.NormalVec, self.topoVecX) * mag(self.NormalVec) #getOrthogonalVector(self.NormalVec) * mag(self.NormalVec)
-        self.topoY = simpleArrow(Color.white, 0, 10, self.GeoLoc.pos, axisp = (self.topoVecY/5), context = self.Origin)
+        self.topoVecNorth = getVectorOrthogonalToPlane(self.topoVecUp, self.topoVecEast) * mag(self.topoVecUp) #getOrthogonalVector(self.topoVecUp) * mag(self.topoVecUp)
+        self.topoNorth = simpleArrow(Color.white, 0, 10, self.GeoLoc.pos, axisp = (self.topoVecNorth/5), context = self.Origin)
             
         # Last but not least, set the view vector:
         
         self.locViewVector = vector(self.Origin.world_to_frame(self.Planet.PCPF.referential.world_to_frame(self.getEclipticPosition())))
-        self.locViewVector = rotate(vector=self.locViewVector, angle=self.Planet.TiltAngle, axis=self.topoVecX)
+        self.locViewVector = rotate(vector=self.locViewVector, angle=self.Planet.TiltAngle, axis=self.topoVecEast)
         self.ViewArrowSouth = simpleArrow(Color.yellow, 0, 10, self.GeoLoc.pos, axisp = (self.locViewVector/5), context = self.Origin)
         
-        #v2 = self.Planet.PCPF.referential.frame_to_world(self.Origin.frame_to_world(self.NormalVec))
+        #v2 = self.Planet.PCPF.referential.frame_to_world(self.Origin.frame_to_world(self.topoVecUp))
         #self.locViewVector = getVectorProjectionToVector(vector(self.EclipticPosition), v2) * v2/mag(v2)
         #self.ViewArrowSouth = simpleArrow(Color.yellow, 0, 10, self.EclipticPosition, axisp = (self.locViewVector/5))
 
@@ -1287,10 +1293,10 @@ class makeEarthLocation():
         # determine angle between local vertical and absolute vertical:
         #absoluteVertical = self.Origin.world_to_frame(self.Widgets.PCPF.referential.world_to_frame( 0, 0, 1)) 
         absoluteVertical = self.Widgets.ECSS.RotAxis
-        angle = getAngleBetweenVectors(self.NormalVec, absoluteVertical)
+        angle = getAngleBetweenVectors(self.topoVecUp, absoluteVertical)
         print "rotate-horizon: angle=", angle
 
-        self.Planet.SolarSystem.rotateSolarSystemReferential(axis=self.NormalVec)
+        self.Planet.SolarSystem.rotateSolarSystemReferential(axis=self.topoVecUp)
 
     """
     def setTopoCentricRef_SAVE(self):
@@ -1315,40 +1321,43 @@ class makeEarthLocation():
         # Note: the vector coordinates are made in the OVRL referential
 
         #base = self.getGeoPosition()
-        self.NormalVec = vector(self.getGeoPosition()) #vector(base[0], base[1], base[2])
-        self.UnitNormal = norm(self.NormalVec)
-        self.topoZ = simpleArrow(Color.white, 0, 10, self.GeoLoc.pos, axisp = (self.NormalVec/5), context = self.Origin)
+        self.topoVecUp = vector(self.getGeoPosition()) #vector(base[0], base[1], base[2])
+        self.UnitNormal = norm(self.topoVecUp)
+        self.topoUp = simpleArrow(Color.white, 0, 10, self.GeoLoc.pos, axisp = (self.topoVecUp/5), context = self.Origin)
 
-        #print "Normal.absoluteX = ", dot(self.NormalVec, self.Planet.PCPF.getAbsoluteAxisVector(0)), "Normal.ECEF-Xaxis = ", \
-        #                            dot(self.NormalVec, self.Planet.PCPF.XdirectionUnit)
+        #print "Normal.absoluteX = ", dot(self.topoVecUp, self.Planet.PCPF.getAbsoluteAxisVector(0)), "Normal.ECEF-Xaxis = ", \
+        #                            dot(self.topoVecUp, self.Planet.PCPF.XdirectionUnit)
 
         # now get the vector y, orthogonal to z, pointing North
-        self.topoVecY = getOrthogonalVector(self.NormalVec, direction = 'y') * mag(self.NormalVec) #getVectorOrthogonalToPlane(self.NormalVec, self.topoVecX) * mag(self.NormalVec)
-        # make sure that if topoY axis isn't aligned in the same direction as the PCPF ref rotation axis, we reverse it
+        self.topoVecNorth = getOrthogonalVector(self.topoVecUp, direction = 'y') * mag(self.topoVecUp) #getVectorOrthogonalToPlane(self.topoVecUp, self.topoVecEast) * mag(self.topoVecUp)
+        # make sure that if topoNorth axis isn't aligned in the same direction as the PCPF ref rotation axis, we reverse it
 
 
-        if dot(self.topoVecY, self.Planet.PCPF.RotAxis) < 0:
-            self.topoVecY = -self.topoVecY
+        if dot(self.topoVecNorth, self.Planet.PCPF.RotAxis) < 0:
+            self.topoVecNorth = -self.topoVecNorth
 
-        print "Normal=", self.NormalVec, "Y=", self.topoVecY
-        self.topoVecY = simpleArrow(Color.white, 0, 10, self.GeoLoc.pos, axisp = (self.topoVecY/5), context = self.Origin)
+        print "Normal=", self.topoVecUp, "Y=", self.topoVecNorth
+        self.topoVecNorth = simpleArrow(Color.white, 0, 10, self.GeoLoc.pos, axisp = (self.topoVecNorth/5), context = self.Origin)
 
         # and finally get the vector x, orthogonal to both (y, z) pointing east
-        self.topoVecX = getVectorOrthogonalToPlane(self.NormalVec, self.topoVecY) * mag(self.NormalVec) #getOrthogonalVector(self.NormalVec) * mag(self.NormalVec)
-        self.topoXXVecX = simpleArrow(Color.green, 0, 10, self.GeoLoc.pos, axisp = (self.topoVecX/5), context = self.Origin)
+        self.topoVecEast = getVectorOrthogonalToPlane(self.topoVecUp, self.topoVecNorth) * mag(self.topoVecUp) #getOrthogonalVector(self.topoVecUp) * mag(self.topoVecUp)
+        self.topoEastXVecX = simpleArrow(Color.green, 0, 10, self.GeoLoc.pos, axisp = (self.topoVecEast/5), context = self.Origin)
 
         self.displayTopoCentricRef(False)
     """
 
     def displayTopoCentricRef(self, trueFalse):
-        self.topoZ.display(trueFalse)
-        #.visible = trueFalse
-        self.topoX.display(trueFalse)
-        #self.xLabel.visible = trueFalse
-        self.topoY.display(trueFalse)
-        #self.yLabel.visible = trueFalse
+        self.topoUp.display(trueFalse)
+        self.zLabel.visible = trueFalse
+        self.topoEast.display(trueFalse)
+        self.xLabel.visible = trueFalse
+        self.topoNorth.display(trueFalse)
+        self.yLabel.visible = trueFalse
+        
         self.ViewArrowSouth.display(trueFalse)
+        
         #self.horizontal.display(trueFalse)
+        
         self.sunViewVector.display(trueFalse)
 
     def setEarthEyeView(self, trueFalse):
@@ -1360,8 +1369,9 @@ class makeEarthLocation():
         # on the scene view.
         if trueFalse == True:
             #self.RotateHorizon()
-            self.Planet.SolarSystem.Scene.background = Color.cyan
-            self.Planet.SolarSystem.Scene.fov = deg2rad(95)
+            self.Planet.SolarSystem.Scene.background = Color.blueish
+            if False:
+                self.Planet.SolarSystem.Scene.fov = deg2rad(95)
             self.updateEarthEyeView()
             # disable mouse action
             pass
@@ -1383,10 +1393,10 @@ class makeEarthLocation():
         #self.Planet.SolarSystem.Scene.forward = vector(self.CurrentGeoLoc - self.Planet.Origin.pos)
 
 
- #       self.Planet.SolarSystem.Scene.forward = vector(self.Widgets.PCPF.referential.frame_to_world(self.Origin.frame_to_world(self.topoVecX/5)) - self.CurrentGeoLoc)
- #       print "geoLocEcliptic=", self.CurrentGeoLoc, "topoX=", self.Widgets.PCPF.referential.frame_to_world(self.Origin.frame_to_world(self.topoVecX/5)), "forward=", self.Planet.SolarSystem.Scene.forward
+ #       self.Planet.SolarSystem.Scene.forward = vector(self.Widgets.PCPF.referential.frame_to_world(self.Origin.frame_to_world(self.topoVecEast/5)) - self.CurrentGeoLoc)
+ #       print "geoLocEcliptic=", self.CurrentGeoLoc, "topoEast=", self.Widgets.PCPF.referential.frame_to_world(self.Origin.frame_to_world(self.topoVecEast/5)), "forward=", self.Planet.SolarSystem.Scene.forward
 
- #       self.Planet.SolarSystem.Scene.center = (self.CurrentGeoLoc - 10 * self.Widgets.PCPF.referential.frame_to_world(self.Origin.frame_to_world(self.topoVecX/5)))
+ #       self.Planet.SolarSystem.Scene.center = (self.CurrentGeoLoc - 10 * self.Widgets.PCPF.referential.frame_to_world(self.Origin.frame_to_world(self.topoVecEast/5)))
  #       OVRLpositon = self.getGeoPosition()
  #       Horizontal = self.Widgets.PCPF.referential.frame_to_world(self.Origin.frame_to_world())
 
@@ -1398,10 +1408,10 @@ class makeEarthLocation():
         """
 
 #        abs_center = self.Origin.frame_to_world(vector(self.analemma.Intersec))
-#        self.Planet.SolarSystem.Scene.center = self.Widgets.PCPF.referential.frame_to_world(abs_center) #self.Widgets.PCPF.referential.frame_to_world(self.Origin.frame_to_world(self.getGeoPosition() + 5*self.ViewVector)) #self.NormalVec)) 
+#        self.Planet.SolarSystem.Scene.center = self.Widgets.PCPF.referential.frame_to_world(abs_center) #self.Widgets.PCPF.referential.frame_to_world(self.Origin.frame_to_world(self.getGeoPosition() + 5*self.ViewVector)) #self.topoVecUp)) 
 #
         self.Planet.SolarSystem.Scene.center = self.Widgets.PCPF.referential.frame_to_world(self.Origin.frame_to_world(self.getGeoPosition() + 10*self.ViewVector)) 
-#        self.Planet.SolarSystem.Scene.center = self.Widgets.PCPF.referential.frame_to_world(self.Origin.frame_to_world(self.getGeoPosition() - 5*self.topoVecY)) 
+#        self.Planet.SolarSystem.Scene.center = self.Widgets.PCPF.referential.frame_to_world(self.Origin.frame_to_world(self.getGeoPosition() - 5*self.topoVecNorth)) 
         self.Planet.SolarSystem.Scene.forward = vector(self.Planet.SolarSystem.Scene.center - self.CurrentGeoLoc)
 #        self.axis = simpleArrow(Color.yellow, 0, 20, vector(self.CurrentGeoLoc*1.05), axisp = self.Planet.SolarSystem.Scene.forward)
 
@@ -1418,18 +1428,18 @@ class makeEarthLocation():
         #self.Planet.SolarSystem.Scene.forward = vector(self.CurrentGeoLoc - self.Planet.Origin.pos)
 
 
- #       self.Planet.SolarSystem.Scene.forward = vector(self.Widgets.PCPF.referential.frame_to_world(self.Origin.frame_to_world(self.topoVecX/5)) - self.CurrentGeoLoc)
- #       print "geoLocEcliptic=", self.CurrentGeoLoc, "topoX=", self.Widgets.PCPF.referential.frame_to_world(self.Origin.frame_to_world(self.topoVecX/5)), "forward=", self.Planet.SolarSystem.Scene.forward
+ #       self.Planet.SolarSystem.Scene.forward = vector(self.Widgets.PCPF.referential.frame_to_world(self.Origin.frame_to_world(self.topoVecEast/5)) - self.CurrentGeoLoc)
+ #       print "geoLocEcliptic=", self.CurrentGeoLoc, "topoEast=", self.Widgets.PCPF.referential.frame_to_world(self.Origin.frame_to_world(self.topoVecEast/5)), "forward=", self.Planet.SolarSystem.Scene.forward
 
- #       self.Planet.SolarSystem.Scene.center = (self.CurrentGeoLoc - 10 * self.Widgets.PCPF.referential.frame_to_world(self.Origin.frame_to_world(self.topoVecX/5)))
+ #       self.Planet.SolarSystem.Scene.center = (self.CurrentGeoLoc - 10 * self.Widgets.PCPF.referential.frame_to_world(self.Origin.frame_to_world(self.topoVecEast/5)))
  #       OVRLpositon = self.getGeoPosition()
  #       Horizontal = self.Widgets.PCPF.referential.frame_to_world(self.Origin.frame_to_world())
         self.updateViewVector()
 
-        self.Planet.SolarSystem.Scene.center = self.Widgets.PCPF.referential.frame_to_world(self.Origin.frame_to_world(self.getGeoPosition() + 5*self.ViewVector)) #self.NormalVec)) 
+        self.Planet.SolarSystem.Scene.center = self.Widgets.PCPF.referential.frame_to_world(self.Origin.frame_to_world(self.getGeoPosition() + 5*self.ViewVector)) #self.topoVecUp)) 
 #
-        ###### self.Planet.SolarSystem.Scene.center = self.Widgets.PCPF.referential.frame_to_world(self.Origin.frame_to_world(self.getGeoPosition() + 5*self.topoVecX)) 
-#        self.Planet.SolarSystem.Scene.center = self.Widgets.PCPF.referential.frame_to_world(self.Origin.frame_to_world(self.getGeoPosition() - 5*self.topoVecY)) 
+        ###### self.Planet.SolarSystem.Scene.center = self.Widgets.PCPF.referential.frame_to_world(self.Origin.frame_to_world(self.getGeoPosition() + 5*self.topoVecEast)) 
+#        self.Planet.SolarSystem.Scene.center = self.Widgets.PCPF.referential.frame_to_world(self.Origin.frame_to_world(self.getGeoPosition() - 5*self.topoVecNorth)) 
 
         self.Planet.SolarSystem.Scene.forward = -vector(self.CurrentGeoLoc - self.Planet.SolarSystem.Scene.center)
 #        self.axis = simpleArrow(Color.yellow, 0, 20, vector(self.CurrentGeoLoc*1.05), axisp = self.Planet.SolarSystem.Scene.forward)
@@ -1447,14 +1457,14 @@ class makeEarthLocation():
         #self.Planet.SolarSystem.Scene.forward = vector(self.CurrentGeoLoc - self.Planet.Origin.pos)
 
 
- #       self.Planet.SolarSystem.Scene.forward = vector(self.Widgets.PCPF.referential.frame_to_world(self.Origin.frame_to_world(self.topoVecX/5)) - self.CurrentGeoLoc)
- #       print "geoLocEcliptic=", self.CurrentGeoLoc, "topoX=", self.Widgets.PCPF.referential.frame_to_world(self.Origin.frame_to_world(self.topoVecX/5)), "forward=", self.Planet.SolarSystem.Scene.forward
+ #       self.Planet.SolarSystem.Scene.forward = vector(self.Widgets.PCPF.referential.frame_to_world(self.Origin.frame_to_world(self.topoVecEast/5)) - self.CurrentGeoLoc)
+ #       print "geoLocEcliptic=", self.CurrentGeoLoc, "topoEast=", self.Widgets.PCPF.referential.frame_to_world(self.Origin.frame_to_world(self.topoVecEast/5)), "forward=", self.Planet.SolarSystem.Scene.forward
 
- #       self.Planet.SolarSystem.Scene.center = (self.CurrentGeoLoc - 10 * self.Widgets.PCPF.referential.frame_to_world(self.Origin.frame_to_world(self.topoVecX/5)))
+ #       self.Planet.SolarSystem.Scene.center = (self.CurrentGeoLoc - 10 * self.Widgets.PCPF.referential.frame_to_world(self.Origin.frame_to_world(self.topoVecEast/5)))
  #       OVRLpositon = self.getGeoPosition()
  #       Horizontal = self.Widgets.PCPF.referential.frame_to_world(self.Origin.frame_to_world())
-        self.Planet.SolarSystem.Scene.center = self.Widgets.PCPF.referential.frame_to_world(self.Origin.frame_to_world(self.getGeoPosition() + 5*self.topoVecX)) 
-#        self.Planet.SolarSystem.Scene.center = self.Widgets.PCPF.referential.frame_to_world(self.Origin.frame_to_world(self.getGeoPosition() - 5*self.topoVecY)) 
+        self.Planet.SolarSystem.Scene.center = self.Widgets.PCPF.referential.frame_to_world(self.Origin.frame_to_world(self.getGeoPosition() + 5*self.topoVecEast)) 
+#        self.Planet.SolarSystem.Scene.center = self.Widgets.PCPF.referential.frame_to_world(self.Origin.frame_to_world(self.getGeoPosition() - 5*self.topoVecNorth)) 
 
         self.Planet.SolarSystem.Scene.forward = -vector(self.CurrentGeoLoc*1.05 - self.Planet.SolarSystem.Scene.center)
         self.axis = simpleArrow(Color.yellow, 0, 20, vector(self.CurrentGeoLoc*1.05), axisp = self.Planet.SolarSystem.Scene.forward)
@@ -1483,9 +1493,9 @@ class makeEarthLocation():
         self.GeoLoc.axis = axis * (1 / mag(axis))
 
     def showXX(self, trueFalse):
-        self.topoZ.display(trueFalse)
-        self.topoVecX.display(trueFalse)
-        self.topoVecY.display(trueFalse)
+        self.topoUp.display(trueFalse)
+        self.topoVecEast.display(trueFalse)
+        self.topoVecNorth.display(trueFalse)
 
 
 
@@ -1627,6 +1637,110 @@ class makeEquatorialPlane():
 
     def display(self, trueFalse):
         self.eqPlane.opacity = (0.6 if trueFalse == True else 0)
+        return
+
+        STEPS = 10
+        if trueFalse == True:
+            bound = 0
+        else:
+            bound = STEPS-1
+        
+        for i in range(STEPS):
+            self.eqPlane.opacity = float(abs(bound-i))/(3*STEPS)
+            sleep(1e-2)
+
+class makeLocalEclipticPlane():
+
+    def __init__(self, widgets, color, opacity):
+        # ecliptic Plane is relative to the ECSS referential
+        
+        self.Planet = widgets.Planet
+        self.Origin = widgets.ECSS.referential #widgets.Planet.Origin
+        self.Opacity = opacity
+        self.Color = color 
+
+        side = 0.1*AU*DIST_FACTOR
+        # define plane in fix referential PCI
+        self.ecPlane = box(frame=self.Origin, pos=(0,0,0), length=side, width=0.0001, height=side, material=materials.emissive, visible=True, color=self.Color, opacity=0) #, axis=(0, 0, 1), opacity=0.8) #opacity=self.Opacity)
+
+
+    def display(self, trueFalse):
+        self.ecPlane.opacity = (0.6 if trueFalse == True else 0)
+        return
+
+        STEPS = 10
+        if trueFalse == True:
+            bound = 0
+        else:
+            bound = STEPS-1
+        
+        for i in range(STEPS):
+            self.eqPlane.opacity = float(abs(bound-i))/(3*STEPS)
+            sleep(1e-2)
+
+class nutation(): # IN PROGRESS
+    def __init__(self, widgets):
+
+        # The principal term of nutation is due to the regression of the Moon's
+        # nodal line and has the same period of 6798 days (18.61 years). It
+        # reaches plus or minus 17" in longitude and 9.2" in obliquity. All
+        # other terms are much smaller; the next-largest, with a period of 183
+        # days (0.5 year), has amplitudes 1.3" and 0.6" respectively.
+        # nutation happens in the PCI referential
+        
+        self.NutationSteps = 0
+        self.Planet = widgets.Planet
+#        self.Origin = widgets.Planet.ECSS.referential #widgets.Planet.Origin
+        self.Origin = widgets.PCI.referential #widgets.Planet.Origin
+        self.Opacity = opacity
+        self.Color = color 
+
+        side = 0.1*AU*DIST_FACTOR
+        # define plane in fix referential PCI
+        self.ecPlane = box(frame=self.Origin, pos=(0,0,0), length=side, width=0.0001, height=side, material=materials.emissive, visible=True, color=self.Color, opacity=0) #, axis=(0, 0, 1), opacity=0.8) #opacity=self.Opacity)
+
+    def runNutationStep(self):
+        pass
+
+    def display(self, trueFalse):
+        self.ecPlane.opacity = (0.6 if trueFalse == True else 0)
+        return
+
+        STEPS = 10
+        if trueFalse == True:
+            bound = 0
+        else:
+            bound = STEPS-1
+        
+        for i in range(STEPS):
+            self.eqPlane.opacity = float(abs(bound-i))/(3*STEPS)
+            sleep(1e-2)
+
+class precession(): # IN PROGRESS
+    def __init__(self, widgets):
+
+        # precession happens in the PCI referential by rotating the z-axis 
+        # by 1 deg every 72 years along a circle (or 360 deg in 26000 years)
+        # must be relative to the PCI referential
+        
+        self.PrecessionSteps = 0
+        self.Planet = widgets.Planet
+#        self.Origin = widgets.Planet.ECSS.referential #widgets.Planet.Origin
+        self.Origin = widgets.PCI.referential #widgets.Planet.Origin
+        self.Opacity = opacity
+        self.Color = color 
+
+        #side = 0.1*AU*DIST_FACTOR
+        # define plane in fix referential PCI
+        #self.ecPlane = box(frame=self.Origin, pos=(0,0,0), length=side, width=0.0001, height=side, material=materials.emissive, visible=True, color=self.Color, opacity=0) #, axis=(0, 0, 1), opacity=0.8) #opacity=self.Opacity)
+
+    def runPrecessionStep(self):
+        self.Origin.rotate(angle=pi/2, axis=self.ECSS.XdirectionUnit) #(self.Axis[0], 0, 0)))
+        pass
+
+
+    def display(self, trueFalse):
+        self.ecPlane.opacity = (0.6 if trueFalse == True else 0)
         return
 
         STEPS = 10

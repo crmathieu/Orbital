@@ -235,19 +235,9 @@ class make3DaxisReferential:
                                         #pos = self.referential.pos+self.directions[i]*(1.07+ve), opacity = 0, box = False, visible=show )
                                         pos = self.directions[i]*(1.07), opacity = 0, box = False, visible=True )
 
-#                self.Axis[i] = simpleArrow(params['color'], 0, 20, position, axisp = self.directions[i], context=self.referential)
-#                self.Axis[i].display(False) # allows axis visibility to be dependent upon their frame visibility when axisLock = True
-#                self.AxisLabel[i] = label( frame = self.referential, color = params['color'],  text = params['legend'][i],
-#                                            #pos = self.referential.pos+self.directions[i]*(1.07+ve), opacity = 0, box = False, visible=show )
-#                                            pos = position+self.directions[i]*(1.07+ve), opacity = 0, box = False, visible=False )
-
-
-#            ve = 0.07 #####
-
         self.display(params['show'])
 
     def display(self, trueFalse):
-        #self.referential.visible = trueFalse
         for i in range(3):
             if self.Axis[i] != None:
                 self.Axis[i].display(trueFalse)
@@ -303,23 +293,6 @@ class make3DaxisReferential:
     def updateReferential(self):
         self.referential.pos = (self.body.Position[0]+self.body.Foci[0], self.body.Position[1]+self.body.Foci[1], self.body.Position[2]+self.body.Foci[2])
         return 
-
-
-        # based on whether or not our 3 axis is locked with frame, set position absolutely or relatively
-        #position = self.referential.pos #if self.frame == None else vector(0,0,0)
-        position = vector(0,0,0)
-        
-#        self.updateAxis()
-#        if self.makeAxis == True:
-        ve = 0.2
-        for i in range (3): # Each direction
-            self.Axis[i].setPosition((0,0,0), self.directions[i])
-            self.AxisLabel[i].pos = self.directions[i]*(1.07+ve)
-            ve = 0.07 
-#        for i in range (3): # Each direction
-#            self.Axis[i].setPosition(position, position+self.directions[i])
-#            self.AxisLabel[i].pos = position+self.directions[i]*(1.07+ve)
-#            ve = 0.07 
 
     def rotate(self, angle):
         self.referential.rotate(angle=(angle), axis=self.RotAxis)
