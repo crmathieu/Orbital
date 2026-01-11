@@ -12,7 +12,7 @@ class makeMercury(makePlanet):
 
 	def AdjustPMforPeriodicTerms(self, W, T, d):
 
-		# For Mercury, we need adjust extra periodic terms:
+		# For Mercury, we need to adjust the prime meridien for extra periodic terms:
     	# W += sum(A_i * sin(M_i))
     	# M_i are arguments of periodic terms.
 
@@ -48,6 +48,7 @@ class makeMars(makePlanet):
 		makePlanet.__init__(self, system, "mars", Color, ptype, sizeCorrectionType, defaultSizeCorrection)
 
 
+
 class makeSaturn(makePlanet):
 	
 	def __init__(self, system, Color, ptype, sizeCorrectionType, defaultSizeCorrection):
@@ -64,6 +65,7 @@ class makeJupiter(makePlanet):
 	
 	def __init__(self, system, Color, ptype, sizeCorrectionType, defaultSizeCorrection):
 		makePlanet.__init__(self, system, "jupiter", Color, ptype, sizeCorrectionType, defaultSizeCorrection)
+
 
 	def AdjustNPforPeriodicTerms(self, RA, decl, T, d):
 	    # Jupiter needs to adjust the right Ascension 
@@ -128,5 +130,11 @@ class makePluto(makePlanet):
 	
 	def __init__(self, system, Color, ptype, sizeCorrectionType, defaultSizeCorrection):
 		makePlanet.__init__(self, system, "pluto", Color, ptype, sizeCorrectionType, defaultSizeCorrection)
+
+
+class makeEarth(makeEarth_and_widgets):
+	
+	def __init__(self, system, Color, ptype, sizeCorrectionType, defaultSizeCorrection):
+		makeEarth_and_widgets.__init__(self, system, Color, ptype, sizeCorrectionType, defaultSizeCorrection)
 
 

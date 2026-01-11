@@ -376,7 +376,7 @@ if __name__ == '__main__':
     rx, ry, rz = out['r_ecliptic_km']
     vx, vy, vz = out['v_ecliptic_km_s']
 
-    print "Velocity = ", math.sqrt(vx*vx+vy*vy+vz*vz), " km/s"
+    print ("Velocity = ", math.sqrt(vx*vx+vy*vy+vz*vz), " km/s")
 
     print("r (km): %.3f, %.3f, %.3f" % (rx, ry, rz))
     print("v (km/s): %.6f, %.6f, %.6f" % (vx, vy, vz))
@@ -390,10 +390,11 @@ if __name__ == '__main__':
     print("  M      = %.6f deg" % M_deg)
 
 
-"""
+    """
 PROMPT: 1) Write a code in python2.7 that will calculate the 
 orbital elements and the position and velocity of the moon in geocentric ecliptic 
 coordinate frame.
 
 2) Among the recovered classical elements, your calculation render an 
 inclination of 9.86 degres. That can't be right (should be around 5.4 degres)?
+    """

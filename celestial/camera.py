@@ -339,7 +339,7 @@ class camera3D:
 		#print "----------"
 		#print "updateCameraViewTarget: position:",self.ssys.cameraViewTargetBody.Position
 		##print "label coordinates:",self.ssys.cameraViewTargetBody.Labels[0].pos
-		#print "updateCameraViewTarget: label=", self.ssys.cameraViewTargetBody.Labels[0].pos, "origin=", self.ssys.cameraViewTargetBody.Origin.pos
+		#print "updateCameraViewTarget: label=", self.ssys.cameraViewTargetBody.Labels[0].pos, "origin=", self.ssys.cameraViewTargetBody.RefOrigin.pos
 		#print "----------"
 
 	def setTransitionVelocity(self, velocity):
@@ -429,9 +429,9 @@ class camera3D:
 		# build radial vector vertical to location in ecliptic coordinates
 		dest = self.Loc[nextLocation].updateEclipticPosition()	# updateEclipticPosition now returns the updated value
 		#dest = self.Loc[nextLocation].getEclipticPosition()
-		A = dest[0] - self.ssys.EarthRef.Origin.pos[0] #self.Planet.Origin.pos[0]
-		B = dest[1] - self.ssys.EarthRef.Origin.pos[1] #self.Planet.Origin.pos[1]
-		C = dest[2] - self.ssys.EarthRef.Origin.pos[2] #self.Planet.Origin.pos[2] 
+		A = dest[0] - self.ssys.EarthRef.RefOrigin.pos[0] #self.Planet.RefOrigin.pos[0]
+		B = dest[1] - self.ssys.EarthRef.RefOrigin.pos[1] #self.Planet.RefOrigin.pos[1]
+		C = dest[2] - self.ssys.EarthRef.RefOrigin.pos[2] #self.Planet.RefOrigin.pos[2] 
 		radialToLocation = vector(A, B, C)/np.sqrt(A**2 + B**2 + C**2)
 
         # (Xc, Yc, Zc) is the current location of center (before transition)

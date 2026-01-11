@@ -59,6 +59,7 @@ import StringIO
 from datetime import datetime, timedelta
 #from urllib import quote
 import json
+from planetsdata import *
 
 #zob ="https://ssd.jpl.nasa.gov/horizons_batch.cgi?batch=1&COMMAND='2022 JO1'&CENTER='@10'&START_TIME='2022-05-09'&STOP_TIME='2022-05-10'&MAKE_EPHEM=YES&EPHEM_TYPE=ELEMENTS"
 
@@ -77,6 +78,7 @@ if False:
 	QQUANTITIES = "&QUANTITIES=%271,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31,32,33,34,35,36,37,38,39,40,41,42,43,44,45,46%27&FIXED_QUANTITIES=%27A%27"
 	QTRAILER = "&REF_SYSTEM=%27J2000%27&OUT_UNITS=%27KM-S%27&VECT_TABLE=%273%27&VECT_CORR=%27NONE%27&CAL_FORMAT=%27CAL%27&ANG_FORMAT=%27DEG%27&APPARENT=%27AIRLESS%27&TIME_TYPE=%27UTC%27&TIME_DIGITS=%27MINUTES%27&RANGE_UNITS=%27AU%27&SUPPRESS_RANGE_RATE=%27no%27&SKIP_DAYLT=%27no%27&EXTRA_PREC=%27yes%27&CSV_FORMAT=%27yes%27&VEC_LABELS=%27yes%27&ELM_LABELS=%27yes%27&TP_TYPE=%27ABSOLUTE%27&R_T_S_ONLY=%27NO%27&CA_TABLE_TYPE=%27STANDARD%27"
 
+"""
 INPUT = "!$$SOF" 
 MAKE_EPHEM='YES'
 COMMAND=-143205
@@ -92,20 +94,25 @@ ELM_LABELS='YES'
 TP_TYPE='ABSOLUTE'
 CSV_FORMAT='YES'
 OBJ_DATA='NO'
-
+"""
 
 QHEADER = "?batch=1&COMMAND="
-QCENTER = "&CENTER='@10'&MAKE_EPHEM='YES'&EPHEM_TYPE=ELEMENTS&REF_PLANE='ECLIPTIC'"
+#QCENTER = "&CENTER='@10'&MAKE_EPHEM='YES'&EPHEM_TYPE=ELEMENTS&REF_PLANE='ECLIPTIC'"
+QCENTER_A = "&CENTER='"
+QCENTER_ELT = "'&MAKE_EPHEM='YES'&EPHEM_TYPE=ELEMENTS&REF_PLANE='ECLIPTIC'"
+
+QCENTER_VEC = "'&MAKE_EPHEM='YES'&EPHEM_TYPE=VECTORS&REF_PLANE='ECLIPTIC'"
+
+
 QSTART = "&START_TIME="
 QSTOP = "&STOP_TIME="
 QSTEP = "&STEP_SIZE="  # 1h, 6h, ...
 QQUANTITIES = "" #"&QUANTITIES=%271,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31,32,33,34,35,36,37,38,39,40,41,42,43,44,45,46%27&FIXED_QUANTITIES=%27A%27"
-QTRAILER = "&OBJ_DATA='YES'&FORMAT='json'" #&TIME_TYPE=UTC" #"&REF_SYSTEM='J2000'&OUT_UNITS=%27KM-S%27&VECT_TABLE=%273%27&VECT_CORR=%27NONE%27&CAL_FORMAT=%27CAL%27&ANG_FORMAT=%27DEG%27&APPARENT=%27AIRLESS%27&TIME_TYPE=%27UTC%27&TIME_DIGITS=%27MINUTES%27&RANGE_UNITS=%27AU%27&SUPPRESS_RANGE_RATE=%27no%27&SKIP_DAYLT=%27no%27&EXTRA_PREC=%27yes%27&CSV_FORMAT=%27yes%27&VEC_LABELS=%27yes%27&ELM_LABELS=%27yes%27&TP_TYPE=%27ABSOLUTE%27&R_T_S_ONLY=%27NO%27&CA_TABLE_TYPE=%27STANDARD%27"
+QTRAILER = "&OBJ_DATA='YES'&FORMAT=JSON" #&TIME_TYPE=UTC" #"&REF_SYSTEM='J2000'&OUT_UNITS=%27KM-S%27&VECT_TABLE=%273%27&VECT_CORR=%27NONE%27&CAL_FORMAT=%27CAL%27&ANG_FORMAT=%27DEG%27&APPARENT=%27AIRLESS%27&TIME_TYPE=%27UTC%27&TIME_DIGITS=%27MINUTES%27&RANGE_UNITS=%27AU%27&SUPPRESS_RANGE_RATE=%27no%27&SKIP_DAYLT=%27no%27&EXTRA_PREC=%27yes%27&CSV_FORMAT=%27yes%27&VEC_LABELS=%27yes%27&ELM_LABELS=%27yes%27&TP_TYPE=%27ABSOLUTE%27&R_T_S_ONLY=%27NO%27&CA_TABLE_TYPE=%27STANDARD%27"
 
 
 # use a 24h interval
 Q_interval = "'24h'"
-objects_data = {}
 
 G = 6.67384e-11	# Universal gravitational constant
 
@@ -146,26 +153,34 @@ class JPLsearch:
 	endMarker = "$$EOE"
 	nameMarker = "Target body name:"
 
-	def urlBuilder(self, targetid, starttime, endtime, step):
-		return QHEADER+"'"+targetid+"'"+QCENTER+QSTART+"'"+starttime+"'"+QSTOP+"'"+endtime+"'"+QSTEP+"'"+step+"'"+QTRAILER
+	def urlBuilder(self, centralObject, targetid, starttime, endtime, step):
+#		return QHEADER+"'"+targetid+"'"+QCENTER_A+centralObject+QCENTER_ELT+QSTART+"'"+starttime+"'"+QSTOP+"'"+endtime+"'"+QSTEP+"'"+step+"'"+QTRAILER
+		return QHEADER+"'"+targetid+"'"+QCENTER_A+centralObject+QCENTER_VEC+QSTART+"'"+starttime+"'"+QSTOP+"'"+endtime+"'"+QSTEP+"'"+step+"'"+QTRAILER
 
 
-	def fetchElements(self, target):
+	def fetchElements(self, centralObject, target, tname):
+		target = urllib.quote(target)
+
 		startdate = datetime.utcnow().strftime('%Y/%m/%d %H:%M')
 		enddate = (datetime.utcnow()+timedelta(days=1)).strftime('%Y/%m/%d %H:%M')
-		parameters = self.urlBuilder(target, startdate, enddate, "24h")
-		#print "TARGET=", self.url+parameters
+		
+		print ("START date", startdate)
+
+		parameters = self.urlBuilder(centralObject, target, startdate, enddate, "24h")
+		print "TARGET=", self.url+parameters
 		if self.fetchHorizon(parameters) == True:
-			self.extractGeometry(target)
 			self.extractAppearence(target)
-			print objects_data
+			self.extractGeometry(target, tname)
+			#print ("**********")
+			#print objects_data
+			#print ("**********")
 
 
-	def extractGeometry(self, target):
+	def extractGeometry(self, target, tname = ""):
 
 		# parse response using start and end markers
 		
-		print self.rawResp	
+		#print self.rawResp	
 
 		# Extract body or spacecraft name
 		name = ""
@@ -183,6 +198,7 @@ class JPLsearch:
 			name = "Unknown"
 		name = name.encode('latin1')
 
+		print ">>>>>>>>>>>>>>> "+name+" <<<<<<<<<<<<<<<<<<<"
 		# Extract orbit geometry and dynamics 
 		#print "Extracting ", name
 		start = self.rawResp.find(self.startMarker, 0, len(self.rawResp))
@@ -192,7 +208,7 @@ class JPLsearch:
 			end = self.rawResp.find(self.endMarker, start, len(self.rawResp))
 			if end != -1:
 				cvs = self.rawResp[start:end]
-				print cvs
+				#print cvs
 				# read line by line
 				line = StringIO.StringIO(cvs)
 				rec = line.readline()
@@ -240,7 +256,7 @@ class JPLsearch:
 					# break down in tokens
 					arr = rec.split(chSplit) #" ")
 					chSplit = "="
-					print arr
+					#print arr
 					if k == 0:
 						elements[JDTDB] = arr[0]
 						elements[DATETIME] = arr[3] +" "+arr[4]
@@ -269,6 +285,9 @@ class JPLsearch:
 				#print "----------"
 				#print elements
 
+				if tname != "":
+					name = tname
+
 				self.loadBodyInfo(target, name, elements)
 
 
@@ -294,7 +313,7 @@ class JPLsearch:
 					# break down in tokens
 					arr = line.split(" ")
 					if len(arr) > 1:
-						print arr
+						#print arr
 						for i in range(len(arr)):
 
 							if arr[i] == self.GM_token:
@@ -303,7 +322,7 @@ class JPLsearch:
 							else:
 								if arr[i] == self.RAD_token:
 									if is_float(arr[i+1]):
-										print arr[i+1]
+										#print arr[i+1]
 										objects_data[target]["radius"] = float(arr[i+1])
 								else:
 									if arr[i] == self.ROT_token:
@@ -324,30 +343,77 @@ class JPLsearch:
 					# check next line in block
 					line = " ".join(block.readline().split())
 
+	
 	def loadBodyInfo(self, target, name, arr):
 
-			objects_data[target] = {
+			print "LoadbodyInfo from JPL: name = " + name
+#			objects_data[target] = {
+			objects_data[name]["profile"] = ""
+			objects_data[name]["material"] = 0
+			objects_data[name]["name"] = name
+			objects_data[name]["iau_name"] = name
+			objects_data[name]["jpl_designation"] = target
+			objects_data[name]["distance_to_periapsis"] = float(arr[QR_PERIAPSIS].strip()) * 1000 # convert to meters
+			objects_data[name]["eccentricity_EC"] = float(arr[EC_ECCENTRICITY].strip())
+				
+			objects_data[name]["revolution_PR"] = float(arr[PR_SIDERAL_ORBIT].strip()) / SIDEREAL_DAY
+				
+			objects_data[name]["orbital_inclination_IN"] = float(arr[IN_INCLINATION].strip())
+
+			objects_data[name]["longitude_of_ascendingnode_OM"] =float(arr[OM_LONG_OF_ASCNODE].strip())
+			objects_data[name]["argument_of_periapsis_w"] = float(arr[W_ARG_OF_PERIFOCUS].strip())
+			objects_data[name]["longitude_of_periapsis_W"] = float(arr[OM_LONG_OF_ASCNODE].strip())+float(arr[W_ARG_OF_PERIFOCUS].strip())
+
+			objects_data[name]["jd_time_of_periapsis_passage_Tp"] = float(arr[TP_TIME_OF_PERIAPSIS].strip())
+			objects_data[name]["mean_motion_N"] = float(arr[N_MEAN_MOTION].strip()) * 86400 # since JPL return the #degree/sec and our algo takes degree/day
+			objects_data[name]["mean_anomaly_MA"] = float(arr[MA_MEAN_ANOMALY].strip())
+
+			objects_data[name]["epochJD"] = EPOCH_2000_JD #float(arr[JDTDB].strip()),
+
+			objects_data[name]["earth_moid"] = 0 #float(entry["orbital_data"]["minimum_orbit_intersection"]) * AU,
+			objects_data[name]["orbit_class"] = "N/A"
+			objects_data[name]["axial_tilt"] = 0.0
+			objects_data[name]["utc"] = "" #utc_close_approach.strftime('%Y-%m-%d %H:%M:%S'),
+			objects_data[name]["local"] = "" #orbit3D.datetime_from_utc_to_local(utc_close_approach)
+
+			objects_data[name]["albedo"] = 0.0
+			objects_data[name]["aphelion"] = float(arr[AD_APOAPSIS].strip()) * 1000
+			objects_data[name]["absolute_mag"] = 0 #float(entry["absolute_magnitude_h"]),
+
+
+			# CLose approach objects are considered as PHAs
+			if 0:
+				body = orbit3D.pha(self.SolarSystem, entry["neo_reference_id"], orbit3D.getColor())
+				self.SolarSystem.addTo(body)
+				return "" #entry["neo_reference_id"]
+
+
+	def loadBodyInfo_SAVE(self, target, name, arr):
+
+			print "LoadbodyInfo from JPL: name = " + name
+#			objects_data[target] = {
+			objects_data[name] = {
 				"profile": "",
 				"material": 0,
 				"name": name,
 				"iau_name": name,
 				"jpl_designation": target,
-				"QR_perihelion": float(arr[QR_PERIAPSIS].strip()),
-				"EC_e": float(arr[EC_ECCENTRICITY].strip()),
+				"distance_to_periapsis": float(arr[QR_PERIAPSIS].strip()) * 1000, # convert to meters
+				"eccentricity_EC": float(arr[EC_ECCENTRICITY].strip()),
 				
-				"PR_revolution": float(arr[PR_SIDERAL_ORBIT].strip()),
+				"revolution_PR": float(arr[PR_SIDERAL_ORBIT].strip()) / SIDEREAL_DAY,
 				
-				"IN_orbital_inclination": float(arr[IN_INCLINATION].strip()),
+				"orbital_inclination_IN": float(arr[IN_INCLINATION].strip()),
 
-				"OM_longitude_of_ascendingnode":float(arr[OM_LONG_OF_ASCNODE].strip()),
-				"W_argument_of_perihelion": float(arr[W_ARG_OF_PERIFOCUS].strip()),
-				"longitude_of_perihelion": float(arr[OM_LONG_OF_ASCNODE].strip())+float(arr[W_ARG_OF_PERIFOCUS].strip()),
+				"longitude_of_ascendingnode_OM":float(arr[OM_LONG_OF_ASCNODE].strip()),
+				"argument_of_periapsis_w": float(arr[W_ARG_OF_PERIFOCUS].strip()),
+				"longitude_of_periapsis_W": float(arr[OM_LONG_OF_ASCNODE].strip())+float(arr[W_ARG_OF_PERIFOCUS].strip()),
 
-				"Tp_Time_of_perihelion_passage_JD": float(arr[TP_TIME_OF_PERIAPSIS].strip()),
-				"N_mean_motion": float(arr[N_MEAN_MOTION].strip()),
-				"MA_mean_anomaly": float(arr[MA_MEAN_ANOMALY].strip()),
+				"jd_time_of_periapsis_passage_Tp": float(arr[TP_TIME_OF_PERIAPSIS].strip()),
+				"mean_motion_N": float(arr[N_MEAN_MOTION].strip()) * 86400, # since JPL return the #degree/sec and our algo takes degree/day
+				"mean_anomaly_MA": float(arr[MA_MEAN_ANOMALY].strip()),
 
-				"epochJD": float(arr[JDTDB].strip()),
+				"epochJD": EPOCH_2000_JD, #float(arr[JDTDB].strip()),
 
 				"earth_moid": 0, #float(entry["orbital_data"]["minimum_orbit_intersection"]) * AU,
 				"orbit_class": "N/A",
@@ -359,6 +425,7 @@ class JPLsearch:
 				"radius": 0, #float(entry["estimated_diameter"]["kilometers"]["estimated_diameter_max"])*0.5, # if float(entry["estimated_diameter"]["kilometers"]["estimated_diameter_max"])/2 > DEFAULT_RADIUS else DEFAULT_RADIUS,
 				"rotation": 0.0,
 				"albedo": 0.0,
+				"aphelion": float(arr[AD_APOAPSIS].strip()) * 1000,
 				"absolute_mag": 0 #float(entry["absolute_magnitude_h"]),
 			}
 
@@ -373,14 +440,25 @@ class JPLsearch:
 		try:
 			headers = {"Content-Type": "application/json; charset=utf-8"}
 
-			self.response = requests.get(url = query, headers=headers) #, data = param)
+			#self.response = requests.get(url = query, headers=headers) #, data = param)
+
+			self.response  = requests.get(url = query, headers = headers, verify=False)
+			
+			# suppress the warning that urllib3 emits
+			requests.packages.urllib3.disable_warnings()
+
+
 			self.rawResp = self.response.text
+			print "################################"
+			print self.rawResp
+			print "################################"
+
 			return True
 
-			"""opener = urllib2.build_opener()
-			opener.addheaders = [('User-Agent', 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_12_2) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/55.0.2883.95 Safari/537.36')]
-			print "REQUESTING:", query #self.url+"/"+target
-			response = opener.open(query) #self.url+target)"""
+			#opener = urllib2.build_opener()
+			#opener.addheaders = [('User-Agent', 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_12_2) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/55.0.2883.95 Safari/537.36')]
+			#print "REQUESTING:", query #self.url+"/"+target
+			#response = opener.open(query) #self.url+target)
 
 		except requests.HTTPError as err:
 		#except urllib2.HTTPError as err:
@@ -389,9 +467,20 @@ class JPLsearch:
 			return False
 
 
-test = JPLsearch()
-#test.fetchElements(urllib.quote("toutatis"))
-test.fetchElements(urllib.quote("C/2017 K2"))
+if True:
+		#objects_data["moon"] = {}
+
+		# this is an example of use of the JPLsearch
+		test = JPLsearch()
+
+		#test.fetchElements(urllib.quote("toutatis"))
+		#test.fetchElements(urllib.quote("C/2017 K2"))
+
+		#test.fetchElements(urllib.quote("301"))
+		test.fetchElements("@399", "301", "moon")
+		print objects_data["moon"]
+
+
 
 # Example of output for an asteroid/comet (Ceres)
 

@@ -191,6 +191,7 @@ class DrawRect(wx.Panel):
          dc.SetBrush(wx.Brush("C0C0C0"))
          dc.DrawRectangle(50,50,50,50)		
 """
+
 class createInfoWindow(wx.Frame):
 
 	def __init__(self, pos, size, nlines):
@@ -497,9 +498,9 @@ class FOCUSpanel(AbstractUI):
 
 		i = round(float(Body.Inclination) * 1000)/1000
 		N = round(float(Body.Longitude_of_ascendingnode) * 1000)/1000
-		w = round(float(Body.Argument_of_perihelion) * 1000)/1000
+		w = round(float(Body.Argument_of_periapsis) * 1000)/1000
 		e = round(float(Body.e) * 1000)/1000
-		q = round(float(Body.Perihelion/AU) * 1000)/1000
+		q = round(float(Body.Periapsis/AU) * 1000)/1000
 		a = round(float(Body.Aphelion/AU) * 1000)/1000
 
 		self.Title.SetLabel(Body.Name)
@@ -529,7 +530,7 @@ class FOCUSpanel(AbstractUI):
 				#print "Making "+Body.Name+" visible! bodyType = "+str(Body.BodyType)
 				#for i in range(len(body.BodyGeometry)):
 
-				Body.Origin.visible = True
+				Body.RefOrigin.visible = True
 				Body.Labels[0].visible = True
 				#planetBody.SolarSystem.ShowFeatures |= planetBody.BodyType
 				Body.SolarSystem.setFeature(Body.BodyType, True)
@@ -712,7 +713,7 @@ class SEARCHpanel(AbstractUI):
 	
 
 	def onSearch(self, e):
-		print ("ENTER"+self.search.GetValue())
+		#print ("ENTER"+self.search.GetValue())
 		self.searchList.DeleteAllItems()
 		self.searchByName(self.search.GetValue(), searchtype=self.SRCH_BROAD)
 		
@@ -858,7 +859,7 @@ class SEARCHpanel(AbstractUI):
 				raise
 
 		self.jsonBNResp = json.loads(rawResp)
-		print (rawResp)
+		#print (rawResp)
 
 		# check if there are multiple results or not
 		if type == self.SRCH_BROAD:
@@ -1011,29 +1012,29 @@ class SEARCHpanel(AbstractUI):
 		# add what follows through a loop going through all elements of entry["orbit"]["elements"]
 		for elt in entry["orbit"]["elements"]:
 			if elt["name"] == "e":
-				self.SolarSystem.objects_data[spkid].update({"EC_e": float(elt["value"])})
+				self.SolarSystem.objects_data[spkid].update({"eccentricity_EC": float(elt["value"])})
 			elif elt["name"] == "q":
-				self.SolarSystem.objects_data[spkid].update({"QR_perihelion": float(elt["value"]) * AU})
+				self.SolarSystem.objects_data[spkid].update({"distance_to_periapsis": float(elt["value"]) * AU})
 			elif elt["name"] == "i":
-				self.SolarSystem.objects_data[spkid].update({"IN_orbital_inclination": float(elt["value"])})
+				self.SolarSystem.objects_data[spkid].update({"orbital_inclination_IN": float(elt["value"])})
 			elif elt["name"] == "om":
 				om = float(elt["value"])
-				self.SolarSystem.objects_data[spkid].update({"OM_longitude_of_ascendingnode": om})
+				self.SolarSystem.objects_data[spkid].update({"longitude_of_ascendingnode_OM": om})
 			elif elt["name"] == "w":
 				W = float(elt["value"])
-				self.SolarSystem.objects_data[spkid].update({"W_argument_of_perihelion": W})
+				self.SolarSystem.objects_data[spkid].update({"argument_of_periapsis_w": W})
 			elif elt["name"] == "ma":
-				self.SolarSystem.objects_data[spkid].update({"MA_mean_anomaly": float(elt["value"])})
+				self.SolarSystem.objects_data[spkid].update({"mean_anomaly_MA": float(elt["value"])})
 			elif elt["name"] == "tp":
-				self.SolarSystem.objects_data[spkid].update({"Tp_Time_of_perihelion_passage_JD": float(elt["value"])}) # value unit in "TDB" (Time Dynamic Baricenter)
+				self.SolarSystem.objects_data[spkid].update({"jd_time_of_periapsis_passage_Tp": float(elt["value"])}) # value unit in "TDB" (Time Dynamic Baricenter)
 			elif elt["name"] == "per":
 				if elt["value"] == None:
 					elt["value"] = 0
-				self.SolarSystem.objects_data[spkid].update({"PR_revolution": float(elt["value"])})
+				self.SolarSystem.objects_data[spkid].update({"revolution_PR": float(elt["value"])})
 			elif elt["name"] == "n":
-				self.SolarSystem.objects_data[spkid].update({"N_mean_motion": float(elt["value"])})
+				self.SolarSystem.objects_data[spkid].update({"mean_motion_N": float(elt["value"])})
 
-		self.SolarSystem.objects_data[spkid].update({"longitude_of_perihelion": om+W})
+		self.SolarSystem.objects_data[spkid].update({"longitude_of_periapsis_W": om+W})
 
 		print (self.SolarSystem.objects_data[spkid])
 
@@ -1083,16 +1084,16 @@ class SEARCHpanel(AbstractUI):
 			"jpl_designation": entry["neo_reference_id"],
 			"mass": 0.0,
 			"radius": float(entry["estimated_diameter"]["kilometers"]["estimated_diameter_max"])*0.5, # if float(entry["estimated_diameter"]["kilometers"]["estimated_diameter_max"])/2 > DEFAULT_RADIUS else DEFAULT_RADIUS,
-			"QR_perihelion": float(entry["orbital_data"]["perihelion_distance"]) * AU,
-			"EC_e": float(entry["orbital_data"]["eccentricity"]),
-			"PR_revolution": float(entry["orbital_data"]["orbital_period"]),
-			"IN_orbital_inclination": float(entry["orbital_data"]["inclination"]),
-			"OM_longitude_of_ascendingnode":float(entry["orbital_data"]["ascending_node_longitude"]),
-			"W_argument_of_perihelion": float(entry["orbital_data"]["perihelion_argument"]),
-			"longitude_of_perihelion": float(entry["orbital_data"]["ascending_node_longitude"])+float(entry["orbital_data"]["perihelion_argument"]),
-			"Tp_Time_of_perihelion_passage_JD": float(entry["orbital_data"]["perihelion_time"]),
-			"N_mean_motion": float(entry["orbital_data"]["mean_motion"]),
-			"MA_mean_anomaly": float(entry["orbital_data"]["mean_anomaly"]),
+			"distance_to_periapsis": float(entry["orbital_data"]["perihelion_distance"]) * AU,
+			"eccentricity_EC": float(entry["orbital_data"]["eccentricity"]),
+			"revolution_PR": float(entry["orbital_data"]["orbital_period"]),
+			"orbital_inclination_IN": float(entry["orbital_data"]["inclination"]),
+			"longitude_of_ascendingnode_OM":float(entry["orbital_data"]["ascending_node_longitude"]),
+			"argument_of_periapsis_w": float(entry["orbital_data"]["perihelion_argument"]),
+			"longitude_of_periapsis_W": float(entry["orbital_data"]["ascending_node_longitude"])+float(entry["orbital_data"]["perihelion_argument"]),
+			"jd_time_of_periapsis_passage_Tp": float(entry["orbital_data"]["perihelion_time"]),
+			"mean_motion_N": float(entry["orbital_data"]["mean_motion"]),
+			"mean_anomaly_MA": float(entry["orbital_data"]["mean_anomaly"]),
 			"epochJD": float(entry["orbital_data"]["epoch_osculation"]),
 			"earth_moid": float(entry["orbital_data"]["minimum_orbit_intersection"]) * AU,
 			"orbit_class": "N/A",
@@ -1228,13 +1229,13 @@ class ORBITALpanel(AbstractUI):
 			self.currentBody = body
 			self.initViewAngle(body)
 			self.currentBody.Details = True
-			#print "Current body SET-1 with ", self.currentBody.Name, "Origin=",self.currentBody.Origin.pos
+			#print "Current body SET-1 with ", self.currentBody.Name, "Origin=",self.currentBody.RefOrigin.pos
 			#print ""
 			self.showObjectDetails(self.currentBody)
-			print "\nBODY:",body.Name, "\nposition=",body.Position, "\nbody.pos=",body.BodyGeometry.pos, "\nlabels.pos=", body.Labels[0].pos, "\norigin.pos=",body.Origin.pos
+			print "\nBODY:",body.Name, "\nposition=",body.Position, "\nbody.pos=",body.BodyGeometry.pos, "\nlabels.pos=", body.Labels[0].pos, "\norigin.pos=",body.RefOrigin.pos
 		else:
 			print "SetCurrentBodyFromId: could not find", id
-		#print "Current body SET-2 with ", self.currentBody.Name, "Origin=",self.currentBody.Origin.pos
+		#print "Current body SET-2 with ", self.currentBody.Name, "Origin=",self.currentBody.RefOrigin.pos
 
 	def setCurrentBodyFromIdSAVE(self, id):
 		if self.currentBody is not None:
@@ -1242,10 +1243,10 @@ class ORBITALpanel(AbstractUI):
 
 		self.currentBody = self.SolarSystem.getBodyFromName(id)
 		self.currentBody.Details = True
-		#print "Current body SET-1 with ", self.currentBody.Name, "Origin=",self.currentBody.Origin.pos
+		#print "Current body SET-1 with ", self.currentBody.Name, "Origin=",self.currentBody.RefOrigin.pos
 		#print ""
 		self.showObjectDetails(self.currentBody)
-		#print "Current body SET-2 with ", self.currentBody.Name, "Origin=",self.currentBody.Origin.pos
+		#print "Current body SET-2 with ", self.currentBody.Name, "Origin=",self.currentBody.RefOrigin.pos
 
 	def updateTimeStamps(self, ldt, utcdt):
 		self.set_LOI_datetime_label(ldt)
@@ -1304,6 +1305,7 @@ class ORBITALpanel(AbstractUI):
 		# Create a custom event in order to update the content of the day spinner if its value is out-of-range
 		self.CustomEvent, EVT_RESET_SPINNER = wx.lib.newevent.NewEvent()
 		self.dateDSpin.Bind(EVT_RESET_SPINNER, self.ResetSpinner) # bind it as usual
+		
 		# The day spinner has 2 events. one triggered when clicking on an arrow, and one
 		# triggered programmatically to update the value of the day spinner in order to correct it
 		# The firing of the EVT_RESET_SPINNER is programmatically done during the execution
@@ -1497,20 +1499,22 @@ class ORBITALpanel(AbstractUI):
 		#print "----------"
 		#print "updateCameraViewTarget: position:",self.SolarSystem.cameraViewTargetBody.Position
 		##print "label coordinates:",self.SolarSystem.cameraViewTargetBody.Labels[0].pos
-		#print "updateCameraViewTarget: label=", self.SolarSystem.cameraViewTargetBody.Labels[0].pos, "origin=", self.SolarSystem.cameraViewTargetBody.Origin.pos
+		#print "updateCameraViewTarget: label=", self.SolarSystem.cameraViewTargetBody.Labels[0].pos, "origin=", self.SolarSystem.cameraViewTargetBody.RefOrigin.pos
 		#print "----------"
 
 	"""			
 	
 
 	def updateSolarSystem(self):
-		# animate all visible bodies in the solar system 
+
+		# This function will ANIMATE all visible bodies in the solar system 
+		
 		self.refreshDate()
 		#self.SolarSystem.animate(self.DeltaT)
 		for body in self.SolarSystem.bodies:
 			if body.BodyType in [SUN, SPACECRAFT, OUTERPLANET, INNERPLANET, SATELLITE, ASTEROID, \
 								 COMET, DWARFPLANET, PHA, BIG_ASTEROID, TRANS_NEPT]:
-				if body.Origin.visible == True or body.Name.lower() == EARTH_NAME:
+				if body.RefOrigin.visible == True or body.Name.lower() == EARTH_NAME:
 					velocity, dte, dts = body.animate(self.DeltaT)
 					#print "VEL:", velocity, "dte:", dte
 					if self.SolarSystem.cameraViewTargetBody is not None:
@@ -1743,9 +1747,9 @@ class ORBITALpanel(AbstractUI):
 
 		i = round(float(body.Inclination) * 1000)/1000
 		N = round(float(body.Longitude_of_ascendingnode) * 1000)/1000
-		w = round(float(body.Argument_of_perihelion) * 1000)/1000
+		w = round(float(body.Argument_of_periapsis) * 1000)/1000
 		e = round(float(body.e) * 1000)/1000
-		q = round(float(body.Perihelion/AU) * 1000)/1000
+		q = round(float(body.Periapsis/AU) * 1000)/1000
 
 		self.DetailsOn = True
 		self.Info1.SetLabel("{:<12}{:>7.3f}\n{:<12}{:>7.3f}\n{:<12}{:>7.3f}\n{:<12}{:>7.3f}\n{:<12}{:>7.3f}\n{:<12}{:>7.3f}".
@@ -1764,8 +1768,8 @@ class ORBITALpanel(AbstractUI):
 		############ self.refreshDate() 
 
 		#for i in range(len(body.BodyGeometry)):
-		print ">>>>DETAILS:\norigin.pos=", body.Origin.pos, "\nlabel.pos", body.Labels[0].pos
-		body.Origin.visible = True
+		print ">>>>DETAILS:\norigin.pos=", body.RefOrigin.pos, "\nlabel.pos", body.Labels[0].pos
+		body.RefOrigin.visible = True
 		for i in range(len(body.Labels)):
 			body.Labels[i].visible = True
 		body.Trail.visible = True
@@ -1825,7 +1829,7 @@ class ORBITALpanel(AbstractUI):
 
 	def hideCurrentObject(self, body):
 		#body.BodyGeometry.visible = False
-		body.Origin.visible = False
+		body.RefOrigin.visible = False
 		for i in range(len(body.Labels)):
 			body.Labels[i].visible = False
 
@@ -2430,7 +2434,7 @@ class WIDGETSpanel(AbstractUI):
 		
 	def OnReCenter(self, e):
 		# recenter on earth's center
-		print "re-centering in ", self.Earth.Origin.pos
+		print "re-centering in ", self.Earth.RefOrigin.pos
 		# reset current location value
 		self.Earth.PlanetWidgets.currentLocation = -1
 		self.resetLocationList()
@@ -2464,12 +2468,12 @@ class WIDGETSpanel(AbstractUI):
 		#self.SolarSystem.camera.updateCameraViewTarget()
 		self.SolarSystem.camera.smoothFocus(self.Earth.JPL_designation)	
 
-		#self.SolarSystem.Scene.center = self.Earth.Origin.pos
+		#self.SolarSystem.Scene.center = self.Earth.RefOrigin.pos
 		
 		#(
-		#				self.Earth.Origin.pos[0],
-		#				self.Earth.Origin.pos[1],
-		#				self.Earth.Origin.pos[2]
+		#				self.Earth.RefOrigin.pos[0],
+		#				self.Earth.RefOrigin.pos[1],
+		#				self.Earth.RefOrigin.pos[2]
 		#			)
 		# focus on current location
 		return
@@ -2603,7 +2607,7 @@ class WIDGETSpanel(AbstractUI):
 		#self.parentFrame.orbitalTab.updateCameraViewTarget()
 
 	def OnHidePlanet(self, e):
-		self.Earth.Origin.visible = not self.hpcb.GetValue()
+		self.Earth.RefOrigin.visible = not self.hpcb.GetValue()
 
 	def OnDrawEquator(self, e):
 		self.Earth.PlanetWidgets.showEquator(self.eqcb.GetValue())

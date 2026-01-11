@@ -8,6 +8,8 @@ import planetsdata as pd
 from controls import *
 from celestial.orbitalLIB import Api
 from eqsols_calculator import Vernal, Vernal2
+#from moons import makeMoon, makeLuna
+
 #from utils import sleep
 
 def createSolarSystem():
@@ -39,10 +41,11 @@ def createSolarSystem():
 	pluto = makePluto(ssys, color.green, pd.DWARFPLANET, pd.DWARFPLANET, pd.DWARFPLANET_SZ_CORRECTION) #pd.OUTERPLANET, DWARFPLANET)
 	ssys.addTo(pluto)
 
-	# generate pd.SATELLITE
+	# generate MOONS
+	print "GENERATING MOONS ....."
+	moon = makeLuna(ssys, color.white, earth)
+	ssys.addTo(moon)
 	ssys.addTo(makePlanetMoon(ssys, 'charon', color.white, pluto))
-	
-	ssys.addTo(makePlanetMoon(ssys, 'moon', color.white, earth))
 	
 	ssys.addTo(makePlanetMoon(ssys, 'phobos', color.red, mars))
 	ssys.addTo(makePlanetMoon(ssys, 'deimos', color.white, mars))
@@ -92,7 +95,7 @@ def createSolarSystem():
 
 	ssys.drawAllBodiesTrajectory()
 	glbRefresh(ssys, False)
-	return ssys
+	return ssys, moon
 
 
 def bootLoader(story, recorder): 
@@ -104,7 +107,7 @@ def bootLoader(story, recorder):
 	# start wxPython application
 	try:
 		ex = wx.App(False)
-		ssys = createSolarSystem()
+		ssys, moon = createSolarSystem()
 		ssys.setEarthLocations(makeDashBoard(ssys))
 		#ssys.getDashboard().showInfoWindow(True)
 
@@ -135,6 +138,10 @@ def bootLoader(story, recorder):
 		Vernal(2023) ### a test ...
 		Vernal2(2023)
 
+		print "Moon Coordinates are", 
+
+		print moon.Position
+		print
 		I = 0
 		while True:
 			#print I

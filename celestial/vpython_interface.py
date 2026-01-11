@@ -4,6 +4,7 @@ import platform
 # ViewPort, a subclass of cvisual.display, is provided as a way to override certain
 # display methods related to mouse event handling, when it comes to interacting with 
 # the scene elements (zoom, rotations etc...)
+
 class ViewPort(display):
     def __init__(self, **keywords):
         # invoke normal display constructor ...
