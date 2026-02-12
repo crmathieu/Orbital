@@ -1512,7 +1512,7 @@ class ORBITALpanel(AbstractUI):
 		self.refreshDate()
 		#self.SolarSystem.animate(self.DeltaT)
 		for body in self.SolarSystem.bodies:
-			if body.BodyType in [SUN, SPACECRAFT, OUTERPLANET, INNERPLANET, SATELLITE, ASTEROID, \
+			if body.BodyType in [SUN, SPACECRAFT, OUTERPLANET, INNERPLANET, MOON, SATELLITE, ASTEROID, \
 								 COMET, DWARFPLANET, PHA, BIG_ASTEROID, TRANS_NEPT]:
 				if body.RefOrigin.visible == True or body.Name.lower() == EARTH_NAME:
 					velocity, dte, dts = body.animate(self.DeltaT)
@@ -1772,7 +1772,7 @@ class ORBITALpanel(AbstractUI):
 		body.RefOrigin.visible = True
 		for i in range(len(body.Labels)):
 			body.Labels[i].visible = True
-		body.Trail.visible = True
+		body.Orbit.visible = True
 
 	def stopSlideSHow(self):
 		if self.AnimationInProgress == True:
@@ -1833,7 +1833,7 @@ class ORBITALpanel(AbstractUI):
 		for i in range(len(body.Labels)):
 			body.Labels[i].visible = False
 
-		body.Trail.visible = False
+		body.Orbit.visible = False
 
 	def resetSlideShow(self):
 		self.SlideShow.SetLabel("Start")

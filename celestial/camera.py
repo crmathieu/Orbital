@@ -66,7 +66,7 @@ class camera3D:
 	def __init__(self, solarSystem):
 		self.view = solarSystem.Scene
 		self.ssys = solarSystem
-		self.MAX_ZOOM_VELOCITY = 100
+		self.MAX_ZOOM_VELOCITY = 200 #100
 		self.transitionVelocityFactor = 1.0  # normal speed. speed can go as slow as 1/100 and as fast as 4 times the normal speed
 		
 		self.view.lights = []

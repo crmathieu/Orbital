@@ -186,8 +186,14 @@ class makePlanetWidgets():
         # align widgets origin with planet tilt
         #self.PCPF.rotate(angle=(-self.Planet.TiltAngle), axis=self.Planet.XdirectionUnit) #, origin=(0,0,0))
 
+        USING_W_ANGLE = False
         # align longitude to greenwich when the planet is Earth
         if self.Planet.Name.lower() == EARTH_NAME:
+
+            if USING_W_ANGLE:
+                self.OVRL.rotate(angle=(deg2rad(self.Planet.W_angle)), axis=(0,0,1)) #self.Planet.PCPF.ZdirectionUnit) #ZdirectionUnit)
+                ### ---> removed since we are now using W_angle to position the texture            
+                return
 
             # adjust widgets positions in relation with earth texture at current time
             ##### self.resetWidgetsRefFromSolarTime()
@@ -195,6 +201,7 @@ class makePlanetWidgets():
             # align GMT: the initial position of the GMT meridian on the texture is 6 hours
             # off its normal position. Ajusting by 6 hours x 15 degres = 90 degres
             #### self.PCPF.referential.rotate(angle=(deg2rad(6*15)), axis=self.Planet.RotAxis) #ZdirectionUnit)
+
             self.OVRL.rotate(angle=(deg2rad(6*15)), axis=(0,0,1)) #self.Planet.PCPF.ZdirectionUnit) #ZdirectionUnit)
             
             # init position in ecliptic referential
@@ -903,7 +910,7 @@ class makeEarthLocation():
     # messing with the Planet-Centered-Planet-Fixed referential
     #
     def __init__(self, widgets, tz_index):
-        self.RefOrigin             = widgets.OVRL
+        self.RefOrigin          = widgets.OVRL
         self.Widgets            = widgets
         self.Planet             = widgets.Planet
         self.Color              = Color.red
@@ -1620,9 +1627,9 @@ class makeEquatorialPlane():
         self.Opacity = opacity
         self.Color = color 
 
-        side = 0.1*AU*DIST_FACTOR
+        side = 0.04*AU*DIST_FACTOR
         # define plane in fix referential PCI
-        self.eqPlane = box(frame=self.RefOrigin, pos=(0,0,0), length=side, width=0.0001, height=side, material=materials.emissive, visible=True, color=self.Color, opacity=0) #, axis=(0, 0, 1), opacity=0.8) #opacity=self.Opacity)
+        self.eqPlane = box(frame=self.RefOrigin, pos=(0,0,0), length=side, width=0.001, height=side, material=materials.emissive, visible=True, color=self.Color, opacity=0) #, axis=(0, 0, 1), opacity=0.8) #opacity=self.Opacity)
 
 
     def display(self, trueFalse):
@@ -1732,13 +1739,13 @@ class makeLocalEclipticPlane():
         self.Opacity = opacity
         self.Color = color 
 
-        side = 0.1*AU*DIST_FACTOR
+        side = 0.04*AU*DIST_FACTOR
         # define plane in fix referential PCI
-        self.ecPlane = box(frame=self.RefOrigin, pos=(0,0,0), length=side, width=0.0001, height=side, material=materials.emissive, visible=True, color=self.Color, opacity=0) #, axis=(0, 0, 1), opacity=0.8) #opacity=self.Opacity)
+        self.ecPlane = box(frame=self.RefOrigin, pos=(0,0,0), length=side, width=0.001, height=side, material=materials.emissive, visible=True, color=self.Color, opacity=0) #, axis=(0, 0, 1), opacity=0.8) #opacity=self.Opacity)
 
 
     def display(self, trueFalse):
-        self.ecPlane.opacity = (0.6 if trueFalse == True else 0)
+        self.ecPlane.opacity = (0.2 if trueFalse == True else 0)
         return
 
         STEPS = 10

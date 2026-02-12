@@ -8,7 +8,7 @@ import planetsdata as pd
 from controls import *
 from celestial.orbitalLIB import Api
 from eqsols_calculator import Vernal, Vernal2
-#from moons import makeMoon, makeLuna
+from moons import makePlanetMoon, makeLuna
 
 #from utils import sleep
 
@@ -17,7 +17,7 @@ def createSolarSystem():
 	ssys = makeSolarSystem()
 	
 	# set what is displayed by default
-	ssys.setDefaultFeatures(pd.INNERPLANET|pd.ORBITS|pd.SATELLITE|pd.OUTERPLANET|pd.SUN) 
+	ssys.setDefaultFeatures(pd.INNERPLANET|pd.ORBITS|pd.SATELLITE|pd.MOON|pd.OUTERPLANET|pd.SUN) 
 
 	sun = makeSun(ssys, color.yellow, pd.SUN, pd.SUN, pd.SUN_SZ_CORRECTION)
 	ssys.register(sun)
@@ -125,7 +125,7 @@ def bootLoader(story, recorder):
 			ssys.setAutoScale(False)
 			api.camera.setCameraTarget(EARTH_NAME)
 			ssys.displaySolarSystem()
-			ssys.introZoomIn(75)
+			ssys.introZoomIn(135) #75)
 			#ssys.rotateSolarSystemReferential(axis=vector(0,1,0))
 			#ssys.Scene.fov = pi
 

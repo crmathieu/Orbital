@@ -6,6 +6,7 @@ import platform
 # the scene elements (zoom, rotations etc...)
 
 class ViewPort(display):
+
     def __init__(self, **keywords):
         # invoke normal display constructor ...
         super(ViewPort, self).__init__(**keywords)
@@ -14,6 +15,8 @@ class ViewPort(display):
         # Indicates when an animation automatically zooms in an pans around a focus point
         self._auto_movement = False 
         self.plat = platform.system()
+        self.MouseRightClickDown = False 
+        self.MouseDrag = False
 
     def getDisplay(self):
         return super
@@ -29,8 +32,45 @@ class ViewPort(display):
         self._mt.lastSpinning = self._mt.lastZooming = 0
         self._mt.macCtrl = 0
 
+    def _OnRightMouseDown(self, evt):
+        # overrides
+        super(ViewPort, self)._OnRightMouseDown(evt)
+        """
+        self._mt.rightDown()
+        self._report_mouse_state(evt)
+        evt.Skip() # to permit setting focus
+        """
+        self.MouseRightClickDown = True
+        #print "MOUSE DOWN from RIGHT CLICK"
+
+    def _OnRightMouseUp(self, evt):
+        super(ViewPort, self)._OnRightMouseUp(evt)
+        self.MouseRightClickDown = False
+
+       
+
+    def _OnMouseMotion(self, evt):
+        # overrides
+        super(ViewPort, self)._OnMouseMotion(evt)
+        """
+        x, y = evt.GetPosition()
+        if x != self._lastx or y != self._lasty:
+            self._report_mouse_state(evt)
+            self._dispatch_event('mousemove', self.mouse)
+        evt.Skip() # to permit setting focus
+        """
+        if self.MouseRightClickDown == True:
+            # insert the code to recalculate the nightmap opacity
+            # based on camera angle with the sun
+            #print "." #"mouse is moving with Right Click depressed"
+            return
+
+
     def _report_mouse_state(self, evt, defx=20, defy=20): # wx gives x,y relative to upper left corner
-        # this method is directly taken from the display class and modified to get the desired effect
+        
+        # this method overrides the vpython _report_mouse_state in the "display" 
+        # class. It is a copy of the original method, and modified to get the desired effect
+
         x, y = defx, defy
         if evt != None:
             x, y = evt.GetPosition()
@@ -159,6 +199,7 @@ class Color:
     magentish = (0.5, 0, 0.5)
     dirtyYellow = (0.5,0.5,0)
     orange = (1,0.6,0)
-    #nightshade = (0.12, 0.12, 0.12)
-    nightshade = (0.05, 0.05, 0.05)
+    #nightshade=(0.3,0.3,0.3)    
+    nightshade = (0.12, 0.12, 0.12)
+    #nightshade = (0.05, 0.05, 0.05)
 

@@ -328,9 +328,18 @@ class make3DaxisReferential:
 
 
     def setNorthPole(self):
-
+        """
+        The RA and Dec values are measurement referring to
+        where the planet planet points its north pole to the celestial sphere. In 
+        essence, its origin is pointing to the vernal equinox, so the RA value is 
+        the angle between the VE and the projection of the NP vector on the ecliptic 
+        plane. Then from that point on, the DEC value is the angle we must rotate
+        that projection vector perpendicularly to the ecliptic plane to reach the
+        desired orientation
+        """
+        
         #print "SetNP in 3Daxis REF for ", self.body.Name
-
+        
         J2000_Ecliptic_North = np.array([0, 0, 1])
 
         # initialize the direction of North Pole for this body

@@ -10,7 +10,33 @@ class makeMercury(makePlanet):
 	def __init__(self, system, Color, ptype, sizeCorrectionType, defaultSizeCorrection):
 		makePlanet.__init__(self, system, "mercury", Color, ptype, sizeCorrectionType, defaultSizeCorrection)
 
-	def AdjustPMforPeriodicTerms(self, W, T, d):
+	def AdjustPMforPeriodicTerms(self, T, d):
+		# return a value that needs to be added to
+		# the current standard calculation of the PM
+		# to apply a corrective factor
+
+		# For Mercury, we need to adjust the prime meridien for extra periodic terms:
+    	# W += sum(A_i * sin(M_i))
+    	# M_i are arguments of periodic terms.
+
+		periodicTerms = [ # A_i, M_i
+            ( 0.00993822, 174.7948 + 17179159.230*d/360.0), # M1
+            (-0.00104581, 349.5896 + 34358318.460*d/360.0), # M2
+            (-0.00010280, 164.3844 + 51537477.690*d/360.0), # M3
+            (-0.00002364, 339.1792 + 68716636.920*d/360.0), # M4
+            (-0.00000532, 153.9740 + 85895796.150*d/360.0)  # M5
+        ]		
+
+		adjustment = 0.0
+
+		# take into account periodic terms in the W calculation
+		for amplitude, argument_deg_per_cycle in periodicTerms:
+			adjustment += amplitude * np.sin(np.radians(argument_deg_per_cycle))
+
+		return adjustment
+
+
+	def AdjustPMforPeriodicTermsXX(self, W, T, d):
 
 		# For Mercury, we need to adjust the prime meridien for extra periodic terms:
     	# W += sum(A_i * sin(M_i))
@@ -35,7 +61,6 @@ class makeMercury(makePlanet):
 		#print "Mercury: adjusting W to ", W
 		return W
 
-
 class makeVenus(makePlanet):
 	
 	def __init__(self, system, Color, ptype, sizeCorrectionType, defaultSizeCorrection):
@@ -46,7 +71,7 @@ class makeMars(makePlanet):
 	
 	def __init__(self, system, Color, ptype, sizeCorrectionType, defaultSizeCorrection):
 		makePlanet.__init__(self, system, "mars", Color, ptype, sizeCorrectionType, defaultSizeCorrection)
-
+		print "****** MARS W = ", self.W_angle
 
 
 class makeSaturn(makePlanet):
@@ -110,7 +135,18 @@ class makeNeptune(makePlanet):
 		decl = 43.46 - 0.51 * np.cos(N_rad)
 		return RA, decl
 
-	def AdjustPMforPeriodicTerms(self, W, T, d):
+	def AdjustPMforPeriodicTerms(self, T, d):
+		# return a value that needs to be added to
+		# the current standard calculation of the PM
+		# to apply a corrective factor
+
+		N = 357.85 + 52.316 * T
+		N_rad = np.radians(N)
+
+		return - 0.48 * np.sin(N_rad)
+
+
+	def AdjustPMforPeriodicTermsXX(self, W, T, d):
 		# For neptune, we need to start from scratch because the 
 		# general calculation doesn't apply for its W angle
 		
