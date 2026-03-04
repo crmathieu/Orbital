@@ -503,6 +503,8 @@ class FOCUSpanel(AbstractUI):
 		q = round(float(Body.Periapsis/AU) * 1000)/1000
 		a = round(float(Body.Aphelion/AU) * 1000)/1000
 
+		if Body.Name == "sedna":
+			print "AAAAXXXXXIIIIIIAT-TILT for SEDNA:", Body.AxialTilt, ", of type:", type(Body.AxialTilt)
 		self.Title.SetLabel(Body.Name)
 		self.Info.SetLabel("{:<17}{:>10}\n{:<20}{:>7.1f}\n{:<15}{:>12.4f}\n{:<15}{:>12.4f}\n{:<14}{:>10.2f}\n{:<14}{:>10.2f}\n{:<14}{:>10.2f}\n{:<22}{:>5.2f}\n{:<12}{:>7.3f}\n{:<12}{:>7.3f}\n{:<20}{:>7.3f}\n{:<20}{:>7.2f}".
 		format(	"Mass(kg) ", mass,
@@ -1319,10 +1321,10 @@ class ORBITALpanel(AbstractUI):
 		self.ValidateDate.Bind(wx.EVT_BUTTON, self.OnValidateDate)
 
 
-		self.createCheckBox(self, "Inner Planets", INNERPLANET, 20, CHK_L1)
+		self.createCheckBox(self, "Inner Planets", INNER_PLANET, 20, CHK_L1)
 		self.createCheckBox(self, "Orbits", ORBITS, 20, CHK_L2)
-		self.createCheckBox(self, "Outer Planets", OUTERPLANET, 20, CHK_L3)
-		self.createCheckBox(self, "Dwarf Planets", DWARFPLANET, 20, CHK_L4)
+		self.createCheckBox(self, "Outer Planets", OUTER_PLANET, 20, CHK_L3)
+		self.createCheckBox(self, "Dwarf Planets", DWARF_PLANET, 20, CHK_L4)
 		self.createCheckBox(self, "Asteroids Belt", ASTEROID_BELT, 20, CHK_L5)
 		self.createCheckBox(self, "Jupiter Trojans", JTROJANS, 20, CHK_L6)
 		self.createCheckBox(self, "Kuiper Belt", KUIPER_BELT, 20, CHK_L7)
@@ -1335,10 +1337,12 @@ class ORBITALpanel(AbstractUI):
 		self.createCheckBox(self, "Lit Scene", LIT_SCENE, 20, CHK_L12)
 		self.createCheckBox(self, "Adjust objects size", REALSIZE, 20, CHK_L13)
 		self.createCheckBox(self, "Referential", REFERENTIAL, 20, CHK_L14)
+		self.createCheckBox(self, "Moons", MOON, 20, CHK_L15B)
+
 
 		self.createBodyList(200, LSTB_Y)
 
-		cbtn = wx.Button(self, label='Refresh', pos=(20, CHK_L15))
+		cbtn = wx.Button(self, label='Refresh', pos=(20, CHK_L17))
 		cbtn.Bind(wx.EVT_BUTTON, self.OnRefresh)
 
 		lblList = ['PHA', 'Comets', 'Major Asteroids', 'Trans Neptunians']
@@ -1512,14 +1516,16 @@ class ORBITALpanel(AbstractUI):
 		self.refreshDate()
 		#self.SolarSystem.animate(self.DeltaT)
 		for body in self.SolarSystem.bodies:
-			if body.BodyType in [SUN, SPACECRAFT, OUTERPLANET, INNERPLANET, MOON, SATELLITE, ASTEROID, \
-								 COMET, DWARFPLANET, PHA, BIG_ASTEROID, TRANS_NEPT]:
+			if body.BodyType in [SUN, SPACECRAFT, OUTER_PLANET, INNER_PLANET, MOON, ASTEROID, \
+								 COMET, DWARF_PLANET, PHA, BIG_ASTEROID, TRANS_NEPT]:
 				if body.RefOrigin.visible == True or body.Name.lower() == EARTH_NAME:
 					velocity, dte, dts = body.animate(self.DeltaT)
 					#print "VEL:", velocity, "dte:", dte
 					if self.SolarSystem.cameraViewTargetBody is not None:
+						
 						# update center position if we are NOT in the middle of a smooth transition and
 						# NOT in a location Referential view mode (point of view from current location)
+
 						if 	body.JPL_designation == self.SolarSystem.cameraViewTargetBody.JPL_designation and \
 							self.SolarSystem.Dashboard.focusTab.smoothTransition == False and \
 							self.SolarSystem.Dashboard.widgetsTab.Earth.PlanetWidgets.locationEarthEyeView == False:
@@ -1624,7 +1630,7 @@ class ORBITALpanel(AbstractUI):
 		##print "TROJAN INDEX=",self.SolarSystem.JTrojansIndex
 		curTrojans = self.SolarSystem.getJTrojans()
 		if curTrojans is not None:
-			JupiterBody = self.SolarSystem.getBodyFromName(self.SolarSystem.objects_data[curTrojans.PlanetName]['jpl_designation'])
+			JupiterBody = self.SolarSystem.getBodyFromName(self.SolarSystem.objects_data[curTrojans.PlanetName]['id']['name']) #'jpl_designation'])
 			# if Jupiter coordinates haven't changed since this Trojans were generated, don't do anything
 			if JupiterBody.Position[0] == curTrojans.JupiterX and JupiterBody.Position[1] == curTrojans.JupiterY:
 				return

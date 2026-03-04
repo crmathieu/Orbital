@@ -297,13 +297,24 @@ def sph_to_cart_ecliptic(lam, beta, R_km):
     return np.array([R_km*cb*cl, R_km*cb*sl, R_km*sb], dtype=float)
 
 
+# --------------------------------------------------------
+# moon_ephemeris is used by the makeLuna class
+#
+# In most our calculations, we generate a julian day based
+# on TDB time (not UTC time). However, for the Moon, we 
+# use TT time instead of TDB because its analytical model 
+# is defined in TT.
+# --------------------------------------------------------
 def moon_ephemeris(dt, delta, vel_dt_sec=10.0):
 
     # Main ephemeris (with canonical overrides)
 
     from orbit3D import datetime_to_julian_date
+    from time_helper import utc_to_tt, julian_day
+    #from orbit3D import makeJulianDateOffset
     
-    jd = datetime_to_julian_date(dt, delta)
+
+    jd = julian_day(utc_to_tt(dt), delta)
 
     lam, beta, R_km = moon_position_C1(jd)
     r = sph_to_cart_ecliptic(lam, beta, R_km)
@@ -314,12 +325,17 @@ def moon_ephemeris(dt, delta, vel_dt_sec=10.0):
 
     v = (r2 - r) / float(vel_dt_sec)
 
+    # from state vector to orbital elements
     elems = state_to_elements_J2000(
         r, v, jd,
         mu=MU_EARTH,
         plane_normal=np.array([0.0, 0.0, 1.0], dtype=float)
     )
-
+    
+#    print ("EPHEMERIS!!!!")
+#    print ("elemnts=", elems)
+#    print ("*************")
+   
     # Canonical overrides
 
     elems["canonical_apoapsis_m"] = A_CANON_KM * 1000
@@ -332,19 +348,6 @@ def moon_ephemeris(dt, delta, vel_dt_sec=10.0):
     elems["longitude_of_periapsis_W"] = W_raw % 360.0
 
     return r * 1000, v * 1000, elems
-
-def getMoonElementsXX(timeIncrement):
-#    now_utc = datetime.now(pytz.utc)
-
-    from orbit3D import System_utc
-
-
-    r, v, elems = moon_ephemeris(System_utc, timeIncrement)
-    return {
-        "position_vec": r, # in meters
-        "velocity_vec": v, # in meters/sec
-        "elements": elems
-    }
 
 
 # =====================================================
@@ -438,7 +441,6 @@ if __name__ == "__main__":
     for k in sorted(elems.keys()):
         print(k, "=", elems[k])
 """
-
 """
 if __name__ == "__main__":
     now_utc = datetime.now(pytz.utc)

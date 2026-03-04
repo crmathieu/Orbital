@@ -7,8 +7,8 @@ from celestial.orbitalLIB import Api
 
 class makeMercury(makePlanet):
 	
-	def __init__(self, system, Color, ptype, sizeCorrectionType, defaultSizeCorrection):
-		makePlanet.__init__(self, system, "mercury", Color, ptype, sizeCorrectionType, defaultSizeCorrection)
+	def __init__(self, system, color, ptype, sizeCorrectionType, defaultSizeCorrection):
+		makePlanet.__init__(self, system, "mercury", color, ptype, sizeCorrectionType, defaultSizeCorrection)
 
 	def AdjustPMforPeriodicTerms(self, T, d):
 		# return a value that needs to be added to
@@ -63,33 +63,33 @@ class makeMercury(makePlanet):
 
 class makeVenus(makePlanet):
 	
-	def __init__(self, system, Color, ptype, sizeCorrectionType, defaultSizeCorrection):
-		makePlanet.__init__(self, system, "venus", Color, ptype, sizeCorrectionType, defaultSizeCorrection)
+	def __init__(self, system, color, ptype, sizeCorrectionType, defaultSizeCorrection):
+		makePlanet.__init__(self, system, "venus", color, ptype, sizeCorrectionType, defaultSizeCorrection)
 
 
 class makeMars(makePlanet):
 	
-	def __init__(self, system, Color, ptype, sizeCorrectionType, defaultSizeCorrection):
-		makePlanet.__init__(self, system, "mars", Color, ptype, sizeCorrectionType, defaultSizeCorrection)
+	def __init__(self, system, color, ptype, sizeCorrectionType, defaultSizeCorrection):
+		makePlanet.__init__(self, system, "mars", color, ptype, sizeCorrectionType, defaultSizeCorrection)
 		print "****** MARS W = ", self.W_angle
 
 
 class makeSaturn(makePlanet):
 	
-	def __init__(self, system, Color, ptype, sizeCorrectionType, defaultSizeCorrection):
-		makePlanet.__init__(self, system, "saturn", Color, ptype, sizeCorrectionType, defaultSizeCorrection)
+	def __init__(self, system, color, ptype, sizeCorrectionType, defaultSizeCorrection):
+		makePlanet.__init__(self, system, "saturn", color, ptype, sizeCorrectionType, defaultSizeCorrection)
 
 
 class makeUranus(makePlanet):
 	
-	def __init__(self, system, Color, ptype, sizeCorrectionType, defaultSizeCorrection):
-		makePlanet.__init__(self, system, "uranus", Color, ptype, sizeCorrectionType, defaultSizeCorrection)
+	def __init__(self, system, color, ptype, sizeCorrectionType, defaultSizeCorrection):
+		makePlanet.__init__(self, system, "uranus", color, ptype, sizeCorrectionType, defaultSizeCorrection)
 
 
 class makeJupiter(makePlanet):
 	
-	def __init__(self, system, Color, ptype, sizeCorrectionType, defaultSizeCorrection):
-		makePlanet.__init__(self, system, "jupiter", Color, ptype, sizeCorrectionType, defaultSizeCorrection)
+	def __init__(self, system, color, ptype, sizeCorrectionType, defaultSizeCorrection):
+		makePlanet.__init__(self, system, "jupiter", color, ptype, sizeCorrectionType, defaultSizeCorrection)
 
 
 	def AdjustNPforPeriodicTerms(self, RA, decl, T, d):
@@ -120,8 +120,8 @@ class makeJupiter(makePlanet):
 
 class makeNeptune(makePlanet):
 	
-	def __init__(self, system, Color, ptype, sizeCorrectionType, defaultSizeCorrection):
-		makePlanet.__init__(self, system, "neptune", Color, ptype, sizeCorrectionType, defaultSizeCorrection)
+	def __init__(self, system, color, ptype, sizeCorrectionType, defaultSizeCorrection):
+		makePlanet.__init__(self, system, "neptune", color, ptype, sizeCorrectionType, defaultSizeCorrection)
 
 
 	def AdjustNPforPeriodicTerms(self, RA, decl, T, d):
@@ -164,13 +164,13 @@ class makeNeptune(makePlanet):
 
 class makePluto(makePlanet):
 	
-	def __init__(self, system, Color, ptype, sizeCorrectionType, defaultSizeCorrection):
-		makePlanet.__init__(self, system, "pluto", Color, ptype, sizeCorrectionType, defaultSizeCorrection)
+	def __init__(self, system, color, ptype, sizeCorrectionType, defaultSizeCorrection):
+		makePlanet.__init__(self, system, "pluto", color, ptype, sizeCorrectionType, defaultSizeCorrection)
 
 
 class makeEarth(makeEarth_and_widgets):
 	
-	def __init__(self, system, Color, ptype, sizeCorrectionType, defaultSizeCorrection):
-		makeEarth_and_widgets.__init__(self, system, Color, ptype, sizeCorrectionType, defaultSizeCorrection)
+	def __init__(self, system, color, ptype, sizeCorrectionType, defaultSizeCorrection):
+		makeEarth_and_widgets.__init__(self, system, color, ptype, sizeCorrectionType, defaultSizeCorrection)
 
 

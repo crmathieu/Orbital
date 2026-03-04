@@ -11,6 +11,7 @@ import datetime as dt
 import time
 from orbit3D import deg2rad
 from dateutil.relativedelta import relativedelta
+from time_helper import TimeH, utc_to_tdb
 
 """
 EarthLocations - time management of earth locations
@@ -323,6 +324,7 @@ class EarthLocations:
 		# make naive utc datetime dst aware. This pattern should 
 		# be use any time we need to convert naive to aware
 		self.UTCtime	= utcNaive.replace(tzinfo=pytz.utc)
+		self.TDBtime	= utc_to_tdb(self.UTCtime)
 
 		# load current location as default 
 		# location, followed by all the others

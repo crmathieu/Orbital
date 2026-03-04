@@ -23,7 +23,7 @@ def trim(svalue):
 def normalizeNumber(snumber):
 
     dot = snumber.find(".")
-    if dot <> -1:
+    if dot != -1:
         # the dot exists, hence we have a decimal
         wholeValue = snumber[0:dot]
         decimals = snumber[dot+1:]
@@ -45,7 +45,7 @@ def setPrecision(svalue, iprecision):
 
     # figure out if there is a decimal part
     dot = svalue.find(".")
-    if dot <> -1:
+    if dot != -1:
         # the dot exists, hence we have a decimal
         wholeValue = svalue[0:dot]
         decimals = svalue[dot+1:]
@@ -65,7 +65,7 @@ def setPrecision(svalue, iprecision):
                 # case 0.XXXX our result is less than 1: let's eliminate
                 # decimals heading zeros
                 nzeros = 0
-                if decimals <> "0":
+                if decimals != "0":
                     d = decimals
                     while d[0] == "0":
                         d = d[1:]
@@ -112,7 +112,7 @@ def setPrecision(svalue, iprecision):
     else:
         # there is no decimal point
         exp = svalue.find("e")
-        if e <> -1:
+        if exp != -1:
             # we have an exponent
             wholeValue = svalue[0:exp]
             expvalue = svalue[exp+1:]

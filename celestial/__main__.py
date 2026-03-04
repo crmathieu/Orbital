@@ -4,25 +4,38 @@ from re import I
 from rate_func import *	
 from orbit3D import *
 from planets import *
-import planetsdata as pd
+#import planetsdata as pd
+from planetsdata import *
 from controls import *
 from celestial.orbitalLIB import Api
 from eqsols_calculator import Vernal, Vernal2
 from moons import makePlanetMoon, makeLuna
+from objects_loader import load_objects_catalog
+from moons_loader import load_moon_catalog
 
 #from utils import sleep
 
 def createSolarSystem():
 		
+	if True:	
+		moons_catalog = load_moon_catalog()
+		objects_data.update(moons_catalog)
+		
+		objects_catalog = load_objects_catalog()
+		objects_data.update(objects_catalog)
+		#exit()
+
+	#print objects_data
+
 	ssys = makeSolarSystem()
 	
 	# set what is displayed by default
-	ssys.setDefaultFeatures(pd.INNERPLANET|pd.ORBITS|pd.SATELLITE|pd.MOON|pd.OUTERPLANET|pd.SUN) 
+	ssys.setDefaultFeatures(INNER_PLANET|ORBITS|SPACECRAFT|MOON|OUTER_PLANET|SUN) 
 
-	sun = makeSun(ssys, color.yellow, pd.SUN, pd.SUN, pd.SUN_SZ_CORRECTION)
+	sun = makeSun(ssys, color=color.yellow, ptype=SUN, sizeCorrectionType=SUN, defaultSizeCorrection=SUN_SZ_CORRECTION)
 	ssys.register(sun)
 
-	print pd.Frame_Intervals
+	print Frame_Intervals
 
 	#glbRefresh(ssys, False)
 
@@ -30,57 +43,54 @@ def createSolarSystem():
 
 	#ssys.addTo(sun)
 	
-	# make first the bodies we have satellites defined for
-	earth = makeEarth(ssys, color.cyan, pd.INNERPLANET, pd.INNERPLANET, pd.PLANET_SZ_CORRECTION)
+	# make first the bodies we have Moon(s) defined for
+
+	earth = makeEarth(ssys, color=color.cyan, ptype=INNER_PLANET, 
+					  sizeCorrectionType=INNER_PLANET, defaultSizeCorrection=PLANET_SZ_CORRECTION)
 	ssys.addTo(earth)
-
-	mars = makeMars(ssys, color.red, pd.INNERPLANET, pd.INNERPLANET, pd.PLANET_SZ_CORRECTION)
+	mars = makeMars(ssys, color=color.red, ptype=INNER_PLANET, 
+					sizeCorrectionType=INNER_PLANET, defaultSizeCorrection=PLANET_SZ_CORRECTION)
 	ssys.addTo(mars)
+	pluto = makePluto(ssys, color=color.green, ptype=OUTER_PLANET, #DWARF_PLANET, 
+#					sizeCorrectionType=DWARF_PLANET, defaultSizeCorrection=DWARF_PLANET_SZ_CORRECTION) #OUTER_PLANET, DWARF_PLANET)
+					sizeCorrectionType=INNER_PLANET, defaultSizeCorrection=PLANET_SZ_CORRECTION) #OUTER_PLANET, DWARF_PLANET)
 
-#	pluto = makePlanet(ssys, 'pluto', color.green, pd.DWARFPLANET, pd.DWARFPLANET, pd.DWARFPLANET_SZ_CORRECTION) #pd.OUTERPLANET, DWARFPLANET)
-	pluto = makePluto(ssys, color.green, pd.DWARFPLANET, pd.DWARFPLANET, pd.DWARFPLANET_SZ_CORRECTION) #pd.OUTERPLANET, DWARFPLANET)
 	ssys.addTo(pluto)
 
 	# generate MOONS
 	print "GENERATING MOONS ....."
-	moon = makeLuna(ssys, color.white, earth)
-	ssys.addTo(moon)
-	ssys.addTo(makePlanetMoon(ssys, 'charon', color.white, pluto))
-	
-	ssys.addTo(makePlanetMoon(ssys, 'phobos', color.red, mars))
-	ssys.addTo(makePlanetMoon(ssys, 'deimos', color.white, mars))
+	ssys.addTo(makeLuna(ssys, color=color.white, centralbody=earth))
+	ssys.addTo(makePlanetMoon(ssys, key='charon', color=color.white, centralbody=pluto))
+	ssys.addTo(makePlanetMoon(ssys, key='phobos', color=color.red, centralbody=mars))
+	ssys.addTo(makePlanetMoon(ssys, key='deimos', color=color.white, centralbody=mars))
 
 	ssys.addTo(makeEcliptic(ssys, color.white, 0.4))
 
-	ssys.addTo(makeMercury(ssys, color.green, pd.INNERPLANET, pd.INNERPLANET, pd.PLANET_SZ_CORRECTION))
-#	ssys.addTo(makePlanet(ssys, 'venus', color.yellow, pd.INNERPLANET, pd.INNERPLANET, pd.PLANET_SZ_CORRECTION))
-	ssys.addTo(makeVenus(ssys, color.yellow, pd.INNERPLANET, pd.INNERPLANET, pd.PLANET_SZ_CORRECTION))
-#	ssys.addTo(makePlanet(ssys, 'jupiter', color.magenta, pd.OUTERPLANET, pd.GASGIANT, pd.PLANET_SZ_CORRECTION))
-	ssys.addTo(makeJupiter(ssys, color.magenta, pd.OUTERPLANET, pd.GASGIANT, pd.PLANET_SZ_CORRECTION))
-#	ssys.addTo(makePlanet(ssys, 'uranus', color.yellow, pd.OUTERPLANET, pd.GASGIANT, pd.PLANET_SZ_CORRECTION))
-	ssys.addTo(makeUranus(ssys, color.yellow, pd.OUTERPLANET, pd.GASGIANT, pd.PLANET_SZ_CORRECTION))
-	ssys.addTo(makeNeptune(ssys, color.orange, pd.OUTERPLANET, pd.GASGIANT, pd.PLANET_SZ_CORRECTION))
-#	ssys.addTo(makePlanet(ssys, 'saturn', color.cyan, pd.OUTERPLANET, pd.GASGIANT, pd.PLANET_SZ_CORRECTION))
-	ssys.addTo(makeSaturn(ssys, color.cyan, pd.OUTERPLANET, pd.GASGIANT, pd.PLANET_SZ_CORRECTION))
+	ssys.addTo(makeMercury(ssys, color=color.green, ptype=INNER_PLANET, sizeCorrectionType=INNER_PLANET, defaultSizeCorrection=PLANET_SZ_CORRECTION))
+	ssys.addTo(makeVenus(ssys, color=color.yellow, ptype=INNER_PLANET, sizeCorrectionType=INNER_PLANET, defaultSizeCorrection=PLANET_SZ_CORRECTION))
+	ssys.addTo(makeJupiter(ssys, color=color.magenta, ptype=OUTER_PLANET, sizeCorrectionType=GAS_GIANT, defaultSizeCorrection=PLANET_SZ_CORRECTION))
+	ssys.addTo(makeUranus(ssys, color=color.yellow, ptype=OUTER_PLANET, sizeCorrectionType=GAS_GIANT, defaultSizeCorrection=PLANET_SZ_CORRECTION))
+	ssys.addTo(makeNeptune(ssys, color=color.orange, ptype=OUTER_PLANET, sizeCorrectionType=GAS_GIANT, defaultSizeCorrection=PLANET_SZ_CORRECTION))
+	ssys.addTo(makeSaturn(ssys, color=color.cyan, ptype=OUTER_PLANET, sizeCorrectionType=GAS_GIANT, defaultSizeCorrection=PLANET_SZ_CORRECTION))
 	
 	# generate DWARF planets
-	ssys.addTo(makeDwarfPlanet(ssys, 'eris', color.yellow))
-	ssys.addTo(makeDwarfPlanet(ssys, 'makemake', color.magenta))
-	ssys.addTo(makeDwarfPlanet(ssys, 'sedna', color.orange))
-	ssys.addTo(makeDwarfPlanet(ssys, 'haumea', color.white))
+	ssys.addTo(makeDwarfPlanet(ssys, key='eris', color=color.yellow))
+	ssys.addTo(makeDwarfPlanet(ssys, key='makemake', color=color.magenta))
+	ssys.addTo(makeDwarfPlanet(ssys, key='sedna', color=color.orange))
+	ssys.addTo(makeDwarfPlanet(ssys, key='haumea', color=color.white))
 
 	# generate Belts
-	ssys.addTo(makeBelt(ssys, 'kuiper', 'Kuiper Belt', pd.KUIPER_BELT, color.cyan, 2, 4))
-	ssys.addTo(makeBelt(ssys, 'asteroid', 'Asteroid Belt', pd.ASTEROID_BELT, color.white, 2, 2))
-	ssys.addTo(makeBelt(ssys, 'inneroort', 'Inner Oort Cloud', pd.INNER_OORT_CLOUD, color.white, 2, 5))
 
-	ssys.addJTrojans(makeJtrojan(ssys, 'jupiterTrojan', 'Jupiter Trojans', pd.JTROJANS, color.green, 2, 5, 'jupiter'))
-	
-	
+	ssys.addTo(makeBelt(ssys, key='kuiper', name='Kuiper Belt', ptype=KUIPER_BELT, color=color.cyan, size=2, density=4))
+	ssys.addTo(makeBelt(ssys, key='asteroid', name='Asteroid Belt', ptype=ASTEROID_BELT, color=color.white, size=2, density=2))
+	ssys.addTo(makeBelt(ssys, key='inneroort', name='Inner Oort Cloud', ptype=INNER_OORT_CLOUD, color=color.white, size=2, density=5))
 
+	# generate jupiter trojans
+
+	ssys.addJTrojans(makeJtrojan(ssys, key='jupiterTrojan', name='Jupiter Trojans', ptype=JTROJANS, color=color.green, size=2, density=5, planetname='jupiter'))
 	
 	MAX_OBJECTS = 1000
-	loadBodies(ssys, PHA, "data/test.json", MAX_OBJECTS)
+	# ----> 2026/002/23 commented this out: loadBodies(ssys, PHA, "data/test.json", MAX_OBJECTS)
 
 	if False:
 		print "LOADING bodies orbital elements and trajectories ..."
@@ -91,11 +101,13 @@ def createSolarSystem():
 		loadBodies(ssys, SPACECRAFT, "data/spacecrafts_orbital_elements.txt.json", MAX_OBJECTS)
 		print "FINISHED ..."
 
-	loadBodies(ssys, SPACECRAFT, "data/spacecrafts_orbital_elements.txt.json", MAX_OBJECTS)
+	# ----> 2026/002/23 commented this out: loadBodies(ssys, SPACECRAFT, "data/spacecrafts_orbital_elements.txt.json", MAX_OBJECTS)
 
 	ssys.drawAllBodiesTrajectory()
 	glbRefresh(ssys, False)
-	return ssys, moon
+#	return ssys, moon
+	return ssys
+
 
 
 def bootLoader(story, recorder): 
@@ -107,7 +119,9 @@ def bootLoader(story, recorder):
 	# start wxPython application
 	try:
 		ex = wx.App(False)
-		ssys, moon = createSolarSystem()
+#		ssys, moon = createSolarSystem()
+		ssys = createSolarSystem()
+
 		ssys.setEarthLocations(makeDashBoard(ssys))
 		#ssys.getDashboard().showInfoWindow(True)
 
@@ -138,10 +152,10 @@ def bootLoader(story, recorder):
 		Vernal(2023) ### a test ...
 		Vernal2(2023)
 
-		print "Moon Coordinates are", 
-
-		print moon.Position
-		print
+#		print "Moon Coordinates are", 
+#
+#		print moon.Position
+#		print
 		I = 0
 		while True:
 			#print I

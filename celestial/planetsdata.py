@@ -22,38 +22,41 @@ SOFTWARE.
 
 """
 # Body types
-INNERPLANET 		= 0x01
-OUTERPLANET 		= 0x02
-DWARFPLANET 		= 0x04
-ASTEROID 			= 0x08
-COMET 				= 0x10
-SMALL_ASTEROID 		= 0x20
-BIG_ASTEROID 		= 0x40
-PHA 				= 0x80
-ASTEROID_BELT 		= 0x100
-KUIPER_BELT 		= 0x200
-INNER_OORT_CLOUD 	= 0x400
-ECLIPTIC_PLANE 		= 0x800
-LIT_SCENE 			= 0x1000
-REFERENTIAL 		= 0x2000
-ORBITS 				= 0x4000
-GASGIANT 			= 0x8000
-TRANS_NEPT 			= 0x10000
-LABELS 				= 0x20000
-JTROJANS 			= 0x40000
-REALSIZE 			= 0x80000
-LOCAL_REFERENTIAL 	= 0x100000
-SATELLITE 			= 0x200000
-CELESTIAL_SPHERE 	= 0x400000
-HYPERBOLIC 			= 0x800000
-SPACECRAFT 			= 0x1000000
+INNER_PLANET 		= 0x01
+OUTER_PLANET 		= 0x02
+MOON 				= 0x04
+SPACECRAFT 			= 0x08
+ASTEROID 			= 0x10
+GAS_GIANT 			= 0x20
+DWARF_PLANET 		= 0x40
+TRANS_NEPT 			= 0x80
+COMET 				= 0x100
+
+SMALL_ASTEROID 		= 0x200
+BIG_ASTEROID 		= 0x400
+PHA 				= 0x800
+ASTEROID_BELT 		= 0x1000
+KUIPER_BELT 		= 0x2000
+INNER_OORT_CLOUD 	= 0x4000
+ECLIPTIC_PLANE 		= 0x8000
+
+LIT_SCENE 			= 0x10000
+REFERENTIAL 		= 0x20000
+ORBITS 				= 0x40000
+LABELS 				= 0x80000
+
+JTROJANS 			= 0x100000
+REALSIZE 			= 0x200000
+LOCAL_REFERENTIAL 	= 0x400000
+CELESTIAL_SPHERE 	= 0x800000
+HYPERBOLIC 			= 0x1000000
 CONSTELLATIONS 		= 0x2000000
 SUN 				= 0x4000000
-MOON 				= 0x8000000
+
 
 TYPE_MASK = 0xFFFFFFF
 
-SATELLITE_M = 100
+SPACECRAFT_M = 100
 THREE_D = False
 MAX_P_D = 1.1423e13
 MIN_P_D = 46.0e9
@@ -73,6 +76,8 @@ EPOCH_2000_JD = 2451545.0	# number of days ellapsed from 01-01-4713 BC GMT to 01
 EPOCH_2000_MJD = 51544.0
 EPOCH_1970_JD = 2440587.5 # number of days ellapsed from 01-01-4713 BC GMT to 01-01-1970 AD GMT
 
+J2000_TDB = 2451545.0
+
 
 TYPE_STAR = 0
 TYPE_PLANET = 1
@@ -80,7 +85,7 @@ TYPE_ASTEROID = 2
 TYPE_DWARF_PLANET = 3
 TYPE_COMET = 4
 TYPE_TRANS_N = 5
-TYPE_SATELLITE = 6
+#TYPE_SATELLITE = 6
 TYPE_MOON = 7
 
 CURRENT_BODY = "current_body"
@@ -230,7 +235,7 @@ print "=========================>>>>>>>>>>>>> 1 SEC=", TI_ONE_SECOND, ", 24H = "
 #TI_TWELVE_HOURS = 0.5
 #TI_24_HOURS 	= 1
 
-
+"""
 Frame_IntervalsXX = { 
 	TI_ONE_SECOND 	: { "value": 1, "label": "1", "unit": "s"},
 	TI_10_SECONDS 	: { "value": 10, "label": "10", "unit": "s"},
@@ -243,6 +248,7 @@ Frame_IntervalsXX = {
 	TI_SIX_HOURS 	: { "value": 360, "label": "6", "unit": "h"},
 	TI_TWELVE_HOURS : { "value": 720, "label": "12", "unit": "h"}
 }
+"""
 
 # the following handles time interval values based on the dialer's position
 Frame_Intervals = { # incr values are always expressed in (fraction of a) day...
@@ -264,40 +270,94 @@ INITIAL_INCREMENT_KEY = 1
 INITIAL_TIMEINCR = Frame_Intervals[INITIAL_INCREMENT_KEY]["incr"] #TI_ONE_SECOND #TI_TEN_MINUTES # 
 #BaseTimeIncrement = INITIAL_TIMEINCR
 
-# scale toggling
+"""
+SCALING
+"""
+
+# scale toggling:
+# toggles between in "inflated" view of planets, and a more up-to-scale view
+# where planets are more in relation to their real dimension. THIS MAY GO AWAY
 SCALE_OVERSIZED = 0
 SCALE_NORMALIZED = 1
 
-# scale per body type
-#bodyScaler = { SUN: 55000, SPACECRAFT: 1, INNERPLANET: 1200, SATELLITE:1400, GASGIANT: 3500, DWARFPLANET: 100, ASTEROID:1, COMET:0.02, SMALL_ASTEROID: 0.1, BIG_ASTEROID:0.1, PHA: 0.007, TRANS_NEPT: 0.001}
-
-# original bodyscaler
-bodyScaler = { SUN: 25000, SPACECRAFT: 1, INNERPLANET: 2400, MOON: 2400, SATELLITE:1400, GASGIANT: 4500, DWARFPLANET: 100, ASTEROID:1, COMET:0.02, SMALL_ASTEROID: 0.1, BIG_ASTEROID:0.1, PHA: 0.007, TRANS_NEPT: 0.001}
-#bodyScaler = { SUN: 120000, SPACECRAFT: 1, INNERPLANET: 2400, SATELLITE:1400, GASGIANT: 4500, DWARFPLANET: 100, ASTEROID:1, COMET:0.02, SMALL_ASTEROID: 0.1, BIG_ASTEROID:0.1, PHA: 0.007, TRANS_NEPT: 0.001}
-
-# new bodyscaler
-#bodyScaler = { SUN: 5000, SPACECRAFT: 1, INNERPLANET: 1800, SATELLITE:1400, GASGIANT: 2200, DWARFPLANET: 100, ASTEROID:1, COMET:0.02, SMALL_ASTEROID: 0.1, BIG_ASTEROID:0.1, PHA: 0.007, TRANS_NEPT: 0.001}
-
-# body shapes
-BodyGeometryTypes = { SUN: "sphere", SPACECRAFT: "cylinder", INNERPLANET: "sphere", MOON: "sphere", OUTERPLANET: "sphere", SATELLITE: "sphere", DWARFPLANET: "sphere", ASTEROID:"cube", COMET:"cone", SMALL_ASTEROID:"cube", BIG_ASTEROID:"sphere", PHA:"cube", TRANS_NEPT: "cube"}
-#BodyGeometryTypes = { SUN: "sphere", SPACECRAFT: "cylinder", INNERPLANET: "sphere", OUTERPLANET: "sphere", SATELLITE: "sphere", DWARFPLANET: "sphere", ASTEROID:"cube", COMET:"cone", SMALL_ASTEROID:"cube", BIG_ASTEROID:"sphere", PHA:"cube", TRANS_NEPT: "cube"}
-
 # size and distance corrections...
+# we apply a coefficient to reduce distances which are vastly too big for a 
+# practical use in a simulation. The SMALLER the number in DIST_FACTOR, the 
+# MORE compressed distances will be. For MOONS, we need to compress less so 
+# that we can see them around their central body. If we'd compress with the 
+# same ratio, they would be all inside their central body, as their semi-major
+# axis is very small compared to interplanetary distances. On the opposite side
+# we want to make the planets and their moons visible, so we want to boost their
+# size that pales in comparison to the distances separating them.
 
 #DIST_FACTOR = 10e-7 # <--- The original distance factor
-DIST_FACTOR = 10e-6 # <--- New distance factor
-DIST_FACTOR_MOON = DIST_FACTOR * 8 # <--- distance factor to use for a moon orbit around its central body
+DIST_FACTOR = 0.6e-5 # <--- New distance factor
 
-#original SZ correction
+#DIST_FACTOR_MOON = DIST_FACTOR * 8 # <--- distance factor to use for a moon orbit around its central body
+DIST_FACTOR_MOON = DIST_FACTOR * 15 # <--- distance factor to use for a moon orbit around its central body
+
+
+planet_moon_dist_factor = {
+	"earth": DIST_FACTOR * 18,
+	"mars" : DIST_FACTOR * 60,
+	"pluto": DIST_FACTOR * 30,
+	"jupiter": DIST_FACTOR,
+	"saturn": DIST_FACTOR,
+	"uranus": DIST_FACTOR,
+	"neptune": DIST_FACTOR,
+	"mercury": DIST_FACTOR,
+	"venus": DIST_FACTOR,
+}
+
+xplanet_moon_dist_factor = {
+	"earth": 1e-5 * 15,
+	"mars" : 1e-5 * 50,
+	"pluto": 1e-5 * 27,
+	"jupiter": 1e-5,
+	"saturn": 1e-5,
+	"uranus": 1e-5,
+	"neptune": 1e-5,
+	"mercury": 1e-5,
+	"venus": 1e-5,
+}
+
+# original SZ correction:
+# The following are default sizes used when objects are 
+# displayed in a more realistic way, instead of their
+# inflated version
+
 SUN_SZ_CORRECTION 			= 1/(DIST_FACTOR * 5)
 PLANET_SZ_CORRECTION 		= 1/(DIST_FACTOR * 5)
-SATELLITE_SZ_CORRECTION 	= 1/(DIST_FACTOR * 5)
+#SATELLITE_SZ_CORRECTION 	= 1/(DIST_FACTOR * 5)
 MOON_SZ_CORRECTION 			= 1/(DIST_FACTOR * 5)
 HYPERBOLIC_SZ_CORRECTION 	= 1/(DIST_FACTOR * 5)
 ### ASTEROID_SZ_CORRECTION = 1e-2/(DIST_FACTOR * 5)
-DWARFPLANET_SZ_CORRECTION 	= 1e-2/(DIST_FACTOR * 5)
+
+#DWARF_PLANET_SZ_CORRECTION 	= 1e-2/(DIST_FACTOR * 5)
+DWARF_PLANET_SZ_CORRECTION 	= 1/(DIST_FACTOR * 5)
+
 SMALLBODY_SZ_CORRECTION 	= 1e-6/(DIST_FACTOR*5) #(default)
 ASTEROID_SZ_CORRECTION 		= SMALLBODY_SZ_CORRECTION
+
+# scale per body type. We need to apply a coefficient to increase
+# the size of the planets and moons, so that we can see them more
+# easily in the simulation. The bodyScaler dictionary tells what
+# coefficeint to use in relation to a particular type of object.
+# The LOWER the number, the MORE "inflated" the object will be.
+
+#bodyScaler = { SUN: 55000, SPACECRAFT: 1, INNER_PLANET: 1200, SATELLITE:1400, GAS_GIANT: 3500, DWARF_PLANET: 100, ASTEROID:1, COMET:0.02, SMALL_ASTEROID: 0.1, BIG_ASTEROID:0.1, PHA: 0.007, TRANS_NEPT: 0.001}
+
+# original bodyscaler
+bodyScaler = { SUN: 20000, SPACECRAFT: 1, INNER_PLANET: 1400, MOON: 1400, GAS_GIANT: 1300, DWARF_PLANET: 100, ASTEROID:1, COMET:0.02, SMALL_ASTEROID: 0.1, BIG_ASTEROID:0.1, PHA: 0.007, TRANS_NEPT: 0.001}
+#bodyScaler = { SUN: 120000, SPACECRAFT: 1, INNER_PLANET: 2400, MOON: 2400, GAS_GIANT: 4500, DWARF_PLANET: 100, ASTEROID:1, COMET:0.02, SMALL_ASTEROID: 0.1, BIG_ASTEROID:0.1, PHA: 0.007, TRANS_NEPT: 0.001}
+
+# new bodyscaler
+#bodyScaler = { SUN: 5000, SPACECRAFT: 1, INNER_PLANET: 1800, SATELLITE:1400, GAS_GIANT: 2200, DWARF_PLANET: 100, ASTEROID:1, COMET:0.02, SMALL_ASTEROID: 0.1, BIG_ASTEROID:0.1, PHA: 0.007, TRANS_NEPT: 0.001}
+
+# body shapes
+BodyGeometryTypes = { SUN: "sphere", SPACECRAFT: "cylinder", INNER_PLANET: "sphere", MOON: "sphere", OUTER_PLANET: "sphere", DWARF_PLANET: "sphere", ASTEROID:"cube", COMET:"cone", SMALL_ASTEROID:"cube", BIG_ASTEROID:"sphere", PHA:"cube", TRANS_NEPT: "cube"}
+#BodyGeometryTypes = { SUN: "sphere", SPACECRAFT: "cylinder", INNER_PLANET: "sphere", OUTER_PLANET: "sphere", SATELLITE: "sphere", DWARF_PLANET: "sphere", ASTEROID:"cube", COMET:"cone", SMALL_ASTEROID:"cube", BIG_ASTEROID:"sphere", PHA:"cube", TRANS_NEPT: "cube"}
+
 
 
 # sun synchronous precession rate per second (calculated using
@@ -333,27 +393,7 @@ def getEarthMeanMotion2():
 #from visual import color
 from vpython_interface import Color
 
-"""
-# Right Ascension and declination for each planet/
-Planet_Pole_Data_J2000_Equatorial = {
-    "Mercury": {"alpha_0": 281.009, "delta_0": 61.414},
-    "Venus":   {"alpha_0": 272.76,  "delta_0": 67.16},
-    "Earth":   {"alpha_0": 0.0,     "delta_0": 90.0}, # Earth's pole defines the J2000 equatorial system
-    "Mars":    {"alpha_0": 317.681, "delta_0": 52.886},
-    "Jupiter": {"alpha_0": 268.05,  "delta_0": 64.49},
-    "Saturn":  {"alpha_0": 40.589,  "delta_0": 83.537},
-    "Uranus":  {"alpha_0": 257.31,  "delta_0": -15.10}, # Uranus's pole is tilted significantly below ecliptic
-    "Neptune": {"alpha_0": 299.36,  "delta_0": 43.46},
-    "Pluto":   {"alpha_0": 132.99,  "delta_0": -6.16},
-   # "Sedna":   {"alpha_0": 61.94,  "delta_0": 8.94},
-   # "Eris":    {"alpha_0": 27.7,   "delta_0": 0.0075},
-   # "Makemake":{"alpha_0": 200.15,  "delta_0": 20.99}, 
-   # "Haumea":  {"alpha_0": 218.74,  "delta_0": 14.68},
-}
 
-# Earth's obliquity to the ecliptic at J2000.0
-OBLIQUITY_ECLIPTIC_J2000 = 23.43928
-"""
 """2
 # Coefficients (alpha0_J2000, alpha0_dot, delta0_J2000, delta0_dot)
 # alpha0_dot and delta0_dot are per Julian century
@@ -415,9 +455,42 @@ Jupiter 	Callisto 	504 	JUP365 	Laplace 	2000-01-01.5 	1882700. 	0.007 	43.8 	87
 		"orbit_class": "E-SAT",
 		"tga_name": "Moon"
 	},
-	"""
-objects_data = {
-		
+		"Moon": {
+		"M_deg": 140.14966404910976, 
+		"e": 0.053574743523550905, 
+		"omega_dot_deg_day": 1.1487795987460944e-05, 
+		"Omega_deg": 123.95805543719277, 
+		"revolution_days": 27.63832883056322, 
+		"epochJD": 2461086.1573032406, 
+		"Omega_dot_deg_day": -5.780161074447413e-06, 
+		"planet": "Earth", 
+		"n_deg_day": 13.025389567038589, 
+		"mass_kg": 5.0098137632410894e+19, 
+		"i_deg": 5.240273000309319, 
+		"omega_deg": 315.4342061988724, 
+		"rotation_days": 27.321661, 
+		"a_m": 386138429.0737721, 
+		"Tp_JD": 2451534.240270832, 
+		"radius_m": 4902800.066
+	"""			
+all_objects = {}
+
+
+texture = {
+	"mercury": 	"mercury",
+	"venus":	"venus",
+	"earth": 	"highres-earth-8192x4096-clouds",
+	"mars": 	"mars",
+	"jupiter": 	"source/2k_jupiter-PM-normalized",
+	"saturn": 	"saturn",
+	"uranus": 	"uranus",
+	"neptune": 	"source/2k_neptune-PM-normalized",
+}
+
+objects_data = {}
+objects_data2 = {
+
+
 	# highly pertubed Moons
 	"moon" :{
 
@@ -439,7 +512,7 @@ objects_data = {
 		"eccentricity_EC":6.462786125327587e-02,
 		"revolution_PR":27.321582,
 		"rotation":27.321582 * SOLAR_DAY_RATIO, # in days
-		"orbital_inclination_IN":5.27749841723057, #23.44, # to earth eq.
+		"orbital_inclination_IN":5.27749841723057,# to earth ecliptic #23.44, # to earth eq.
 		"longitude_of_ascendingnode_OM":143.9091328687446,
 		"longitude_of_periapsis_W":296.9775666926365+143.9091328687446,
 		"mean_anomaly_MA": 158.3907159645461,
@@ -452,6 +525,7 @@ objects_data = {
 		"orbit_class": "E-SAT",
 		"tga_name": "Moon"
 		},
+
 
 	# keplerian Moons
 	"phobos" :{
@@ -553,7 +627,9 @@ objects_data = {
 		"absolute_mag": 0.0,
 		"tga_name": "Sun"
 	},
-	
+
+
+
 	"sun" : {
 		"type": TYPE_STAR,
 		"material":1,
@@ -981,6 +1057,7 @@ objects_data = {
 			's' :0.0, 
 			'f' :0.0
 		},
+	
 		#"drift_coef_1":{'a' : 1.00000261, 'ar': 0.00000562, 'eccentricity_EC' : 0.01671123, 'er':-0.00004392, 'i' :-0.00001531, 'ir':-0.01294668, 'L' :100.46457166, 'Lr':35999.37244981, 'W' :102.93768193, 'Wr':0.32327364, 'N' :0.0, 'Nr':0.0, 'b' :0.0, 'c' :0.0, 's':0.0, 'f' :0.0},
 		"tga_name": "highres-earth-8192x4096-clouds", #"EarthClouds"
 #		"tga_name": "source/4k-earth-with-clouds-PM-normalized",

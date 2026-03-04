@@ -1,28 +1,11 @@
 # -*- coding: utf-8 -*-
 
-# Authoritative planetary constants for the Solar System.
-# Keys are planet names (your canonical identity).
-# All values are SI-native.
-
-# -*- coding: utf-8 -*-
 
 # Authoritative planetary constants for the Solar System.
 # Keys are planet names (canonical identity).
 # All values are SI-native unless noted.
 # Drift coefficients follow Meeus Chapter 31 (low precision, 1800–2050).
 
-
-"""
-    "mercury":  "mercury",
-    "venus":    "venus",
-    "earth":    "highres-earth-8192x4096-clouds",
-    "mars":     "mars",
-    "jupiter":  "source/2k_jupiter-PM-normalized",
-    "saturn":   "saturn",
-    "uranus":   "uranus",
-    "neptune":  "source/2k_neptune-PM-normalized",
-
-"""
 PLANET_CONSTANTS = {
 
     "sun": {

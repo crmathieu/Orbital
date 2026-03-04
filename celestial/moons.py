@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 # moons.py
 
 """ planets.py  """
@@ -8,15 +9,16 @@ from controls import *
 #from celestial.orbitalLIB import Api
 
 class makePlanetMoon(makeBody):
-	def __init__(self, system, key, color, centralBody):
+	def __init__(self, system, key, color, centralbody):
 		"""
 		makeBody takes care of drawing the moon's orbit based on the pre-loaded
 		orbital elements, when the moon's state_vector can't be directly solved 
 		from the orbital elements. 
 		"""
 #		makeBody.__init__(self, system, key, color, SATELLITE, SATELLITE, SATELLITE_SZ_CORRECTION, centralBody)
-		makeBody.__init__(self, system, key, color, MOON, MOON, MOON_SZ_CORRECTION, centralBody)
-		self.isMoon = True
+		makeBody.__init__(self, system, key, color, ptype=MOON, sizeCorrectionType=MOON, realisticCorrectionSize=MOON_SZ_CORRECTION, centralBody=centralbody)
+
+		#self.isMoon = True
 
 		"""
 		set up the Nodal regression rate (rad/day) for the longitutde of the 
@@ -28,73 +30,8 @@ class makePlanetMoon(makeBody):
 		self.Omega0 = self.Longitude_of_ascendingnode
 		self.omega0 = self.Argument_of_periapsis
 
-		self.Omega_dot, self.omega_dot = self.j2_precession_rates(self.CentralBody.J2)
-
-
-#	def j2_precession_rates(self, GM, R, J2, a, e, inc, period=None, n=None):
-
-	def j2_precession_rates(self, J2):
-		"""
-		Compute secular J2 precession rates for a satellite orbiting an oblate planet.
-
-		Parameters
-		----------
-		GM : float
-		    Planet GM (km^3/s^2)
-		R : float
-		    Planet equatorial radius (km)
-		J2 : float
-		    Planet J2 coefficient
-		a : float
-		    Semi-major axis of the moon (km)
-		e : float
-		    Eccentricity
-		inc : float
-		    Inclination relative to the planet's equator (radians)
-		period : float, optional
-		    Orbital period (days). If provided, overrides n.
-		n : float, optional
-		    Mean motion (rad/day). If not provided, computed from GM and a.
-
-		Returns
-		-------
-		Omega_dot : float
-		    Nodal regression rate (rad/day)
-		omega_dot : float
-		    Periapsis precession rate (rad/day)
-		"""
-		"""
-		# Compute mean motion if not provided
-		if n is None:
-		    # Convert GM from km^3/s^2 to km^3/day^2
-		    GM_day = GM * (86400.0**2)
-		    n = math.sqrt(GM_day / a**3)
-
-		# Or compute from period if given
-		if period is not None:
-		    n = 2.0 * math.pi / period
-
-		"""
-
-		# calculate or retrieve n, p, a
-
-		n = self.Mean_motion
-		a = self.a
-		e = self.e
-		R = self.CentralBody.BodyRadius
-		inc = self.i
-
-		# Semi-latus rectum
-		p = a * (1 - e**2)
-
-		# Common J2 factor
-		factor = (3.0/2.0) * n * J2 * (R**2 / p**2)
-
-		# Secular rates
-		Omega_dot = -factor * math.cos(inc)
-		omega_dot = 0.5 * factor * (5.0 * math.cos(inc)**2 - 1.0)
-
-		return Omega_dot, omega_dot
+		#self.Omega_dot, self.omega_dot = self.j2_precession_rates(self.CentralBody.J2)
+		
 
 	# makePlanetMoon::
 	def toggleSize(self, realisticSize):
@@ -112,12 +49,12 @@ class makePlanetMoon(makeBody):
 
 		self.BodyGeometry.radius = self.radiusToShow  / self.SizeCorrection[self.sizeType]
 
-	def setCartesianCoordinates(self, timeIncrement):
+	def setCartesianCoordinatesXX(self, timeIncrement):
 			"""
 			We need to call the default makeBody::setCartesianCoordinates with a moon distance
 			factor
 			"""
-			return makeBody.setCartesianCoordinates(self, timeIncrement, DIST_FACTOR_MOON)
+			return makeBody.setCartesianCoordinates(self, timeIncrement) #, DIST_FACTOR_MOON)
 
 	def updateBodyPosition(self, timeIncrement):
 
@@ -125,7 +62,7 @@ class makePlanetMoon(makeBody):
 		# elements (timeIncrement comes in days as a float)
 		
 		dT = daysSinceEpochJD(self.Epoch, self.locationInfo) + timeIncrement 
-		print self.Name, ": DT=", dT
+		#print self.Name, ": DT=", dT
 
 
 		# compute Longitude of Ascending node taking 
@@ -140,7 +77,7 @@ class makePlanetMoon(makeBody):
 		# adjust Mean Anomaly with time elapsed since epoch
 		M = toRange(self.Mean_anomaly + self.Mean_motion * dT)
 
-		print "Advancing MOON"
+		#print "Advancing MOON"
 		# since we can't solve Kepler's equation analytically,
 		# we use an iterative numerical method
 
@@ -154,15 +91,15 @@ class makeNonKeplerianMoon(makeBody):
 	The most famous one is Luna, our moon
 	"""
 
-	def __init__(self, system, key, color, centralBody):
+	def __init__(self, system, key, color, centralbody):
 		"""
 		makeBody takes care of drawing the moon's orbit based on the pre-loaded
 		orbital elements. When the state_vector of the moon can't be directly
 		solved from the orbital elements, 
 		"""
 #		makeBody.__init__(self, system, key, color, SATELLITE, SATELLITE, SATELLITE_SZ_CORRECTION, centralBody)
-		makeBody.__init__(self, system, key, color, MOON, MOON, MOON_SZ_CORRECTION, centralBody)
-		self.isMoon = True
+		makeBody.__init__(self, system, key, color, ptype=MOON, sizeCorrectionType=MOON, realisticCorrectionSize=MOON_SZ_CORRECTION, centralBody=centralbody)
+		#self.isMoon = True
 
 
 	# makeNonKeplerianMoon::
@@ -184,7 +121,7 @@ class makeNonKeplerianMoon(makeBody):
 	# makeNonKeplerianMoon::
 	def setMoonElements(self, name, elts):
 		objects_data[name]["profile"] = ""
-		objects_data[name]["material"] = 0
+		#objects_data[name]["material"] = 0
 		objects_data[name]["name"] = name
 		objects_data[name]["iau_name"] = name
 		#objects_data[name]["jpl_designation"] = target
@@ -237,12 +174,12 @@ class makeNonKeplerianMoon(makeBody):
 
 		if self.hasRenderedOrbit == True:
 			self.snapshot = self.getMoonElements(timeIncrement)
-			self.setMoonElements("moon", self.snapshot["elements"])
-			self.Position = self.snapshot["position_vec"] * DIST_FACTOR_MOON # DIST_FACTOR 
+			self.setMoonElements(self.Name, self.snapshot["elements"])
+			self.Position = self.snapshot["position_vec"] * self.distanceFactor #DIST_FACTOR_MOON # DIST_FACTOR 
 			self.RefOrigin.pos = self.Position
 			return self.Position 
 		else:
-			return makeBody.setCartesianCoordinates(self, timeIncrement, DIST_FACTOR_MOON)
+			return makeBody.setCartesianCoordinates(self, timeIncrement) #, DIST_FACTOR_MOON)
 
 	# makeNonKeplerianMoon::
 	def draw(self):
@@ -282,7 +219,7 @@ class makeNonKeplerianMoon(makeBody):
 		# adjust Mean Anomaly with time elapsed since epoch
 		M = toRange(self.Mean_anomaly + self.Mean_motion * dT)
 
-		print "Advancing MOON"
+		#print "Advancing MOON"
 		# since we can't solve Kepler's equation analytically,
 		# we use an iterative numerical method
 
@@ -292,7 +229,7 @@ class makeNonKeplerianMoon(makeBody):
 # CLASS MAKELUNA ------------------------------------------------------------
 class makeLuna(makeNonKeplerianMoon):
 
-	def __init__(self, system, color, planet):
+	def __init__(self, system, color, centralbody):
 		"""
 		we need to calculate the most up to date orbital elements
 		and state vector for the moon since dramatic perturbations
@@ -306,7 +243,7 @@ class makeLuna(makeNonKeplerianMoon):
 		self.setMoonElements("moon", self.snapshot["elements"])
 
 #		print "makeLuna: before makePlanet::__init"
-		makeNonKeplerianMoon.__init__(self, system, "moon", color, planet)
+		makeNonKeplerianMoon.__init__(self, system, "moon", color, centralbody)
 		objects_data["moon"]["tga_name"] = "moon"
 
 #		print "makeLuna: AFTER makePlanet::__init"
@@ -328,9 +265,111 @@ class makeLuna(makeNonKeplerianMoon):
 		# positions in our solare system
 
 		r, v, elems = moon_ephemeris(System_utc, timeIncrement)
+		#print "Moon's elements", elems
 		return {
 			"position_vec": r, # in meters
 			"velocity_vec": v, # in meters/sec
 			"elements": elems
 		}
 
+
+"""
+Some terminology:
+Term				Floor (Reference Plane)			Also Known As...
+CRF / ICRF			Earth Equator					EME2000, CRF J2000 (Equatorial)
+Earth Ecliptic		Earth Orbit						J2000 Ecliptic
+Mars Ecliptic		Mars Orbit						(The frame your data is currently in)
+Frame Of Reference 	Earth Ecliptic					J2000		
+
+
+Also, 2 different standards:
+
+Frame				The "Floor" (Reference Plane)	Definition
+J2000 / CRF			Earth's Mean Equator			Based entirely on Earth's orientation on Jan 1, 2000.
+Invariable Plane	The Solar System's Angular 		The "average" plane of the planets you were thinking of.
+					Momentum	
+
+1. The Invariable Plane (The "Average")
+
+In astronomy, we are a bit "Earth-centric":
+
+If you treated the solar system like a spinning top and found its 
+true "waist," that would be the Invariable Plane.
+
+    Jupiter has the most mass and momentum, so the Invariable Plane is 
+    tilted very closely to Jupiter's orbit.
+
+    The Earth's orbit (Ecliptic) is tilted about 1.57° away from 
+    this "average" plane.
+
+2. Why we don't use it as the "Standard"
+
+	Even though the Invariable Plane is more "fair" to all the planets, 
+	it’s very hard to measure from a telescope on the ground.
+
+	For centuries, astronomers used the Earth's Equator and Earth's 
+	Orbit because those were the "level" and "plumb line" we could 
+	actually see. The CRF (J2000) is essentially the modernized, 
+	high-precision version of those Earth-based measurements.
+
+SYNONYMS for J2000 Ecliptic:
+
+In the world of orbital mechanics, the "J2000 Ecliptic" has several names depending on whether you are 
+talking to a software engineer, a navigator, or an astrophysicist.
+
+Because it refers to a plane (Earth's orbit) at a specific time (January 1, 2000), these are the most 
+common synonyms:
+1. Technical & Mathematical Synonyms
+
+    Mean Ecliptic of J2000.0: This is the most formal name. "Mean" indicates that 
+    short-term "wobbles" (nutation) have been averaged out.
+
+    EME2000 Ecliptic: (Earth Mean Ecliptic 2000). Often used in 
+    aerospace codebases.
+
+    Heliocentric Ecliptic (J2000): Frequently used when the coordinate 
+    system is centered on the Sun.
+
+    Barycentric Ecliptic (J2000): Used when the center of the coordinate 
+    system is the Solar System's center of mass (Barycenter).
+
+2. General Reference Synonyms
+
+    Standard Ecliptic: In most modern textbooks, unless stated otherwise, 
+    "the ecliptic" refers to the J2000 standard.
+
+    Earth's Orbital Plane (J2000): The physical description of the frame.
+
+    J2K Ecliptic: Common shorthand in programming (C++, Python, etc.).
+
+3. Contextual "Near-Synonyms" (Caution Required)
+
+	These are often used interchangeably in casual conversation, but they have subtle differences:
+
+    	ICRS Ecliptic: Technically, the ICRS (International Celestial Reference System) is a 
+    	set of fixed stars, but "ICRS Ecliptic" is often used to describe the plane derived 
+    	from those stars that matches the J2000 ecliptic.
+
+    	Inertial Ecliptic: This distinguishes it from a "rotating" or "of-date" frame that 
+    	moves with the Earth's current wobbles.
+
+Crucial Distinction: What is NOT a synonym
+
+	The following are not synonyms for the J2000 Ecliptic:
+
+    	CRF / ICRF / J2000 Equatorial: These refer to the Earth's Equator, which is 
+    	tilted 23.44° away from the Ecliptic.
+
+    	Ecliptic of Date: This refers to the Earth's orbit as it exists right now, 
+    	which changes slightly every year due to the gravity of other planets.
+
+    	Invariable Plane: This is the "average" plane of the solar system, tilted 
+    	about 1.57° away from the J2000 Ecliptic.
+
+SO, just to be clear, If we say:
+ 	- CRF J2000 
+ we am talking about the earth's equatorial plane. But if I say: 
+ 	- CRF J2000 ecliptic 
+ We am talking about the earth's orbital plane
+
+"""
