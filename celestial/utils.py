@@ -2,6 +2,11 @@
 import numpy as np
 from visual import *
 
+def doTrace():
+	import traceback
+	stack_info = traceback.format_stack()
+	print "".join(stack_info)
+
 def deg2rad(deg):
 	return deg * math.pi/180
 

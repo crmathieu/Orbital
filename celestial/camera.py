@@ -330,18 +330,38 @@ class camera3D:
 		# position of the planet the moon orbits around in the ecliptic referential
 
 		######self.surfaceRadius = (1.1 * self.ssys.cameraViewTargetBody.BodyGeometry.radius) if self.ssys.SurfaceView == True else 0
-		#print "UPDATING Scene Center with ViewTarget origin"
-		self.ssys.Scene.center = (
-			self.ssys.cameraViewTargetBody.Position[0] + self.ssys.cameraViewTargetBody.Foci[0],
-			self.ssys.cameraViewTargetBody.Position[1] + self.ssys.cameraViewTargetBody.Foci[1],
-			self.ssys.cameraViewTargetBody.Position[2] + self.ssys.cameraViewTargetBody.Foci[2]
-		)
-		#print "----------"
-		#print "updateCameraViewTarget: position:",self.ssys.cameraViewTargetBody.Position
-		##print "label coordinates:",self.ssys.cameraViewTargetBody.Labels[0].pos
-		#print "updateCameraViewTarget: label=", self.ssys.cameraViewTargetBody.Labels[0].pos, "origin=", self.ssys.cameraViewTargetBody.RefOrigin.pos
-		#print "----------"
+		print "UPDATING Scene Center with ViewTarget origin"
 
+		isMoon = self.ssys.cameraViewTargetBody.isMoon
+
+		#self.ssys.Scene.center = self.ssys.cameraViewTargetBody.Position + self.ssys.cameraViewTargetBody.CentralBody.Position if self.ssys.cameraViewTargetBody.CentralBody != None else np.matrix([[0],[0],[0]], np.float64)
+
+		"""
+		CENTER THE SCENE ON SELECTED OBJECT
+		In order to center on the object selected, we need to know if its position is
+		heliocentric ecliptic -or- if it is geoEcliptic around a central body. If
+		it is geoEcliptic, the coordinates need to be brought to heliocentric using
+		frame_to_world, because centering the scene object operates in heliocentric 
+		coordinates.
+		"""
+		if self.ssys.cameraViewTargetBody.CentralBody != None:
+			self.ssys.Scene.center = self.ssys.cameraViewTargetBody.CentralBody.LocalEclipticRef.frame_to_world(self.ssys.cameraViewTargetBody.Position)
+		else:
+			self.ssys.Scene.center = (
+				self.ssys.cameraViewTargetBody.Position[0],
+				self.ssys.cameraViewTargetBody.Position[1],
+				self.ssys.cameraViewTargetBody.Position[2]
+			)
+		
+		"""
+		print "----------"
+		print "isMoon:", isMoon, ", updateCameraViewTarget: position:",self.ssys.cameraViewTargetBody.Position
+		print "SCENE CENTER:", self.ssys.Scene.center
+		print "TARGET FOCI position:", self.ssys.cameraViewTargetBody.Foci
+		#print "label coordinates:",self.ssys.cameraViewTargetBody.Labels[0].pos
+		print "updateCameraViewTarget: label=", self.ssys.cameraViewTargetBody.Labels[0].pos, "origin=", self.ssys.cameraViewTargetBody.RefOrigin.pos
+		print "----------"
+		"""
 	def setTransitionVelocity(self, velocity):
 		if velocity > self.VELOCITY_MAX:
 			velocity = self.VELOCITY_MAX

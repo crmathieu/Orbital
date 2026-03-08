@@ -52,7 +52,8 @@ CELESTIAL_SPHERE 	= 0x800000
 HYPERBOLIC 			= 0x1000000
 CONSTELLATIONS 		= 0x2000000
 SUN 				= 0x4000000
-
+SMALL_MOON			= 0x8000000
+TINY_MOON  			= 0x10000000
 
 TYPE_MASK = 0xFFFFFFF
 
@@ -300,26 +301,15 @@ DIST_FACTOR_MOON = DIST_FACTOR * 15 # <--- distance factor to use for a moon orb
 planet_moon_dist_factor = {
 	"earth": DIST_FACTOR * 18,
 	"mars" : DIST_FACTOR * 60,
-	"pluto": DIST_FACTOR * 30,
-	"jupiter": DIST_FACTOR,
-	"saturn": DIST_FACTOR,
-	"uranus": DIST_FACTOR,
+	"pluto": DIST_FACTOR * 32,
+	"jupiter": DIST_FACTOR * 75,
+	"saturn": DIST_FACTOR * 75,
+	"uranus": DIST_FACTOR * 20,
 	"neptune": DIST_FACTOR,
 	"mercury": DIST_FACTOR,
 	"venus": DIST_FACTOR,
 }
 
-xplanet_moon_dist_factor = {
-	"earth": 1e-5 * 15,
-	"mars" : 1e-5 * 50,
-	"pluto": 1e-5 * 27,
-	"jupiter": 1e-5,
-	"saturn": 1e-5,
-	"uranus": 1e-5,
-	"neptune": 1e-5,
-	"mercury": 1e-5,
-	"venus": 1e-5,
-}
 
 # original SZ correction:
 # The following are default sizes used when objects are 
@@ -348,7 +338,7 @@ ASTEROID_SZ_CORRECTION 		= SMALLBODY_SZ_CORRECTION
 #bodyScaler = { SUN: 55000, SPACECRAFT: 1, INNER_PLANET: 1200, SATELLITE:1400, GAS_GIANT: 3500, DWARF_PLANET: 100, ASTEROID:1, COMET:0.02, SMALL_ASTEROID: 0.1, BIG_ASTEROID:0.1, PHA: 0.007, TRANS_NEPT: 0.001}
 
 # original bodyscaler
-bodyScaler = { SUN: 20000, SPACECRAFT: 1, INNER_PLANET: 1400, MOON: 1400, GAS_GIANT: 1300, DWARF_PLANET: 100, ASTEROID:1, COMET:0.02, SMALL_ASTEROID: 0.1, BIG_ASTEROID:0.1, PHA: 0.007, TRANS_NEPT: 0.001}
+bodyScaler = { SUN: 15000, SPACECRAFT: 1, INNER_PLANET: 1400, MOON: 1400, SMALL_MOON:100, TINY_MOON: 30, GAS_GIANT: 1300, DWARF_PLANET: 50, ASTEROID:1, COMET:0.02, SMALL_ASTEROID: 0.1, BIG_ASTEROID:0.1, PHA: 0.04, TRANS_NEPT: 0.001}
 #bodyScaler = { SUN: 120000, SPACECRAFT: 1, INNER_PLANET: 2400, MOON: 2400, GAS_GIANT: 4500, DWARF_PLANET: 100, ASTEROID:1, COMET:0.02, SMALL_ASTEROID: 0.1, BIG_ASTEROID:0.1, PHA: 0.007, TRANS_NEPT: 0.001}
 
 # new bodyscaler

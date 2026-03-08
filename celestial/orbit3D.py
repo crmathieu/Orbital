@@ -45,7 +45,7 @@ from objects import simpleArrow
 from referentials import make3DaxisReferential, makeBasicReferential
 #from moon_cgpt import moon_orbital_elements
 #from moon_kimi import moon_orbital_elements
-
+from planetary_constants import PLANET_CONSTANTS 
 
 #from moon_copilot import getMoonElements
 
@@ -407,10 +407,6 @@ class makeSolarSystem:
 		self.Scene.autoscale = False #0
 
 	def getBodyFromName(self, name): #jpl_designation):
-		#if jpl_designation in self.nameIndex:
-		if name == "pluto":
-			print objects_data[name]["id"]
-
 		if name in self.nameIndex:
 			return self.bodies[self.nameIndex[name]] #jpl_designation]]
 		return None
@@ -793,7 +789,9 @@ class makeBody:
 			self.AxialTilt = 0.0
 
 		self.Name					= system.objects_data[key]["id"]["name"]				# body name
-		
+		if self.Name in PLANET_CONSTANTS:
+			self.MoonRegister = []
+
 #		if "symbol" in system.objects_data[key]:
 #			self.Symbol				= system.objects_data[key]["symbol"]			# body symbol
 #		else:
@@ -821,6 +819,9 @@ class makeBody:
 		self.CentralBody = centralBody
 		if self.CentralBody != None:
 			self.isMoon = True
+			# register this moon with its central body
+			self.CentralBody.MoonRegister.append(self.Name)
+
 			"""
 			For moons, we need to decrease the distance factor so 
 			their orbits aren't completely engulfed by their central 
@@ -839,9 +840,9 @@ class makeBody:
 
 		self.Details				= False
 		self.hasRenderedOrbit		= False
-#		self.Absolute_mag			= system.objects_data[key]["absolute_mag"]
+		self.Absolute_mag			= system.objects_data[key]["physical"]["absolute_mag"] if "absolute_mag" in system.objects_data[key]["physical"] else None
 		self.Orbit					= None
-		self.Position 				= np.matrix([[0],[0],[0]], np.float64)
+		self.Position 				= vector(0,0,0)  # np.matrix([[0],[0],[0]], np.float64)
 		self.wasAnimated 			= False
 		self.rotationInterval 		= self.STILL_ROTATION_INTERVAL
 
@@ -856,7 +857,7 @@ class makeBody:
 		
 		# set scaling using bodyScaler dictionary based on body type  ...
 		self.sizeType 				= SCALE_OVERSIZED
-		self.SizeCorrection 		= {	SCALE_OVERSIZED: 	bodyScaler[sizeCorrectionType], 
+		self.SizeCorrection 		= {	SCALE_OVERSIZED: 	bodyScaler[self.sizeCorrectionType], 
 										SCALE_NORMALIZED: 	self.RealisticCorrectionSize} 
 		# for planets with rings
 		self.Ring 					= False
@@ -884,7 +885,7 @@ class makeBody:
 #		else:
 #			self.Tga 				= ""
 
-#		self.Moid = system.objects_data[key]["earth_moid"] if "earth_moid" in system.objects_data[key] else 0
+		self.Moid = system.objects_data[key]["elements"]["earth_moid"] if "earth_moid" in system.objects_data[key]["elements"] else 0.0
 
 		self.Eccentric_anomaly = 0
 
@@ -1223,7 +1224,9 @@ class makeBody:
 	def makeShape(self):
 		# default makebody::makeShape
 		self.RefOrigin.pos= self.Position #(self.Position[0]+self.Foci[0],self.Position[1]+self.Foci[1],self.Position[2]+self.Foci[2])
-		self.BodyGeometry = sphere(frame=self.RefOrigin, pos=(0,0,0), np=64, radius=self.getBodyRadius(), make_trail=false, up=(0,0,1))
+
+#		self.BodyGeometry = sphere(frame=self.RefOrigin, pos=(0,0,0), np=64, radius=self.getBodyRadius(), make_trail=True if self.CentralBody != None else False, up=(0,0,1))
+		self.BodyGeometry = sphere(frame=self.RefOrigin, pos=(0,0,0), np=64, radius=self.getBodyRadius(), make_trail=True, retain=50, up=(0,0,1))
 
 	def getBodyRadiusSAVE(self):
 		return self.radiusToShow/self.SizeCorrection[self.sizeType]
@@ -1382,14 +1385,17 @@ class makeBody:
 	def setOrbitalElements(self, key, timeincrement = 0):
 		
 		# makeBody::setOrbitalElements (default)
-		# Comets, asteroids or dwarf planets data comes from pre-ploaded data
-		# files -or- predefined values. Orbital Position is calculated from the 
-		# last time of perihelion passage. This is the default behavior
+		# Comets, asteroids, moons, spacecrafts or dwarf planets data comes from 
+		# pre-ploaded data files moons-catalog or objects-catalog. Orbital Position 
+		# is calculated from the last time of perihelion passage. Note that these 
+		# data files can be regenerated simply by deleting them. 
+		# 
+		# This is the default behavior
 
-		self.setOrbitalFromJPLhorizon(self.SolarSystem.objects_data[key]["elements"], timeincrement) #-0.7)
+		self.setOrbitalFromHorizonsData(self.SolarSystem.objects_data[key]["elements"], timeincrement) #-0.7)
 
 
-	def setOrbitalFromJPLhorizon(self, elts, timeincrement=0):
+	def setOrbitalFromHorizonsData(self, elts, timeincrement=0):
 		# data comes from data file or predefined values
 		self.e 							= elts["eccentricity_EC"]
 		self.Longitude_of_periapsis 	= elts["longitude_of_periapsis_W"]
@@ -1415,9 +1421,11 @@ class makeBody:
 		self.revolution					= elts["revolution_PR"]
 	#	self.OrbitClass					= elts["orbit_class"]
 
-		# save original value of longitude of ascending node coming from the mean elements.
-		# It will be used to calculate deviation with time on the current value of 
-		# longOfAscMode in makeBody::updateOrbitalElements
+		# save original value of longitude of ascending node coming from the mean 
+		# elements. It will be used to calculate deviation with time on the current 
+		# value of longOfAscMode in makeBody::updateOrbitalElements due to precession 
+		# of the equinox that we don't currently support due to the character too
+		# computer intensive of the position update.
 
 		self.Omega0 =  self.Longitude_of_ascendingnode
 
@@ -1443,14 +1451,41 @@ class makeBody:
 
 		# calculate current position based on orbital 
 		# elements (timeIncrement comes in days as a float)
-		
+
 		dT = daysSinceEpochJD(self.Epoch, self.locationInfo) + timeIncrement 
 
-		# compute Longitude of Ascending node taking 
-		# into account the time elapsed since epoch
+		""" -----------------------------------------------------------------------------
+		Here we had a choice to make to progagate bodies positions. Either:
 
-		self.Longitude_of_ascendingnode = self.Omega0 + 3.82394e-5 * dT
-#		print "Updating Body Position for: ", self.Name
+		use J2000 orbital elements for each body and simply apply a simple 
+		recalculation of the Mean anomaly based on the new time.
+
+			- OR - 
+		
+		use the elements of date, knowing that by doing so, we would need to take 
+		into account the precession of the earth's equinox by using a corrective 
+		factor to alter the longitude of the ascending node for each orbit, like so: 
+
+			# compute Longitude of Ascending node taking 
+			# into account the time elapsed since epoch
+
+			self.Longitude_of_ascendingnode = self.Omega0 + 3.82394e-5 * dT
+
+		Essentially, we calculate the Equinox of Date by adding that tiny 3.82394×10−5 
+		constant to "drag" the coordinate system forward to today's alignment.
+
+		It also means that orbits would need to be rotated by the same angle difference 
+		to make sure they align with their respective body's position, and this for each 
+		frame in an animation.
+
+		*** Since it is too computing intensive, we decided to use J2000 data and consider 
+		the precession negligeable. ***
+
+		This treatment includes all TNOs, Asteroids, PHAs, Comets and regular moons.
+		-----------------------------------------------------------------------------------
+		"""
+		self.Longitude_of_ascendingnode = self.Omega0
+
 
 		# adjust Mean Anomaly with time elapsed since epoch
 		M = toRange(self.Mean_anomaly + self.Mean_motion * dT)
@@ -1630,11 +1665,6 @@ class makeBody:
 	def show(self):
 
 		print "SHOW "+ self.Name
-		if self.Name == "charon":
-			import traceback
-
-			stack_info = traceback.format_stack()
-			print "".join(stack_info)
 
 		if self.hasRenderedOrbit == False:
 			self.draw()
@@ -1992,16 +2022,26 @@ class makePlanet(makeBody):
 	# makePlanet::
 	def updatePlanetOrbitFromPrecession(self, elts, timeincrement):
 
-		# makeBody::updatePlanetOrbitFromPrecession
-		#
-		# re-calculate the osculating elements and current value of approximate position 
-		# of the planet. Valid for all planets including pluto. Based in the time increment. 
-		# This method is only applicable to planets.
-		# 
-		# Principle: for every timeIncrement, all orbital elements are recalculated. 
-		# This include aphelion, eccentricity and inclinaison, followed by 
-		# long-of-ascending-node and argument-of-perihelion
+		"""
+		For planets, we use a more "accurate model"
 
+		In the world of orbital mechanics, this is often called the Keplerian Approximation
+		and was first introduce by E. Myles Standish from NASA. The Coefficients used are 
+		called "Mean Keplerian Elements and their Rates". This system of coefficients is 
+		also known as the "JPL Optimal Mean Elements and Rates" and delivers an error 
+		of < 1 Arcminute.
+	
+	    The Reference Frame: They are defined relative to the J2000.0 Mean Ecliptic and 
+	    Equinox.
+		
+		re-calculate the osculating elements and current value of approximate position 
+		of the planet. Valid for all planets including pluto. Based in the time increment. 
+		This method is only applicable to planets.
+		 
+		Principle: for every timeIncrement, all orbital elements are recalculated. 
+		This include aphelion, eccentricity and inclinaison, followed by 
+		long-of-ascending-node and argument-of-perihelion
+		"""
 		
 		# get number of days since J2000 epoch and obtain the fraction of century
 		# (the rate adjustment is given as a rate per century)
@@ -2224,7 +2264,9 @@ class makeEarth_and_widgets(makePlanet):
 	def makeShape(self):
 		# overrides makebody::makeShape
 		self.RefOrigin.pos= self.Position #(self.Position[0]+self.Foci[0],self.Position[1]+self.Foci[1],self.Position[2]+self.Foci[2])
+
 		self.BodyGeometry = sphere(frame=self.RefOrigin, pos=(0,0,0), np=64, radius=self.getBodyRadius(), make_trail=False, up=(0,0,1))
+
 		#self.EarthNight   = sphere(frame=self.RefOrigin, pos=(0,0,0), np=64, 
 		#						   radius=self.getBodyRadius()*1.001, make_trail=False, up=(0,0,1),
 		#						   emissive=True,
@@ -3686,10 +3728,6 @@ Both are smooth and leap‑second‑free.
 
 """
 
-def makeJulianDateOffset(jd_tdb, delta=0.0):
-    return jd_tdb + delta - 2451545.0
-
-
 def makeJulianDateOffset_oldversion(utc, delta=0.0):
 	"""
 	returns the offset in days + fraction of day since J2000
@@ -3757,6 +3795,10 @@ def julian(d,m,y):
 	temp4 = ((y + 4900 + int(temp1 / 12.0)) / 100)
 	return temp2 + 367 * (m - 2 - temp3) / 12 - 3 * temp4 / 4
 
+def makeJulianDateOffset(jd_tdb, delta=0.0):
+    return jd_tdb + delta - 2451545.0
+
+
 def daysSinceJ2000UTC(locationInfo, delta = 0):
 	# will compute the number of days since J2000 UTC
 	utc = locationInfo.getUTCDateTime()
@@ -3765,6 +3807,7 @@ def daysSinceJ2000UTC(locationInfo, delta = 0):
 	from time_helper import utc_to_tdb
 	jd_tdb = utc_to_tdb(utc)
 	return makeJulianDateOffset(jd_tdb, delta)
+
 
 def daysSinceEpochJD(julianDate, locationInfo):
 	# will compute the number of days since a particular julian date

@@ -203,3 +203,6 @@ class Color:
     nightshade = (0.12, 0.12, 0.12)
     #nightshade = (0.05, 0.05, 0.05)
 
+    pink = (1.0, 0.753, 0.796)
+    hotPink = (1.0, 0.412, 0.706)
+    lightPink = (1.0, 0.714, 0.757)

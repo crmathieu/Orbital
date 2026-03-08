@@ -503,8 +503,6 @@ class FOCUSpanel(AbstractUI):
 		q = round(float(Body.Periapsis/AU) * 1000)/1000
 		a = round(float(Body.Aphelion/AU) * 1000)/1000
 
-		if Body.Name == "sedna":
-			print "AAAAXXXXXIIIIIIAT-TILT for SEDNA:", Body.AxialTilt, ", of type:", type(Body.AxialTilt)
 		self.Title.SetLabel(Body.Name)
 		self.Info.SetLabel("{:<17}{:>10}\n{:<20}{:>7.1f}\n{:<15}{:>12.4f}\n{:<15}{:>12.4f}\n{:<14}{:>10.2f}\n{:<14}{:>10.2f}\n{:<14}{:>10.2f}\n{:<22}{:>5.2f}\n{:<12}{:>7.3f}\n{:<12}{:>7.3f}\n{:<20}{:>7.3f}\n{:<20}{:>7.2f}".
 		format(	"Mass(kg) ", mass,
@@ -525,9 +523,10 @@ class FOCUSpanel(AbstractUI):
 
 			# if object was hidden due to its body type, make body type
 			# visible unless it's earth which always stays visible
+
 			if (Body.SolarSystem.ShowFeatures & Body.BodyType) == 0 \
 				and Body.Name.lower() != EARTH_NAME:
-				#print "MAKING OBJECT VISIBLE"
+				print "MAKING OBJECT VISIBLE"
 				# if the body is not visible, Make it so
 				#print "Making "+Body.Name+" visible! bodyType = "+str(Body.BodyType)
 				#for i in range(len(body.BodyGeometry)):
@@ -539,8 +538,8 @@ class FOCUSpanel(AbstractUI):
 				self.parentFrame.orbitalTab.checkboxList[Body.BodyType].SetValue(True)
 				#glbRefresh(self.SolarSystem, self.parentFrame.orbitalTab.AnimationInProgress)
 
-			#else:
-			#	print "OBJECT ALREADY VISIBLE"
+			else:
+				print "OBJECT ALREADY VISIBLE"
 
 		self.SolarSystem.cameraViewTargetBody = Body
 		#### self.SolarSystem.cameraViewTargetSelection = Body.JPL_designation
@@ -742,6 +741,20 @@ class SEARCHpanel(AbstractUI):
 		self.legend.SetLabel("To display orbit details, double click on desired row")
 
 	def doFetchByDay(self, host, url):
+		"""
+		This will query horizons to search for "close approach" objects for a particular day.
+		It will return a list of objects that are in this category for the day, with links to 
+		the next day and the previous day. It is important to understand that objects don't 
+		need to be at their Minimum Theoritical earth distance (MOID), to be in that list, as
+		long as they are passing close enough to Earth right now to trigger a safety/proximity 
+		filter with horizons.
+
+		Bottom line. The Moid value specified in the results doesn't correspond to the 
+		current location of the object. It simply indicates the potentially closest encounter
+		at some point in the future.
+
+		"""
+
 		import ssl
 		url = url+"&start_date="+self.fetchDateStr+"&end_date="+self.fetchDateStr
 		try:
@@ -760,7 +773,8 @@ class SEARCHpanel(AbstractUI):
 		self.BodiesSPK_ID = []
 		rawResp = response.read()
 		self.jsonResp = json.loads(rawResp)
-		#print rawResp
+		
+		#print json.dumps(self.jsonResp, indent=4)
 
 		# use if "prev" not in "links"  
 		self.nextUrl = self.jsonResp["links"]["next"] if "next" in self.jsonResp["links"] else ""
@@ -1045,6 +1059,7 @@ class SEARCHpanel(AbstractUI):
 		self.SolarSystem.addTo(body)
 		return spkid
 
+
 	def loadBodyInfoFromDaily(self, index):
 
 		if "near_earth_objects" not in self.jsonResp:
@@ -1052,6 +1067,7 @@ class SEARCHpanel(AbstractUI):
 
 		entry = self.jsonResp["near_earth_objects"][self.fetchDateStr][index]
 		#print entry
+
 
 		# if the key already exists, the object has already been loaded, simply return its spk-id
 		if entry["neo_reference_id"] in self.SolarSystem.objects_data:
@@ -1076,13 +1092,16 @@ class SEARCHpanel(AbstractUI):
 		# utc_close_approach is a naive datetime object
 		print "LOADBODY_INFO utc_close_approach= ", utc_close_approach, "UTC from timestamp=", utc_timestamp
 
+		print json.dumps(entry, indent=4)
+
 		# Add data to dictionary
+		"""
 		self.SolarSystem.objects_data[entry["neo_reference_id"]] = {
 			"material": 0,
 			# epoch_date_close_approach comes as the number of milliseconds in unix TT
 			"epoch_date_close_approach": utc_close_approach, # in seconds using J2000
-			"name": entry["name"],
-			"iau_name": entry["name"],
+			"name": entry["neo_reference_id"],
+			"iau_name": entry["neo_reference_id"],
 			"jpl_designation": entry["neo_reference_id"],
 			"mass": 0.0,
 			"radius": float(entry["estimated_diameter"]["kilometers"]["estimated_diameter_max"])*0.5, # if float(entry["estimated_diameter"]["kilometers"]["estimated_diameter_max"])/2 > DEFAULT_RADIUS else DEFAULT_RADIUS,
@@ -1105,16 +1124,74 @@ class SEARCHpanel(AbstractUI):
 			"utc_dt": utc_close_approach,
 			"local_dt": orbit3D.utc_to_local_fromTimestamp(utc_timestamp, self.SolarSystem.locationInfo)
 		}
+		"""
+		#///////////////////
+
+		PhaEntry = {
+		    "id": {
+		    	"name": entry["id"], 
+		        "iau_name": entry["neo_reference_id"], 
+		        "jpl_designation": entry["name"], 
+		        "horizons_id":  entry["neo_reference_id"], 
+		        "horizons_rec_id":  entry["neo_reference_id"], 
+		        "object_class": PHA, 
+		        "epoch_date_close_approach": utc_close_approach,
+		        "orbiting": "sun"
+
+		    }, 
+		    "elements": {
+		        "semi_major_m": float(entry["orbital_data"]["semi_major_axis"]) * AU, 
+		        "eccentricity_EC": float(entry["orbital_data"]["eccentricity"]), 
+		        "orbital_inclination_IN": float(entry["orbital_data"]["inclination"]), 
+		        "longitude_of_ascendingnode_OM": float(entry["orbital_data"]["ascending_node_longitude"]), 
+		        "argument_of_periapsis_w": float(entry["orbital_data"]["perihelion_argument"]), 
+		        "longitude_of_periapsis_W": float(entry["orbital_data"]["ascending_node_longitude"])+float(entry["orbital_data"]["perihelion_argument"]), 
+		        #"true_anomaly_nu": 199.34934435698057, 
+		        #"eccentric_anomaly_E": 285.8334091397766, 
+		        "mean_anomaly_MA": float(entry["orbital_data"]["mean_anomaly"]), 
+		        "mean_motion_rad_day": deg2rad(float(entry["orbital_data"]["mean_motion"])), 
+		        "mean_motion_N": float(entry["orbital_data"]["mean_motion"]), 
+		        "revolution_PR": 27627.80821990938, 
+		        "distance_to_periapsis_m": 87396741889.16167, 
+		        "aphelion_m": 5263838932543.761, 
+		        "jd_time_of_periapsis_passage_Tp": 2435074.032133931, 
+				"earth_moid": float(entry["orbital_data"]["minimum_orbit_intersection"]) * AU,
+				"utcstr": utc_close_approach.strftime('%Y-%m-%d %H:%M:%S'),
+				"utc_dt": utc_close_approach,
+				"local_dt": orbit3D.utc_to_local_fromTimestamp(utc_timestamp, self.SolarSystem.locationInfo),
+		        "epochJD": float(entry["orbital_data"]["epoch_osculation"])
+		    }, 
+		    "rotation": {
+		        "axial_tilt": None, 
+		        "rotation_period_solar_d": None
+		    }, 
+		    "physical": {
+		        "texture": "./img/asteroid", 
+		        "mass_kg": None, 
+		        "radius_m": float(entry["estimated_diameter"]["meters"]["estimated_diameter_max"]), 
+				"absolute_mag": float(entry["absolute_magnitude_h"]),
+		        "GM": 0.0
+		    }, 
+		    "state_vector": {
+		        "r": [0.0, 0.0, 0.0], 
+		        "v": [0.0, 0.0, 0.0], 
+		        "epochJD": float(entry["orbital_data"]["epoch_osculation"])
+		    }
+		}
+
+		self.SolarSystem.objects_data[entry["neo_reference_id"]] = PhaEntry
+
+		#///////////////////
 
 		#print "UTC time of approach   =========>", self.SolarSystem.objects_data[entry["neo_reference_id"]]["utc_dt"]
 		#print "Local time of approach --------->", self.SolarSystem.objects_data[entry["neo_reference_id"]]["local_dt"]
 
 		# convert UTC to local time
-		utcNewdatetime = self.SolarSystem.objects_data[entry["neo_reference_id"]]["utc_dt"]
-		LocNewdatetime = self.SolarSystem.objects_data[entry["neo_reference_id"]]["local_dt"]
+		utcNewdatetime = self.SolarSystem.objects_data[entry["id"]]["elements"]["utc_dt"]
+		LocNewdatetime = self.SolarSystem.objects_data[entry["id"]]["elements"]["local_dt"]
 
 		# print time of closest approach on this date
- 		print ">>> Local Time of approach: ", self.SolarSystem.objects_data[entry["neo_reference_id"]]["local_dt"]
+ 		print ">>> Local Time of approach: ", self.SolarSystem.objects_data[entry["id"]]["elements"]["local_dt"]
 
 		# CLose approach objects are considered as PHAs
 		body = orbit3D.makePha(self.SolarSystem, entry["neo_reference_id"], orbit3D.getColor())
@@ -1178,7 +1255,7 @@ class ORBITALpanel(AbstractUI):
 		self.viewAngle = atan2(body.Position[1], body.Position[0])
 
 	def resetDateFromBodyId(self, id):
-		diff =  self.SolarSystem.objects_data[id]["utc_dt"] - self.todayUTCdatetime
+		diff =  self.SolarSystem.objects_data[id]["elements"]["utc_dt"] - self.todayUTCdatetime
 		self.DeltaT = diff.total_seconds()/86400.0
 		print "ResetDateFromBodyId: DELTA from right now (in days) =", self.DeltaT
 		self.updateSolarSystem()
@@ -1200,8 +1277,8 @@ class ORBITALpanel(AbstractUI):
 	def OnSelect(self, e):
 		#if self.SolarSystem.SlideShowInProgress == False:
 			index = e.GetSelection()
-			jpl_designation = self.listjplid[index]
-			self.setCurrentBodyFromId(jpl_designation)
+			name = self.listjplid[index]
+			self.setCurrentBodyFromId(name)
 			if self.SolarSystem.cameraViewTargetSelection == CURRENT_BODY:
 				print ""
 				print "CHANGING CURRENT OBJECT"
@@ -1745,8 +1822,8 @@ class ORBITALpanel(AbstractUI):
 		else:
 			mass = setPrecision(str(body.Mass), 3)
 
-		radius = round(float(body.BodyRadius) * 1000)/1000 if body.BodyRadius != 0 and body.BodyRadius != DEFAULT_RADIUS else 0
-		moid = round(float(body.Moid/AU) * 10000)/10000 if body.Moid != 0 else 0
+		radius = round(float(body.BodyRadius) * 1000)/1000 if body.BodyRadius != 0.0 and body.BodyRadius != DEFAULT_RADIUS else 0.0
+		moid = round(float(body.Moid/AU) * 10000)/10000 if body.Moid != 0.0 else 0.0
 #		rev = round(float(body.Revolution / 365.25) * 1000)/1000
 		rev = round(float(body.Revolution / EARTH_PERIOD) * 1000)/1000
 		H = body.Absolute_mag if body.Absolute_mag != 0 else 0

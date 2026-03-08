@@ -9,14 +9,14 @@ from controls import *
 #from celestial.orbitalLIB import Api
 
 class makePlanetMoon(makeBody):
-	def __init__(self, system, key, color, centralbody):
+	def __init__(self, system, key, color, sizeCorrectionType, centralbody):
 		"""
 		makeBody takes care of drawing the moon's orbit based on the pre-loaded
 		orbital elements, when the moon's state_vector can't be directly solved 
 		from the orbital elements. 
 		"""
-#		makeBody.__init__(self, system, key, color, SATELLITE, SATELLITE, SATELLITE_SZ_CORRECTION, centralBody)
-		makeBody.__init__(self, system, key, color, ptype=MOON, sizeCorrectionType=MOON, realisticCorrectionSize=MOON_SZ_CORRECTION, centralBody=centralbody)
+#		makeBody.__init__(self, system, key, color, ptype=MOON, sizeCorrectionType=MOON, realisticCorrectionSize=MOON_SZ_CORRECTION, centralBody=centralbody)
+		makeBody.__init__(self, system, key, color, ptype=MOON, sizeCorrectionType=sizeCorrectionType, realisticCorrectionSize=MOON_SZ_CORRECTION, centralBody=centralbody)
 
 		#self.isMoon = True
 
@@ -32,6 +32,8 @@ class makePlanetMoon(makeBody):
 
 		#self.Omega_dot, self.omega_dot = self.j2_precession_rates(self.CentralBody.J2)
 		
+#	def draw(self):
+#		pass 
 
 	# makePlanetMoon::
 	def toggleSize(self, realisticSize):
@@ -91,14 +93,14 @@ class makeNonKeplerianMoon(makeBody):
 	The most famous one is Luna, our moon
 	"""
 
-	def __init__(self, system, key, color, centralbody):
+	def __init__(self, system, key, color, sizeCorrectionType, centralbody):
 		"""
 		makeBody takes care of drawing the moon's orbit based on the pre-loaded
 		orbital elements. When the state_vector of the moon can't be directly
 		solved from the orbital elements, 
 		"""
 #		makeBody.__init__(self, system, key, color, SATELLITE, SATELLITE, SATELLITE_SZ_CORRECTION, centralBody)
-		makeBody.__init__(self, system, key, color, ptype=MOON, sizeCorrectionType=MOON, realisticCorrectionSize=MOON_SZ_CORRECTION, centralBody=centralbody)
+		makeBody.__init__(self, system, key, color, ptype=MOON, sizeCorrectionType=sizeCorrectionType, realisticCorrectionSize=MOON_SZ_CORRECTION, centralBody=centralbody)
 		#self.isMoon = True
 
 
@@ -243,7 +245,7 @@ class makeLuna(makeNonKeplerianMoon):
 		self.setMoonElements("moon", self.snapshot["elements"])
 
 #		print "makeLuna: before makePlanet::__init"
-		makeNonKeplerianMoon.__init__(self, system, "moon", color, centralbody)
+		makeNonKeplerianMoon.__init__(self, system, "moon", color, MOON, centralbody)
 		objects_data["moon"]["tga_name"] = "moon"
 
 #		print "makeLuna: AFTER makePlanet::__init"
