@@ -71,7 +71,7 @@ class makeMars(makePlanet):
 	
 	def __init__(self, system, color, ptype, sizeCorrectionType, defaultSizeCorrection):
 		makePlanet.__init__(self, system, "mars", color, ptype, sizeCorrectionType, defaultSizeCorrection)
-		print "****** MARS W = ", self.W_angle
+		#print "****** MARS W = ", self.W_angle
 
 
 class makeSaturn(makePlanet):

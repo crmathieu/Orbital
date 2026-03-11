@@ -18,6 +18,12 @@ class makePlanetMoon(makeBody):
 #		makeBody.__init__(self, system, key, color, ptype=MOON, sizeCorrectionType=MOON, realisticCorrectionSize=MOON_SZ_CORRECTION, centralBody=centralbody)
 		makeBody.__init__(self, system, key, color, ptype=MOON, sizeCorrectionType=sizeCorrectionType, realisticCorrectionSize=MOON_SZ_CORRECTION, centralBody=centralbody)
 
+		# register moon with planet's orbiting bodies set
+		self.CentralBody.registerSatellite(key, self)
+
+		# create a dictionary of orbiting bodies for this moon
+		self.moonOrbitingBodies = {}
+
 		#self.isMoon = True
 
 		"""
@@ -34,6 +40,9 @@ class makePlanetMoon(makeBody):
 		
 #	def draw(self):
 #		pass 
+
+	def registerSpacecraft(self, key, body):
+		self.moonOrbitingBodies[key] = body
 
 	# makePlanetMoon::
 	def toggleSize(self, realisticSize):
@@ -103,6 +112,15 @@ class makeNonKeplerianMoon(makeBody):
 		makeBody.__init__(self, system, key, color, ptype=MOON, sizeCorrectionType=sizeCorrectionType, realisticCorrectionSize=MOON_SZ_CORRECTION, centralBody=centralbody)
 		#self.isMoon = True
 
+		# register moon with planet's orbiting bodies set
+		self.CentralBody.registerSatellite(key, self)		
+
+		# create a dictionary of orbiting bodies for this moon
+		self.moonOrbitingBodies = {}
+
+
+	def registerSpacecraft(self, key, body):
+		self.moonOrbitingBodies[key] = body
 
 	# makeNonKeplerianMoon::
 	def toggleSize(self, realisticSize):
@@ -257,6 +275,21 @@ class makeLuna(makeNonKeplerianMoon):
 
 		#print "...........MOON NEW POSITION:", MOON_POS
 		print self.snapshot["position_vec"] * DIST_FACTOR
+
+	def initRotation(self):
+			self.setTextureFromSolarTime(None)
+
+	def setTextureFromSolarTime(self, localDatetime):
+
+		# This will position the Moon texture to match the 
+		# face observed from the earth surface
+
+		# calculate the angle the moon is making in the earth geocentric ecliptic
+		Theta = math.atan2(self.Position[1], self.Position[0])
+		print "MOON THETA=", rad2deg(Theta)
+		alpha = deg2rad(5)
+		self.RefOrigin.rotate(angle=(Theta - alpha), axis=self.RotAxis, origin=(0,0,0))
+		return
 
 	def getMoonElements(self, timeIncrement):
 

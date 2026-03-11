@@ -35,7 +35,7 @@ class userLIBXX:
         body = self.solSystem.getBodyFromName(bodyName)
         if body != None:
             inx = self.solSystem.Dashboard.focusTab.getBodyIndexInList(bodyName)
-            self.solSystem.Dashboard.focusTab.setCurrentBodyFocusManually(body, inx)
+            self.solSystem.Dashboard.focusTab.setCurrentBodyFocusProgrammatically(body, inx)
         else:
             print ("Unknown Body Name:", bodyName)
 
@@ -214,7 +214,7 @@ class camera():
         body = self.solSystem.getBodyFromName(bodyName)
         if body is not None:
             inx = self.solSystem.Dashboard.focusTab.getBodyIndexInList(bodyName)
-            self.solSystem.Dashboard.focusTab.setCurrentBodyFocusManually(body, inx)
+            self.solSystem.Dashboard.focusTab.setCurrentBodyFocusProgrammatically(body, inx)
         else:
             print ("Unknown Body Name:", bodyName)
 

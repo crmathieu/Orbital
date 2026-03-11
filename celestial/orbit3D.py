@@ -64,6 +64,8 @@ class makeSolarSystem:
 	SCENE_HEIGHT = 1080
 
 	bodies = []
+	sunOrbiting = {}
+
 
 	def __init__(self):
 		print "### vpython v"+version[0]+"-"+version[1]+" ###"
@@ -83,6 +85,11 @@ class makeSolarSystem:
 		self.SlideShowInProgress = False
 		self.currentSource = PHA
 		self.JTrojansIndex = -1
+
+		# tracks what major body we are targetting
+		self.currentPlanetContext = None # may or may not be used
+
+		# system camera (always works in helio-centric ecliptic)
 		self.cameraViewTargetBody = None
 		self.cameraViewTargetSelection = SUN_NAME
 
@@ -199,6 +206,10 @@ class makeSolarSystem:
 		#w.win.SetTransparent(0)
 		return w
 
+	def registerSunOrbitingBody(self, key, body):
+		self.sunOrbiting[key] = body
+
+
 	def createJ2000eclipticReferential(self, parent_frame):
 		# we do not provide any orientation information,
 		# as this initial referential determines the Vernal
@@ -229,9 +240,10 @@ class makeSolarSystem:
 	def setAutoScale(self, trueFalse):
 		self.Scene.autoscale = trueFalse
 
-	def introZoomIn(self, velocity):
+	def introZoomIn(self, velocity, recorder):
 		self._set_autoMovement(True)
 		self.camera.cameraSet(velocity)
+		self.camera.cameraRotateRight(90, recorder)
 		self._set_autoMovement(False)
 
 	def _set_autoMovement(self, is_movement):
@@ -353,9 +365,9 @@ class makeSolarSystem:
 		# For a planet, Foci(x, y, z) is (0,0,0). For a moon, Foci represents the position of the planet the moon orbits around
 		self.cameraViewTargetBody = body
 		self.cameraViewTargetSelection = body.Name.lower()
-		self.Scene.center = (self.cameraViewTargetBody.Position[0]+self.cameraViewTargetBody.Foci[0],
-							 self.cameraViewTargetBody.Position[1]+self.cameraViewTargetBody.Foci[1],
-							 self.cameraViewTargetBody.Position[2]+self.cameraViewTargetBody.Foci[2])
+		self.Scene.center = (self.cameraViewTargetBody.Position[0], #+self.cameraViewTargetBody.Foci[0],
+							 self.cameraViewTargetBody.Position[1], #+self.cameraViewTargetBody.Foci[1],
+							 self.cameraViewTargetBody.Position[2]) #+self.cameraViewTargetBody.Foci[2])
 		#print "SCENE CENTER: ", self.Scene.center
 
 	def register(self, sun):
@@ -374,6 +386,25 @@ class makeSolarSystem:
 		if body.Name == EARTH_NAME:
 			self.EarthRef = body
 		return i # this is the index of the added body in the collection
+
+	def addTo_nt(self, body):
+
+		if body.Orbiting != None:
+
+			lkjhlkhkjh
+
+		self.bodies.append(body)
+		i = len(self.bodies) - 1
+
+		#self.nameIndex[body.JPL_designation.lower()] = i
+		self.nameIndex[body.Name] = i
+
+		#print "Adding", body.Name
+#		if body.JPL_designation.lower() == EARTH_NAME:
+		if body.Name == EARTH_NAME:
+			self.EarthRef = body
+		return i # this is the index of the added body in the collection
+
 
 	def addJTrojans(self, body):
 		#print "Add Trojans"
@@ -400,8 +431,9 @@ class makeSolarSystem:
 		the orbit is visible or not
 		"""
 		for body in self.bodies:
-			if body.BodyType in [OUTER_PLANET, INNER_PLANET, MOON, DWARF_PLANET, KUIPER_BELT, ASTEROID_BELT, INNER_OORT_CLOUD, ECLIPTIC_PLANE]:
-				print "drawing", body.Name
+#			if body.BodyType in [OUTER_PLANET, INNER_PLANET, MOON, DWARF_PLANET, KUIPER_BELT, ASTEROID_BELT, INNER_OORT_CLOUD, ECLIPTIC_PLANE]:
+			if body.BodyType in [OUTER_PLANET, INNER_PLANET, DWARF_PLANET, KUIPER_BELT, ASTEROID_BELT, ECLIPTIC_PLANE]:
+				print "drawing", body.Name, " orbit"
 				body.draw()
 
 		self.Scene.autoscale = False #0
@@ -417,7 +449,87 @@ class makeSolarSystem:
 		return False
 
 	# makeSolarSystem::
+
 	def refresh(self, animationInProgress = False):
+		orbitTrace 		= True if self.ShowFeatures & ORBITS 	!= 0 else False
+		labelVisible 	= True if self.ShowFeatures & LABELS 	!= 0 else False
+		realisticSize 	= True if self.ShowFeatures & REALSIZE 	!= 0 else False
+
+		#self.toggleSize(realisticSize)
+
+		# sun bound objects are planets, tnos, asteroids, ecliptic, constellation and celestial sphere
+		for name, body in self.sunOrbiting.items():
+			if body.BodyType in [SUN, SPACECRAFT, OUTER_PLANET, INNER_PLANET, ASTEROID, COMET, \
+								 MOON, DWARF_PLANET, PHA, BIG_ASTEROID, TNO]:
+
+				body.toggleSize(realisticSize)
+				if body.BodyType == SUN:
+					continue
+
+				bodyVisible = True if self.ShowFeatures & body.BodyType != 0 else False
+				body.RefOrigin.visible = bodyVisible  
+				body.Orbit.visible = orbitTrace
+				body.Labels[0].visible = labelVisible if body.RefOrigin.visible == True else False
+
+				if body.BodyType == OUTER_PLANET:
+					body.displayRings(bodyVisible)
+
+
+				# for planets, make sure only moons belonging to the
+				# planet set as "currentObject" are visible. The other
+				# moons stay hidden for clarity
+
+				if hasattr(body, "planetOrbitingBodies"):
+					print "Sys Refr: Current camera selection = ", self.cameraViewTargetSelection, ", cur body:", body.Name
+
+					for moon_name, moon_body in body.planetOrbitingBodies.items():
+						showMoon = True if self.cameraViewTargetSelection == body.Name or self.cameraViewTargetSelection == moon_body.Name else False
+						if showMoon:
+							print "show moon ", moon_name, " for ", body.Name
+							moon_body.Orbit.visible = orbitTrace
+							moon_body.RefOrigin.visible = bodyVisible
+						else:
+							print "hide moon ", moon_name, " for ", body.Name
+							#moon_body.Orbit.visible = False
+							#moon_body.RefOrigin.visible = False
+							moon_body.hide()
+
+			else: # belts / rings
+				if body.BodyType != ECLIPTIC_PLANE:					
+					if body.BodyGeometry.visible == True and animationInProgress == True:
+						body.BodyGeometry.visible = False
+						for i in range(len(body.Labels)):
+							body.Labels[i].visible = False
+		
+		if self.ShowFeatures & LIT_SCENE != 0:
+			#print "LITE"
+			self.Scene.ambient = Color.white
+			self.sunLight.visible = False
+			self.Sun.BodyGeometry.material = materials.texture(data=self.Sun.Texture, mapping="spherical", interpolate=False)
+			self.Sun.BodyGeometry.opacity = 1.0
+		else:
+			#print "DARK", self.Sun
+			self.Scene.ambient = Color.nightshade #Color.black
+			self.sunLight.visible = True
+			self.Sun.BodyGeometry.material = materials.emissive
+#			self.Sun.BodyGeometry.material = materials.texture(data=self.Sun.Texture, mapping="spherical", interpolate=False)
+			
+		setRefTo = True if self.ShowFeatures & REFERENTIAL != 0 else False
+		
+#		if 	self.cameraViewTargetSelection == self.Sun.JPL_designation and \
+		if 	self.cameraViewTargetSelection == self.Sun.Name.lower() and \
+			self.ShowFeatures & LOCAL_REFERENTIAL:
+			setRelTo = True
+		else:
+			setRelTo = False
+
+		self.setAxisVisibility(setRefTo, setRelTo)
+
+		self.Universe.visible = self.isFeatured(CELESTIAL_SPHERE)
+		self.Constellations.visible = self.isFeatured(CONSTELLATIONS)
+
+
+	def refresh_old(self, animationInProgress = False):
 		orbitTrace 		= True if self.ShowFeatures & ORBITS 	!= 0 else False
 		labelVisible 	= True if self.ShowFeatures & LABELS 	!= 0 else False
 		realisticSize 	= True if self.ShowFeatures & REALSIZE 	!= 0 else False
@@ -427,7 +539,7 @@ class makeSolarSystem:
 		for body in self.bodies:
 
 			if body.BodyType in [SUN, SPACECRAFT, OUTER_PLANET, INNER_PLANET, ASTEROID, COMET, \
-								 MOON, DWARF_PLANET, PHA, BIG_ASTEROID, TRANS_NEPT]:
+								 MOON, DWARF_PLANET, PHA, BIG_ASTEROID, TNO]:
 
 				#print "FOUND BODY="+body.Name
 				body.toggleSize(realisticSize)
@@ -439,7 +551,7 @@ class makeSolarSystem:
 
 
 				if body.BodyType == OUTER_PLANET:
-					body.displayRings(body.RefOrigin.visible) ############# NEW
+					body.displayRings(body.RefOrigin.visible)
 
 				if body.RefOrigin.visible == True:
 					if body.Orbit is not None:
@@ -465,7 +577,7 @@ class makeSolarSystem:
 					visibilityStatus = True if self.ShowFeatures & body.CentralBody.BodyType != 0 else False
 					body.RefOrigin.visible = visibilityStatus
 					#body.Orbit.visible = visibilityStatus
-
+			
 
 			else: # belts / rings
 				if body.BodyType != ECLIPTIC_PLANE:
@@ -503,7 +615,7 @@ class makeSolarSystem:
 		self.Constellations.visible = self.isFeatured(CONSTELLATIONS)
 
 
-	def refresh_SAVE(self, animationInProgress = False):
+	def refresh_prev1(self, animationInProgress = False):
 		orbitTrace 		= True if self.ShowFeatures & ORBITS 	!= 0 else False
 		labelVisible 	= True if self.ShowFeatures & LABELS 	!= 0 else False
 		realisticSize 	= True if self.ShowFeatures & REALSIZE 	!= 0 else False
@@ -513,7 +625,7 @@ class makeSolarSystem:
 		for body in self.bodies:
 
 			if body.BodyType in [SUN, SPACECRAFT, OUTER_PLANET, INNER_PLANET, ASTEROID, COMET, \
-								 MOON, DWARF_PLANET, PHA, BIG_ASTEROID, TRANS_NEPT]:
+								 MOON, DWARF_PLANET, PHA, BIG_ASTEROID, TNO]:
 
 				#print "FOUND BODY="+body.Name
 				body.toggleSize(realisticSize)
@@ -596,9 +708,9 @@ class makeEcliptic:
 	def __init__(self, system, color, opacity):  # change default values during instantiation
 		# draw a circle of 250 AU
 		self.Labels = []
-		self.Name = "Ecliptic Plane"
-		self.Iau_name = "ecliptic"
-		self.JPL_designation = "ecliptic"
+		self.Name = "ecliptic"
+		self.Iau_name = "Ecliptic Plane"
+		self.JPL_designation = "Ecliptic"
 		self.SolarSystem = system
 		self.Color = color
 		self.Opacity = opacity
@@ -769,7 +881,7 @@ class makeBody:
 		self.RealisticCorrectionSize = realisticCorrectionSize
 		self.sizeCorrectionType = sizeCorrectionType
 
-		self.Foci = vector(0,0,0)
+		#self.Foci = vector(0,0,0)
 
 		# orientation parameters (used for planets)
 		self.Pole_vec = vector(0,0,0)
@@ -778,7 +890,7 @@ class makeBody:
 		
 		# load body data to data structure
 
-		self.ObjectIndex = key
+		self.ObjectIndex 			= key
 		self.SolarSystem 			= system
 		self.locationInfo 			= system.locationInfo
 		self.AxialTilt				= system.objects_data[key]["rotation"]["axial_tilt"] 
@@ -797,6 +909,10 @@ class makeBody:
 #		else:
 #			self.Symbol				= " "
 		
+
+		# keep track of what the body is orbiting
+		self.Orbiting				= system.objects_data[key]["id"]["orbiting"]
+
 
 		self.Iau_name				= system.objects_data[key]["id"]["iau_name"]			# body iau name
 		self.JPL_designation 		= system.objects_data[key]["id"]["jpl_designation"]
@@ -1686,6 +1802,12 @@ class makeBody:
 		"""
 
 	def hide(self):
+
+		print "HIDE "+ self.Name
+
+		if self.hasRenderedOrbit == False:
+			self.draw()
+
 		self.Details = False
 		self.RefOrigin.visible = False
 		for i in range(len(self.Labels)):
@@ -1708,6 +1830,71 @@ class makeBody:
 		"""
 	# makeBody::
 	def refresh(self):
+
+		print "refreshing "+self.Name + "..."
+
+		if 	self.SolarSystem.SlideShowInProgress and \
+			self.BodyType == self.SolarSystem.currentSource:
+			return
+
+		if 	self.BodyType & self.SolarSystem.ShowFeatures != 0 or \
+			self.Name == EARTH_NAME or self.Details == True:
+
+#///////////////////////////
+
+			isTargetBody = True if self.SolarSystem.cameraViewTargetSelection == self.Name else False
+
+			if hasattr(self, "planetOrbitingBodies"):
+				# this body orbits the sun. 
+				# Let's see if it has moons
+
+				print "BOBY refr: Current camera selection = ", self.SolarSystem.cameraViewTargetSelection, ", cur body:", self.Name
+
+				#showMoon = True if self.SolarSystem.cameraViewTargetSelection == self.Name else False
+				moon = False
+				for moon_name, moon_body in self.planetOrbitingBodies.items():
+					if self.SolarSystem.cameraViewTargetSelection == moon_body.Name:
+						print "show moon ", moon_name, " for ", self.Name
+						moon_body.show()
+					else:
+						moon = True
+						if isTargetBody:
+							print "show moon ", moon_name, " for ", self.Name
+							moon_body.show()
+						else:
+							print "hide moon ", moon_name, " for ", self.Name
+							moon_body.hide()
+
+			else:
+
+				if self.CentralBody != None:
+					showMe = True if self.SolarSystem.cameraViewTargetSelection == self.CentralBody.Name or \
+							self.SolarSystem.cameraViewTargetSelection == self.Name	else False
+					if showMe:
+						self.CentralBody.show()
+						self.show()
+					else:
+						self.hide()
+				else:					
+					self.show()
+
+
+			# if this is the cameraViewTargetBody, 
+			# check for local referential attribute
+
+			if 	self.SolarSystem.cameraViewTargetSelection == self.Name.lower() and \
+				self.SolarSystem.ShowFeatures & LOCAL_REFERENTIAL:
+					setTo = True
+			else:
+					setTo = False
+
+			self.setAxisVisibility(setTo)
+		else:
+			self.hide()
+			self.setAxisVisibility(False)
+
+	def refresh_save(self):
+		
 		#print "refreshing "+self.Name
 
 		if 	self.SolarSystem.SlideShowInProgress and \
@@ -1944,8 +2131,21 @@ class makePlanet(makeBody):
 	def __init__(self, system, key, Color, ptype, sizeCorrectionType, defaultSizeCorrection):
 		makeBody.__init__(self, system, key, Color, ptype, sizeCorrectionType, defaultSizeCorrection, None) 
 		#self.BodyGeometry.visible = False
+		
+		# create a dictionary of orbiting bodies for this planet
+		self.planetOrbitingBodies = {}
+
+		# register this planet as a body orbiting the sun
+		self.SolarSystem.registerSunOrbitingBody(key, self)
 
 		self.setRings()
+
+
+	def registerSatellite(self, key, body):
+
+		# A satellite can be either a spacecraft or a Moon
+
+		self.planetOrbitingBodies[key] = body
 
 
 	def setReferentialProfile(self):
@@ -2243,7 +2443,7 @@ class makeEarth_and_widgets(makePlanet):
 		# into account the way vpython applies texture on a sphere 
 
 		self.Alpha = deg2rad(80) # 2*math.pi/5 #pi/12
-		makePlanet
+
 		makePlanet.__init__(self, system, EARTH_NAME, ccolor, type, sizeCorrectionType, defaultSizeCorrection)
 
 		# Create widgets. This must be done after initializing earth. This will correctly
@@ -3225,6 +3425,9 @@ class makeAsteroid(makeBody):
 	def __init__(self, system, key, color):
 		makeBody.__init__(self, system, key, color, ptype=BIG_ASTEROID, sizeCorrectionType=BIG_ASTEROID, realisticCorrectionSize=ASTEROID_SZ_CORRECTION, centralBody=None)
 
+		# registerthis asteroid as a body orbiting the sun
+		self.SolarSystem.registerSunOrbitingBody(key, self)
+
 	def setAxisVisibility(self, setTo):
 		pass
 
@@ -3251,6 +3454,9 @@ class makeAsteroid(makeBody):
 class makePha(makeBody):
 	def __init__(self, system, key, color):
 		makeBody.__init__(self, system, key, color, ptype=PHA, sizeCorrectionType=PHA, realisticCorrectionSize=SMALLBODY_SZ_CORRECTION, centralBody=None) #system.Sun)
+
+		# register this PHA as a body orbiting the sun
+		self.SolarSystem.registerSunOrbitingBody(key, self)
 
 	def setAxisVisibility(self, setTo):
 		pass
@@ -3303,6 +3509,9 @@ class makePha(makeBody):
 class makeSmallAsteroid(makeBody):
 	def __init__(self, system, key, color):
 		makeBody.__init__(self, system, key, color, ptype=SMALL_ASTEROID, sizeCorrectionType=SMALL_ASTEROID, realisticCorrectionSize=SMALLBODY_SZ_CORRECTION, centralBody=None) #system.Sun)
+
+		# register this small asteroid as a body orbiting the sun
+		self.SolarSystem.registerSunOrbitingBody(key, self)
 
 	def setAxisVisibility(self, setTo):
 		pass
@@ -3357,6 +3566,8 @@ class makeDwarfPlanet(makeBody):
 	def __init__(self, system, key, color):
 		makeBody.__init__(self, system, key, color, ptype=DWARF_PLANET, sizeCorrectionType=DWARF_PLANET, realisticCorrectionSize=DWARF_PLANET_SZ_CORRECTION, centralBody=None)
 
+		# register this dwarf planet as a body orbiting the sun
+		self.SolarSystem.registerSunOrbitingBody(key, self)
 
 	def setAxisVisibility(self, setTo):
 		pass
@@ -3377,14 +3588,17 @@ class makeDwarfPlanet(makeBody):
 
 
 # CLASS TRANSNEPTUNIAN --------------------------------------------------------
-class makeTransNeptunian(makeBody):
+class makeTNO(makeBody):
 	def __init__(self, system, key, color):
-		makeBody.__init__(self, system, key, color, ptype=TRANS_NEPT, sizeCorrectionType=TRANS_NEPT, realisticCorrectionSize=SMALLBODY_SZ_CORRECTION, centralBody=None) #system.Sun)
+		makeBody.__init__(self, system, key, color, ptype=TNO, sizeCorrectionType=TNO, realisticCorrectionSize=SMALLBODY_SZ_CORRECTION, centralBody=None) #system.Sun)
+
+		# register this TNO as a body orbiting the sun
+		self.SolarSystem.registerSunOrbitingBody(key, self)
 
 	def setAxisVisibility(self, setTo):
 		pass
 
-	# makeTransNeptunian::
+	# makeTNO::
 	def makeShape(self):
 		self.RefOrigin.pos = vector(self.Position[0],self.Position[1],self.Position[2])
 		self.BodyGeometry = ellipsoid(	frame=self.RefOrigin, pos=(0,0,0),
@@ -3392,7 +3606,7 @@ class makeTransNeptunian(makeBody):
 									height=(self.radiusToShow * randint(10, 20)/10)/self.SizeCorrection[self.sizeType],
 									width=(self.radiusToShow * randint(10, 20)/10)/self.SizeCorrection[self.sizeType], make_trail=false)
 
-	# makeTransNeptunian::
+	# makeTNO::
 	def toggleSize(self, realisticSize):
 		x = SCALE_NORMALIZED if realisticSize == True else SCALE_OVERSIZED
 		if x == self.sizeType:
@@ -3405,18 +3619,18 @@ class makeTransNeptunian(makeBody):
 		self.BodyGeometry.height = self.radiusToShow * asteroidRandom[self.sizeType][1] / self.SizeCorrection[self.sizeType]
 		self.BodyGeometry.width  = self.radiusToShow * asteroidRandom[self.sizeType][2] / self.SizeCorrection[self.sizeType]
 
-	# makeTransNeptunian::
+	# makeTNO::
 	def initRotation(self):
 		self.RotAngle = pi/512
 		self.RotAxis = (0,1,1)
 
-	# makeTransNeptunian::
+	# makeTNO::
 	def animateBodyRotation(self):
 #		self.RefOrigin.pos = vector(self.Position[0],self.Position[1],self.Position[2])
 #		self.BodyGeometry.rotate(angle=self.RotAngle, axis=self.RotAxis, origin=(0,0,0)) #-sin(alpha), cos(alpha)))
 		self.RefOrigin.rotate(angle=self.RotAngle, axis=self.RotAxis) #, origin=(0,0,0)) #-sin(alpha), cos(alpha)))
 
-	# makeTransNeptunian::
+	# makeTNO::
 	def make_PCPF_referential(self):
 		self.RefOrigin = frame()
 		self.RefOrigin.visible	= True
@@ -3533,8 +3747,8 @@ def loadBodies(SolarSystem, type, filename, maxentries = 0):
 	maxentries = 1000 if maxentries == 0 else maxentries
 	for obj in allObj:
 		for key in obj:
-			JPL_designation = obj[key]["jpl_designation"].lower()
-			SolarSystem.objects_data[JPL_designation] = {
+			Key = obj[key]["name"].lower()
+			SolarSystem.objects_data[Key] = {
 				"profile": "{ \"look\":\""+obj[key]["profile"]["look"]+"\", \"engine\":"+str(obj[key]["profile"]["engine"])+", \"length\":"+str(obj[key]["profile"]["length"])+", \"COPV\":"+str(obj[key]["profile"]["COPV"])+"}" if "profile" in obj[key] else "",
 				"material": 1 if obj[key]["tga_name"] != "" else 0,
 				"name": str(obj[key]["name"]),
@@ -3567,15 +3781,15 @@ def loadBodies(SolarSystem, type, filename, maxentries = 0):
 					COMET: 			makeComet,
 					BIG_ASTEROID: 	makeAsteroid,
 					PHA:			makePha,
-					TRANS_NEPT:		makeTransNeptunian,
+					TNO:			makeTNO,
 					MOON:			makePlanetMoon,
 					SMALL_ASTEROID:	makeSmallAsteroid,
-					}[type](SolarSystem, JPL_designation, getColor())
+					}[type](SolarSystem, Key, getColor())
 
 			SolarSystem.addTo(body)
 	
 			#if body.Name == "Moon":
-			#	print body.JPL_designation
+			#	print body.Key
 			#	print "Satellite was added to solar system"
 			maxentries -= 1
 			if maxentries <= 0:

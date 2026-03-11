@@ -53,6 +53,7 @@ def createSolarSystem():
 	earth = makeEarth(ssys, color=color.cyan, ptype=INNER_PLANET, sizeCorrectionType=INNER_PLANET, defaultSizeCorrection=PLANET_SZ_CORRECTION)
 	ssys.addTo(earth)
 
+	# we need a special moon class for Luna, as it is a highly irregular moon
 	ssys.addTo(makeLuna(ssys, color=color.white, centralbody=earth))
 
 	# MARS
@@ -93,8 +94,10 @@ def createSolarSystem():
 	neptune = makeNeptune(ssys, color=color.orange, ptype=OUTER_PLANET, sizeCorrectionType=GAS_GIANT, defaultSizeCorrection=PLANET_SZ_CORRECTION)
 	ssys.addTo(neptune)
 
+	# DWARF PLANETS
 	# PLUTO
-	pluto = makePluto(ssys, color=color.green, ptype=OUTER_PLANET, sizeCorrectionType=INNER_PLANET, defaultSizeCorrection=PLANET_SZ_CORRECTION) #OUTER_PLANET, DWARF_PLANET)
+	pluto = makePluto(ssys, color=color.green, ptype=DWARF_PLANET, sizeCorrectionType=INNER_PLANET, defaultSizeCorrection=PLANET_SZ_CORRECTION) #OUTER_PLANET, DWARF_PLANET)
+#	pluto = makePluto(ssys, color=color.green, ptype=INNER_PLANET, sizeCorrectionType=INNER_PLANET, defaultSizeCorrection=PLANET_SZ_CORRECTION) #OUTER_PLANET, DWARF_PLANET)
 	ssys.addTo(pluto)
 
 	ssys.addTo(makePlanetMoon(ssys, key='charon', color=color.white, sizeCorrectionType=MOON, centralbody=pluto))
@@ -102,16 +105,21 @@ def createSolarSystem():
 	# ECLIPTIC
 	ssys.addTo(makeEcliptic(ssys, color.white, 0.4))
 	
-	# DWARF PLANETS
-	ssys.addTo(makeDwarfPlanet(ssys, key='eris', color=color.yellow))
-	ssys.addTo(makeDwarfPlanet(ssys, key='makemake', color=color.magenta))
-	ssys.addTo(makeDwarfPlanet(ssys, key='sedna', color=color.orange))
-	ssys.addTo(makeDwarfPlanet(ssys, key='haumea', color=color.white))
+	#ssys.addTo(makeDwarfPlanet(ssys, key='eris', color=color.yellow))
+	#ssys.addTo(makeDwarfPlanet(ssys, key='makemake', color=color.magenta))
+	#ssys.addTo(makeDwarfPlanet(ssys, key='sedna', color=color.orange))
+	#ssys.addTo(makeDwarfPlanet(ssys, key='haumea', color=color.white))
+
+	# TNOs
+	ssys.addTo(makeTNO(ssys, key='eris', color=color.yellow))
+	ssys.addTo(makeTNO(ssys, key='makemake', color=color.magenta))
+	ssys.addTo(makeTNO(ssys, key='sedna', color=color.orange))
+	ssys.addTo(makeTNO(ssys, key='haumea', color=color.white))
 
 	# BELTS
-	ssys.addTo(makeBelt(ssys, key='kuiper', name='Kuiper Belt', ptype=KUIPER_BELT, color=color.cyan, size=2, density=4))
+	ssys.addTo(makeBelt(ssys, key='kuiper', name='Kuiper Belt', ptype=KUIPER_BELT, color=Color.lightgrey, size=2, density=4))
 	ssys.addTo(makeBelt(ssys, key='asteroid', name='Asteroid Belt', ptype=ASTEROID_BELT, color=color.white, size=2, density=2))
-	ssys.addTo(makeBelt(ssys, key='inneroort', name='Inner Oort Cloud', ptype=INNER_OORT_CLOUD, color=color.white, size=2, density=5))
+#	ssys.addTo(makeBelt(ssys, key='inneroort', name='Inner Oort Cloud', ptype=INNER_OORT_CLOUD, color=color.white, size=2, density=5))
 
 	# JUPITER TROJANS
 	ssys.addJTrojans(makeJtrojan(ssys, key='jupiterTrojan', name='Jupiter Trojans', ptype=JTROJANS, color=color.green, size=2, density=5, planetname='jupiter'))
@@ -149,6 +157,14 @@ def bootLoader(story, recorder):
 		ex = wx.App(False)
 		ssys = createSolarSystem()
 
+		"""
+		for name, body in ssys.sunOrbiting.items():
+			print("Body: {0} | Type: {1}".format(name, body.BodyType))
+			if hasattr(body, 'planetOrbitingBodies'):
+				for key, moon in body.planetOrbitingBodies.items():
+					print("Body: {0} | Moon: {1}".format(name, moon.Name))
+		"""
+
 		ssys.setEarthLocations(makeDashBoard(ssys))
 		#ssys.getDashboard().showInfoWindow(True)
 
@@ -166,7 +182,7 @@ def bootLoader(story, recorder):
 			ssys.setAutoScale(False)
 			api.camera.setCameraTarget(EARTH_NAME)
 			ssys.displaySolarSystem()
-			ssys.introZoomIn(135) #75)
+			ssys.introZoomIn(130, recorder) #75)
 			#ssys.rotateSolarSystemReferential(axis=vector(0,1,0))
 			#ssys.Scene.fov = pi
 
@@ -176,8 +192,8 @@ def bootLoader(story, recorder):
 		#ssys.getDashboard().showInfoWindow(False)
 
 		print "Calculate equinox/solstyce"
-		Vernal(2023) ### a test ...
-		Vernal2(2023)
+		Vernal(2026) ### a test ...
+		Vernal2(2026)
 
 #		print "Moon Coordinates are", 
 #
@@ -188,7 +204,7 @@ def bootLoader(story, recorder):
 			#print I
 			#I += 1
 			rate(60)
-			sleep(1) #2)
+		#	sleep(1) #2)
 		#	earth.updateStillPosition(cw.orbitalBox, 2)
 
 	except RuntimeError as err:

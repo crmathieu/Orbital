@@ -302,7 +302,8 @@ class make3DaxisReferential:
 
 
     def updateReferential(self):
-        self.referential.pos = (self.body.Position[0]+self.body.Foci[0], self.body.Position[1]+self.body.Foci[1], self.body.Position[2]+self.body.Foci[2])
+#        self.referential.pos = (self.body.Position[0]+self.body.Foci[0], self.body.Position[1]+self.body.Foci[1], self.body.Position[2]+self.body.Foci[2])
+        self.referential.pos = (self.body.Position[0], self.body.Position[1], self.body.Position[2])
         return 
 
 

@@ -380,7 +380,7 @@ class FOCUSpanel(AbstractUI):
 		 12: self.setPlanetFocus, 13: self.setPlanetFocus,
 		 14: self.setPlanetFocus, 15: self.setPlanetFocus,
 		 16: self.setPlanetFocus, 17: self.setPlanetFocus,
-		 18: self.setPlanetFocus }
+		 18: self.setPlanetFocus, 19: self.setPlanetFocus }
 
 	def InitUI(self):
 		self.BoldFont = wx.Font(10, wx.SWISS, wx.NORMAL, wx.BOLD)
@@ -393,7 +393,7 @@ class FOCUSpanel(AbstractUI):
 		Description = "Select which body the animation\nshould focus on. 'Current Object'\nwill follow the last object selected,\nwhether it comes from the Drop\ndown selection, a paused slide-\nshow selection or a Close App-\nroach object pick.\n\nYou may also choose any parti-\ncular planet or the sun."
 		self.Header.SetLabel(Description)
 		
-		lblList = ['Current Object', 'Sun', 'Earth', 'Mercury', 'Venus', 'Mars', 'Jupiter', 'Saturn', 'Uranus', 'Neptune', 'Pluto', 'Sedna', 'Makemake', 'Haumea','Eris','Charon', 'Phobos', 'Deimos', 'Moon']
+		lblList = ['Current Object', 'Sun', 'Earth', 'Mercury', 'Venus', 'Mars', 'Jupiter', 'Saturn', 'Uranus', 'Neptune', 'Pluto', 'Sedna', 'Makemake', 'Haumea','Eris','Charon', 'Phobos', 'Adrastea', 'Mimas', 'Moon']
 		self.rbox = wx.RadioBox(self, label = ' Focus on ', pos = (20, CVT_Y), size=(170, 610), choices = lblList ,majorDimension = 1, style = wx.RA_SPECIFY_COLS)
 		self.rbox.SetFont(self.RegFont)
 		self.rbox.Bind(wx.EVT_RADIOBOX,self.OnRadioBox)
@@ -472,7 +472,7 @@ class FOCUSpanel(AbstractUI):
 			###### self.parentFrame.orbitalTab.updateCameraViewTarget()
 			self.setBodyFocus(self.SolarSystem.cameraViewTargetBody)
 
-	def setCurrentBodyFocusManually(self, body, selectIndex):
+	def setCurrentBodyFocusProgrammatically(self, body, selectIndex):
 		self.rbox.SetSelection(selectIndex)
 		self.parentFrame.orbitalTab.initViewAngle(body)
 		self.OnRadioBox(None)
@@ -540,13 +540,14 @@ class FOCUSpanel(AbstractUI):
 
 			else:
 				print "OBJECT ALREADY VISIBLE"
+				Body.show()
 
 		self.SolarSystem.cameraViewTargetBody = Body
 		#### self.SolarSystem.cameraViewTargetSelection = Body.JPL_designation
 		print "cameraViewTargetBody selection is:", self.SolarSystem.cameraViewTargetSelection
 
 		if self.smoothTransition == True:
-			self.SolarSystem.camera.smoothFocus(Body.JPL_designation)
+			self.SolarSystem.camera.smoothFocus(Body.Name)
 		else: # may have to remove "else" just for earth locations management
 			self.SolarSystem.camera.updateCameraViewTarget()	
 
@@ -1263,7 +1264,7 @@ class ORBITALpanel(AbstractUI):
 
 	def createBodyList(self, xpos, ypos):
 		for body in self.SolarSystem.bodies:
-			if body.BodyType in [SPACECRAFT, PHA, BIG_ASTEROID, COMET, TRANS_NEPT]:
+			if body.BodyType in [SPACECRAFT, PHA, BIG_ASTEROID, COMET, TNO]:
 				self.list.append(body.Name)
 				self.listjplid.append(body.JPL_designation.lower())
 
@@ -1415,7 +1416,7 @@ class ORBITALpanel(AbstractUI):
 		self.createCheckBox(self, "Adjust objects size", REALSIZE, 20, CHK_L13)
 		self.createCheckBox(self, "Referential", REFERENTIAL, 20, CHK_L14)
 		self.createCheckBox(self, "Moons", MOON, 20, CHK_L15B)
-
+		self.createCheckBox(self, "TransNept.", TNO, 20, CHK_L16)
 
 		self.createBodyList(200, LSTB_Y)
 
@@ -1594,7 +1595,7 @@ class ORBITALpanel(AbstractUI):
 		#self.SolarSystem.animate(self.DeltaT)
 		for body in self.SolarSystem.bodies:
 			if body.BodyType in [SUN, SPACECRAFT, OUTER_PLANET, INNER_PLANET, MOON, ASTEROID, \
-								 COMET, DWARF_PLANET, PHA, BIG_ASTEROID, TRANS_NEPT]:
+								 COMET, DWARF_PLANET, PHA, BIG_ASTEROID, TNO]:
 				if body.RefOrigin.visible == True or body.Name.lower() == EARTH_NAME:
 					velocity, dte, dts = body.animate(self.DeltaT)
 					#print "VEL:", velocity, "dte:", dte
@@ -1724,7 +1725,7 @@ class ORBITALpanel(AbstractUI):
 			self.resetBodyList()
 
 		index = self.rbox.GetSelection()
-		self.Source = {0: PHA, 1: COMET, 2:BIG_ASTEROID, 3:TRANS_NEPT}[index]
+		self.Source = {0: PHA, 1: COMET, 2:BIG_ASTEROID, 3:TNO}[index]
 		self.SolarSystem.currentSource = self.Source
 
 	def OnAnimSpeedSlider(self, e):
@@ -1978,8 +1979,12 @@ class ORBITALpanel(AbstractUI):
 			self.updateConstantForwardVectorMode()
 
 	def updateConstantForwardVectorMode(self, sunPerspective = False):
-		# we use self.SolarSystem.cameraViewTargetBody
-		# alternate view: using the current forward vector, match vector rotation with earth angular speed
+		"""
+		we use self.SolarSystem.cameraViewTargetBody
+		alternate view: using the current forward vector, match 
+		vector rotation with earth angular speed
+		"""
+
 		if self.SolarSystem.cameraViewTargetBody is not None:
 			angle = atan2(self.SolarSystem.cameraViewTargetBody.Position[1], self.SolarSystem.cameraViewTargetBody.Position[0])
 			self.SolarSystem.Scene.forward = rotate(self.SolarSystem.Scene.forward, angle=(angle-self.viewAngle), axis=(0,0,1)) #self.Widgets.ECSS.ZdirectionUnit)
@@ -2291,7 +2296,7 @@ class WIDGETSpanel(AbstractUI):
 	def OnCameraSettingsXX(self, e):
 
 		index = self.rbox.GetSelection()
-		self.Source = {0: PHA, 1: COMET, 2:BIG_ASTEROID, 3:TRANS_NEPT}[index]
+		self.Source = {0: PHA, 1: COMET, 2:BIG_ASTEROID, 3:TNO}[index]
 		self.cameraSettingsActions[index](e)
 
 	def OnFollowMode(self, e):
@@ -2549,7 +2554,7 @@ class WIDGETSpanel(AbstractUI):
 			self.parentFrame.orbitalTab.OnAnimate(e)
 
 		#self.SolarSystem.camera.updateCameraViewTarget()
-		self.SolarSystem.camera.smoothFocus(self.Earth.JPL_designation)	
+		self.SolarSystem.camera.smoothFocus(self.Earth.Name) #JPL_designation)	
 
 		#self.SolarSystem.Scene.center = self.Earth.RefOrigin.pos
 		

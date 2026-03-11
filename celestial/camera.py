@@ -330,7 +330,7 @@ class camera3D:
 		# position of the planet the moon orbits around in the ecliptic referential
 
 		######self.surfaceRadius = (1.1 * self.ssys.cameraViewTargetBody.BodyGeometry.radius) if self.ssys.SurfaceView == True else 0
-		print "UPDATING Scene Center with ViewTarget origin"
+		#print "UPDATING Scene Center with ViewTarget origin"
 
 		isMoon = self.ssys.cameraViewTargetBody.isMoon
 
@@ -339,10 +339,10 @@ class camera3D:
 		"""
 		CENTER THE SCENE ON SELECTED OBJECT
 		In order to center on the object selected, we need to know if its position is
-		heliocentric ecliptic -or- if it is geoEcliptic around a central body. If
-		it is geoEcliptic, the coordinates need to be brought to heliocentric using
-		frame_to_world, because centering the scene object operates in heliocentric 
-		coordinates.
+		heliocentric ecliptic -or- if it is geoEcliptic around a central body (moon or 
+		artificial satellite. If it is geoEcliptic, the coordinates need to be brought 
+		to heliocentric using frame_to_world, because centering the scene object operates 
+		in heliocentric coordinates.
 		"""
 		if self.ssys.cameraViewTargetBody.CentralBody != None:
 			self.ssys.Scene.center = self.ssys.cameraViewTargetBody.CentralBody.LocalEclipticRef.frame_to_world(self.ssys.cameraViewTargetBody.Position)
@@ -378,7 +378,7 @@ class camera3D:
 		Xc = self.ssys.Scene.center[0]
 		Yc = self.ssys.Scene.center[1]
 		Zc = self.ssys.Scene.center[2]
-		print ("Xc=", Xc, ", Yc=", Yc,", Zc=", Zc)
+		#print ("Xc=", Xc, ", Yc=", Yc,", Zc=", Zc)
 		
 		# calculate distance between current location and 
 		# destination for each coordinate 
@@ -386,7 +386,7 @@ class camera3D:
 		deltaY = (newloc[1] - Yc)
 		deltaZ = (newloc[2] - Zc)
 
-		print ("X=", deltaX, ", Y=", deltaY,", Z=", deltaZ)
+		#print ("X=", deltaX, ", Y=", deltaY,", Z=", deltaZ)
 
 		if self.ssys.Dashboard.orbitalTab.RecorderOn == True:
 			if self.ssys.Dashboard.orbitalTab.VideoRecorder is None:
@@ -408,8 +408,8 @@ class camera3D:
 		for i in np.arange(0, total_steps+1, 1):
 			r = ratefunc(float(i)/total_steps)
 			self.ssys.Scene.center = vector( (Xc + r*deltaX),
-													(Yc + r*deltaY),
-													(Zc + r*deltaZ))
+											 (Yc + r*deltaY),
+											 (Zc + r*deltaZ))
 			sleep(2e-2)
 			if self.ssys.Dashboard.orbitalTab.AnimationInProgress == True:
 				self.ssys.Dashboard.orbitalTab.OneTimeIncrement()
@@ -422,13 +422,22 @@ class camera3D:
 
 	def smoothFocus(self, targetBodyName, ratefunc =  ease_in_out):
 		# going from current object to next current object
+		print "SMOOTH TRANSITION TOWARDS target: ", targetBodyName
 		target = None
 		targetBody = self.ssys.getBodyFromName(targetBodyName.lower())
+
 		if targetBody is None:
 			# use sun as target
 			target = vector(0,0,0)
 		else:
-			target = targetBody.Position
+			if targetBody.isMoon:
+				
+				# if the target body is a moon, make sure to translate
+				# geoEcliptic coordinates into helioEcliptic ones
+
+				target = targetBody.CentralBody.LocalEclipticRef.frame_to_world(targetBody.Position)
+			else:
+				target = targetBody.Position
 
 		return self._smoothFocus(target, ratefunc)
 

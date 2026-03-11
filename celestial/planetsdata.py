@@ -29,7 +29,7 @@ SPACECRAFT 			= 0x08
 ASTEROID 			= 0x10
 GAS_GIANT 			= 0x20
 DWARF_PLANET 		= 0x40
-TRANS_NEPT 			= 0x80
+TNO 			= 0x80
 COMET 				= 0x100
 
 SMALL_ASTEROID 		= 0x200
@@ -103,7 +103,7 @@ index_to_bodyname = {
 	0: CURRENT_BODY,	1: SUN_NAME,	2: EARTH_NAME,	3: "mercury",	4:"venus",		
 	5:"mars",       	6:"jupiter",	7:"saturn",   	8:"uranus", 	9:"neptune",
 	10:"pluto",     	11:"sedna", 	12:"makemake",	13:"haumea",	14:"eris", 
-	15:"charon",    	16:"phobos",	17:"deimos",	18:"moon"
+	15:"charon",    	16:"phobos",	17:"adrastea",	18:"mimas",     19:"moon"
 }
 
 bodyname_to_index = {
@@ -111,7 +111,7 @@ bodyname_to_index = {
 	index_to_bodyname[4]: 4,	index_to_bodyname[5]: 5, 	index_to_bodyname[6]: 6, 	index_to_bodyname[7]: 7, 	
 	index_to_bodyname[8]: 8, 	index_to_bodyname[9]: 9,	index_to_bodyname[10]: 10, 	index_to_bodyname[11]: 11, 	
 	index_to_bodyname[12]: 12, 	index_to_bodyname[13]: 13, 	index_to_bodyname[14]: 14, 	index_to_bodyname[15]: 15, 		
-	index_to_bodyname[16]: 16, 	index_to_bodyname[17]: 17, 	index_to_bodyname[18]: 18
+	index_to_bodyname[16]: 16, 	index_to_bodyname[17]: 17, 	index_to_bodyname[18]: 18,  index_to_bodyname[19]: 19 
 }
 
 AU = 149597870691
@@ -335,18 +335,18 @@ ASTEROID_SZ_CORRECTION 		= SMALLBODY_SZ_CORRECTION
 # coefficeint to use in relation to a particular type of object.
 # The LOWER the number, the MORE "inflated" the object will be.
 
-#bodyScaler = { SUN: 55000, SPACECRAFT: 1, INNER_PLANET: 1200, SATELLITE:1400, GAS_GIANT: 3500, DWARF_PLANET: 100, ASTEROID:1, COMET:0.02, SMALL_ASTEROID: 0.1, BIG_ASTEROID:0.1, PHA: 0.007, TRANS_NEPT: 0.001}
+#bodyScaler = { SUN: 55000, SPACECRAFT: 1, INNER_PLANET: 1200, SATELLITE:1400, GAS_GIANT: 3500, DWARF_PLANET: 100, ASTEROID:1, COMET:0.02, SMALL_ASTEROID: 0.1, BIG_ASTEROID:0.1, PHA: 0.007, TNO: 0.001}
 
 # original bodyscaler
-bodyScaler = { SUN: 15000, SPACECRAFT: 1, INNER_PLANET: 1400, MOON: 1400, SMALL_MOON:100, TINY_MOON: 30, GAS_GIANT: 1300, DWARF_PLANET: 50, ASTEROID:1, COMET:0.02, SMALL_ASTEROID: 0.1, BIG_ASTEROID:0.1, PHA: 0.04, TRANS_NEPT: 0.001}
-#bodyScaler = { SUN: 120000, SPACECRAFT: 1, INNER_PLANET: 2400, MOON: 2400, GAS_GIANT: 4500, DWARF_PLANET: 100, ASTEROID:1, COMET:0.02, SMALL_ASTEROID: 0.1, BIG_ASTEROID:0.1, PHA: 0.007, TRANS_NEPT: 0.001}
+bodyScaler = { SUN: 15000, SPACECRAFT: 1, INNER_PLANET: 1400, MOON: 1400, SMALL_MOON:100, TINY_MOON: 30, GAS_GIANT: 1300, DWARF_PLANET: 50, ASTEROID:1, COMET:0.02, SMALL_ASTEROID: 0.1, BIG_ASTEROID:0.1, PHA: 0.04, TNO: 50}
+#bodyScaler = { SUN: 120000, SPACECRAFT: 1, INNER_PLANET: 2400, MOON: 2400, GAS_GIANT: 4500, DWARF_PLANET: 100, ASTEROID:1, COMET:0.02, SMALL_ASTEROID: 0.1, BIG_ASTEROID:0.1, PHA: 0.007, TNO: 0.001}
 
 # new bodyscaler
-#bodyScaler = { SUN: 5000, SPACECRAFT: 1, INNER_PLANET: 1800, SATELLITE:1400, GAS_GIANT: 2200, DWARF_PLANET: 100, ASTEROID:1, COMET:0.02, SMALL_ASTEROID: 0.1, BIG_ASTEROID:0.1, PHA: 0.007, TRANS_NEPT: 0.001}
+#bodyScaler = { SUN: 5000, SPACECRAFT: 1, INNER_PLANET: 1800, SATELLITE:1400, GAS_GIANT: 2200, DWARF_PLANET: 100, ASTEROID:1, COMET:0.02, SMALL_ASTEROID: 0.1, BIG_ASTEROID:0.1, PHA: 0.007, TNO: 0.001}
 
 # body shapes
-BodyGeometryTypes = { SUN: "sphere", SPACECRAFT: "cylinder", INNER_PLANET: "sphere", MOON: "sphere", OUTER_PLANET: "sphere", DWARF_PLANET: "sphere", ASTEROID:"cube", COMET:"cone", SMALL_ASTEROID:"cube", BIG_ASTEROID:"sphere", PHA:"cube", TRANS_NEPT: "cube"}
-#BodyGeometryTypes = { SUN: "sphere", SPACECRAFT: "cylinder", INNER_PLANET: "sphere", OUTER_PLANET: "sphere", SATELLITE: "sphere", DWARF_PLANET: "sphere", ASTEROID:"cube", COMET:"cone", SMALL_ASTEROID:"cube", BIG_ASTEROID:"sphere", PHA:"cube", TRANS_NEPT: "cube"}
+BodyGeometryTypes = { SUN: "sphere", SPACECRAFT: "cylinder", INNER_PLANET: "sphere", MOON: "sphere", OUTER_PLANET: "sphere", DWARF_PLANET: "sphere", ASTEROID:"cube", COMET:"cone", SMALL_ASTEROID:"cube", BIG_ASTEROID:"sphere", PHA:"cube", TNO: "sphere"}
+#BodyGeometryTypes = { SUN: "sphere", SPACECRAFT: "cylinder", INNER_PLANET: "sphere", OUTER_PLANET: "sphere", SATELLITE: "sphere", DWARF_PLANET: "sphere", ASTEROID:"cube", COMET:"cone", SMALL_ASTEROID:"cube", BIG_ASTEROID:"sphere", PHA:"cube", TNO: "cube"}
 
 
 
