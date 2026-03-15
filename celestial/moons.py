@@ -1,30 +1,26 @@
 # -*- coding: utf-8 -*-
 # moons.py
 
-""" planets.py  """
-
 from orbit3D import *
 import planetsdata as pd
 from controls import *
-#from celestial.orbitalLIB import Api
 
+"""
+CLASS MAKEPLANETMOON -------------------------------------------------------
+This class is used to create a moon with predictable behavior, moving in a 
+keplerian way
+"""
 class makePlanetMoon(makeBody):
 	def __init__(self, system, key, color, sizeCorrectionType, centralbody):
-		"""
-		makeBody takes care of drawing the moon's orbit based on the pre-loaded
-		orbital elements, when the moon's state_vector can't be directly solved 
-		from the orbital elements. 
-		"""
-#		makeBody.__init__(self, system, key, color, ptype=MOON, sizeCorrectionType=MOON, realisticCorrectionSize=MOON_SZ_CORRECTION, centralBody=centralbody)
+
 		makeBody.__init__(self, system, key, color, ptype=MOON, sizeCorrectionType=sizeCorrectionType, realisticCorrectionSize=MOON_SZ_CORRECTION, centralBody=centralbody)
 
 		# register moon with planet's orbiting bodies set
 		self.CentralBody.registerSatellite(key, self)
 
 		# create a dictionary of orbiting bodies for this moon
+		# (this is to be used for moon orbiting spacecrafts)
 		self.moonOrbitingBodies = {}
-
-		#self.isMoon = True
 
 		"""
 		set up the Nodal regression rate (rad/day) for the longitutde of the 
@@ -36,10 +32,6 @@ class makePlanetMoon(makeBody):
 		self.Omega0 = self.Longitude_of_ascendingnode
 		self.omega0 = self.Argument_of_periapsis
 
-		#self.Omega_dot, self.omega_dot = self.j2_precession_rates(self.CentralBody.J2)
-		
-#	def draw(self):
-#		pass 
 
 	def registerSpacecraft(self, key, body):
 		self.moonOrbitingBodies[key] = body
@@ -60,12 +52,6 @@ class makePlanetMoon(makeBody):
 
 		self.BodyGeometry.radius = self.radiusToShow  / self.SizeCorrection[self.sizeType]
 
-	def setCartesianCoordinatesXX(self, timeIncrement):
-			"""
-			We need to call the default makeBody::setCartesianCoordinates with a moon distance
-			factor
-			"""
-			return makeBody.setCartesianCoordinates(self, timeIncrement) #, DIST_FACTOR_MOON)
 
 	def updateBodyPosition(self, timeIncrement):
 
@@ -73,12 +59,9 @@ class makePlanetMoon(makeBody):
 		# elements (timeIncrement comes in days as a float)
 		
 		dT = daysSinceEpochJD(self.Epoch, self.locationInfo) + timeIncrement 
-		#print self.Name, ": DT=", dT
 
-
-		# compute Longitude of Ascending node taking 
-		# into account the time elapsed since epoch
-
+		# compute Longitude of Ascending node taking into account the 
+		# precession due to J2 effect and time elapsed since epoch
 		
 		if hasattr(self, 'Omega_dot'):
 			self.Longitude_of_ascendingnode = self.Omega0 + self.Omega_dot * dT
@@ -88,29 +71,22 @@ class makePlanetMoon(makeBody):
 		# adjust Mean Anomaly with time elapsed since epoch
 		M = toRange(self.Mean_anomaly + self.Mean_motion * dT)
 
-		#print "Advancing MOON"
 		# since we can't solve Kepler's equation analytically,
 		# we use an iterative numerical method
 
 		return solveKepler(M, self.e, 20000)
 	
-
+"""
+CLASS MAKENONKEPLERIANMOON --------------------------------------------------
+the makeNonKeplerianMoon class is used for highly pertubed moons whose 
+orbits and state vector can't be described with a keplerian model.
+The most famous one is Luna, our moon
+"""
 class makeNonKeplerianMoon(makeBody):
-	"""
-	the makeNonKeplerianMoon class is used for highly pertubed moons whose 
-	orbits and state vector can't be described with a keplerian model.
-	The most famous one is Luna, our moon
-	"""
 
 	def __init__(self, system, key, color, sizeCorrectionType, centralbody):
-		"""
-		makeBody takes care of drawing the moon's orbit based on the pre-loaded
-		orbital elements. When the state_vector of the moon can't be directly
-		solved from the orbital elements, 
-		"""
-#		makeBody.__init__(self, system, key, color, SATELLITE, SATELLITE, SATELLITE_SZ_CORRECTION, centralBody)
+
 		makeBody.__init__(self, system, key, color, ptype=MOON, sizeCorrectionType=sizeCorrectionType, realisticCorrectionSize=MOON_SZ_CORRECTION, centralBody=centralbody)
-		#self.isMoon = True
 
 		# register moon with planet's orbiting bodies set
 		self.CentralBody.registerSatellite(key, self)		
@@ -140,37 +116,32 @@ class makeNonKeplerianMoon(makeBody):
 
 	# makeNonKeplerianMoon::
 	def setMoonElements(self, name, elts):
-		objects_data[name]["profile"] = ""
-		#objects_data[name]["material"] = 0
-		objects_data[name]["name"] = name
-		objects_data[name]["iau_name"] = name
-		#objects_data[name]["jpl_designation"] = target
-		objects_data[name]["distance_to_periapsis"] = elts["periapsis_m"]
-		objects_data[name]["eccentricity_EC"] = elts["eccentricity_EC"]
-			
-		#objects_data[name]["revolution_PR"] = float(arr[PR_SIDERAL_ORBIT].strip()) / SIDEREAL_DAY
-			
-		objects_data[name]["orbital_inclination_IN"] = elts["orbital_inclination_IN"]
 
-		objects_data[name]["longitude_of_ascendingnode_OM"] = elts["longitude_of_ascendingnode_OM"]
-		objects_data[name]["argument_of_periapsis_w"] = elts["argument_of_periapsis_w"]
-		objects_data[name]["longitude_of_periapsis_W"] = elts["longitude_of_periapsis_W"]
+		# overwrite the moon information pulled from the moon_catalog with fresh 
+		# osculating elements. The "physical", "rotation", and "id" fields are 
+		# unchanged. Only "elements" is updated with fresh data  
 
-		objects_data[name]["jd_time_of_periapsis_passage_Tp"] = elts["jd_time_of_periapsis_passage_Tp"]
-		objects_data[name]["mean_motion_N"] = elts["mean_motion_N_deg_per_day"]
-		objects_data[name]["mean_anomaly_MA"] = elts["mean_anomaly_MA"]
+		objects_data[name]["elements"]["distance_to_periapsis_m"] 			= elts["periapsis_m"]
+		objects_data[name]["elements"]["eccentricity_EC"] 					= elts["eccentricity_EC"]
+		objects_data[name]["elements"]["orbital_inclination_IN"] 			= elts["orbital_inclination_IN"]
+		objects_data[name]["elements"]["longitude_of_ascendingnode_OM"] 	= elts["longitude_of_ascendingnode_OM"]
+		objects_data[name]["elements"]["argument_of_periapsis_w"] 			= elts["argument_of_periapsis_w"]
+		objects_data[name]["elements"]["longitude_of_periapsis_W"] 			= elts["longitude_of_periapsis_W"]
+		objects_data[name]["elements"]["jd_time_of_periapsis_passage_Tp"] 	= elts["jd_time_of_periapsis_passage_Tp"]
+		objects_data[name]["elements"]["mean_motion_N"] 					= elts["mean_motion_N_deg_per_day"]
+		objects_data[name]["elements"]["mean_anomaly_MA"] 					= elts["mean_anomaly_MA"]
+		objects_data[name]["elements"]["epochJD"] 							= elts["epochJD"] #EPOCH_2000_JD 
+#		objects_data[name]["elements"]["utc"] = "" #utc_close_approach.strftime('%Y-%m-%d %H:%M:%S'),
+#		objects_data[name]["elements"]["local"] = "" #orbit3D.datetime_from_utc_to_local(utc_close_approach)
+		objects_data[name]["elements"]["aphelion_m"] 						= elts["apoapsis_m"]
+		objects_data[name]["elements"]["revolution_PR"] 					= elts["revolution_PR"] #objects_data[name]["rotation"]["rotation_period_solar_d"]
 
-		objects_data[name]["epochJD"] = EPOCH_2000_JD 
+		if hasattr(elts, "phase"):
+			objects_data[name]["physical"]["phase"] 						= elts["phase"]
+			objects_data[name]["physical"]["phase_angle_deg"] 				= elts["phase_angle_deg"]
+			objects_data[name]["physical"]["illumination"] 					= elts["illumination"]
 
-		objects_data[name]["earth_moid"] = 0 #float(entry["orbital_data"]["minimum_orbit_intersection"]) * AU,
-		objects_data[name]["orbit_class"] = "N/A"
-		objects_data[name]["axial_tilt"] = 0.0
-		objects_data[name]["utc"] = "" #utc_close_approach.strftime('%Y-%m-%d %H:%M:%S'),
-		objects_data[name]["local"] = "" #orbit3D.datetime_from_utc_to_local(utc_close_approach)
-
-		objects_data[name]["albedo"] = 0.0
-		objects_data[name]["aphelion"] = elts["apoapsis_m"]
-		objects_data[name]["absolute_mag"] = 0 #float(entry["absolute_magnitude_h"]),
+#		print json.dumps(objects_data["moon"], sort_keys=True, indent=4)
 
 	# makeNonKeplerianMoon::
 	def setCartesianCoordinates(self, timeIncrement):
@@ -193,6 +164,7 @@ class makeNonKeplerianMoon(makeBody):
 		"""
 
 		if self.hasRenderedOrbit == True:
+
 			self.snapshot = self.getMoonElements(timeIncrement)
 			self.setMoonElements(self.Name, self.snapshot["elements"])
 			self.Position = self.snapshot["position_vec"] * self.distanceFactor #DIST_FACTOR_MOON # DIST_FACTOR 
@@ -211,8 +183,6 @@ class makeNonKeplerianMoon(makeBody):
 		orbital elements.
 
 		"""
-		#print "NO DRAW FOR THE MOON!!!!!!!!!!"
-		#pass
 		makeBody.draw(self)
 		self.setCartesianCoordinates(0)
 
@@ -223,8 +193,8 @@ class makeNonKeplerianMoon(makeBody):
 		placeholder. Method should be provided by each moon's 
 		to reflect its specific pertubation calculation
 		"""
-		pass
-        #raise NotImplementedError("Subclasses must implement getMoonElements")
+		print "getMoonElements MUST BE overriden by a subclass"
+		exit()
 
 	def updateBodyPosition(self, timeIncrement):
 
@@ -239,14 +209,17 @@ class makeNonKeplerianMoon(makeBody):
 		# adjust Mean Anomaly with time elapsed since epoch
 		M = toRange(self.Mean_anomaly + self.Mean_motion * dT)
 
-		#print "Advancing MOON"
 		# since we can't solve Kepler's equation analytically,
 		# we use an iterative numerical method
 
 		return solveKepler(M, self.e, 20000)
 
 
-# CLASS MAKELUNA ------------------------------------------------------------
+"""
+CLASS MAKELUNA ------------------------------------------------------------
+Specific class for "luna", our moon, which is highly pertubed
+
+"""
 class makeLuna(makeNonKeplerianMoon):
 
 	def __init__(self, system, color, centralbody):
@@ -255,29 +228,105 @@ class makeLuna(makeNonKeplerianMoon):
 		and state vector for the moon since dramatic perturbations
 		prevent the use of normal kepler derivation
 		"""
-
+		print "MAKE LUNA CONSTRUCTOR"
 		self.snapshot = {}
 		self.snapshot = self.getMoonElements(0)
 
 		# and update the object_data entry
 		self.setMoonElements("moon", self.snapshot["elements"])
 
-#		print "makeLuna: before makePlanet::__init"
+		# then call normal constructor with updated data
 		makeNonKeplerianMoon.__init__(self, system, "moon", color, MOON, centralbody)
-		objects_data["moon"]["tga_name"] = "moon"
 
-#		print "makeLuna: AFTER makePlanet::__init"
+		#print json.dumps(objects_data["moon"], sort_keys=True, indent=4)
+
+		#print "makeLuna: AFTER makePlanet::__init"
 		
 		#print "...........MOON OLD POSITION:", self.Position
 		#self.Position = self.snapshot["position_vec"] * DIST_FACTOR
 		#MOON_POS = self.Position
 		#self.RefOrigin.pos = self.Position
-
 		#print "...........MOON NEW POSITION:", MOON_POS
-		print self.snapshot["position_vec"] * DIST_FACTOR
+		#print self.snapshot["position_vec"] * DIST_FACTOR
+
 
 	def initRotation(self):
-			self.setTextureFromSolarTime(None)
+
+		#	self.setTextureFromSolarTime(None)
+		self.setTexturePosition()
+
+	def to_helioPos(self):
+		# decompress coordinates in order to calculate accurate vectors
+		#moon_geo = vector()
+		moon_geo = self.Position * (1.0 / self.distanceFactor)
+		planet_helio = self.CentralBody.Position * (1.0 / self.CentralBody.distanceFactor)
+		moon_helio = moon_geo + planet_helio
+
+		print "moon geo:", moon_geo, ", moon helio position:", moon_helio
+		return moon_helio
+
+	def setTexturePosition(self):
+
+		# 1. Define the Vernal Equinox direction (your reference X-axis)
+		vernal_equinox = vector(1, 0, 0)
+
+		# 2. Get current Earth-Moon vector
+##		em_vec = self.CentralBody.LocalEclipticRef.frame_to_world(self.Position) - self.CentralBody.Position
+
+#		em_vec = self.CentralBody.LocalEclipticRef.frame_to_world(self.Position * (1/self.distanceFactor)) - self.CentralBody.Position * (1/self.CentralBody.distanceFactor)
+
+#		moon_geo = vector()
+#		moon_geo[0] = self.Position[0] * (1/self.distanceFactor)
+#		moon_geo[1] = self.Position[1] * (1/self.distanceFactor)
+#		moon_geo[2] = self.Position[2] * (1/self.distanceFactor)
+
+		earth_helio = vector()
+		earth_helio = self.CentralBody.Position * (1/self.CentralBody.distanceFactor)
+
+#		moon_helio = self.CentralBody.LocalEclipticRef.frame_to_world(moon_geo)
+
+#		moon_helio[0] = moon_helio[0] * (1/self.CentralBody.distanceFactor)
+#		moon_helio[1] = moon_helio[1] * (1/self.CentralBody.distanceFactor)
+#		moon_helio[2] = moon_helio[2] * (1/self.CentralBody.distanceFactor)
+
+#		em_vec = self.CentralBody.LocalEclipticRef.frame_to_world(moon_geo) - earth_helio
+		em_vec = self.to_helioPos() - earth_helio
+
+#		print "moon geo:", moon_geo, ", moon helio position:", moon_helio, ", earth position:", earth_helio
+
+
+		#R_EM = moon_helio - earth_helio
+
+#		print "moon geo:", moon_geo, ", moon helio position:", self.CentralBody.LocalEclipticRef.frame_to_world(moon_geo), ", earth position:", earth_helio
+#		print "moon geo:", moon_geo, ", moon helio position:", self.CentralBody.RefOrigin.frame_to_world(moon_geo), ", earth position:", earth_helio
+
+#		em_vec = self.Position
+
+		#es_vec = self.CentralBody.Position 
+
+		#v_es = math.atan2(vernal_)
+		# 3. Calculate angle (using diff_angle for VPython vector convenience)
+		print "Earth_moon vec:", em_vec, " vernal eq vec:", vernal_equinox
+
+
+		print("em_vec used by VPython:", em_vec)
+		print("magnitude:", mag(em_vec))
+		print("angle with +X (manual):", acos(em_vec.x / mag(em_vec)))
+
+
+		# hack
+#		em_vec = self.CentralBody.LocalEclipticRef.frame_to_world(moon_geo)
+
+		angle_to_equinox = diff_angle(em_vec, vernal_equinox)
+		print "Luna position ANGLE TO EQUINOX:", rad2deg(angle_to_equinox), ", rotaxis=", self.RotAxis
+		# 4. Apply rotation
+		# You want the face of the moon to look at the earth.
+		# We rotate the moon around the orbital normal to match the equinox offset.
+		#orbit_normal = norm(cross(em_vec, moon.velocity))
+		#moon.axis = -em_vec # Point 'face' at Earth
+		#moon.rotate(angle=angle_to_equinox, axis=orbit_normal)
+		self.RefOrigin.rotate(angle=-(np.pi/2 + abs(angle_to_equinox)), axis=self.RotAxis, origin=(0,0,0))
+
 
 	def setTextureFromSolarTime(self, localDatetime):
 
@@ -286,9 +335,10 @@ class makeLuna(makeNonKeplerianMoon):
 
 		# calculate the angle the moon is making in the earth geocentric ecliptic
 		Theta = math.atan2(self.Position[1], self.Position[0])
-		print "MOON THETA=", rad2deg(Theta)
-		alpha = deg2rad(5)
-		self.RefOrigin.rotate(angle=(Theta - alpha), axis=self.RotAxis, origin=(0,0,0))
+		print "MOON THETA=", rad2deg(Theta), ", Rotating by ", rad2deg(np.pi-Theta), " degrees"
+		#alpha_corrective = deg2rad(15)
+#		self.RefOrigin.rotate(angle=(np.pi - Theta), axis=self.RotAxis, origin=(0,0,0))
+		self.RefOrigin.rotate(angle=(np.pi/2 - abs(Theta)), axis=self.RotAxis, origin=(0,0,0))
 		return
 
 	def getMoonElements(self, timeIncrement):
@@ -308,9 +358,14 @@ class makeLuna(makeNonKeplerianMoon):
 		}
 
 
+		
+
+
+
 """
 Some terminology:
 Term				Floor (Reference Plane)			Also Known As...
+---------------------------------------------------------------------------------------------
 CRF / ICRF			Earth Equator					EME2000, CRF J2000 (Equatorial)
 Earth Ecliptic		Earth Orbit						J2000 Ecliptic
 Mars Ecliptic		Mars Orbit						(The frame your data is currently in)
@@ -320,6 +375,7 @@ Frame Of Reference 	Earth Ecliptic					J2000
 Also, 2 different standards:
 
 Frame				The "Floor" (Reference Plane)	Definition
+---------------------------------------------------------------------------------------------
 J2000 / CRF			Earth's Mean Equator			Based entirely on Earth's orientation on Jan 1, 2000.
 Invariable Plane	The Solar System's Angular 		The "average" plane of the planets you were thinking of.
 					Momentum	
@@ -348,6 +404,7 @@ true "waist," that would be the Invariable Plane.
 	high-precision version of those Earth-based measurements.
 
 SYNONYMS for J2000 Ecliptic:
+---------------------------
 
 In the world of orbital mechanics, the "J2000 Ecliptic" has several names depending on whether you are 
 talking to a software engineer, a navigator, or an astrophysicist.
@@ -403,8 +460,8 @@ Crucial Distinction: What is NOT a synonym
 
 SO, just to be clear, If we say:
  	- CRF J2000 
- we am talking about the earth's equatorial plane. But if I say: 
+ we are talking about the earth's equatorial plane. But if I say: 
  	- CRF J2000 ecliptic 
- We am talking about the earth's orbital plane
+ We are talking about the earth's orbital plane
 
 """

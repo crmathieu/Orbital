@@ -222,7 +222,8 @@ def state_to_elements_J2000(r, v, jd, mu=MU_EARTH, plane_normal=None):
     # we return distance in meters and angle in degrees 
     # to stay compatible with our mesurement of distances
 
-    return {
+    # print ("REVOLUTION: ", 360.0 / nmean_deg_day, "MEAN_MOTION_IN_DEG", nmean_deg_day)
+    elts = {
         "epochJD": jd,
         "semimajor_m": a * 1000,
         "apoapsis_m": a * (1+e) * 1000,
@@ -235,10 +236,14 @@ def state_to_elements_J2000(r, v, jd, mu=MU_EARTH, plane_normal=None):
         "true_anomaly_nu": nu * RAD2DEG,
         "mean_anomaly_MA": M * RAD2DEG,
         "mean_motion_N_deg_per_day": nmean_deg_day,
+        "revolution_PR": 360.0 / nmean_deg_day,
         "orbital_period_days": period_days,
         "orbital_period_seconds": period_sec,
         "jd_time_of_periapsis_passage_Tp": Tp
     }
+    #import json
+    #print (json.dumps(elts, sort_keys=True, indent=4))
+    return elts
 
 
 # =====================================================
@@ -289,54 +294,101 @@ def moon_position_C1(JD):
 
     return lam, beta, R_km
 
+"""
+sph_to_cart_ecliptic converts spherical coordinates to
+Cartesians coordinates:
+lam:    Ecliptic Longitude. The angle along the ecliptic 
+        plane, usually measured from the Vernal Equinox.
+beta:   Ecliptic Latitude. The angle above or below the 
+        ecliptic plane.
+R_km:   Distance (Radius). The straight-line distance from 
+        the center of the coordinate system (the Sun or a 
+        Planet) in kilometers        
+"""
 def sph_to_cart_ecliptic(lam, beta, R_km):
+
+
     cl = math.cos(lam)
     sl = math.sin(lam)
     cb = math.cos(beta)
     sb = math.sin(beta)
     return np.array([R_km*cb*cl, R_km*cb*sl, R_km*sb], dtype=float)
 
+"""
+cart_to_sph_ecliptic does the reverse: converts cartesians
+coordinates into spherical coordinates
+"""
+def cart_to_sph_ecliptic(x, y, z):
+    # Calculate the distance from the origin (Radius)
+    R_km = math.sqrt(x**2 + y**2 + z**2)
+    
+    # Calculate Ecliptic Longitude (lambda) 
+    # atan2 is used to handle all four quadrants correctly
+    lam = math.atan2(y, x)
+    
+    # Calculate Ecliptic Latitude (beta)
+    # asin handles the tilt above/below the plane
+    if R_km == 0:
+        beta = 0
+    else:
+        beta = math.asin(z / R_km)
+        
+    return lam, beta, R_km
 
-# --------------------------------------------------------
-# moon_ephemeris is used by the makeLuna class
-#
-# In most our calculations, we generate a julian day based
-# on TDB time (not UTC time). However, for the Moon, we 
-# use TT time instead of TDB because its analytical model 
-# is defined in TT.
-# --------------------------------------------------------
+"""
+moon_ephemeris is used by the makeLuna class
+
+In most our calculations, we generate a julian day based
+on TDB time (not UTC time). However, for the Moon, we 
+use TT time instead of TDB because its analytical model 
+is defined in TT.
+
+Here we generate the moon's position using the C1-Hybrid
+lunar model. This is called for every frame during an 
+anymation
+"""
 def moon_ephemeris(dt, delta, vel_dt_sec=10.0):
 
     # Main ephemeris (with canonical overrides)
 
     from orbit3D import datetime_to_julian_date
     from time_helper import utc_to_tt, julian_day
-    #from orbit3D import makeJulianDateOffset
-    
 
     jd = julian_day(utc_to_tt(dt), delta)
 
+    # find moon's current position at t
     lam, beta, R_km = moon_position_C1(jd)
     r = sph_to_cart_ecliptic(lam, beta, R_km)
 
+    # add a small increment to predict where the moon 
+    # will be at t + td
     dt_days = vel_dt_sec / DAYSEC
     lam2, beta2, R_km2 = moon_position_C1(jd + dt_days)
     r2 = sph_to_cart_ecliptic(lam2, beta2, R_km2)
 
+    # since we have 2 positions and the time dt it took
+    # the moon to go between the 2 positions, we can 
+    # calculate the velocity
+
     v = (r2 - r) / float(vel_dt_sec)
 
-    # from state vector to orbital elements
+    # from state vector (r, v) to orbital elements
     elems = state_to_elements_J2000(
         r, v, jd,
         mu=MU_EARTH,
         plane_normal=np.array([0.0, 0.0, 1.0], dtype=float)
     )
-    
-#    print ("EPHEMERIS!!!!")
-#    print ("elemnts=", elems)
-#    print ("*************")
    
-    # Canonical overrides
+    # now determine phase and other goodies:
+    # Sun longitude from simple solar model
+    lam_sun = sun_ecliptic_longitude(jd)
+    phase_angle_deg, illum, phase_name = moon_phase_from_longitudes(lam, lam_sun)
+
+
+    # Canonical overrides: we override some of the field elements calculated 
+    # in our state-vector to elements function with "canonical" values that
+    # we know are rock solid
+    # 
 
     elems["canonical_apoapsis_m"] = A_CANON_KM * 1000
     elems["orbital_inclination_IN"] = I_CANON_DEG
@@ -346,6 +398,10 @@ def moon_ephemeris(dt, delta, vel_dt_sec=10.0):
 
     W_raw = elems["longitude_of_ascendingnode_OM"] + elems["argument_of_periapsis_w"]
     elems["longitude_of_periapsis_W"] = W_raw % 360.0
+
+    elems["phase"] = phase_name
+    elems["phase_angle_deg"] = phase_angle_deg
+    elems["illumination"] = illum
 
     return r * 1000, v * 1000, elems
 

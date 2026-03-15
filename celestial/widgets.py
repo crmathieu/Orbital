@@ -839,7 +839,7 @@ class makeAnalemma():
          
         # first calculate t so that the intersection we are looking for verifies the sphere equation
 
-        if self.analemmaIncrement < TI_FULL_YEAR:
+        #if self.analemmaIncrement < TI_FULL_YEAR:
             sx = self.Loc.Planet.RefOrigin.pos[0]
             sy = self.Loc.Planet.RefOrigin.pos[1]
             sz = self.Loc.Planet.RefOrigin.pos[2]
@@ -894,11 +894,23 @@ class makeAnalemma():
                                         #pos = pos*(1.07), opacity = 0, line = True, box = False, visible=True )
                                         pos = pos, height = 9, xoffset = 1.1 * s.radius, yoffset = 0, opacity = 0, line = False, box = False, visible=self.Loc.Planet.SolarSystem.Dashboard.widgetsTab.dmcb.GetValue())
                         self.AnaPositions.append((s, l))
+                    else:
+                        # change color of the analema week-sphere
+                        self.AnaPositions[self.weeks % 52][0].color = get_random_color()
 
             self.analemmaIncrement = self.analemmaIncrement + self.Loc.Planet.SolarSystem.Dashboard.orbitalTab.TimeIncrement
             if self.analemmaIncrement >= TI_FULL_YEAR:
                 # stop showing earth-sun axis after completing a full year
-                self.Loc.displaySunRay(False)
+                pass #self.Loc.displaySunRay(False) <----- stops displaying the earth-sun line
+
+def get_random_color():
+    # Generate three random values between 0.0 and 1.0
+    r = random.random()
+    g = random.random()
+    b = random.random()
+    
+    # Return them as a tuple that VPython understands
+    return (r, g, b)
 
 
 class makeEarthLocation():
@@ -1542,7 +1554,7 @@ class makeEquator():
         self.Trail = curve(frame=self.RefOrigin, color=self.Color, visible=False, radius=10, material=materials.emissive)
 #        self.Trail = curve(frame=self.Planet.PCPF.referential, color=self.Color, visible=False, radius=25, material=materials.emissive)
 #        self.Trail = curve(frame=self.Planet.PCI.referential, color=self.Color, visible=False, radius=25, material=materials.emissive)
-        self.Position = np.matrix([[0],[0],[0]], np.float64)
+        self.Position = vector(0,0,0) #np.matrix([[0],[0],[0]], np.float64)
 
         # The equator holds the Asc and Des objects as they are always along the equator line
         self.AscNode = makeNode(widgets, Color.green, ascending=True)
@@ -1657,7 +1669,7 @@ class doMeridian():
         #Radius = 25 if longitudeAngle == 0 else 0
         # define meridian in rotating referential PCPF
         self.Trail = curve(frame=self.RefOrigin, color=colr, visible=False,  material=materials.emissive, radius=(10 if longitudeAngle == 0 else 0))
-        self.Position = np.matrix([[0],[0],[0]], np.float64)
+        self.Position = vector(0,0,0) #np.matrix([[0],[0],[0]], np.float64)
         self.Color = colr #Color.cyan
         self.draw()
 
@@ -1769,7 +1781,7 @@ class doLatitude():
 
         # define latitude in rotating referential PCPF
         self.Trail = curve(frame=self.RefOrigin, color=self.Color, material=materials.emissive, visible=False, radius=thickness)
-        self.Position = np.matrix([[0],[0],[0]], np.float64)
+        self.Position = vector(0,0,0) #np.matrix([[0],[0],[0]], np.float64)
         self.draw()
 
 
@@ -1915,9 +1927,9 @@ class makeAnalemmaXX():
         # deduct (x,y) from latPlane. Note, we need to extend the longitude 
         # value by 180 degrees to take into account the way the earth texture
         # was applied on the sphere
-        Position = (self.latPlane * cos(deg2rad(self.long)), 
-                    self.latPlane * sin(deg2rad(self.long)),
-                    self.radius * sin(deg2rad(self.lat)))
+        Position = vector(  self.latPlane * cos(deg2rad(self.long)), 
+                            self.latPlane * sin(deg2rad(self.long)),
+                            self.radius * sin(deg2rad(self.lat)))
 
         #self.graph = curve(frame=self.OVRL, pos=[Position], color=Color.green, visible=True,  material=materials.emissive, radius=40)
           

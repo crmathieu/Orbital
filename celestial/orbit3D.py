@@ -480,16 +480,16 @@ class makeSolarSystem:
 				# moons stay hidden for clarity
 
 				if hasattr(body, "planetOrbitingBodies"):
-					print "Sys Refr: Current camera selection = ", self.cameraViewTargetSelection, ", cur body:", body.Name
+					#print "Sys Refr: Current camera selection = ", self.cameraViewTargetSelection, ", cur body:", body.Name
 
 					for moon_name, moon_body in body.planetOrbitingBodies.items():
 						showMoon = True if self.cameraViewTargetSelection == body.Name or self.cameraViewTargetSelection == moon_body.Name else False
 						if showMoon:
-							print "show moon ", moon_name, " for ", body.Name
+						#	print "show moon ", moon_name, " for ", body.Name
 							moon_body.Orbit.visible = orbitTrace
 							moon_body.RefOrigin.visible = bodyVisible
 						else:
-							print "hide moon ", moon_name, " for ", body.Name
+						#	print "hide moon ", moon_name, " for ", body.Name
 							#moon_body.Orbit.visible = False
 							#moon_body.RefOrigin.visible = False
 							moon_body.hide()
@@ -894,7 +894,7 @@ class makeBody:
 		self.SolarSystem 			= system
 		self.locationInfo 			= system.locationInfo
 		self.AxialTilt				= system.objects_data[key]["rotation"]["axial_tilt"] 
-		print "Axial tilt for ", key, " is ", self.AxialTilt
+		#print "Axial tilt for ", key, " is ", self.AxialTilt
 		if self.AxialTilt == None:
 			# we make the deliberate decision to have the 
 			# axial tilt set to 0 when it is not provided
@@ -1016,7 +1016,7 @@ class makeBody:
 		# any sin or cos function
 
 		self.R, self.Nu = self.setPolarCoordinates(deg2rad(self.Eccentric_anomaly))
-		print self.Name, ": Nu = ", self.Nu
+		#print self.Name, ": Nu = ", self.Nu
 
 		# calculate current position of body on its orbit knowing
 		# its current distance from Sun (R) and angle (Nu) that
@@ -1123,9 +1123,9 @@ class makeBody:
 		# and the angle between the prime meridian and the descending node.
 
 		self.Pole_vec, self.W_angle, self.Omega_angle = self.compute_Ecliptic_NorthPole_data()
-		print "BODY ORIENTATION FOR ", self.Name
-		print self.Pole_vec, self.W_angle, self.Omega_angle
-		print "----------------------------------"
+		#print "BODY ORIENTATION FOR ", self.Name
+		#print self.Pole_vec, self.W_angle, self.Omega_angle
+		#print "----------------------------------"
 
 	# makeBody::
 	def AdjustNPforPeriodicTerms(self, RA, decl, T, d):
@@ -1223,7 +1223,7 @@ class makeBody:
 				#	            planet_data_results[planet] = "Error: {e}"
 				print "Error: {e}"
 
-		return [0,0,0], 0, 0
+		return [0,0,1], 0, 0
 
 
 	# makeBody
@@ -1773,14 +1773,14 @@ class makeBody:
 				self.R * scale_correction * ( sin(self.Nu+self.w) * sin(self.i) ))
 		"""
 
-		return (self.R * self.distanceFactor * ( cos(self.N) * cos(self.Nu+self.w) - sin(self.N) * sin(self.Nu+self.w) * cos(self.i) ),
+		return vector(self.R * self.distanceFactor * ( cos(self.N) * cos(self.Nu+self.w) - sin(self.N) * sin(self.Nu+self.w) * cos(self.i) ),
 				self.R * self.distanceFactor * ( sin(self.N) * cos(self.Nu+self.w) + cos(self.N) * sin(self.Nu+self.w) * cos(self.i) ),
 				self.R * self.distanceFactor * ( sin(self.Nu+self.w) * sin(self.i) ))
 
 	# makeBody::
 	def show(self):
 
-		print "SHOW "+ self.Name
+		#print "SHOW "+ self.Name
 
 		if self.hasRenderedOrbit == False:
 			self.draw()
@@ -1803,7 +1803,7 @@ class makeBody:
 
 	def hide(self):
 
-		print "HIDE "+ self.Name
+		#print "HIDE "+ self.Name
 
 		if self.hasRenderedOrbit == False:
 			self.draw()
@@ -1831,7 +1831,7 @@ class makeBody:
 	# makeBody::
 	def refresh(self):
 
-		print "refreshing "+self.Name + "..."
+		#print "refreshing "+self.Name + "..."
 
 		if 	self.SolarSystem.SlideShowInProgress and \
 			self.BodyType == self.SolarSystem.currentSource:
@@ -1848,21 +1848,21 @@ class makeBody:
 				# this body orbits the sun. 
 				# Let's see if it has moons
 
-				print "BOBY refr: Current camera selection = ", self.SolarSystem.cameraViewTargetSelection, ", cur body:", self.Name
+				#print "BODY refr: Current camera selection = ", self.SolarSystem.cameraViewTargetSelection, ", cur body:", self.Name
 
 				#showMoon = True if self.SolarSystem.cameraViewTargetSelection == self.Name else False
 				moon = False
 				for moon_name, moon_body in self.planetOrbitingBodies.items():
 					if self.SolarSystem.cameraViewTargetSelection == moon_body.Name:
-						print "show moon ", moon_name, " for ", self.Name
+						#print "show moon ", moon_name, " for ", self.Name
 						moon_body.show()
 					else:
 						moon = True
 						if isTargetBody:
-							print "show moon ", moon_name, " for ", self.Name
+							#print "show moon ", moon_name, " for ", self.Name
 							moon_body.show()
 						else:
-							print "hide moon ", moon_name, " for ", self.Name
+							#print "hide moon ", moon_name, " for ", self.Name
 							moon_body.hide()
 
 			else:
@@ -2197,7 +2197,7 @@ class makePlanet(makeBody):
 	def initRotation(self):
 		# rotate the pre-loaded texture by the W angle that determines 
 		# the prime meridian orientation at the present time
-		print "INIT ROT for ", self.Name, ", W = ", self.W_angle, " degrees"
+		#print "INIT ROT for ", self.Name, ", W = ", self.W_angle, " degrees"
 		self.RefOrigin.rotate(angle=(deg2rad(self.W_angle)), axis=self.RotAxis, origin=(0,0,0))
 
 
@@ -4369,7 +4369,8 @@ def deduce_sun_position(celestial_bodies):
     # Sum the masses and the mass-weighted positions
     for body in celestial_bodies:
         mass = body['mass']
-        position = np.array(body['position'])
+#        position = np.array(body['position'])
+        position = vector(body['position'])
 
         # Accumulate total mass
         total_mass += mass

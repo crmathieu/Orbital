@@ -20,6 +20,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 
 """
+import time
 import datetime
 import orbit3D 
 from location import locList #*
@@ -516,7 +517,7 @@ class FOCUSpanel(AbstractUI):
 				"Lg.of Asc Node(deg) ", N,
 				"Arg. of Perih.(deg) ", w,
 				"Eccentricity ", e,
-				"Axial Tilt(deg) ", Body.AxialTilt))
+				"Axial Tilt(deg) ", Body.AxialTilt) + "ZOB")
 
 		if self.SolarSystem.cameraViewTargetSelection != CURRENT_BODY:
 			print "cameraViewTargetBody", self.SolarSystem.cameraViewTargetSelection
@@ -1947,6 +1948,10 @@ class ORBITALpanel(AbstractUI):
 		else:
 			self.RecorderOn = False
 			self.Recorder.SetOwnForegroundColour(wx.BLACK)
+			if self.VideoRecorder is not None:
+				stopRecording(self.VideoRecorder)
+				self.VideoRecorder = None
+
 
 		#self.disableBeltsForAnimation()
 		#self.AnimationInProgress = False # stop potential animation in progress
@@ -2048,11 +2053,70 @@ class ORBITALpanel(AbstractUI):
 		# start a new thread to retrieve the list of NEOs from JPL
 		#animateThread = threading.Thread(target=self.doAnimation, name="doAnimation", args=[] )
 		#animateThread.start()
+
+		# NEW: Safety cleanup before starting
+		self.VideoRecorder = None
+
 		self.doAnimation()
 		# loop was here
 
 		#self.Recorder.SetColor() ####
 	def doAnimation(self):
+		
+		# set mechanic to determine the # of frame per seconds in Animation (if recorder is ON)
+		"""
+		sec = time.gmtime(time.time()).tm_sec
+		framerate = 0
+		videoRec = False
+		"""
+
+		target_fps = 60.0
+		frame_duration = 1.0 / target_fps
+
+		while self.AnimationInProgress:
+			start_time = time.time()
+
+			# 1. Logic for recording (The "Lazy" Initialization)
+			if self.RecorderOn and self.VideoRecorder is None:
+				self.VideoRecorder = setVideoRecording(framerate=target_fps, filename="orbit.mp4")
+				# Add a tiny 10ms sleep here to let the OS finalize the file handle 
+				# before the first frame capture happens
+				time.sleep(0.01)
+
+			self.OneTimeIncrement()
+
+			# 3. Record IF the recorder was successfully created
+			if self.RecorderOn and self.VideoRecorder is not None:
+				recOneFrame(self.VideoRecorder)
+			
+			# if we have an animation callback set up, run it
+			if self.DisableAnimationCallback == False:
+				self.AnimationCallback()
+
+			# Force the loop to wait if it's running too fast
+			elapsed = time.time() - start_time
+			if elapsed < frame_duration:
+				print "sleep for :", frame_duration - elapsed, " sec"
+				time.sleep(frame_duration - elapsed)
+
+			"""
+			# determine # of frames/sec
+			t = time.gmtime(time.time()).tm_sec
+			if t != sec:
+				sec = t 
+				#print framerate
+				framerate = 0
+			else:
+				framerate += 1
+			"""
+
+		# as soon as we exit animation, restore "play" sign
+		self.Animate.SetLabel(">")
+
+
+
+	def doAnimation_SAVE(self):
+		
 		# set mechanic to determine the # of frame per seconds in Animation (if recorder is ON)
 		sec = time.gmtime(time.time()).tm_sec
 		framerate = 0
@@ -2083,7 +2147,6 @@ class ORBITALpanel(AbstractUI):
 
 		# as soon as we exit animation, restore "play" sign
 		self.Animate.SetLabel(">")
-
 
 	# this method calls the display class _set_autoMovement to enable or disable
 	# mouse tracking, depending on whether we have or not an auto movement in progress
