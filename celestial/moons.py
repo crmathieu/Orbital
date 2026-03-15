@@ -252,12 +252,19 @@ class makeLuna(makeNonKeplerianMoon):
 
 	def initRotation(self):
 
-		#	self.setTextureFromSolarTime(None)
 		self.setTexturePosition()
 
 	def to_helioPos(self):
+		"""
+		The reason we use to_helioPos instead if simply using the frame_to_world frame
+		method is that planets and moons coordinates are not on the same distance 
+		compression factor which generates disformation, in particular the Position of 
+		the LocalEclipticRef is itself compressed by the planet factor, so it can't be 
+		reliably used when the true value is required. So to_helioPos is required when
+		calculating the true position of a moon in heliocentric ecliptic.
+		"""
 		# decompress coordinates in order to calculate accurate vectors
-		#moon_geo = vector()
+
 		moon_geo = self.Position * (1.0 / self.distanceFactor)
 		planet_helio = self.CentralBody.Position * (1.0 / self.CentralBody.distanceFactor)
 		moon_helio = moon_geo + planet_helio
@@ -270,76 +277,24 @@ class makeLuna(makeNonKeplerianMoon):
 		# 1. Define the Vernal Equinox direction (your reference X-axis)
 		vernal_equinox = vector(1, 0, 0)
 
-		# 2. Get current Earth-Moon vector
-##		em_vec = self.CentralBody.LocalEclipticRef.frame_to_world(self.Position) - self.CentralBody.Position
-
-#		em_vec = self.CentralBody.LocalEclipticRef.frame_to_world(self.Position * (1/self.distanceFactor)) - self.CentralBody.Position * (1/self.CentralBody.distanceFactor)
-
-#		moon_geo = vector()
-#		moon_geo[0] = self.Position[0] * (1/self.distanceFactor)
-#		moon_geo[1] = self.Position[1] * (1/self.distanceFactor)
-#		moon_geo[2] = self.Position[2] * (1/self.distanceFactor)
+		# 2. calculate true earth position
 
 		earth_helio = vector()
 		earth_helio = self.CentralBody.Position * (1/self.CentralBody.distanceFactor)
 
-#		moon_helio = self.CentralBody.LocalEclipticRef.frame_to_world(moon_geo)
-
-#		moon_helio[0] = moon_helio[0] * (1/self.CentralBody.distanceFactor)
-#		moon_helio[1] = moon_helio[1] * (1/self.CentralBody.distanceFactor)
-#		moon_helio[2] = moon_helio[2] * (1/self.CentralBody.distanceFactor)
-
-#		em_vec = self.CentralBody.LocalEclipticRef.frame_to_world(moon_geo) - earth_helio
+		# 3. calculate vector difference between moon_helio and earth_helio
 		em_vec = self.to_helioPos() - earth_helio
 
-#		print "moon geo:", moon_geo, ", moon helio position:", moon_helio, ", earth position:", earth_helio
-
-
-		#R_EM = moon_helio - earth_helio
-
-#		print "moon geo:", moon_geo, ", moon helio position:", self.CentralBody.LocalEclipticRef.frame_to_world(moon_geo), ", earth position:", earth_helio
-#		print "moon geo:", moon_geo, ", moon helio position:", self.CentralBody.RefOrigin.frame_to_world(moon_geo), ", earth position:", earth_helio
-
-#		em_vec = self.Position
-
-		#es_vec = self.CentralBody.Position 
-
-		#v_es = math.atan2(vernal_)
-		# 3. Calculate angle (using diff_angle for VPython vector convenience)
+		# 4. Calculate angle (using diff_angle for VPython vector convenience)
 		print "Earth_moon vec:", em_vec, " vernal eq vec:", vernal_equinox
-
-
-		print("em_vec used by VPython:", em_vec)
-		print("magnitude:", mag(em_vec))
-		print("angle with +X (manual):", acos(em_vec.x / mag(em_vec)))
-
-
-		# hack
-#		em_vec = self.CentralBody.LocalEclipticRef.frame_to_world(moon_geo)
-
 		angle_to_equinox = diff_angle(em_vec, vernal_equinox)
-		print "Luna position ANGLE TO EQUINOX:", rad2deg(angle_to_equinox), ", rotaxis=", self.RotAxis
+
 		# 4. Apply rotation
 		# You want the face of the moon to look at the earth.
 		# We rotate the moon around the orbital normal to match the equinox offset.
-		#orbit_normal = norm(cross(em_vec, moon.velocity))
-		#moon.axis = -em_vec # Point 'face' at Earth
-		#moon.rotate(angle=angle_to_equinox, axis=orbit_normal)
+
 		self.RefOrigin.rotate(angle=-(np.pi/2 + abs(angle_to_equinox)), axis=self.RotAxis, origin=(0,0,0))
 
-
-	def setTextureFromSolarTime(self, localDatetime):
-
-		# This will position the Moon texture to match the 
-		# face observed from the earth surface
-
-		# calculate the angle the moon is making in the earth geocentric ecliptic
-		Theta = math.atan2(self.Position[1], self.Position[0])
-		print "MOON THETA=", rad2deg(Theta), ", Rotating by ", rad2deg(np.pi-Theta), " degrees"
-		#alpha_corrective = deg2rad(15)
-#		self.RefOrigin.rotate(angle=(np.pi - Theta), axis=self.RotAxis, origin=(0,0,0))
-		self.RefOrigin.rotate(angle=(np.pi/2 - abs(Theta)), axis=self.RotAxis, origin=(0,0,0))
-		return
 
 	def getMoonElements(self, timeIncrement):
 
