@@ -11,6 +11,7 @@ import datetime as dt
 import time
 from orbit3D import deg2rad
 from dateutil.relativedelta import relativedelta
+from time_helper import TimeH, utc_to_tdb
 
 """
 EarthLocations - time management of earth locations
@@ -323,6 +324,7 @@ class EarthLocations:
 		# make naive utc datetime dst aware. This pattern should 
 		# be use any time we need to convert naive to aware
 		self.UTCtime	= utcNaive.replace(tzinfo=pytz.utc)
+		self.TDBtime	= utc_to_tdb(self.UTCtime)
 
 		# load current location as default 
 		# location, followed by all the others
@@ -364,6 +366,9 @@ class EarthLocations:
 			self.tzEarthLocations[0]["lat"] 	= float(coord[0])
 			self.tzEarthLocations[0]["long"]   	= float(coord[1])
 			self.tzEarthLocations[0]["tzname"] 	= data['timezone']
+			
+			self.tzEarthLocations[0]["name"] = data["city"]+", "+data["country"]
+
 			#self.tzEarthLocations[0]["localTZ"] = pytz.timezone(data['timezone'])
 			print "\n------------------------------------"
 			print ' Your IP detail '
@@ -409,7 +414,8 @@ class EarthLocations:
 		"""
 		self.tzEarthLocations[tzidx]["AbsoluteTimeDiffInSec"] = self.tz_diff(self.tzEarthLocations[tzidx]["localDatetime"], self.UTCtime, self.tzEarthLocations[tzidx]["long"])
 
-		print self.tzEarthLocations[tzidx]["name"], self.tzEarthLocations[tzidx]["localDatetime"]
+		print self.tzEarthLocations[tzidx]["name"], " ..... {0} ".format(self.tzEarthLocations[tzidx]["localDatetime"])
+
 
 
 	def getLocationInfo(self, tzindex = -1):

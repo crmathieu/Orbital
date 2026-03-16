@@ -35,7 +35,7 @@ class userLIBXX:
         body = self.solSystem.getBodyFromName(bodyName)
         if body != None:
             inx = self.solSystem.Dashboard.focusTab.getBodyIndexInList(bodyName)
-            self.solSystem.Dashboard.focusTab.setCurrentBodyFocusManually(body, inx)
+            self.solSystem.Dashboard.focusTab.setCurrentBodyFocusProgrammatically(body, inx)
         else:
             print ("Unknown Body Name:", bodyName)
 
@@ -106,7 +106,7 @@ class userLIBXX:
 
     def showPlanet(self, trueFalse):
         self.solSystem.Dashboard.widgetsTab.hpcb.SetValue(not trueFalse)   
-        self.solSystem.EarthRef.Origin.visible = not self.solSystem.Dashboard.widgetsTab.hpcb.GetValue()
+        self.solSystem.EarthRef.RefOrigin.visible = not self.solSystem.Dashboard.widgetsTab.hpcb.GetValue()
     """
 
 class widgets():
@@ -152,7 +152,7 @@ class widgets():
 
     def showPlanet(self, trueFalse):
         self.solSystem.Dashboard.widgetsTab.hpcb.SetValue(not trueFalse)   
-        self.solSystem.EarthRef.Origin.visible = not self.solSystem.Dashboard.widgetsTab.hpcb.GetValue()
+        self.solSystem.EarthRef.RefOrigin.visible = not self.solSystem.Dashboard.widgetsTab.hpcb.GetValue()
 
 class camera():
     def __init__(self, solSystem, recorder = False):
@@ -214,7 +214,7 @@ class camera():
         body = self.solSystem.getBodyFromName(bodyName)
         if body is not None:
             inx = self.solSystem.Dashboard.focusTab.getBodyIndexInList(bodyName)
-            self.solSystem.Dashboard.focusTab.setCurrentBodyFocusManually(body, inx)
+            self.solSystem.Dashboard.focusTab.setCurrentBodyFocusProgrammatically(body, inx)
         else:
             print ("Unknown Body Name:", bodyName)
 

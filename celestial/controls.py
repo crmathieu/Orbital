@@ -20,6 +20,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 
 """
+import time
 import datetime
 import orbit3D 
 from location import locList #*
@@ -191,6 +192,7 @@ class DrawRect(wx.Panel):
          dc.SetBrush(wx.Brush("C0C0C0"))
          dc.DrawRectangle(50,50,50,50)		
 """
+
 class createInfoWindow(wx.Frame):
 
 	def __init__(self, pos, size, nlines):
@@ -379,7 +381,7 @@ class FOCUSpanel(AbstractUI):
 		 12: self.setPlanetFocus, 13: self.setPlanetFocus,
 		 14: self.setPlanetFocus, 15: self.setPlanetFocus,
 		 16: self.setPlanetFocus, 17: self.setPlanetFocus,
-		 18: self.setPlanetFocus }
+		 18: self.setPlanetFocus, 19: self.setPlanetFocus }
 
 	def InitUI(self):
 		self.BoldFont = wx.Font(10, wx.SWISS, wx.NORMAL, wx.BOLD)
@@ -392,7 +394,7 @@ class FOCUSpanel(AbstractUI):
 		Description = "Select which body the animation\nshould focus on. 'Current Object'\nwill follow the last object selected,\nwhether it comes from the Drop\ndown selection, a paused slide-\nshow selection or a Close App-\nroach object pick.\n\nYou may also choose any parti-\ncular planet or the sun."
 		self.Header.SetLabel(Description)
 		
-		lblList = ['Current Object', 'Sun', 'Earth', 'Mercury', 'Venus', 'Mars', 'Jupiter', 'Saturn', 'Uranus', 'Neptune', 'Pluto', 'Sedna', 'Makemake', 'Haumea','Eris','Charon', 'Phobos', 'Deimos', 'Moon']
+		lblList = ['Current Object', 'Sun', 'Earth', 'Mercury', 'Venus', 'Mars', 'Jupiter', 'Saturn', 'Uranus', 'Neptune', 'Pluto', 'Sedna', 'Makemake', 'Haumea','Eris','Charon', 'Phobos', 'Adrastea', 'Mimas', 'Moon']
 		self.rbox = wx.RadioBox(self, label = ' Focus on ', pos = (20, CVT_Y), size=(170, 610), choices = lblList ,majorDimension = 1, style = wx.RA_SPECIFY_COLS)
 		self.rbox.SetFont(self.RegFont)
 		self.rbox.Bind(wx.EVT_RADIOBOX,self.OnRadioBox)
@@ -471,7 +473,7 @@ class FOCUSpanel(AbstractUI):
 			###### self.parentFrame.orbitalTab.updateCameraViewTarget()
 			self.setBodyFocus(self.SolarSystem.cameraViewTargetBody)
 
-	def setCurrentBodyFocusManually(self, body, selectIndex):
+	def setCurrentBodyFocusProgrammatically(self, body, selectIndex):
 		self.rbox.SetSelection(selectIndex)
 		self.parentFrame.orbitalTab.initViewAngle(body)
 		self.OnRadioBox(None)
@@ -497,9 +499,9 @@ class FOCUSpanel(AbstractUI):
 
 		i = round(float(Body.Inclination) * 1000)/1000
 		N = round(float(Body.Longitude_of_ascendingnode) * 1000)/1000
-		w = round(float(Body.Argument_of_perihelion) * 1000)/1000
+		w = round(float(Body.Argument_of_periapsis) * 1000)/1000
 		e = round(float(Body.e) * 1000)/1000
-		q = round(float(Body.Perihelion/AU) * 1000)/1000
+		q = round(float(Body.Periapsis/AU) * 1000)/1000
 		a = round(float(Body.Aphelion/AU) * 1000)/1000
 
 		self.Title.SetLabel(Body.Name)
@@ -515,36 +517,38 @@ class FOCUSpanel(AbstractUI):
 				"Lg.of Asc Node(deg) ", N,
 				"Arg. of Perih.(deg) ", w,
 				"Eccentricity ", e,
-				"Axial Tilt(deg) ", Body.AxialTilt))
+				"Axial Tilt(deg) ", Body.AxialTilt) + "ZOB")
 
 		if self.SolarSystem.cameraViewTargetSelection != CURRENT_BODY:
 			print "cameraViewTargetBody", self.SolarSystem.cameraViewTargetSelection
 
 			# if object was hidden due to its body type, make body type
 			# visible unless it's earth which always stays visible
+
 			if (Body.SolarSystem.ShowFeatures & Body.BodyType) == 0 \
 				and Body.Name.lower() != EARTH_NAME:
-				#print "MAKING OBJECT VISIBLE"
+				print "MAKING OBJECT VISIBLE"
 				# if the body is not visible, Make it so
 				#print "Making "+Body.Name+" visible! bodyType = "+str(Body.BodyType)
 				#for i in range(len(body.BodyGeometry)):
 
-				Body.Origin.visible = True
+				Body.RefOrigin.visible = True
 				Body.Labels[0].visible = True
 				#planetBody.SolarSystem.ShowFeatures |= planetBody.BodyType
 				Body.SolarSystem.setFeature(Body.BodyType, True)
 				self.parentFrame.orbitalTab.checkboxList[Body.BodyType].SetValue(True)
 				#glbRefresh(self.SolarSystem, self.parentFrame.orbitalTab.AnimationInProgress)
 
-			#else:
-			#	print "OBJECT ALREADY VISIBLE"
+			else:
+				print "OBJECT ALREADY VISIBLE"
+				Body.show()
 
 		self.SolarSystem.cameraViewTargetBody = Body
 		#### self.SolarSystem.cameraViewTargetSelection = Body.JPL_designation
 		print "cameraViewTargetBody selection is:", self.SolarSystem.cameraViewTargetSelection
 
 		if self.smoothTransition == True:
-			self.SolarSystem.camera.smoothFocus(Body.JPL_designation)
+			self.SolarSystem.camera.smoothFocus(Body.Name)
 		else: # may have to remove "else" just for earth locations management
 			self.SolarSystem.camera.updateCameraViewTarget()	
 
@@ -712,7 +716,7 @@ class SEARCHpanel(AbstractUI):
 	
 
 	def onSearch(self, e):
-		print ("ENTER"+self.search.GetValue())
+		#print ("ENTER"+self.search.GetValue())
 		self.searchList.DeleteAllItems()
 		self.searchByName(self.search.GetValue(), searchtype=self.SRCH_BROAD)
 		
@@ -739,6 +743,20 @@ class SEARCHpanel(AbstractUI):
 		self.legend.SetLabel("To display orbit details, double click on desired row")
 
 	def doFetchByDay(self, host, url):
+		"""
+		This will query horizons to search for "close approach" objects for a particular day.
+		It will return a list of objects that are in this category for the day, with links to 
+		the next day and the previous day. It is important to understand that objects don't 
+		need to be at their Minimum Theoritical earth distance (MOID), to be in that list, as
+		long as they are passing close enough to Earth right now to trigger a safety/proximity 
+		filter with horizons.
+
+		Bottom line. The Moid value specified in the results doesn't correspond to the 
+		current location of the object. It simply indicates the potentially closest encounter
+		at some point in the future.
+
+		"""
+
 		import ssl
 		url = url+"&start_date="+self.fetchDateStr+"&end_date="+self.fetchDateStr
 		try:
@@ -757,7 +775,8 @@ class SEARCHpanel(AbstractUI):
 		self.BodiesSPK_ID = []
 		rawResp = response.read()
 		self.jsonResp = json.loads(rawResp)
-		#print rawResp
+		
+		#print json.dumps(self.jsonResp, indent=4)
 
 		# use if "prev" not in "links"  
 		self.nextUrl = self.jsonResp["links"]["next"] if "next" in self.jsonResp["links"] else ""
@@ -858,7 +877,7 @@ class SEARCHpanel(AbstractUI):
 				raise
 
 		self.jsonBNResp = json.loads(rawResp)
-		print (rawResp)
+		#print (rawResp)
 
 		# check if there are multiple results or not
 		if type == self.SRCH_BROAD:
@@ -1011,29 +1030,29 @@ class SEARCHpanel(AbstractUI):
 		# add what follows through a loop going through all elements of entry["orbit"]["elements"]
 		for elt in entry["orbit"]["elements"]:
 			if elt["name"] == "e":
-				self.SolarSystem.objects_data[spkid].update({"EC_e": float(elt["value"])})
+				self.SolarSystem.objects_data[spkid].update({"eccentricity_EC": float(elt["value"])})
 			elif elt["name"] == "q":
-				self.SolarSystem.objects_data[spkid].update({"QR_perihelion": float(elt["value"]) * AU})
+				self.SolarSystem.objects_data[spkid].update({"distance_to_periapsis": float(elt["value"]) * AU})
 			elif elt["name"] == "i":
-				self.SolarSystem.objects_data[spkid].update({"IN_orbital_inclination": float(elt["value"])})
+				self.SolarSystem.objects_data[spkid].update({"orbital_inclination_IN": float(elt["value"])})
 			elif elt["name"] == "om":
 				om = float(elt["value"])
-				self.SolarSystem.objects_data[spkid].update({"OM_longitude_of_ascendingnode": om})
+				self.SolarSystem.objects_data[spkid].update({"longitude_of_ascendingnode_OM": om})
 			elif elt["name"] == "w":
 				W = float(elt["value"])
-				self.SolarSystem.objects_data[spkid].update({"W_argument_of_perihelion": W})
+				self.SolarSystem.objects_data[spkid].update({"argument_of_periapsis_w": W})
 			elif elt["name"] == "ma":
-				self.SolarSystem.objects_data[spkid].update({"MA_mean_anomaly": float(elt["value"])})
+				self.SolarSystem.objects_data[spkid].update({"mean_anomaly_MA": float(elt["value"])})
 			elif elt["name"] == "tp":
-				self.SolarSystem.objects_data[spkid].update({"Tp_Time_of_perihelion_passage_JD": float(elt["value"])}) # value unit in "TDB" (Time Dynamic Baricenter)
+				self.SolarSystem.objects_data[spkid].update({"jd_time_of_periapsis_passage_Tp": float(elt["value"])}) # value unit in "TDB" (Time Dynamic Baricenter)
 			elif elt["name"] == "per":
 				if elt["value"] == None:
 					elt["value"] = 0
-				self.SolarSystem.objects_data[spkid].update({"PR_revolution": float(elt["value"])})
+				self.SolarSystem.objects_data[spkid].update({"revolution_PR": float(elt["value"])})
 			elif elt["name"] == "n":
-				self.SolarSystem.objects_data[spkid].update({"N_mean_motion": float(elt["value"])})
+				self.SolarSystem.objects_data[spkid].update({"mean_motion_N": float(elt["value"])})
 
-		self.SolarSystem.objects_data[spkid].update({"longitude_of_perihelion": om+W})
+		self.SolarSystem.objects_data[spkid].update({"longitude_of_periapsis_W": om+W})
 
 		print (self.SolarSystem.objects_data[spkid])
 
@@ -1042,6 +1061,7 @@ class SEARCHpanel(AbstractUI):
 		self.SolarSystem.addTo(body)
 		return spkid
 
+
 	def loadBodyInfoFromDaily(self, index):
 
 		if "near_earth_objects" not in self.jsonResp:
@@ -1049,6 +1069,7 @@ class SEARCHpanel(AbstractUI):
 
 		entry = self.jsonResp["near_earth_objects"][self.fetchDateStr][index]
 		#print entry
+
 
 		# if the key already exists, the object has already been loaded, simply return its spk-id
 		if entry["neo_reference_id"] in self.SolarSystem.objects_data:
@@ -1073,26 +1094,29 @@ class SEARCHpanel(AbstractUI):
 		# utc_close_approach is a naive datetime object
 		print "LOADBODY_INFO utc_close_approach= ", utc_close_approach, "UTC from timestamp=", utc_timestamp
 
+		print json.dumps(entry, indent=4)
+
 		# Add data to dictionary
+		"""
 		self.SolarSystem.objects_data[entry["neo_reference_id"]] = {
 			"material": 0,
 			# epoch_date_close_approach comes as the number of milliseconds in unix TT
 			"epoch_date_close_approach": utc_close_approach, # in seconds using J2000
-			"name": entry["name"],
-			"iau_name": entry["name"],
+			"name": entry["neo_reference_id"],
+			"iau_name": entry["neo_reference_id"],
 			"jpl_designation": entry["neo_reference_id"],
 			"mass": 0.0,
 			"radius": float(entry["estimated_diameter"]["kilometers"]["estimated_diameter_max"])*0.5, # if float(entry["estimated_diameter"]["kilometers"]["estimated_diameter_max"])/2 > DEFAULT_RADIUS else DEFAULT_RADIUS,
-			"QR_perihelion": float(entry["orbital_data"]["perihelion_distance"]) * AU,
-			"EC_e": float(entry["orbital_data"]["eccentricity"]),
-			"PR_revolution": float(entry["orbital_data"]["orbital_period"]),
-			"IN_orbital_inclination": float(entry["orbital_data"]["inclination"]),
-			"OM_longitude_of_ascendingnode":float(entry["orbital_data"]["ascending_node_longitude"]),
-			"W_argument_of_perihelion": float(entry["orbital_data"]["perihelion_argument"]),
-			"longitude_of_perihelion": float(entry["orbital_data"]["ascending_node_longitude"])+float(entry["orbital_data"]["perihelion_argument"]),
-			"Tp_Time_of_perihelion_passage_JD": float(entry["orbital_data"]["perihelion_time"]),
-			"N_mean_motion": float(entry["orbital_data"]["mean_motion"]),
-			"MA_mean_anomaly": float(entry["orbital_data"]["mean_anomaly"]),
+			"distance_to_periapsis": float(entry["orbital_data"]["perihelion_distance"]) * AU,
+			"eccentricity_EC": float(entry["orbital_data"]["eccentricity"]),
+			"revolution_PR": float(entry["orbital_data"]["orbital_period"]),
+			"orbital_inclination_IN": float(entry["orbital_data"]["inclination"]),
+			"longitude_of_ascendingnode_OM":float(entry["orbital_data"]["ascending_node_longitude"]),
+			"argument_of_periapsis_w": float(entry["orbital_data"]["perihelion_argument"]),
+			"longitude_of_periapsis_W": float(entry["orbital_data"]["ascending_node_longitude"])+float(entry["orbital_data"]["perihelion_argument"]),
+			"jd_time_of_periapsis_passage_Tp": float(entry["orbital_data"]["perihelion_time"]),
+			"mean_motion_N": float(entry["orbital_data"]["mean_motion"]),
+			"mean_anomaly_MA": float(entry["orbital_data"]["mean_anomaly"]),
 			"epochJD": float(entry["orbital_data"]["epoch_osculation"]),
 			"earth_moid": float(entry["orbital_data"]["minimum_orbit_intersection"]) * AU,
 			"orbit_class": "N/A",
@@ -1102,16 +1126,74 @@ class SEARCHpanel(AbstractUI):
 			"utc_dt": utc_close_approach,
 			"local_dt": orbit3D.utc_to_local_fromTimestamp(utc_timestamp, self.SolarSystem.locationInfo)
 		}
+		"""
+		#///////////////////
+
+		PhaEntry = {
+		    "id": {
+		    	"name": entry["id"], 
+		        "iau_name": entry["neo_reference_id"], 
+		        "jpl_designation": entry["name"], 
+		        "horizons_id":  entry["neo_reference_id"], 
+		        "horizons_rec_id":  entry["neo_reference_id"], 
+		        "object_class": PHA, 
+		        "epoch_date_close_approach": utc_close_approach,
+		        "orbiting": "sun"
+
+		    }, 
+		    "elements": {
+		        "semi_major_m": float(entry["orbital_data"]["semi_major_axis"]) * AU, 
+		        "eccentricity_EC": float(entry["orbital_data"]["eccentricity"]), 
+		        "orbital_inclination_IN": float(entry["orbital_data"]["inclination"]), 
+		        "longitude_of_ascendingnode_OM": float(entry["orbital_data"]["ascending_node_longitude"]), 
+		        "argument_of_periapsis_w": float(entry["orbital_data"]["perihelion_argument"]), 
+		        "longitude_of_periapsis_W": float(entry["orbital_data"]["ascending_node_longitude"])+float(entry["orbital_data"]["perihelion_argument"]), 
+		        #"true_anomaly_nu": 199.34934435698057, 
+		        #"eccentric_anomaly_E": 285.8334091397766, 
+		        "mean_anomaly_MA": float(entry["orbital_data"]["mean_anomaly"]), 
+		        "mean_motion_rad_day": deg2rad(float(entry["orbital_data"]["mean_motion"])), 
+		        "mean_motion_N": float(entry["orbital_data"]["mean_motion"]), 
+		        "revolution_PR": 27627.80821990938, 
+		        "distance_to_periapsis_m": 87396741889.16167, 
+		        "aphelion_m": 5263838932543.761, 
+		        "jd_time_of_periapsis_passage_Tp": 2435074.032133931, 
+				"earth_moid": float(entry["orbital_data"]["minimum_orbit_intersection"]) * AU,
+				"utcstr": utc_close_approach.strftime('%Y-%m-%d %H:%M:%S'),
+				"utc_dt": utc_close_approach,
+				"local_dt": orbit3D.utc_to_local_fromTimestamp(utc_timestamp, self.SolarSystem.locationInfo),
+		        "epochJD": float(entry["orbital_data"]["epoch_osculation"])
+		    }, 
+		    "rotation": {
+		        "axial_tilt": None, 
+		        "rotation_period_solar_d": None
+		    }, 
+		    "physical": {
+		        "texture": "./img/asteroid", 
+		        "mass_kg": None, 
+		        "radius_m": float(entry["estimated_diameter"]["meters"]["estimated_diameter_max"]), 
+				"absolute_mag": float(entry["absolute_magnitude_h"]),
+		        "GM": 0.0
+		    }, 
+		    "state_vector": {
+		        "r": [0.0, 0.0, 0.0], 
+		        "v": [0.0, 0.0, 0.0], 
+		        "epochJD": float(entry["orbital_data"]["epoch_osculation"])
+		    }
+		}
+
+		self.SolarSystem.objects_data[entry["neo_reference_id"]] = PhaEntry
+
+		#///////////////////
 
 		#print "UTC time of approach   =========>", self.SolarSystem.objects_data[entry["neo_reference_id"]]["utc_dt"]
 		#print "Local time of approach --------->", self.SolarSystem.objects_data[entry["neo_reference_id"]]["local_dt"]
 
 		# convert UTC to local time
-		utcNewdatetime = self.SolarSystem.objects_data[entry["neo_reference_id"]]["utc_dt"]
-		LocNewdatetime = self.SolarSystem.objects_data[entry["neo_reference_id"]]["local_dt"]
+		utcNewdatetime = self.SolarSystem.objects_data[entry["id"]]["elements"]["utc_dt"]
+		LocNewdatetime = self.SolarSystem.objects_data[entry["id"]]["elements"]["local_dt"]
 
 		# print time of closest approach on this date
- 		print ">>> Local Time of approach: ", self.SolarSystem.objects_data[entry["neo_reference_id"]]["local_dt"]
+ 		print ">>> Local Time of approach: ", self.SolarSystem.objects_data[entry["id"]]["elements"]["local_dt"]
 
 		# CLose approach objects are considered as PHAs
 		body = orbit3D.makePha(self.SolarSystem, entry["neo_reference_id"], orbit3D.getColor())
@@ -1175,7 +1257,7 @@ class ORBITALpanel(AbstractUI):
 		self.viewAngle = atan2(body.Position[1], body.Position[0])
 
 	def resetDateFromBodyId(self, id):
-		diff =  self.SolarSystem.objects_data[id]["utc_dt"] - self.todayUTCdatetime
+		diff =  self.SolarSystem.objects_data[id]["elements"]["utc_dt"] - self.todayUTCdatetime
 		self.DeltaT = diff.total_seconds()/86400.0
 		print "ResetDateFromBodyId: DELTA from right now (in days) =", self.DeltaT
 		self.updateSolarSystem()
@@ -1183,7 +1265,7 @@ class ORBITALpanel(AbstractUI):
 
 	def createBodyList(self, xpos, ypos):
 		for body in self.SolarSystem.bodies:
-			if body.BodyType in [SPACECRAFT, PHA, BIG_ASTEROID, COMET, TRANS_NEPT]:
+			if body.BodyType in [SPACECRAFT, PHA, BIG_ASTEROID, COMET, TNO]:
 				self.list.append(body.Name)
 				self.listjplid.append(body.JPL_designation.lower())
 
@@ -1197,8 +1279,8 @@ class ORBITALpanel(AbstractUI):
 	def OnSelect(self, e):
 		#if self.SolarSystem.SlideShowInProgress == False:
 			index = e.GetSelection()
-			jpl_designation = self.listjplid[index]
-			self.setCurrentBodyFromId(jpl_designation)
+			name = self.listjplid[index]
+			self.setCurrentBodyFromId(name)
 			if self.SolarSystem.cameraViewTargetSelection == CURRENT_BODY:
 				print ""
 				print "CHANGING CURRENT OBJECT"
@@ -1228,13 +1310,13 @@ class ORBITALpanel(AbstractUI):
 			self.currentBody = body
 			self.initViewAngle(body)
 			self.currentBody.Details = True
-			#print "Current body SET-1 with ", self.currentBody.Name, "Origin=",self.currentBody.Origin.pos
+			#print "Current body SET-1 with ", self.currentBody.Name, "Origin=",self.currentBody.RefOrigin.pos
 			#print ""
 			self.showObjectDetails(self.currentBody)
-			print "\nBODY:",body.Name, "\nposition=",body.Position, "\nbody.pos=",body.BodyGeometry.pos, "\nlabels.pos=", body.Labels[0].pos, "\norigin.pos=",body.Origin.pos
+			print "\nBODY:",body.Name, "\nposition=",body.Position, "\nbody.pos=",body.BodyGeometry.pos, "\nlabels.pos=", body.Labels[0].pos, "\norigin.pos=",body.RefOrigin.pos
 		else:
 			print "SetCurrentBodyFromId: could not find", id
-		#print "Current body SET-2 with ", self.currentBody.Name, "Origin=",self.currentBody.Origin.pos
+		#print "Current body SET-2 with ", self.currentBody.Name, "Origin=",self.currentBody.RefOrigin.pos
 
 	def setCurrentBodyFromIdSAVE(self, id):
 		if self.currentBody is not None:
@@ -1242,10 +1324,10 @@ class ORBITALpanel(AbstractUI):
 
 		self.currentBody = self.SolarSystem.getBodyFromName(id)
 		self.currentBody.Details = True
-		#print "Current body SET-1 with ", self.currentBody.Name, "Origin=",self.currentBody.Origin.pos
+		#print "Current body SET-1 with ", self.currentBody.Name, "Origin=",self.currentBody.RefOrigin.pos
 		#print ""
 		self.showObjectDetails(self.currentBody)
-		#print "Current body SET-2 with ", self.currentBody.Name, "Origin=",self.currentBody.Origin.pos
+		#print "Current body SET-2 with ", self.currentBody.Name, "Origin=",self.currentBody.RefOrigin.pos
 
 	def updateTimeStamps(self, ldt, utcdt):
 		self.set_LOI_datetime_label(ldt)
@@ -1304,6 +1386,7 @@ class ORBITALpanel(AbstractUI):
 		# Create a custom event in order to update the content of the day spinner if its value is out-of-range
 		self.CustomEvent, EVT_RESET_SPINNER = wx.lib.newevent.NewEvent()
 		self.dateDSpin.Bind(EVT_RESET_SPINNER, self.ResetSpinner) # bind it as usual
+		
 		# The day spinner has 2 events. one triggered when clicking on an arrow, and one
 		# triggered programmatically to update the value of the day spinner in order to correct it
 		# The firing of the EVT_RESET_SPINNER is programmatically done during the execution
@@ -1317,10 +1400,10 @@ class ORBITALpanel(AbstractUI):
 		self.ValidateDate.Bind(wx.EVT_BUTTON, self.OnValidateDate)
 
 
-		self.createCheckBox(self, "Inner Planets", INNERPLANET, 20, CHK_L1)
+		self.createCheckBox(self, "Inner Planets", INNER_PLANET, 20, CHK_L1)
 		self.createCheckBox(self, "Orbits", ORBITS, 20, CHK_L2)
-		self.createCheckBox(self, "Outer Planets", OUTERPLANET, 20, CHK_L3)
-		self.createCheckBox(self, "Dwarf Planets", DWARFPLANET, 20, CHK_L4)
+		self.createCheckBox(self, "Outer Planets", OUTER_PLANET, 20, CHK_L3)
+		self.createCheckBox(self, "Dwarf Planets", DWARF_PLANET, 20, CHK_L4)
 		self.createCheckBox(self, "Asteroids Belt", ASTEROID_BELT, 20, CHK_L5)
 		self.createCheckBox(self, "Jupiter Trojans", JTROJANS, 20, CHK_L6)
 		self.createCheckBox(self, "Kuiper Belt", KUIPER_BELT, 20, CHK_L7)
@@ -1333,10 +1416,12 @@ class ORBITALpanel(AbstractUI):
 		self.createCheckBox(self, "Lit Scene", LIT_SCENE, 20, CHK_L12)
 		self.createCheckBox(self, "Adjust objects size", REALSIZE, 20, CHK_L13)
 		self.createCheckBox(self, "Referential", REFERENTIAL, 20, CHK_L14)
+		self.createCheckBox(self, "Moons", MOON, 20, CHK_L15B)
+		self.createCheckBox(self, "TransNept.", TNO, 20, CHK_L16)
 
 		self.createBodyList(200, LSTB_Y)
 
-		cbtn = wx.Button(self, label='Refresh', pos=(20, CHK_L15))
+		cbtn = wx.Button(self, label='Refresh', pos=(20, CHK_L17))
 		cbtn.Bind(wx.EVT_BUTTON, self.OnRefresh)
 
 		lblList = ['PHA', 'Comets', 'Major Asteroids', 'Trans Neptunians']
@@ -1497,25 +1582,29 @@ class ORBITALpanel(AbstractUI):
 		#print "----------"
 		#print "updateCameraViewTarget: position:",self.SolarSystem.cameraViewTargetBody.Position
 		##print "label coordinates:",self.SolarSystem.cameraViewTargetBody.Labels[0].pos
-		#print "updateCameraViewTarget: label=", self.SolarSystem.cameraViewTargetBody.Labels[0].pos, "origin=", self.SolarSystem.cameraViewTargetBody.Origin.pos
+		#print "updateCameraViewTarget: label=", self.SolarSystem.cameraViewTargetBody.Labels[0].pos, "origin=", self.SolarSystem.cameraViewTargetBody.RefOrigin.pos
 		#print "----------"
 
 	"""			
 	
 
 	def updateSolarSystem(self):
-		# animate all visible bodies in the solar system 
+
+		# This function will ANIMATE all visible bodies in the solar system 
+		
 		self.refreshDate()
 		#self.SolarSystem.animate(self.DeltaT)
 		for body in self.SolarSystem.bodies:
-			if body.BodyType in [SUN, SPACECRAFT, OUTERPLANET, INNERPLANET, SATELLITE, ASTEROID, \
-								 COMET, DWARFPLANET, PHA, BIG_ASTEROID, TRANS_NEPT]:
-				if body.Origin.visible == True or body.Name.lower() == EARTH_NAME:
+			if body.BodyType in [SUN, SPACECRAFT, OUTER_PLANET, INNER_PLANET, MOON, ASTEROID, \
+								 COMET, DWARF_PLANET, PHA, BIG_ASTEROID, TNO]:
+				if body.RefOrigin.visible == True or body.Name.lower() == EARTH_NAME:
 					velocity, dte, dts = body.animate(self.DeltaT)
 					#print "VEL:", velocity, "dte:", dte
 					if self.SolarSystem.cameraViewTargetBody is not None:
+						
 						# update center position if we are NOT in the middle of a smooth transition and
 						# NOT in a location Referential view mode (point of view from current location)
+
 						if 	body.JPL_designation == self.SolarSystem.cameraViewTargetBody.JPL_designation and \
 							self.SolarSystem.Dashboard.focusTab.smoothTransition == False and \
 							self.SolarSystem.Dashboard.widgetsTab.Earth.PlanetWidgets.locationEarthEyeView == False:
@@ -1620,7 +1709,7 @@ class ORBITALpanel(AbstractUI):
 		##print "TROJAN INDEX=",self.SolarSystem.JTrojansIndex
 		curTrojans = self.SolarSystem.getJTrojans()
 		if curTrojans is not None:
-			JupiterBody = self.SolarSystem.getBodyFromName(self.SolarSystem.objects_data[curTrojans.PlanetName]['jpl_designation'])
+			JupiterBody = self.SolarSystem.getBodyFromName(self.SolarSystem.objects_data[curTrojans.PlanetName]['id']['name']) #'jpl_designation'])
 			# if Jupiter coordinates haven't changed since this Trojans were generated, don't do anything
 			if JupiterBody.Position[0] == curTrojans.JupiterX and JupiterBody.Position[1] == curTrojans.JupiterY:
 				return
@@ -1637,7 +1726,7 @@ class ORBITALpanel(AbstractUI):
 			self.resetBodyList()
 
 		index = self.rbox.GetSelection()
-		self.Source = {0: PHA, 1: COMET, 2:BIG_ASTEROID, 3:TRANS_NEPT}[index]
+		self.Source = {0: PHA, 1: COMET, 2:BIG_ASTEROID, 3:TNO}[index]
 		self.SolarSystem.currentSource = self.Source
 
 	def OnAnimSpeedSlider(self, e):
@@ -1735,17 +1824,17 @@ class ORBITALpanel(AbstractUI):
 		else:
 			mass = setPrecision(str(body.Mass), 3)
 
-		radius = round(float(body.BodyRadius) * 1000)/1000 if body.BodyRadius != 0 and body.BodyRadius != DEFAULT_RADIUS else 0
-		moid = round(float(body.Moid/AU) * 10000)/10000 if body.Moid != 0 else 0
+		radius = round(float(body.BodyRadius) * 1000)/1000 if body.BodyRadius != 0.0 and body.BodyRadius != DEFAULT_RADIUS else 0.0
+		moid = round(float(body.Moid/AU) * 10000)/10000 if body.Moid != 0.0 else 0.0
 #		rev = round(float(body.Revolution / 365.25) * 1000)/1000
 		rev = round(float(body.Revolution / EARTH_PERIOD) * 1000)/1000
 		H = body.Absolute_mag if body.Absolute_mag != 0 else 0
 
 		i = round(float(body.Inclination) * 1000)/1000
 		N = round(float(body.Longitude_of_ascendingnode) * 1000)/1000
-		w = round(float(body.Argument_of_perihelion) * 1000)/1000
+		w = round(float(body.Argument_of_periapsis) * 1000)/1000
 		e = round(float(body.e) * 1000)/1000
-		q = round(float(body.Perihelion/AU) * 1000)/1000
+		q = round(float(body.Periapsis/AU) * 1000)/1000
 
 		self.DetailsOn = True
 		self.Info1.SetLabel("{:<12}{:>7.3f}\n{:<12}{:>7.3f}\n{:<12}{:>7.3f}\n{:<12}{:>7.3f}\n{:<12}{:>7.3f}\n{:<12}{:>7.3f}".
@@ -1764,11 +1853,11 @@ class ORBITALpanel(AbstractUI):
 		############ self.refreshDate() 
 
 		#for i in range(len(body.BodyGeometry)):
-		print ">>>>DETAILS:\norigin.pos=", body.Origin.pos, "\nlabel.pos", body.Labels[0].pos
-		body.Origin.visible = True
+		print ">>>>DETAILS:\norigin.pos=", body.RefOrigin.pos, "\nlabel.pos", body.Labels[0].pos
+		body.RefOrigin.visible = True
 		for i in range(len(body.Labels)):
 			body.Labels[i].visible = True
-		body.Trail.visible = True
+		body.Orbit.visible = True
 
 	def stopSlideSHow(self):
 		if self.AnimationInProgress == True:
@@ -1825,11 +1914,11 @@ class ORBITALpanel(AbstractUI):
 
 	def hideCurrentObject(self, body):
 		#body.BodyGeometry.visible = False
-		body.Origin.visible = False
+		body.RefOrigin.visible = False
 		for i in range(len(body.Labels)):
 			body.Labels[i].visible = False
 
-		body.Trail.visible = False
+		body.Orbit.visible = False
 
 	def resetSlideShow(self):
 		self.SlideShow.SetLabel("Start")
@@ -1859,6 +1948,10 @@ class ORBITALpanel(AbstractUI):
 		else:
 			self.RecorderOn = False
 			self.Recorder.SetOwnForegroundColour(wx.BLACK)
+			if self.VideoRecorder is not None:
+				stopRecording(self.VideoRecorder)
+				self.VideoRecorder = None
+
 
 		#self.disableBeltsForAnimation()
 		#self.AnimationInProgress = False # stop potential animation in progress
@@ -1891,8 +1984,12 @@ class ORBITALpanel(AbstractUI):
 			self.updateConstantForwardVectorMode()
 
 	def updateConstantForwardVectorMode(self, sunPerspective = False):
-		# we use self.SolarSystem.cameraViewTargetBody
-		# alternate view: using the current forward vector, match vector rotation with earth angular speed
+		"""
+		we use self.SolarSystem.cameraViewTargetBody
+		alternate view: using the current forward vector, match 
+		vector rotation with earth angular speed
+		"""
+
 		if self.SolarSystem.cameraViewTargetBody is not None:
 			angle = atan2(self.SolarSystem.cameraViewTargetBody.Position[1], self.SolarSystem.cameraViewTargetBody.Position[0])
 			self.SolarSystem.Scene.forward = rotate(self.SolarSystem.Scene.forward, angle=(angle-self.viewAngle), axis=(0,0,1)) #self.Widgets.ECSS.ZdirectionUnit)
@@ -1956,11 +2053,70 @@ class ORBITALpanel(AbstractUI):
 		# start a new thread to retrieve the list of NEOs from JPL
 		#animateThread = threading.Thread(target=self.doAnimation, name="doAnimation", args=[] )
 		#animateThread.start()
+
+		# NEW: Safety cleanup before starting
+		self.VideoRecorder = None
+
 		self.doAnimation()
 		# loop was here
 
 		#self.Recorder.SetColor() ####
 	def doAnimation(self):
+		
+		# set mechanic to determine the # of frame per seconds in Animation (if recorder is ON)
+		"""
+		sec = time.gmtime(time.time()).tm_sec
+		framerate = 0
+		videoRec = False
+		"""
+
+		target_fps = 60.0
+		frame_duration = 1.0 / target_fps
+
+		while self.AnimationInProgress:
+			start_time = time.time()
+
+			# 1. Logic for recording (The "Lazy" Initialization)
+			if self.RecorderOn and self.VideoRecorder is None:
+				self.VideoRecorder = setVideoRecording(framerate=target_fps, filename="orbit.mp4")
+				# Add a tiny 10ms sleep here to let the OS finalize the file handle 
+				# before the first frame capture happens
+				time.sleep(0.01)
+
+			self.OneTimeIncrement()
+
+			# 3. Record IF the recorder was successfully created
+			if self.RecorderOn and self.VideoRecorder is not None:
+				recOneFrame(self.VideoRecorder)
+			
+			# if we have an animation callback set up, run it
+			if self.DisableAnimationCallback == False:
+				self.AnimationCallback()
+
+			# Force the loop to wait if it's running too fast
+			elapsed = time.time() - start_time
+			if elapsed < frame_duration:
+				print "sleep for :", frame_duration - elapsed, " sec"
+				time.sleep(frame_duration - elapsed)
+
+			"""
+			# determine # of frames/sec
+			t = time.gmtime(time.time()).tm_sec
+			if t != sec:
+				sec = t 
+				#print framerate
+				framerate = 0
+			else:
+				framerate += 1
+			"""
+
+		# as soon as we exit animation, restore "play" sign
+		self.Animate.SetLabel(">")
+
+
+
+	def doAnimation_SAVE(self):
+		
 		# set mechanic to determine the # of frame per seconds in Animation (if recorder is ON)
 		sec = time.gmtime(time.time()).tm_sec
 		framerate = 0
@@ -1991,7 +2147,6 @@ class ORBITALpanel(AbstractUI):
 
 		# as soon as we exit animation, restore "play" sign
 		self.Animate.SetLabel(">")
-
 
 	# this method calls the display class _set_autoMovement to enable or disable
 	# mouse tracking, depending on whether we have or not an auto movement in progress
@@ -2204,7 +2359,7 @@ class WIDGETSpanel(AbstractUI):
 	def OnCameraSettingsXX(self, e):
 
 		index = self.rbox.GetSelection()
-		self.Source = {0: PHA, 1: COMET, 2:BIG_ASTEROID, 3:TRANS_NEPT}[index]
+		self.Source = {0: PHA, 1: COMET, 2:BIG_ASTEROID, 3:TNO}[index]
 		self.cameraSettingsActions[index](e)
 
 	def OnFollowMode(self, e):
@@ -2430,7 +2585,7 @@ class WIDGETSpanel(AbstractUI):
 		
 	def OnReCenter(self, e):
 		# recenter on earth's center
-		print "re-centering in ", self.Earth.Origin.pos
+		print "re-centering in ", self.Earth.RefOrigin.pos
 		# reset current location value
 		self.Earth.PlanetWidgets.currentLocation = -1
 		self.resetLocationList()
@@ -2462,14 +2617,14 @@ class WIDGETSpanel(AbstractUI):
 			self.parentFrame.orbitalTab.OnAnimate(e)
 
 		#self.SolarSystem.camera.updateCameraViewTarget()
-		self.SolarSystem.camera.smoothFocus(self.Earth.JPL_designation)	
+		self.SolarSystem.camera.smoothFocus(self.Earth.Name) #JPL_designation)	
 
-		#self.SolarSystem.Scene.center = self.Earth.Origin.pos
+		#self.SolarSystem.Scene.center = self.Earth.RefOrigin.pos
 		
 		#(
-		#				self.Earth.Origin.pos[0],
-		#				self.Earth.Origin.pos[1],
-		#				self.Earth.Origin.pos[2]
+		#				self.Earth.RefOrigin.pos[0],
+		#				self.Earth.RefOrigin.pos[1],
+		#				self.Earth.RefOrigin.pos[2]
 		#			)
 		# focus on current location
 		return
@@ -2603,7 +2758,7 @@ class WIDGETSpanel(AbstractUI):
 		#self.parentFrame.orbitalTab.updateCameraViewTarget()
 
 	def OnHidePlanet(self, e):
-		self.Earth.Origin.visible = not self.hpcb.GetValue()
+		self.Earth.RefOrigin.visible = not self.hpcb.GetValue()
 
 	def OnDrawEquator(self, e):
 		self.Earth.PlanetWidgets.showEquator(self.eqcb.GetValue())

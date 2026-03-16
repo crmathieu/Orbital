@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 """
 	Copyright (c) 2017 Charles Mathieu
 
@@ -21,37 +22,42 @@ SOFTWARE.
 
 """
 # Body types
-INNERPLANET = 0x01
-OUTERPLANET = 0x02
-DWARFPLANET = 0x04
-ASTEROID = 0x08
-COMET = 0x10
-SMALL_ASTEROID = 0x20
-BIG_ASTEROID = 0x40
-PHA = 0x80
-ASTEROID_BELT = 0x100
-KUIPER_BELT = 0x200
-INNER_OORT_CLOUD = 0x400
-ECLIPTIC_PLANE = 0x800
-LIT_SCENE = 0x1000
-REFERENTIAL = 0x2000
-ORBITS = 0x4000
-GASGIANT = 0x8000
-TRANS_NEPT = 0x10000
-LABELS = 0x20000
-JTROJANS = 0x40000
-REALSIZE = 0x80000
-LOCAL_REFERENTIAL = 0x100000
-SATELLITE = 0x200000
-CELESTIAL_SPHERE = 0x400000
-HYPERBOLIC = 0x800000
-SPACECRAFT = 0x1000000
-CONSTELLATIONS = 0x2000000
-SUN = 0x4000000
+INNER_PLANET 		= 0x01
+OUTER_PLANET 		= 0x02
+MOON 				= 0x04
+SPACECRAFT 			= 0x08
+ASTEROID 			= 0x10
+GAS_GIANT 			= 0x20
+DWARF_PLANET 		= 0x40
+TNO 			= 0x80
+COMET 				= 0x100
+
+SMALL_ASTEROID 		= 0x200
+BIG_ASTEROID 		= 0x400
+PHA 				= 0x800
+ASTEROID_BELT 		= 0x1000
+KUIPER_BELT 		= 0x2000
+INNER_OORT_CLOUD 	= 0x4000
+ECLIPTIC_PLANE 		= 0x8000
+
+LIT_SCENE 			= 0x10000
+REFERENTIAL 		= 0x20000
+ORBITS 				= 0x40000
+LABELS 				= 0x80000
+
+JTROJANS 			= 0x100000
+REALSIZE 			= 0x200000
+LOCAL_REFERENTIAL 	= 0x400000
+CELESTIAL_SPHERE 	= 0x800000
+HYPERBOLIC 			= 0x1000000
+CONSTELLATIONS 		= 0x2000000
+SUN 				= 0x4000000
+SMALL_MOON			= 0x8000000
+TINY_MOON  			= 0x10000000
 
 TYPE_MASK = 0xFFFFFFF
 
-SATELLITE_M = 100
+SPACECRAFT_M = 100
 THREE_D = False
 MAX_P_D = 1.1423e13
 MIN_P_D = 46.0e9
@@ -59,18 +65,19 @@ MIN_P_D = 46.0e9
 LEGEND = True
 
 SUN_M = 1.989e+30 # in Kg
-#SUN_R = 696e+3 # in km
 SUN_R = 6.957e8 # in m
 
 G = 6.67384e-11	# Universal gravitational constant
 Mu = G * SUN_M
-DIST_FACTOR = 10e-7
+
 
 # EPOCH constants
 #EPOCH_2000_JD = 2451544.5	# number of days ellapsed from 01-01-4713 BC GMT to 01-01-2000 AD GMT
 EPOCH_2000_JD = 2451545.0	# number of days ellapsed from 01-01-4713 BC GMT to 01-01-2000 AD @ 12pm GMT
 EPOCH_2000_MJD = 51544.0
 EPOCH_1970_JD = 2440587.5 # number of days ellapsed from 01-01-4713 BC GMT to 01-01-1970 AD GMT
+
+J2000_TDB = 2451545.0
 
 
 TYPE_STAR = 0
@@ -79,7 +86,8 @@ TYPE_ASTEROID = 2
 TYPE_DWARF_PLANET = 3
 TYPE_COMET = 4
 TYPE_TRANS_N = 5
-TYPE_SATELLITE = 6
+#TYPE_SATELLITE = 6
+TYPE_MOON = 7
 
 CURRENT_BODY = "current_body"
 EARTH_NAME = "earth"
@@ -95,7 +103,7 @@ index_to_bodyname = {
 	0: CURRENT_BODY,	1: SUN_NAME,	2: EARTH_NAME,	3: "mercury",	4:"venus",		
 	5:"mars",       	6:"jupiter",	7:"saturn",   	8:"uranus", 	9:"neptune",
 	10:"pluto",     	11:"sedna", 	12:"makemake",	13:"haumea",	14:"eris", 
-	15:"charon",    	16:"phobos",	17:"deimos",	18:"moon"
+	15:"charon",    	16:"phobos",	17:"adrastea",	18:"mimas",     19:"moon"
 }
 
 bodyname_to_index = {
@@ -103,7 +111,7 @@ bodyname_to_index = {
 	index_to_bodyname[4]: 4,	index_to_bodyname[5]: 5, 	index_to_bodyname[6]: 6, 	index_to_bodyname[7]: 7, 	
 	index_to_bodyname[8]: 8, 	index_to_bodyname[9]: 9,	index_to_bodyname[10]: 10, 	index_to_bodyname[11]: 11, 	
 	index_to_bodyname[12]: 12, 	index_to_bodyname[13]: 13, 	index_to_bodyname[14]: 14, 	index_to_bodyname[15]: 15, 		
-	index_to_bodyname[16]: 16, 	index_to_bodyname[17]: 17, 	index_to_bodyname[18]: 18
+	index_to_bodyname[16]: 16, 	index_to_bodyname[17]: 17, 	index_to_bodyname[18]: 18,  index_to_bodyname[19]: 19 
 }
 
 AU = 149597870691
@@ -185,23 +193,21 @@ JPL_ORBIT_CLASS = 58
 # time increments in day unit
 
 
-TI_SOLAR_DAY		= 86400.0			# in mean solar seconds
-TI_SIDEREAL_DAY 	= 86164.0905	# in mean solar secs
+TI_SOLAR_DAY				 = 86400.0			# in mean solar seconds
+TI_SIDEREAL_DAY 			 = 86164.0905	# in mean solar secs
+SOLAR_DAY_RATIO 			 = TI_SIDEREAL_DAY/TI_SOLAR_DAY 	# as a ratio of MEAN solar day. It's almost one,
+															# 0.997269565972222, but not completely. This is the ratio
+															# set for the earth rotation
+TI_SOLAR_YEAR				 = 365.24 		# in solar days
+TI_SIDEREAL_YEAR			 = 366.24		# in sidereal days
 
-SOLAR_DAY_RATIO 	= TI_SIDEREAL_DAY/TI_SOLAR_DAY 	# as a ratio of MEAN solar day. It's almost one,
-													# 0.997269565972222, but not completely. This is the ratio
-													# set for the earth rotation
-
-TI_SOLAR_YEAR		= 365.24 		# in solar days
-TI_SIDEREAL_YEAR	= 366.24		# in sidereal days
-
-TI_ONE_MEAN_SOLAR_SECOND = 1.0 / TI_SOLAR_DAY 	# in mean solar days #1.157407e-5 : 1d -> 86400 sec => 1sec = 1/86400 day
+TI_ONE_MEAN_SOLAR_SECOND 	 = 1.0 / TI_SOLAR_DAY 	# in mean solar days #1.157407e-5 : 1d -> 86400 sec => 1sec = 1/86400 day
 TI_ONE_SIDEREAL_SOLAR_SECOND = 365.25/366.25 # in UT1 seconds     # 1 / TI_SIDEREAL_DAY
 
 
 # analemma special value for visualization
-TI_ONE_SECOND_ANA 	= 1.160585e-5	# normally, it should be 1.160576284e-5 since it is 1/86164.0905 sec 
-									# but rounding to this value gives a more stable rotation.
+TI_ONE_SECOND_ANA 			 = 1.160585e-5	# normally, it should be 1.160576284e-5 since it is 1/86164.0905 sec 
+											# but rounding to this value gives a more stable rotation.
 
 #TI_24_HOURS_ANA 	= TI_ONE_SECOND_ANA * TI_SIDEREAL_DAY
 
@@ -230,7 +236,7 @@ print "=========================>>>>>>>>>>>>> 1 SEC=", TI_ONE_SECOND, ", 24H = "
 #TI_TWELVE_HOURS = 0.5
 #TI_24_HOURS 	= 1
 
-
+"""
 Frame_IntervalsXX = { 
 	TI_ONE_SECOND 	: { "value": 1, "label": "1", "unit": "s"},
 	TI_10_SECONDS 	: { "value": 10, "label": "10", "unit": "s"},
@@ -243,7 +249,9 @@ Frame_IntervalsXX = {
 	TI_SIX_HOURS 	: { "value": 360, "label": "6", "unit": "h"},
 	TI_TWELVE_HOURS : { "value": 720, "label": "12", "unit": "h"}
 }
+"""
 
+# the following handles time interval values based on the dialer's position
 Frame_Intervals = { # incr values are always expressed in (fraction of a) day...
 	1: { "incr": TI_ONE_SECOND,  "value": 1, 		"label": "1", 	"unit": "s"},
 	2: { "incr": TI_10_SECONDS,  "value": 10, 		"label": "10", 	"unit": "s"},
@@ -263,40 +271,91 @@ INITIAL_INCREMENT_KEY = 1
 INITIAL_TIMEINCR = Frame_Intervals[INITIAL_INCREMENT_KEY]["incr"] #TI_ONE_SECOND #TI_TEN_MINUTES # 
 #BaseTimeIncrement = INITIAL_TIMEINCR
 
-# scale toggling
+"""
+SCALING
+"""
+
+# scale toggling:
+# toggles between in "inflated" view of planets, and a more up-to-scale view
+# where planets are more in relation to their real dimension. THIS MAY GO AWAY
 SCALE_OVERSIZED = 0
 SCALE_NORMALIZED = 1
 
-# scale per body type
-#bodyScaler = { SUN: 55000, SPACECRAFT: 1, INNERPLANET: 1200, SATELLITE:1400, GASGIANT: 3500, DWARFPLANET: 100, ASTEROID:1, COMET:0.02, SMALL_ASTEROID: 0.1, BIG_ASTEROID:0.1, PHA: 0.007, TRANS_NEPT: 0.001}
-bodyScaler = { SUN: 120000, SPACECRAFT: 1, INNERPLANET: 2400, SATELLITE:1400, GASGIANT: 4500, DWARFPLANET: 100, ASTEROID:1, COMET:0.02, SMALL_ASTEROID: 0.1, BIG_ASTEROID:0.1, PHA: 0.007, TRANS_NEPT: 0.001}
+# size and distance corrections...
+# we apply a coefficient to reduce distances which are vastly too big for a 
+# practical use in a simulation. The SMALLER the number in DIST_FACTOR, the 
+# MORE compressed distances will be. For MOONS, we need to compress less so 
+# that we can see them around their central body. If we'd compress with the 
+# same ratio, they would be all inside their central body, as their semi-major
+# axis is very small compared to interplanetary distances. On the opposite side
+# we want to make the planets and their moons visible, so we want to boost their
+# size that pales in comparison to the distances separating them.
+
+#DIST_FACTOR = 10e-7 # <--- The original distance factor
+DIST_FACTOR = 0.6e-5 # <--- New distance factor
+
+#DIST_FACTOR_MOON = DIST_FACTOR * 8 # <--- distance factor to use for a moon orbit around its central body
+DIST_FACTOR_MOON = DIST_FACTOR * 15 # <--- distance factor to use for a moon orbit around its central body
+
+
+planet_moon_dist_factor = {
+	"earth": DIST_FACTOR * 18,
+	"mars" : DIST_FACTOR * 60,
+	"pluto": DIST_FACTOR * 32,
+	"jupiter": DIST_FACTOR * 75,
+	"saturn": DIST_FACTOR * 75,
+	"uranus": DIST_FACTOR * 20,
+	"neptune": DIST_FACTOR,
+	"mercury": DIST_FACTOR,
+	"venus": DIST_FACTOR,
+}
+
+
+# original SZ correction:
+# The following are default sizes used when objects are 
+# displayed in a more realistic way, instead of their
+# inflated version
+
+SUN_SZ_CORRECTION 			= 1/(DIST_FACTOR * 5)
+PLANET_SZ_CORRECTION 		= 1/(DIST_FACTOR * 5)
+#SATELLITE_SZ_CORRECTION 	= 1/(DIST_FACTOR * 5)
+MOON_SZ_CORRECTION 			= 1/(DIST_FACTOR * 5)
+HYPERBOLIC_SZ_CORRECTION 	= 1/(DIST_FACTOR * 5)
+### ASTEROID_SZ_CORRECTION = 1e-2/(DIST_FACTOR * 5)
+
+#DWARF_PLANET_SZ_CORRECTION 	= 1e-2/(DIST_FACTOR * 5)
+DWARF_PLANET_SZ_CORRECTION 	= 1/(DIST_FACTOR * 5)
+
+SMALLBODY_SZ_CORRECTION 	= 1e-6/(DIST_FACTOR*5) #(default)
+ASTEROID_SZ_CORRECTION 		= SMALLBODY_SZ_CORRECTION
+
+# scale per body type. We need to apply a coefficient to increase
+# the size of the planets and moons, so that we can see them more
+# easily in the simulation. The bodyScaler dictionary tells what
+# coefficeint to use in relation to a particular type of object.
+# The LOWER the number, the MORE "inflated" the object will be.
+
+#bodyScaler = { SUN: 55000, SPACECRAFT: 1, INNER_PLANET: 1200, SATELLITE:1400, GAS_GIANT: 3500, DWARF_PLANET: 100, ASTEROID:1, COMET:0.02, SMALL_ASTEROID: 0.1, BIG_ASTEROID:0.1, PHA: 0.007, TNO: 0.001}
+
+# original bodyscaler
+bodyScaler = { SUN: 15000, SPACECRAFT: 1, INNER_PLANET: 1400, MOON: 1400, SMALL_MOON:100, TINY_MOON: 30, GAS_GIANT: 1300, DWARF_PLANET: 50, ASTEROID:1, COMET:0.02, SMALL_ASTEROID: 0.1, BIG_ASTEROID:0.1, PHA: 0.04, TNO: 50}
+#bodyScaler = { SUN: 120000, SPACECRAFT: 1, INNER_PLANET: 2400, MOON: 2400, GAS_GIANT: 4500, DWARF_PLANET: 100, ASTEROID:1, COMET:0.02, SMALL_ASTEROID: 0.1, BIG_ASTEROID:0.1, PHA: 0.007, TNO: 0.001}
+
+# new bodyscaler
+#bodyScaler = { SUN: 5000, SPACECRAFT: 1, INNER_PLANET: 1800, SATELLITE:1400, GAS_GIANT: 2200, DWARF_PLANET: 100, ASTEROID:1, COMET:0.02, SMALL_ASTEROID: 0.1, BIG_ASTEROID:0.1, PHA: 0.007, TNO: 0.001}
 
 # body shapes
-BodyGeometryTypes = { SUN: "sphere", SPACECRAFT: "cylinder", INNERPLANET: "sphere", OUTERPLANET: "sphere", SATELLITE: "sphere", DWARFPLANET: "sphere", ASTEROID:"cube", COMET:"cone", SMALL_ASTEROID:"cube", BIG_ASTEROID:"sphere", PHA:"cube", TRANS_NEPT: "cube"}
+BodyGeometryTypes = { SUN: "sphere", SPACECRAFT: "cylinder", INNER_PLANET: "sphere", MOON: "sphere", OUTER_PLANET: "sphere", DWARF_PLANET: "sphere", ASTEROID:"cube", COMET:"cone", SMALL_ASTEROID:"cube", BIG_ASTEROID:"sphere", PHA:"cube", TNO: "sphere"}
+#BodyGeometryTypes = { SUN: "sphere", SPACECRAFT: "cylinder", INNER_PLANET: "sphere", OUTER_PLANET: "sphere", SATELLITE: "sphere", DWARF_PLANET: "sphere", ASTEROID:"cube", COMET:"cone", SMALL_ASTEROID:"cube", BIG_ASTEROID:"sphere", PHA:"cube", TNO: "cube"}
 
-# size corrections...
-SMALLBODY_SZ_CORRECTION = 1e-6/(DIST_FACTOR*5) #(default)
-#SMALLBODY_SZ_CORRECTION = 5e-5/(DIST_FACTOR * 5) #(default)
 
-#SUN_SZ_CORRECTION = 1e-2/(DIST_FACTOR * 20)
-SUN_SZ_CORRECTION = 1/(DIST_FACTOR * 5)
-PLANET_SZ_CORRECTION = 1/(DIST_FACTOR * 5)
-SATELLITE_SZ_CORRECTION = 1/(DIST_FACTOR * 5)
-HYPERBOLIC_SZ_CORRECTION = 1/(DIST_FACTOR * 5)
-### ASTEROID_SZ_CORRECTION = 1e-2/(DIST_FACTOR * 5)
-ASTEROID_SZ_CORRECTION = SMALLBODY_SZ_CORRECTION
-DWARFPLANET_SZ_CORRECTION = 1e-2/(DIST_FACTOR * 5)
-
-# adjustment factor
-#Adjustment_cte = 1.85
-ADJUSTMENT_FACTOR_PLANETS = 0 # 1.95
-ADJUSTMENT_FACTOR = 0 #1.72 #1.80
 
 # sun synchronous precession rate per second (calculated using
 # the 360 deg per sidereal year) using the formula:
 # rate = 360 /(SIDEREAL_YEAR * EPHEMERIS_DAY)) degrees/s -or- 
 #        (PI * 2) / (SIDEREAL_YEAR * EPHEMERIS_DAY) rad/s
 #  
+
 EPHEMERIS_DAY = 86400 # in seconds
 MEAN_SOLARDAY = 86400 # in seconds
 SIDEREAL_DAY = 86164.0905 # in seconds
@@ -309,16 +368,13 @@ The Gregorian calendar repeats over a 400 span. In any 400 span, there will be 9
 years, plus one century leap year) with 366 days and 303 years with 365 days. That results in 146097/400 days in a 
 year on average, or exactly 365.2425 days.
 """
-TROPICAL_YEAR = 365.2421871    # in ephemeris days
-
-EARTH_PERIOD = 365.25 #TROPICAL_YEAR #SIDEREAL_YEAR
-EARTH_CENTURY = 36525
-
-EARTH_MEAN_MOTION_WIKI = 1.99096871e-7  	# in rad/s according to wikipedia
+TROPICAL_YEAR 			= 365.2421871    # in ephemeris days
+EARTH_PERIOD 			= 365.25 #TROPICAL_YEAR #SIDEREAL_YEAR
+EARTH_CENTURY 			= 36525
+EARTH_MEAN_MOTION_WIKI 	= 1.99096871e-7  	# in rad/s according to wikipedia
 								 	# but = 1.9909865927683785320224459427387e-7 rd/s according to calculation
-
 EARTH_DAILY_MEAN_MOTION = 0.01720212416151879051667393294526 # in rd/day
-EARTH_MEAN_MOTION = 1.9909865927683785320224459427387e-7 # in rd/s
+EARTH_MEAN_MOTION 		= 1.9909865927683785320224459427387e-7 # in rd/s
 
 def getEarthMeanMotion2():
 	return (pi * 2)/(SIDEREAL_YEAR * EPHEMERIS_DAY)
@@ -327,27 +383,7 @@ def getEarthMeanMotion2():
 #from visual import color
 from vpython_interface import Color
 
-"""
-# Right Ascension and declination for each planet/
-Planet_Pole_Data_J2000_Equatorial = {
-    "Mercury": {"alpha_0": 281.009, "delta_0": 61.414},
-    "Venus":   {"alpha_0": 272.76,  "delta_0": 67.16},
-    "Earth":   {"alpha_0": 0.0,     "delta_0": 90.0}, # Earth's pole defines the J2000 equatorial system
-    "Mars":    {"alpha_0": 317.681, "delta_0": 52.886},
-    "Jupiter": {"alpha_0": 268.05,  "delta_0": 64.49},
-    "Saturn":  {"alpha_0": 40.589,  "delta_0": 83.537},
-    "Uranus":  {"alpha_0": 257.31,  "delta_0": -15.10}, # Uranus's pole is tilted significantly below ecliptic
-    "Neptune": {"alpha_0": 299.36,  "delta_0": 43.46},
-    "Pluto":   {"alpha_0": 132.99,  "delta_0": -6.16},
-   # "Sedna":   {"alpha_0": 61.94,  "delta_0": 8.94},
-   # "Eris":    {"alpha_0": 27.7,   "delta_0": 0.0075},
-   # "Makemake":{"alpha_0": 200.15,  "delta_0": 20.99}, 
-   # "Haumea":  {"alpha_0": 218.74,  "delta_0": 14.68},
-}
 
-# Earth's obliquity to the ecliptic at J2000.0
-OBLIQUITY_ECLIPTIC_J2000 = 23.43928
-"""
 """2
 # Coefficients (alpha0_J2000, alpha0_dot, delta0_J2000, delta0_dot)
 # alpha0_dot and delta0_dot are per Julian century
@@ -391,68 +427,69 @@ Jupiter 	Callisto 	504 	JUP365 	Laplace 	2000-01-01.5 	1882700. 	0.007 	43.8 	87
 		"jpl_designation": "io",
 		"mass": 7.342e+22,
 		"radius": 1738.1e+3,
-		"QR_perihelion":0.00237529455014751*AU,
+		"distance_to_periapsis":0.00237529455014751*AU,
 		"aphelion":0.00270352798850*AU,
-		"EC_e":6.462786125327587e-02,
-		"PR_revolution":27.321582,
+		"eccentricity_EC":6.462786125327587e-02,
+		"revolution_PR":27.321582,
 		"rotation":27.321582 * SOLAR_DAY_RATIO, # in days
-		"IN_orbital_inclination":5.27749841723057, #23.44, # to earth eq.
-		"OM_longitude_of_ascendingnode":143.9091328687446,
-		"longitude_of_perihelion":296.9775666926365+143.9091328687446,
-		"MA_mean_anomaly": 158.3907159645461,
-		"N_mean_motion":13.42988221368860,
+		"orbital_inclination_IN":5.27749841723057, #23.44, # to earth eq.
+		"longitude_of_ascendingnode_OM":143.9091328687446,
+		"longitude_of_periapsis_W":296.9775666926365+143.9091328687446,
+		"mean_anomaly_MA": 158.3907159645461,
+		"mean_motion_N":13.42988221368860,
 		"epochJD": 2457994.50,
-		"Tp_Time_of_perihelion_passage_JD": 2457982.706097905825,
+		"jd_time_of_periapsis_passage_Tp": 2457982.706097905825,
 
 		"axial_tilt": 6.67, # to its own orbital plane1.263=
 		"absolute_mag": 0.0,
 		"orbit_class": "E-SAT",
 		"tga_name": "Moon"
 	},
-	"""
-objects_data = {
-	"moonX" :{
+		"Moon": {
+		"M_deg": 140.14966404910976, 
+		"e": 0.053574743523550905, 
+		"omega_dot_deg_day": 1.1487795987460944e-05, 
+		"Omega_deg": 123.95805543719277, 
+		"revolution_days": 27.63832883056322, 
+		"epochJD": 2461086.1573032406, 
+		"Omega_dot_deg_day": -5.780161074447413e-06, 
+		"planet": "Earth", 
+		"n_deg_day": 13.025389567038589, 
+		"mass_kg": 5.0098137632410894e+19, 
+		"i_deg": 5.240273000309319, 
+		"omega_deg": 315.4342061988724, 
+		"rotation_days": 27.321661, 
+		"a_m": 386138429.0737721, 
+		"Tp_JD": 2451534.240270832, 
+		"radius_m": 4902800.066
+	"""			
+all_objects = {}
 
-		# Note:
-		# For moons, and since orbital elements are always expressed in term 
-		# of the ecliptic plane, the trackingFrame must be also have its x,y
-		# plane in the ecliptic 
 
-		"type": TYPE_SATELLITE,
-		"material":1,
-		"name": "Moon",
-		"symbol": u"\u263D ",
-		"iau_name": "Moon",
-		"jpl_designation": "moon",
-		"mass": 7.342e+22,
-		"radius": 1738.1e+3,
-		"QR_perihelion":0.00237529455014751*AU,
-		"aphelion":0.00270352798850*AU,
-		"EC_e":0.0554,
-		"PR_revolution":27.321582,
-		"rotation":27.321582 * SOLAR_DAY_RATIO, # in days
-		"IN_orbital_inclination":5.16, #23.44, # to earth eq.
-		"OM_longitude_of_ascendingnode":125.08,
-		"longitude_of_perihelion":296.9775666926365+143.9091328687446,
-		"MA_mean_anomaly": 135.27,
-		"N_mean_motion": 0.22887985088124729, #13.42988221368860,
-		"epochJD": 2457994.50,
-		"Tp_Time_of_perihelion_passage_JD": 2457982.706097905825,
+texture = {
+	"mercury": 	"mercury",
+	"venus":	"venus",
+	"earth": 	"highres-earth-8192x4096-clouds",
+	"mars": 	"mars",
+	"jupiter": 	"source/2k_jupiter-PM-normalized",
+	"saturn": 	"saturn",
+	"uranus": 	"uranus",
+	"neptune": 	"source/2k_neptune-PM-normalized",
+}
 
-		"axial_tilt": 6.67, # to its own orbital plane1.263=
-		"absolute_mag": 0.0,
-		"orbit_class": "E-SAT",
-		"tga_name": "Moon"
-		},
-		
+objects_data = {}
+objects_data2 = {
+
+
+	# highly pertubed Moons
 	"moon" :{
 
 		# Note:
 		# For moons, and since orbital elements are always expressed in term 
-		# of the ecliptic plane, the trackingFrame must be also have its x,y
+		# of the ecliptic plane, the GeoEcliptic must also have its x,y
 		# plane in the ecliptic 
 
-		"type": TYPE_SATELLITE,
+		"type": TYPE_MOON,
 		"material":1,
 		"name": "Moon",
 		"symbol": u"\u263D ",
@@ -460,44 +497,47 @@ objects_data = {
 		"jpl_designation": "moon",
 		"mass": 7.342e+22,
 		"radius": 1738.1e+3,
-		"QR_perihelion":0.00237529455014751*AU,
+		"distance_to_periapsis":0.00237529455014751*AU,
 		"aphelion":0.00270352798850*AU,
-		"EC_e":6.462786125327587e-02,
-		"PR_revolution":27.321582,
+		"eccentricity_EC":6.462786125327587e-02,
+		"revolution_PR":27.321582,
 		"rotation":27.321582 * SOLAR_DAY_RATIO, # in days
-		"IN_orbital_inclination":5.27749841723057, #23.44, # to earth eq.
-		"OM_longitude_of_ascendingnode":143.9091328687446,
-		"longitude_of_perihelion":296.9775666926365+143.9091328687446,
-		"MA_mean_anomaly": 158.3907159645461,
-		"N_mean_motion":13.42988221368860,
+		"orbital_inclination_IN":5.27749841723057,# to earth ecliptic #23.44, # to earth eq.
+		"longitude_of_ascendingnode_OM":143.9091328687446,
+		"longitude_of_periapsis_W":296.9775666926365+143.9091328687446,
+		"mean_anomaly_MA": 158.3907159645461,
+		"mean_motion_N":13.21247237789748,
 		"epochJD": 2457994.50,
-		"Tp_Time_of_perihelion_passage_JD": 2457982.706097905825,
+		"jd_time_of_periapsis_passage_Tp": 2457982.706097905825,
 
 		"axial_tilt": 6.67, # to its own orbital plane1.263=
 		"absolute_mag": 0.0,
 		"orbit_class": "E-SAT",
 		"tga_name": "Moon"
 		},
+
+
+	# keplerian Moons
 	"phobos" :{
-		"type": TYPE_SATELLITE,
+		"type": TYPE_MOON,
 		"material":0,
 		"name": "Phobos",
 		"iau_name": "Phobos",
 		"jpl_designation": "phobos",
 		"mass": 1.1e+16,
 		"radius": 15*11.1e+3,
-		"QR_perihelion":4*9.236397056433352E+06, #4*9234.42e+3,
+		"distance_to_periapsis":4*9.236397056433352E+06, #4*9234.42e+3,
 		"aphelion":4*9.519289172301515E+06, #4*9517.58e+3,
-		"EC_e":1.508300535731693E-02,
-		"PR_revolution":0.3191794301882109,
+		"eccentricity_EC":1.508300535731693E-02,
+		"revolution_PR":0.3191794301882109,
 		"rotation":0.3191794301882109 * SOLAR_DAY_RATIO, # in days
-		"IN_orbital_inclination":2.566118935798619E+01, # to ecliptic, #1.093, # to mars eq #
-		"OM_longitude_of_ascendingnode":8.223772856123789E+01,
-		"longitude_of_perihelion":2.762475522960488E+02+8.223772856123789E+01,
-		"MA_mean_anomaly": 8.524147919084433E+01,
-		"N_mean_motion":1.128100327597539E+03,
+		"orbital_inclination_IN":2.566118935798619E+01, # to ecliptic, #1.093, # to mars eq #
+		"longitude_of_ascendingnode_OM":8.223772856123789E+01,
+		"longitude_of_periapsis_W":2.762475522960488E+02+8.223772856123789E+01,
+		"mean_anomaly_MA": 8.524147919084433E+01,
+		"mean_motion_N":1.128100327597539E+03,
 		"epochJD": 2458001.50,
-		"Tp_Time_of_perihelion_passage_JD": -0.075561966525,
+		"jd_time_of_periapsis_passage_Tp": -0.075561966525,
 
 		"axial_tilt": 0.046, # to its own orbital plane
 		"absolute_mag": 0.0,
@@ -505,25 +545,25 @@ objects_data = {
 		"tga_name": "Phobos"
 		},
 	"deimos" :{
-		"type": TYPE_SATELLITE,
+		"type": TYPE_MOON,
 		"material":0,
 		"name": "Deimos",
 		"iau_name": "Deimos",
 		"jpl_designation": "deimos",
 		"mass": 1.4762e+15,
 		"radius": 15*6.2e+3,
-		"QR_perihelion":4*2.345311353009123E+07, #4*23455.5e+3,
+		"distance_to_periapsis":4*2.345311353009123E+07, #4*23455.5e+3,
 		"aphelion":4*2.346540189020549E+07, #4*23470.9e+3,
-		"EC_e":2.619085451484923E-04,
-		"PR_revolution":1.262540567604984,
+		"eccentricity_EC":2.619085451484923E-04,
+		"revolution_PR":1.262540567604984,
 		"rotation":1.262540567604984 * SOLAR_DAY_RATIO, # in days
-		"IN_orbital_inclination":2.544419693842261E+01, # to ecliptic, 0.93, # to mars eq. #
-		"OM_longitude_of_ascendingnode":7.875346643344125E+01,
-		"longitude_of_perihelion":3.353099851925172E+02+7.875346643344125E+01,
-		"MA_mean_anomaly": 3.541134423740633E+02,
-		"N_mean_motion":2.851220253841971E+02,
+		"orbital_inclination_IN":2.544419693842261E+01, # to ecliptic, 0.93, # to mars eq. #
+		"longitude_of_ascendingnode_OM":7.875346643344125E+01,
+		"longitude_of_periapsis_W":3.353099851925172E+02+7.875346643344125E+01,
+		"mean_anomaly_MA": 3.541134423740633E+02,
+		"mean_motion_N":2.851220253841971E+02,
 		"epochJD": 2458001.50,
-		"Tp_Time_of_perihelion_passage_JD": 0.020645748493,
+		"jd_time_of_periapsis_passage_Tp": 0.020645748493,
 
 		"axial_tilt": 0.897, # to its own orbital plane
 		"absolute_mag": 0.0,
@@ -531,25 +571,25 @@ objects_data = {
 		"tga_name": "Deimos"
 		},
 	"charon" :{
-		"type": TYPE_SATELLITE,
+		"type": TYPE_MOON,
 		"material":0,
 		"name": "Charon",
 		"iau_name": "Charon",
 		"jpl_designation": "charon",
 		"mass": 1.586e+21,
 		"radius": 15*606e+3,
-		"QR_perihelion":100*1.959394328352395E+07, # 19596e+3, we multiply by 100 since pluto is bigger than it should
+		"distance_to_periapsis":100*1.959394328352395E+07, # 19596e+3, we multiply by 100 since pluto is bigger than it should
 		"aphelion":100*1.959976480409748E+07, # 19596e+3, we multiply by 100 since pluto is bigger than it should
-		"EC_e":1.485320184688916E-04,
-		"PR_revolution":6.387221715378253,
+		"eccentricity_EC":1.485320184688916E-04,
+		"revolution_PR":6.387221715378253,
 		"rotation":6.387221715378253 * SOLAR_DAY_RATIO, # in days
-		"IN_orbital_inclination":1.128960563495295E+02, # to ecliptic
-		"OM_longitude_of_ascendingnode":2.274019157345203E+02,
-		"longitude_of_perihelion":1.895323185981683E+02+2.274019157345203E+02,
-		"MA_mean_anomaly": 7.639225900405658E+01,
-		"N_mean_motion":5.636253382800892E+01,
+		"orbital_inclination_IN":1.128960563495295E+02, # to ecliptic
+		"longitude_of_ascendingnode_OM":2.274019157345203E+02,
+		"longitude_of_periapsis_W":1.895323185981683E+02+2.274019157345203E+02,
+		"mean_anomaly_MA": 7.639225900405658E+01,
+		"mean_motion_N":5.636253382800892E+01,
 		"epochJD": 2458001.50,
-		"Tp_Time_of_perihelion_passage_JD": -1.355373043326,
+		"jd_time_of_periapsis_passage_Tp": -1.355373043326,
 
 		"axial_tilt": 0, # to its own orbital plane
 		"absolute_mag": 1.0,
@@ -566,17 +606,20 @@ objects_data = {
 		"jpl_designation": "sun",
 		"mass":1.98855e+30,
 		"radius":3.47850e+8,
-		"QR_perihelion":0,
-		"EC_e":0,
-		"PR_revolution":0,
+		"distance_to_periapsis":0,
+		"eccentricity_EC":0,
+		"revolution_PR":0,
 		"rotation":25.38,
-		"IN_orbital_inclination":67.23, # to the galactic plane
-		"OM_longitude_of_ascendingnode":0,
-		"longitude_of_perihelion":0,
+		"orbital_inclination_IN":67.23, # to the galactic plane
+		"longitude_of_ascendingnode_OM":0,
+		"longitude_of_periapsis_W":0,
 		"axial_tilt": 7.25,
 		"absolute_mag": 0.0,
 		"tga_name": "Sun"
-		},
+	},
+
+
+
 	"sun" : {
 		"type": TYPE_STAR,
 		"material":1,
@@ -586,13 +629,13 @@ objects_data = {
 		"jpl_designation": SUN_NAME,
 		"mass":SUN_M,
 		"radius":SUN_R,
-		"QR_perihelion":0.0,
-		"EC_e":0.0,
-		"PR_revolution": 0,
+		"distance_to_periapsis":0.0,
+		"eccentricity_EC":0.0,
+		"revolution_PR": 0,
 		"rotation":	25.05 * SOLAR_DAY_RATIO,
-		"IN_orbital_inclination":0,
-		"OM_longitude_of_ascendingnode":0.0,
-		"longitude_of_perihelion":0.0,
+		"orbital_inclination_IN":0,
+		"longitude_of_ascendingnode_OM":0.0,
+		"longitude_of_periapsis_W":0.0,
 		"axial_tilt": 7.25,
 		"absolute_mag": 0.0,
 		"rotationalElts": {
@@ -600,9 +643,27 @@ objects_data = {
 			"W_2": -0.641,
 			"W_C": 0
 		},
-		"kep_elt":{'a' : 1.00000018, 'ar': -3e-08, 'EC_e' : 0.01673163, 'er':-3.661e-05, 'i' :-0.00054346, 'ir':-0.01337178, 'L' :100.46691572, 'Lr':35999.3730633, 'W' :102.93005885, 'Wr':0.3179526, 'N' :-5.11260389, 'Nr':-0.24123856, 'b' :0.0, 'c' :0.0, 's':0.0, 'f' :0.0},
-		"tga_name": "sun"
+		"drift_coef":{
+			'a' : 1.00000018, 
+			'ar': -3e-08, 
+			'e' : 0.01673163, 
+			'er':-3.661e-05, 
+			'i' :-0.00054346, 
+			'ir':-0.01337178, 
+			'L' :100.46691572, 
+			'Lr':35999.3730633, 
+			'W' :102.93005885, 
+			'Wr':0.3179526, 
+			'N' :-5.11260389, 
+			'Nr':-0.24123856, 
+			'b' :0.0, 
+			'c' :0.0, 
+			's': 0.0, 
+			'f' :0.0
 		},
+		"tga_name": "sun"
+#		"tga_name": "source/2k_sun"
+	},
 
 	"neptune" :{
 		"type": TYPE_PLANET,
@@ -613,13 +674,13 @@ objects_data = {
 		"jpl_designation": "neptune",
 		"mass":102e+24,
 		"radius":24.622e+6,
-		"QR_perihelion":4444.45e+9,
-		"EC_e":0.00858587,
-		"PR_revolution":60182,
+		"distance_to_periapsis":4444.45e+9,
+		"eccentricity_EC":0.00858587,
+		"revolution_PR":60182,
 		"rotation":0.6713 * SOLAR_DAY_RATIO,
-		"IN_orbital_inclination":1.769,
-		"OM_longitude_of_ascendingnode":131.72169,
-		"longitude_of_perihelion":44.97135,
+		"orbital_inclination_IN":1.769,
+		"longitude_of_ascendingnode_OM":131.72169,
+		"longitude_of_periapsis_W":44.97135,
 		"axial_tilt": 28.32,
 		"absolute_mag": 0.0,
 		"rotationalElts": {
@@ -640,9 +701,28 @@ objects_data = {
 			"W_3": -0.48,
 			"W_C": 200
 		},
-		"kep_elt":{"a" : 30.06952752, "ar": 0.00006447,"EC_e" : 0.00895439,"er": 0.00000818,"i" : 1.77005520,"ir": 0.00022400,"L" : 304.22289287,"Lr": 218.46515314,"W" : 46.68158724,"Wr": 0.01009938,"N" : 131.78635853,"Nr": -0.00606302,"b" : -0.00041348,"c" : 0.68346318,"s" : -0.10162547,"f" : 7.67025000},
-		"tga_name":"Neptune"
+		"drift_coef": {
+			"a" : 30.06952752, 
+			"ar": 0.00006447,
+			"e" : 0.00895439,
+			"er": 0.00000818,
+			"i" : 1.77005520,
+			"ir": 0.00022400,
+			"L" : 304.22289287,
+			"Lr": 218.46515314,
+			"W" : 46.68158724,
+			"Wr": 0.01009938,
+			"N" : 131.78635853,
+			"Nr": -0.00606302,
+			"b" : -0.00041348,
+			"c" : 0.68346318,
+			"s" : -0.10162547,
+			"f" : 7.67025000
 		},
+#		"tga_name":"Neptune",
+		"tga_name":"source/2k_neptune-PM-normalized",
+		"J2": 3536.3e-6		
+	},
 
 	"uranus" : {
 		"type": TYPE_PLANET,
@@ -653,13 +733,13 @@ objects_data = {
 		"jpl_designation": "uranus",
 		"mass":86.8e24,
 		"radius":25362e3,
-		"QR_perihelion":2741.30e9,
-		"EC_e":0.04716771,
-		"PR_revolution":30688.5,
+		"distance_to_periapsis":2741.30e9,
+		"eccentricity_EC":0.04716771,
+		"revolution_PR":30688.5,
 		"rotation": -0.71833 * SOLAR_DAY_RATIO, # retrograde
-		"IN_orbital_inclination":0.770,
-		"OM_longitude_of_ascendingnode":74.22988,
-		"longitude_of_perihelion":170.96424,
+		"orbital_inclination_IN":0.770,
+		"longitude_of_ascendingnode_OM":74.22988,
+		"longitude_of_periapsis_W":170.96424,
 		"axial_tilt": 97.8,
 		"absolute_mag": 0.0,
 		"rotationalElts": {
@@ -667,9 +747,27 @@ objects_data = {
 			"W_2": -501.1600928, #0,
 			"W_C": 70
 		},
-		"kep_elt":{"a" : 19.18797948, "ar": -0.00020455, "EC_e" : 0.04685740, "er": -0.00001550, "i" : 0.77298127, "ir": -0.00180155, "L" : 314.20276625, "Lr": 428.49512595, "W" : 172.43404441, "Wr": 0.09266985, "N": 73.96250215, "Nr": 0.05739699, "b" : 0.00058331, "c" : -0.97731848, "s" : 0.17689245, "f" : 7.67025000},
-		"tga_name": "Uranus"
+		"drift_coef":{
+			"a" : 19.18797948, 
+			"ar": -0.00020455, 
+			"e" : 0.04685740, 
+			"er": -0.00001550, 
+			"i" : 0.77298127, 
+			"ir": -0.00180155, 
+			"L" : 314.20276625, 
+			"Lr": 428.49512595, 
+			"W" : 172.43404441, 
+			"Wr": 0.09266985, 
+			"N": 73.96250215, 
+			"Nr": 0.05739699, 
+			"b" : 0.00058331, 
+			"c" : -0.97731848, 
+			"s" : 0.17689245, 
+			"f" : 7.67025000
 		},
+		"tga_name": "Uranus",
+		"J2": 3510.7e-6
+	},
 
 	"saturn" : {
 		"type": TYPE_PLANET,
@@ -680,13 +778,13 @@ objects_data = {
 		"jpl_designation": "saturn",
 		"mass":568e24,
 		"radius":58232e3,
-		"QR_perihelion":1352.55e9,
-		"EC_e":0.05415060,
-		"PR_revolution":10759.22,
+		"distance_to_periapsis":1352.55e9,
+		"eccentricity_EC":0.05415060,
+		"revolution_PR":10759.22,
 		"rotation":0.4407868753677 * SOLAR_DAY_RATIO,
-		"IN_orbital_inclination":2.484,
-		"OM_longitude_of_ascendingnode":113.71504,
-		"longitude_of_perihelion":92.43194,
+		"orbital_inclination_IN":2.484,
+		"longitude_of_ascendingnode_OM":113.71504,
+		"longitude_of_periapsis_W":92.43194,
 		"axial_tilt": 26.7,
 		"absolute_mag": 0.0,
 		
@@ -700,9 +798,27 @@ objects_data = {
 			"W_C": -30
 
 		},
-		"kep_elt":{"a" : 9.54149883, "ar": -0.00003065, "EC_e" : 0.05550825, "er": -0.00032044, "i" : 2.49424102, "ir": 0.00451969, "L" : 50.07571329, "Lr": 1222.11494724, "W" : 92.86136063, "Wr": 0.54179478, "N": 113.63998702, "Nr": -0.25015002, "b" : 0.00025899, "c" : -0.13434469, "s" : 0.87320147, "f" : 38.35125},
-		"tga_name": "Saturn"
+		"drift_coef":{
+			"a" : 9.54149883, 
+			"ar": -0.00003065, 
+			"e" : 0.05550825, 
+			"er": -0.00032044, 
+			"i" : 2.49424102, 
+			"ir": 0.00451969, 
+			"L" : 50.07571329, 
+			"Lr": 1222.11494724, 
+			"W" : 92.86136063, 
+			"Wr": 0.54179478, 
+			"N": 113.63998702, 
+			"Nr": -0.25015002, 
+			"b" : 0.00025899, 
+			"c" : -0.13434469, 
+			"s" : 0.87320147, 
+			"f" : 38.35125
 		},
+		"tga_name": "Saturn",
+		"J2": 16290.6e-6		
+	},
 
 	"jupiter" :{
 		"type": TYPE_PLANET,
@@ -713,13 +829,13 @@ objects_data = {
 		"jpl_designation": "jupiter",
 		"mass":1898e24,
 		"radius":69911e3,
-		"QR_perihelion":740.52e9,
-		"EC_e":0.04839266,
-		"PR_revolution":11.862 * 365.25,
+		"distance_to_periapsis":740.52e9,
+		"eccentricity_EC":0.04839266,
+		"revolution_PR":11.862 * 365.25,
 		"rotation": 0.4146722375876 * SOLAR_DAY_RATIO,
-		"IN_orbital_inclination":1.305,
-		"OM_longitude_of_ascendingnode":100.55615,
-		"longitude_of_perihelion":14.75385,
+		"orbital_inclination_IN":1.305,
+		"longitude_of_ascendingnode_OM":100.55615,
+		"longitude_of_periapsis_W":14.75385,
 		"axial_tilt": 3.1,
 		"absolute_mag": 0.0,
 		"rotationalElts": {
@@ -727,10 +843,28 @@ objects_data = {
 			"W_2": 870.5360000,
 			"W_C": 0
 		},
-		"kep_elt":{'a' : 5.20248019, 'ar': -0.00002864, "EC_e" : 0.04853590, "er": 0.00018026, "i" : 1.29861416, "ir": -0.00322699, "L" : 34.33479152, "Lr": 3034.90371757, "W" : 14.27495244, "Wr": 0.18199196, "N": 100.29282654, "Nr": 0.13024619, "b" : -0.00012452, "c" : 0.06064060, "s" : -0.35635438, "f" : 38.35125},
-		"tga_name": "Jupiter"
-
+		"drift_coef":{
+			'a' : 5.20248019, 
+			'ar': -0.00002864, 
+			"e" : 0.04853590, 
+			"er": 0.00018026, 
+			"i" : 1.29861416, 
+			"ir": -0.00322699, 
+			"L" : 34.33479152, 
+			"Lr": 3034.90371757, 
+			"W" : 14.27495244, 
+			"Wr": 0.18199196, 
+			"N": 100.29282654, 
+			"Nr": 0.13024619, 
+			"b" : -0.00012452, 
+			"c" : 0.06064060, 
+			"s" : -0.35635438, 
+			"f" : 38.35125
 		},
+		#"tga_name": "Jupiter",
+		"tga_name": "source/2k_jupiter-PM-normalized",
+		"J2": 14696.5e-6
+	},
 
 	"mars" : {
 		"type": TYPE_PLANET,
@@ -741,13 +875,13 @@ objects_data = {
 		"jpl_designation": "mars",
 		"mass":0.642e24,
 		"radius":3389e3,
-		"QR_perihelion":206.62e9,
-		"EC_e":0.09341233,
-		"PR_revolution":686.98,
+		"distance_to_periapsis":206.62e9,
+		"eccentricity_EC":0.09341233,
+		"revolution_PR":686.98,
 		"rotation": 1.027806363417 * SOLAR_DAY_RATIO,
-		"IN_orbital_inclination":1.851,
-		"OM_longitude_of_ascendingnode":49.57854,
-		"longitude_of_perihelion":336.04084,
+		"orbital_inclination_IN":1.851,
+		"longitude_of_ascendingnode_OM":49.57854,
+		"longitude_of_periapsis_W":336.04084,
 		"axial_tilt": 25.2,
 		"absolute_mag": 0.0,
 		"rotationalElts": {
@@ -759,9 +893,29 @@ objects_data = {
 			"W_2": 350.89198226, #-0.106,
 			"W_C": 0
 		},
-		"kep_elt":{'a' : 1.52371243, 'ar': 9.7e-07, 'EC_e' : 0.09336511, 'er':9.149e-05, 'i' :1.85181869, 'ir':-0.00724757, 'L' :-4.56813164, 'Lr':19140.2993424, 'W' :-23.91744784, 'Wr':0.45223625, 'N' :49.71320984, 'Nr':-0.26852431, 'b' :0.0, 'c' :0.0, 's':0.0, 'f' :0.0},
-		"tga_name": "Mars"
+		"drift_coef":{
+			'a' : 1.52371243, 
+			'ar': 9.7e-07, 
+			'e' : 0.09336511, 
+			'er':9.149e-05, 
+			'i' :1.85181869, 
+			'ir':-0.00724757, 
+			'L' :-4.56813164, 
+			'Lr':19140.2993424, 
+			'W' :-23.91744784, 
+			'Wr':0.45223625, 
+			'N' :49.71320984, 
+			'Nr':-0.26852431, 
+			'b' :0.0, 
+			'c' :0.0, 
+			's' :0.0, 
+			'f' :0.0
 		},
+
+		"tga_name": "Mars",
+#		"tga_name": "source/2k_mars-PM-normalized",
+		"J2": 1956.6e-6
+	},
 
 	"mercury" :{
 		"type": TYPE_PLANET,
@@ -772,13 +926,13 @@ objects_data = {
 		"jpl_designation": "mercury",
 		"mass":0.330e24,
 		"radius":2439e3,
-		"QR_perihelion":46.0e9,
-		"EC_e":0.20563069,
-		"PR_revolution":87.969,
+		"distance_to_periapsis":46.0e9,
+		"eccentricity_EC":0.20563069,
+		"revolution_PR":87.969,
 		"rotation": 58.81057874574 * SOLAR_DAY_RATIO,
-		"IN_orbital_inclination":7.005,
-		"OM_longitude_of_ascendingnode":48.33167,
-		"longitude_of_perihelion":77.45645,
+		"orbital_inclination_IN":7.005,
+		"longitude_of_ascendingnode_OM":48.33167,
+		"longitude_of_periapsis_W":77.45645,
 		"axial_tilt": 0.034,
 		"absolute_mag": 0.0,
 		"rotationalElts": {
@@ -786,9 +940,27 @@ objects_data = {
 			"W_2": -0.033,
 			"W_C": 0
 		},
-		"kep_elt":{'a' : 0.38709843, 'ar': 0.0, 'EC_e' : 0.20563661, 'er':0.00002123, 'i' :7.00559432, 'ir':-0.00590158, 'L' :252.25166724, 'Lr':149472.674866, 'W' :77.45771895, 'Wr':0.15940013, 'N' :48.33961819, 'Nr':-0.12214182, 'b' :0.0, 'c' :0.0, 's':0.0, 'f' :0.0},
-		"tga_name": "Mercury"
+		"drift_coef":{
+			'a' : 0.38709843, 
+			'ar': 0.0, 
+			'e' : 0.20563661, 
+			'er':0.00002123, 
+			'i' :7.00559432, 
+			'ir':-0.00590158, 
+			'L' :252.25166724, 
+			'Lr':149472.674866, 
+			'W' :77.45771895, 
+			'Wr':0.15940013, 
+			'N' :48.33961819, 
+			'Nr':-0.12214182, 
+			'b' :0.0, 
+			'c' :0.0, 
+			's' :0.0, 
+			'f' :0.0
 		},
+		"tga_name": "Mercury",
+		"J2": 0
+	},
 
 	"venus" : {
 		"type": TYPE_PLANET,
@@ -799,13 +971,13 @@ objects_data = {
 		"jpl_designation": "venus",
 		"mass":4.87e24,
 		"radius":6052e3,
-		"QR_perihelion":107.48e9,
-		"EC_e":0.00677323,
-		"PR_revolution":224.701,
+		"distance_to_periapsis":107.48e9,
+		"eccentricity_EC":0.00677323,
+		"revolution_PR":224.701,
 		"rotation": -243.6862038466 * SOLAR_DAY_RATIO, # retrograde
-		"IN_orbital_inclination":3.3947,
-		"OM_longitude_of_ascendingnode":76.68069,
-		"longitude_of_perihelion":131.53298,
+		"orbital_inclination_IN":3.3947,
+		"longitude_of_ascendingnode_OM":76.68069,
+		"longitude_of_periapsis_W":131.53298,
 		"axial_tilt": 177.4,
 		"absolute_mag": 0.0,
 		"rotationalElts": {
@@ -815,10 +987,29 @@ objects_data = {
 			"W_2": -1.4813688, #0,
 			"W_C": 0
 		},
-		"kep_elt":{'a' : 0.72332102, 'ar': -2.6e-07, 'EC_e' : 0.00676399, 'er':-5.107e-05, 'i' :3.39777545, 'ir':0.00043494, 'L' :181.9797085, 'Lr':58517.8156026, 'W' :131.76755713, 'Wr':0.05679648, 'N' :76.67261496, 'Nr':-0.27274174, 'b' :0.0, 'c' :0.0, 's':0.0, 'f' :0.0},
-		#"kep_elt_1":{'a' : 0.72333566, 'ar':0.00000390, 'EC_e' : 0.00677672, 'er':-0.00004107, 'i' :3.39467605, 'ir':-0.00078890, 'L' :181.97909950, 'Lr':58517.81538729, 'W' :131.60246718, 'Wr':0.00268329, 'N' :76.67984255, 'Nr':-0.27769418, 'b' :0.0, 'c' :0.0, 's':0.0, 'f' :0.0},
-		"tga_name": "Venus"
+		"drift_coef":{
+			'a' : 0.72332102, 
+			'ar': -2.6e-07, 
+			'e' : 0.00676399, 
+			'er':-5.107e-05, 
+			'i' :3.39777545, 
+			'ir':0.00043494, 
+			'L' :181.9797085, 
+			'Lr':58517.8156026, 
+			'W' :131.76755713, 
+			'Wr':0.05679648, 
+			'N' :76.67261496, 
+			'Nr':-0.27274174, 
+			'b' :0.0, 
+			'c' :0.0, 
+			's' :0.0, 
+			'f' :0.0
 		},
+
+		#"drift_coef_1":{'a' : 0.72333566, 'ar':0.00000390, 'eccentricity_EC' : 0.00677672, 'er':-0.00004107, 'i' :3.39467605, 'ir':-0.00078890, 'L' :181.97909950, 'Lr':58517.81538729, 'W' :131.60246718, 'Wr':0.00268329, 'N' :76.67984255, 'Nr':-0.27769418, 'b' :0.0, 'c' :0.0, 's':0.0, 'f' :0.0},
+		"tga_name": "Venus",
+		"J2": 0
+	},
 
 	"earth" : {
 		"type": TYPE_PLANET,
@@ -829,41 +1020,41 @@ objects_data = {
 		"jpl_designation": EARTH_NAME,
 		"mass":5.972e24,
 		"radius":6371e3,
-		"QR_perihelion":147.09e9,
-		"EC_e":0.01671022,
-		"PR_revolution": EARTH_PERIOD, #365.256,
+		"distance_to_periapsis":147.09e9,
+		"eccentricity_EC":0.01671022,
+		"revolution_PR": EARTH_PERIOD, #365.256,
 		"rotation": 1 * SOLAR_DAY_RATIO,	# = 0.99726956597222 expressed in mean solar day
-		"IN_orbital_inclination":0,
-		"OM_longitude_of_ascendingnode":-11.26064,
-		"longitude_of_perihelion":102.94719,
+		"orbital_inclination_IN":0,
+		"longitude_of_ascendingnode_OM":-11.26064,
+		"longitude_of_periapsis_W":102.94719,
 		"axial_tilt": 23.4,
 		"absolute_mag": 0.0,
-		"kep_elt":{'a' : 1.00000018, 'ar': -3e-08, 'EC_e' : 0.01673163, 'er':-3.661e-05, 'i' :-0.00054346, 'ir':-0.01337178, 'L' :100.46691572, 'Lr':35999.3730633, 'W' :102.93005885, 'Wr':0.3179526, 'N' :-5.11260389, 'Nr':-0.24123856, 'b' :0.0, 'c' :0.0, 's':0.0, 'f' :0.0},
-		#"kep_elt_1":{'a' : 1.00000261, 'ar': 0.00000562, 'EC_e' : 0.01671123, 'er':-0.00004392, 'i' :-0.00001531, 'ir':-0.01294668, 'L' :100.46457166, 'Lr':35999.37244981, 'W' :102.93768193, 'Wr':0.32327364, 'N' :0.0, 'Nr':0.0, 'b' :0.0, 'c' :0.0, 's':0.0, 'f' :0.0},
-		"tga_name": "highres-earth-8192x4096-clouds" #"EarthClouds"
+		"drift_coef":{
+			'a' : 1.00000018, 
+			'ar': -3e-08, 
+			'e' : 0.01673163, 
+			'er':-3.661e-05, 
+			'i' :-0.00054346, 
+			'ir':-0.01337178, 
+			'L' :100.46691572, 
+			'Lr':35999.3730633, 
+			'W' :102.93005885, 
+			'Wr':0.3179526, 
+			'N' :-5.11260389, 
+			'Nr':-0.24123856, 
+			'b' :0.0, 
+			'c' :0.0, 
+			's' :0.0, 
+			'f' :0.0
+		},
+	
+		#"drift_coef_1":{'a' : 1.00000261, 'ar': 0.00000562, 'eccentricity_EC' : 0.01671123, 'er':-0.00004392, 'i' :-0.00001531, 'ir':-0.01294668, 'L' :100.46457166, 'Lr':35999.37244981, 'W' :102.93768193, 'Wr':0.32327364, 'N' :0.0, 'Nr':0.0, 'b' :0.0, 'c' :0.0, 's':0.0, 'f' :0.0},
+		"tga_name": "highres-earth-8192x4096-clouds", #"EarthClouds"
+#		"tga_name": "source/4k-earth-with-clouds-PM-normalized",
+#		"tga_name": "source/2k_earth_daymap-PM-normalized",
 		#"tga_name": "land_shallow_topo_16384x8192"
-		},
-
-	"earthzombie" : {
-		"type": TYPE_PLANET,
-		"material":1,
-		"name": "Earthzombie",
-		"symbol": u"\u2641 ",
-		"iau_name": "EARTH",
-		"jpl_designation": EARTH_NAME_2,
-		"mass":5.972e24,
-		"radius":6371e3,
-		"QR_perihelion":147.09e9,
-		"EC_e":0.01671022,
-		"PR_revolution": EARTH_PERIOD, #365.256,
-		"rotation": 1 * SOLAR_DAY_RATIO,	# = 0.99726956597222 expressed in mean solar day
-		"IN_orbital_inclination":0,
-		"OM_longitude_of_ascendingnode":-11.26064,
-		"longitude_of_perihelion":102.94719,
-		"axial_tilt": 23.4,
-		"absolute_mag": 0.0,
-		"tga_name": "highres-earth-8192x4096-clouds" #"EarthClouds"
-		},
+		"J2": 9.01e-4
+	},
 
 	"pluto" : {
 		"type": TYPE_DWARF_PLANET,
@@ -874,13 +1065,13 @@ objects_data = {
 		"jpl_designation": "pluto",
 		"mass":0.0146e24,
 		"radius":1195e3,
-		"QR_perihelion":4436.82e+9,
-		"EC_e":0.24880766,
-		"PR_revolution":90560,
+		"distance_to_periapsis":4436.82e+9,
+		"eccentricity_EC":0.24880766,
+		"revolution_PR":90560,
 		"rotation": -6.404988435438 * SOLAR_DAY_RATIO, # retrograde
-		"IN_orbital_inclination":17.142,
-		"OM_longitude_of_ascendingnode":110.30347,
-		"longitude_of_perihelion":224.06676,
+		"orbital_inclination_IN":17.142,
+		"longitude_of_ascendingnode_OM":110.30347,
+		"longitude_of_periapsis_W":224.06676,
 		"axial_tilt": 122.5,
 		"absolute_mag": -0.7,
 		"rotationalElts": {
@@ -888,11 +1079,29 @@ objects_data = {
 			"W_2": 0,
 			"W_C": 0
 		},
-		"kep_elt":{'a' : 39.48686035, 'ar': 0.00449751, 'EC_e' : 0.24885238, 'er':6.016e-05, 'i' :17.1410426, 'ir':5.01e-06, 'L' :238.96535011, 'Lr':145.18042903, 'W' :224.09702598, 'Wr':-0.00968827, 'N' :110.30167986, 'Nr':-0.00809981, 'b' :-0.01262724, 'c' :0.0, 's':0.0, 'f' :0.0},
-		#"kep_elt_1":{'a' : 39.48211675, 'ar':-0.00031596, 'EC_e' : 0.24882730, 'er':0.00005170, 'i' :17.14001206, 'ir':0.00004818, 'L' :238.92903833, 'Lr':145.20780515, 'W' :224.06891629, 'Wr':-0.04062942, 'N' :110.30393684, 'Nr':-0.01183482, 'b' :0.0, 'c' :0.0, 's':0.0, 'f' :0.0},
-		"tga_name": "Pluto3"
-#		"tga_name": "highres-earth-8192x4096-clouds" #"EarthClouds"
+		"drift_coef":{
+			'a' : 39.48686035, 
+			'ar': 0.00449751, 
+			'e' : 0.24885238, 
+			'er':6.016e-05, 
+			'i' :17.1410426, 
+			'ir':5.01e-06, 
+			'L' :238.96535011, 
+			'Lr':145.18042903, 
+			'W' :224.09702598, 
+			'Wr':-0.00968827, 
+			'N' :110.30167986, 
+			'Nr':-0.00809981, 
+			'b' :-0.01262724, 
+			'c' :0.0, 
+			's' :0.0, 
+			'f' :0.0
 		},
+		#"drift_coef_1":{'a' : 39.48211675, 'ar':-0.00031596, 'eccentricity_EC' : 0.24882730, 'er':0.00005170, 'i' :17.14001206, 'ir':0.00004818, 'L' :238.92903833, 'Lr':145.20780515, 'W' :224.06891629, 'Wr':-0.04062942, 'N' :110.30393684, 'Nr':-0.01183482, 'b' :0.0, 'c' :0.0, 's':0.0, 'f' :0.0},
+		"tga_name": "Pluto3",
+		"J2": 9.01e-4
+
+	},
 
 	"eris" : {
 		"type": TYPE_DWARF_PLANET,
@@ -904,18 +1113,18 @@ objects_data = {
 		"jpl_designation": "eris",
 		"mass":1.66e22,
 		"radius":1163e3,
-		"QR_perihelion":5.723e12,
-		"EC_e":0.4417142619088136,
-		"PR_revolution": 203830,
+		"distance_to_periapsis":5.723e12,
+		"eccentricity_EC":0.4417142619088136,
+		"revolution_PR": 203830,
 		"rotation": 1.082121333841 * SOLAR_DAY_RATIO,
-		"IN_orbital_inclination":44.0445,
-		"OM_longitude_of_ascendingnode": 35.87791199490014,
-		"longitude_of_perihelion":186.9301,
+		"orbital_inclination_IN":44.0445,
+		"longitude_of_ascendingnode_OM": 35.87791199490014,
+		"longitude_of_periapsis_W":186.9301,
 
-		"Tp_Time_of_perihelion_passage_JD": 2545575.799683113451,
-		"N_mean_motion":.001771354370292503,
+		"jd_time_of_periapsis_passage_Tp": 2545575.799683113451,
+		"mean_motion_N":.001771354370292503, # in deg/day
 		"epochJD": 2458000.5,
-		"MA_mean_anomaly": 204.8731101766414,
+		"mean_anomaly_MA": 204.8731101766414,
 		"orbit_class" : "TNO",
 		"absolute_mag": -1.17,
 		"axial_tilt": 0,
@@ -932,18 +1141,18 @@ objects_data = {
 		"jpl_designation": "makemake",
 		"mass":4.4e21,
 		"radius":739e3,
-		"QR_perihelion":5.77298e12,
-		"EC_e":.154682767507142,
-		"PR_revolution": 112897.9710682497,
+		"distance_to_periapsis":5.77298e12,
+		"eccentricity_EC":.154682767507142,
+		"revolution_PR": 112897.9710682497,
 		"rotation": 0.3246781808988 * SOLAR_DAY_RATIO,
-		"IN_orbital_inclination":29.00685,
-		"OM_longitude_of_ascendingnode": 79.3659,
-		"longitude_of_perihelion":376.6059,
+		"orbital_inclination_IN":29.00685,
+		"longitude_of_ascendingnode_OM": 79.3659,
+		"longitude_of_periapsis_W":376.6059,
 
-		"Tp_Time_of_perihelion_passage_JD": 2407499.827534289027,
-		"N_mean_motion":.003188719837864677,
+		"jd_time_of_periapsis_passage_Tp": 2407499.827534289027,
+		"mean_motion_N":.003188719837864677, # in deg/day
 		"epochJD": 2458000.5,
-		"MA_mean_anomaly": 161.032496116919,
+		"mean_anomaly_MA": 161.032496116919,
 		"orbit_class" : "TNO",
 		"absolute_mag": -0.3,
 		"axial_tilt": 0,
@@ -960,18 +1169,18 @@ objects_data = {
 		"jpl_designation": "sedna",
 		"mass":4.4e21, # mass is undetermined
 		"radius":995e3,
-		"QR_perihelion":1.1423e13,
-		"EC_e":0.85491,
-		"PR_revolution": 3934726.687924069,
+		"distance_to_periapsis":1.1423e13,
+		"eccentricity_EC":0.85491,
+		"revolution_PR": 3934726.687924069,
 		"rotation": 0.4303416887476 * SOLAR_DAY_RATIO,
-		"IN_orbital_inclination":11.92872,
-		"OM_longitude_of_ascendingnode":144.546,
-		"longitude_of_perihelion":455.836,
+		"orbital_inclination_IN":11.92872,
+		"longitude_of_ascendingnode_OM":144.546,
+		"longitude_of_periapsis_W":455.836,
 
-		"Tp_Time_of_perihelion_passage_JD": 2479566.507375652123,
-		"N_mean_motion":9.149301299753888e-5,
+		"jd_time_of_periapsis_passage_Tp": 2479566.507375652123,
+		"mean_motion_N":9.149301299753888e-5,  # in deg/day
 		"epochJD": 2458000.5,
-		"MA_mean_anomaly": 358.0268610068745,
+		"mean_anomaly_MA": 358.0268610068745,
 		"orbit_class" : "TNO",
 		"absolute_mag": 1.83,
 		"axial_tilt": 0,
@@ -989,18 +1198,18 @@ objects_data = {
 		"jpl_designation": "haumea",
 		"mass":4.006e21,
 		"radius":620e3,
-		"QR_perihelion":35.14529440338772*AU,
-		"EC_e":0.1893662787361186,
-		"PR_revolution": 104270.6801862633,
+		"distance_to_periapsis":35.14529440338772*AU,
+		"eccentricity_EC":0.1893662787361186,
+		"revolution_PR": 104270.6801862633,
 		"rotation": 0.163146 * SOLAR_DAY_RATIO,
-		"IN_orbital_inclination":28.20363151617822,
-		"OM_longitude_of_ascendingnode":121.9702799705751,
-		"longitude_of_perihelion":360.8407349965672,
+		"orbital_inclination_IN":28.20363151617822,
+		"longitude_of_ascendingnode_OM":121.9702799705751,
+		"longitude_of_periapsis_W":360.8407349965672,
 
-		"Tp_Time_of_perihelion_passage_JD": 2500269.703252029540,
-		"N_mean_motion":.003452552523460249,
+		"jd_time_of_periapsis_passage_Tp": 2500269.703252029540,
+		"mean_motion_N":0.003452552523460249, # in deg/day
 		"epochJD": 2458000.5,
-		"MA_mean_anomaly": 214.0633556475513,
+		"mean_anomaly_MA": 214.0633556475513,
 		"orbit_class" : "TNO",
 		"absolute_mag": 0.2,
 		"axial_tilt": 0,
@@ -1034,9 +1243,9 @@ belt_data = {
 
 """
 		"radius":58232e3,
-		"QR_perihelion":1352.55e9,
-		"EC_e":0.05415060,
-		"PR_revolution":10759.22,
+		"distance_to_periapsis":1352.55e9,
+		"eccentricity_EC":0.05415060,
+		"revolution_PR":10759.22,
 		"rotation":0.4407868753677,
 
 		SATURN
@@ -1161,3 +1370,92 @@ rings_data = {
 		]
 	}
 }
+
+europa_omega_dot = -0.025 # degrees / day
+
+"""
+
+2. Architectural pattern for any regular moon
+For each regular moon:
+
+- Collect constants (once):
+- planet equatorial radius R
+- planet J_2
+- moon’s a,e,i (planet‐centric, planet‐equator frame)
+- moon’s period P → n=2.pi/P
+
+- Compute:
+
+- p=a(1-e^2)
+- Omega_dot = -3/2 *n*J_2(R^2/p^2)*cos i
+- Freeze those into a DriftModel for that moon:
+- a,e,i: constants
+- Omega _0,omega _0,M_0: from a reference epoch (e.g. J2000)
+- Omega _dot : from the formula above
+- omega _dot : optional, from the analogous J2 formula if you want
+
+- Use in your ephemeris:
+- dT= JD - JD_0 (days since reference epoch)
+- Omega (t) = Omega _0 + Omega _dot * dT
+- omega (t) = omega _0 + omega _dot * dT (if used)
+- M(t) = M_0 + n*dT
+
+This is identical to what we did conceptually for Europa; you just plug in the appropriate constants per moon.
+
+
+
+1. The J_2 formula for omega_dot
+For a point mass orbiting an oblate primary with J_2, the secular periapsis precession rate is:
+omega_dot = 3/4 * n * J_2 * (R^2/p^2) * (5 * cos ^2(i) -1) 
+
+Side‑by‑side with Omega_dot:
+Omega_dot  = -3/2 *n*J_2(R^2/p^2)*cos i
+
+So the pair you want is:
+- Node regression:
+Omega_dot  = -3/2 *n*J_2(R^2/p^2)*cos i
+- Periapsis precession:
+omega_dot = 3/4 * n * J_2 * (R^2/p^2) * (5 * cos ^2(i) -1)
+
+This is the standard textbook result (e.g., Vallado, Bate, Curtis, etc.) for a J_2‑only perturbation, averaged over an orbit.
+
+2. How to implement this in your DriftModel
+Given:
+- planet constants: R,J_2,GM_planet
+- moon’s elements: a,e,i (in planet‑equator frame)
+- moon’s period P or mean motion n
+
+You do:
+
+- Compute mean motion (if not already given):
+n = 2 * pi/P  or n = sqrt(mu/a^3) 
+
+- Compute semi‑latus rectum:
+p = a(1-e^2)
+
+- Compute:
+Omega_dot  = -3/2 *n*J_2(R^2/p^2)*cos i 
+omega_dot = 3/4 * n * J_2 * (R^2/p^2) * (5 * cos ^2(i) -1)
+
+- Plug into your DriftModel:
+Omega = Omega0 + Omega_dot * dT
+omega = omega0 + omega_dot * dT
+M     = M0     + n        * dT
+
+
+
+3. A couple of practical notes
+- For regular moons:
+- e is small → p ~ a
+- i is small → cos i ~ 1, cos ^2i ~ 1
+
+- So you often get:
+- Omega_dot ~ - 3/2 * n * J_2 * (R/a)^2
+- omega_dot ~ 3/4 * n * J_2 * (R/a)^2 * (5-1) = 3 * n * J_2*(R/a)^2
+
+- Signs:
+- Omega_dot is usually negative (node regresses).
+- omega_dot can be positive or negative depending on i; for small i, it’s typically positive (prograde periapsis precession).
+- Frame:
+- These formulas assume i is measured w.r.t. the planet’s equatorial plane, not ecliptic.
+"""

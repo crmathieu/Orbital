@@ -27,17 +27,18 @@ class makeBasicReferential:
         self.RotAxis            = self.NPole
 
         # create a frame for this referential. This frame should be linked to the J2000
-        # ecliptic ref if it is a normal body, or a planet trackingFrame referential if 
+        # ecliptic ref if it is a normal body, or a planet GeoEcliptic referential if 
         # is orbiting a central body
 
         if 'parent_frame' in params and params['parent_frame'] != None:
             self.referential = frame(pos=(0,0,0), frame=params['parent_frame'])
         else:
             # that should not happen
+            raise ValueError("basic referential has no parent frame")
             self.referential = frame(pos=(0,0,0))
 
-        if 'name' in params:
-            print "creating "+ params['name']
+        #if 'name' in params:
+        #    print "creating "+ params['name']
 
         if 'orientation' in params:
             self.NPole = params['orientation']['pole_vec']
@@ -66,8 +67,8 @@ class makeBasicReferential:
 
             self.setNorthPole(self.NPole)
             return
-        else:
-            print "BASIC-REF::setAxisTilt: No North Pole"
+        #else:
+        #   print "BASIC-REF::setAxisTilt: No North Pole"
 
 
     def updateReferential(self):
@@ -152,8 +153,8 @@ class make3DaxisReferential:
             # this should not happen
             self.referential = frame(pos=(0,0,0))
 
-        if 'name' in params:
-            print "creating 3D "+ params['name']
+        #if 'name' in params:
+        #    print "creating 3D "+ params['name']
 
 
 
@@ -188,7 +189,7 @@ class make3DaxisReferential:
             self.body               = params['body']
             # check for rotation direction
             if self.body.Rotation < 0:
-                print "NEGATIVE ROTATION!\n"
+                #print "NEGATIVE ROTATION!\n"
                 self.RotatingSign = -1
 
             radius                  = self.body.getBodyRadius()
@@ -266,13 +267,13 @@ class make3DaxisReferential:
         Npole = vector(0,0,0)
 
         if is_zero_vector_epsilon(self.NPole) == False:
-            print "3DAXIS-REF::setAxisTilt: NPole = ", self.NPole
+            #print "3DAXIS-REF::setAxisTilt: NPole = ", self.NPole
 
             Npole = self.setNorthPole()
             #return
 
         else:
-            print "3DAXIS-REF::setAxisTilt: No North Pole"
+            #print "3DAXIS-REF::setAxisTilt: No North Pole"
 
             # if we reach here, it means that we don't 
             # have a valid north pole information. 
@@ -301,7 +302,8 @@ class make3DaxisReferential:
 
 
     def updateReferential(self):
-        self.referential.pos = (self.body.Position[0]+self.body.Foci[0], self.body.Position[1]+self.body.Foci[1], self.body.Position[2]+self.body.Foci[2])
+#        self.referential.pos = (self.body.Position[0]+self.body.Foci[0], self.body.Position[1]+self.body.Foci[1], self.body.Position[2]+self.body.Foci[2])
+        self.referential.pos = (self.body.Position[0], self.body.Position[1], self.body.Position[2])
         return 
 
 
@@ -327,9 +329,18 @@ class make3DaxisReferential:
 
 
     def setNorthPole(self):
-
+        """
+        The RA and Dec values are measurement referring to
+        where the planet planet points its north pole to the celestial sphere. In 
+        essence, its origin is pointing to the vernal equinox, so the RA value is 
+        the angle between the VE and the projection of the NP vector on the ecliptic 
+        plane. Then from that point on, the DEC value is the angle we must rotate
+        that projection vector perpendicularly to the ecliptic plane to reach the
+        desired orientation
+        """
+        
         #print "SetNP in 3Daxis REF for ", self.body.Name
-
+        
         J2000_Ecliptic_North = np.array([0, 0, 1])
 
         # initialize the direction of North Pole for this body
@@ -339,7 +350,7 @@ class make3DaxisReferential:
         # first let's normalize the north Pole vector
         normalizedNpole = self.NPole / np.linalg.norm(self.NPole)
 
-        print "J2000_North=" + str(J2000_Ecliptic_North) + "NP=" + str(normalizedNpole)
+        #print "J2000_North=" + str(J2000_Ecliptic_North) + "NP=" + str(normalizedNpole)
         # then Calculate the cross product to find the rotation axis
         cross_product = np.cross(J2000_Ecliptic_North, normalizedNpole)
 
@@ -354,7 +365,7 @@ class make3DaxisReferential:
 
         # If vectors are almost opposite, rotate by 180 degrees around an arbitrary perpendicular axis
         elif np.isclose(dot_product, -1.0):
-            print ">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>"
+            #print ">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>"
             axis = np.array([1,0,0])
             theta = np.pi # 180 degrees
         else:
@@ -373,7 +384,7 @@ class make3DaxisReferential:
         # plane formed by the north pole vector and the J2000 ecliptic
         # north pole.
 
-        print "------> TILT = ", rad2deg(theta)
+        #print "------> TILT = ", rad2deg(theta)
         self.referential.rotate(angle=theta, axis=axis)        
 
         # check if the body has a retrograde motion, and in this case
@@ -381,9 +392,7 @@ class make3DaxisReferential:
 
         if self.body != None and self.body.Rotation < 0:
             normalizedNpole = - normalizedNpole
-            print self.body.Name + ": Inversing North Pole - ", normalizedNpole, "\n"
-        else:
-            print "\n"
+            #print self.body.Name + ": Inversing North Pole - ", normalizedNpole, "\n"
 
         # set axis of rotation
         self.ZdirectionUnit = normalizedNpole[2]
