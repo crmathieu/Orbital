@@ -90,9 +90,22 @@ def createSolarSystem():
 	uranus = makeUranus(ssys, color=color.yellow, ptype=OUTER_PLANET, sizeCorrectionType=GAS_GIANT, defaultSizeCorrection=PLANET_SZ_CORRECTION)
 	ssys.addTo(uranus)
 
+	ssys.addTo(makePlanetMoon(ssys, key='umbriel', color=Color.orange, sizeCorrectionType=SMALL_MOON, centralbody=uranus))
+
+
 	# NEPTUNE
 	neptune = makeNeptune(ssys, color=color.orange, ptype=OUTER_PLANET, sizeCorrectionType=GAS_GIANT, defaultSizeCorrection=PLANET_SZ_CORRECTION)
 	ssys.addTo(neptune)
+
+	ssys.addTo(makePlanetMoon(ssys, key='despina', color=Color.orange, sizeCorrectionType=SMALL_MOON, centralbody=neptune))
+	ssys.addTo(makePlanetMoon(ssys, key='thalassa', color=Color.yellow, sizeCorrectionType=SMALL_MOON, centralbody=neptune))
+	ssys.addTo(makePlanetMoon(ssys, key='nereid', color=Color.blue, sizeCorrectionType=SMALL_MOON, centralbody=neptune))
+	ssys.addTo(makePlanetMoon(ssys, key='larissa', color=Color.red, sizeCorrectionType=SMALL_MOON, centralbody=neptune))
+	ssys.addTo(makePlanetMoon(ssys, key='naiad', color=Color.cyanish, sizeCorrectionType=SMALL_MOON, centralbody=neptune))
+	ssys.addTo(makePlanetMoon(ssys, key='proteus', color=Color.lightgrey, sizeCorrectionType=SMALL_MOON, centralbody=neptune))
+	ssys.addTo(makePlanetMoon(ssys, key='galatea', color=Color.pink, sizeCorrectionType=SMALL_MOON, centralbody=neptune))
+	ssys.addTo(makePlanetMoon(ssys, key='triton', color=Color.green, sizeCorrectionType=BIG_MOON, centralbody=neptune))
+
 
 	# DWARF PLANETS
 	# PLUTO
@@ -203,8 +216,8 @@ def bootLoader(story, recorder):
 		while True:
 			#print I
 			#I += 1
-			rate(60)
-		#	sleep(1) #2)
+			#rate(60)
+			sleep(1) #2)
 		#	earth.updateStillPosition(cw.orbitalBox, 2)
 
 	except RuntimeError as err:

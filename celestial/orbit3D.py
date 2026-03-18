@@ -91,7 +91,7 @@ class makeSolarSystem:
 
 		# system camera (always works in helio-centric ecliptic)
 		self.cameraViewTargetBody = None
-		self.cameraViewTargetSelection = SUN_NAME
+		self.cameraViewTargetName = SUN_NAME
 
 		# orientation parameters
 		self.Pole_vec = vector(0,0,0)
@@ -333,7 +333,7 @@ class makeSolarSystem:
 			self.ShowFeatures |= type
 		else:
 			self.ShowFeatures = (self.ShowFeatures & ~type)
-			if 	self.cameraViewTargetSelection != SUN_NAME and \
+			if 	self.cameraViewTargetName != SUN_NAME and \
 				self.cameraViewTargetBody.BodyType == type and \
 				self.cameraViewTargetBody.Name.lower() != EARTH_NAME:
 				# reset SUN as current ViewTarget when the currobject should not longer be visible
@@ -364,7 +364,7 @@ class makeSolarSystem:
 		#self.SolarSystem.Scene.forward = (0, 0, -1)
 		# For a planet, Foci(x, y, z) is (0,0,0). For a moon, Foci represents the position of the planet the moon orbits around
 		self.cameraViewTargetBody = body
-		self.cameraViewTargetSelection = body.Name.lower()
+		self.cameraViewTargetName = body.Name.lower()
 		self.Scene.center = (self.cameraViewTargetBody.Position[0], #+self.cameraViewTargetBody.Foci[0],
 							 self.cameraViewTargetBody.Position[1], #+self.cameraViewTargetBody.Foci[1],
 							 self.cameraViewTargetBody.Position[2]) #+self.cameraViewTargetBody.Foci[2])
@@ -449,16 +449,24 @@ class makeSolarSystem:
 		return False
 
 	# makeSolarSystem::
-
 	def refresh(self, animationInProgress = False):
+		"""
+		Determine the visibility of objects based on the user's 
+		selection from the control Panel's Orbital TAB
+
+		"""
+		# 1. determine global visibility parameters first (applies to all objects)
 		orbitTrace 		= True if self.ShowFeatures & ORBITS 	!= 0 else False
 		labelVisible 	= True if self.ShowFeatures & LABELS 	!= 0 else False
 		realisticSize 	= True if self.ShowFeatures & REALSIZE 	!= 0 else False
 
 		#self.toggleSize(realisticSize)
 
-		# sun bound objects are planets, tnos, asteroids, ecliptic, constellation and celestial sphere
+		# 2. figure out display status object by object:
+		# sun bound objects are planets, moons, tnos, asteroids, ecliptic, constellation and celestial sphere
 		for name, body in self.sunOrbiting.items():
+
+			# check bodies around the sun
 			if body.BodyType in [SUN, SPACECRAFT, OUTER_PLANET, INNER_PLANET, ASTEROID, COMET, \
 								 MOON, DWARF_PLANET, PHA, BIG_ASTEROID, TNO]:
 
@@ -480,10 +488,10 @@ class makeSolarSystem:
 				# moons stay hidden for clarity
 
 				if hasattr(body, "planetOrbitingBodies"):
-					#print "Sys Refr: Current camera selection = ", self.cameraViewTargetSelection, ", cur body:", body.Name
+					#print "Sys Refr: Current camera selection = ", self.cameraViewTargetName, ", cur body:", body.Name
 
 					for moon_name, moon_body in body.planetOrbitingBodies.items():
-						showMoon = True if self.cameraViewTargetSelection == body.Name or self.cameraViewTargetSelection == moon_body.Name else False
+						showMoon = True if self.cameraViewTargetName == body.Name or self.cameraViewTargetName == moon_body.Name else False
 						if showMoon:
 						#	print "show moon ", moon_name, " for ", body.Name
 							moon_body.Orbit.visible = orbitTrace
@@ -501,6 +509,7 @@ class makeSolarSystem:
 						for i in range(len(body.Labels)):
 							body.Labels[i].visible = False
 		
+		# 3. Figure out lighting status
 		if self.ShowFeatures & LIT_SCENE != 0:
 			#print "LITE"
 			self.Scene.ambient = Color.white
@@ -516,8 +525,8 @@ class makeSolarSystem:
 			
 		setRefTo = True if self.ShowFeatures & REFERENTIAL != 0 else False
 		
-#		if 	self.cameraViewTargetSelection == self.Sun.JPL_designation and \
-		if 	self.cameraViewTargetSelection == self.Sun.Name.lower() and \
+		# 4. determine axis visibility
+		if 	self.cameraViewTargetName == self.Sun.Name and \
 			self.ShowFeatures & LOCAL_REFERENTIAL:
 			setRelTo = True
 		else:
@@ -525,6 +534,7 @@ class makeSolarSystem:
 
 		self.setAxisVisibility(setRefTo, setRelTo)
 
+		# 5. finally, update constellation & celestial sphere visibility status
 		self.Universe.visible = self.isFeatured(CELESTIAL_SPHERE)
 		self.Constellations.visible = self.isFeatured(CONSTELLATIONS)
 
@@ -602,8 +612,8 @@ class makeSolarSystem:
 			
 		setRefTo = True if self.ShowFeatures & REFERENTIAL != 0 else False
 		
-#		if 	self.cameraViewTargetSelection == self.Sun.JPL_designation and \
-		if 	self.cameraViewTargetSelection == self.Sun.Name.lower() and \
+#		if 	self.cameraViewTargetName == self.Sun.JPL_designation and \
+		if 	self.cameraViewTargetName == self.Sun.Name.lower() and \
 			self.ShowFeatures & LOCAL_REFERENTIAL:
 			setRelTo = True
 		else:
@@ -670,8 +680,8 @@ class makeSolarSystem:
 			
 		setRefTo = True if self.ShowFeatures & REFERENTIAL != 0 else False
 		
-#		if 	self.cameraViewTargetSelection == self.Sun.JPL_designation and \
-		if 	self.cameraViewTargetSelection == self.Sun.Name.lower() and \
+#		if 	self.cameraViewTargetName == self.Sun.JPL_designation and \
+		if 	self.cameraViewTargetName == self.Sun.Name.lower() and \
 			self.ShowFeatures & LOCAL_REFERENTIAL:
 			setRelTo = True
 		else:
@@ -717,7 +727,7 @@ class makeEcliptic:
 		self.Lines = []
 		self.BodyType = ECLIPTIC_PLANE
 		self.RefOrigin = frame(frame=system.J2000eclipticFrame)
-		self.Labels.append(label(pos=(250*AU*DIST_FACTOR, 250*AU*DIST_FACTOR, 0), text=self.Name, xoffset=20, yoffset=12, space=0, height=10, border=6, box=false, font='sans', visible = False))
+		self.Labels.append(label(pos=(250*AU*DIST_FACTOR, 250*AU*DIST_FACTOR, 0), text=self.Name, xoffset=20, yoffset=12, space=0, height=10, border=6, box=False, font='sans', visible = False))
 
 	# makeEcliptic::
 	def toggleSize(self, realisticSize):
@@ -795,7 +805,7 @@ class makeBelt:
 
 		else:
 			if self.BodyGeometry.visible == true:
-				self.BodyGeometry.visible = false
+				self.BodyGeometry.visible = False
 				for i in range(len(self.Labels)):
 					self.Labels[i].visible = False
 
@@ -856,8 +866,8 @@ class makeJtrojan(makeBelt):
 			self.BodyGeometry.append(pos=(RandomRadius * cos(L5-delta+i), RandomRadius * sin(L5-delta+i), heightToEcliptic))
 			self.BodyGeometry.append(pos=(RandomRadius * cos(L5+delta-i), RandomRadius * sin(L5+delta-i), heightToEcliptic))
 
-		self.Labels.append(label(pos=(self.RadiusMaxAU * AU * DIST_FACTOR * cos(L4), self.RadiusMaxAU * AU * DIST_FACTOR * sin(L4), 0), text="L4 Trojans", xoffset=20, yoffset=12, space=0, height=10, border=6, box=false, font='sans', visible = False))
-		self.Labels.append(label(pos=(self.RadiusMaxAU * AU * DIST_FACTOR * cos(L5), self.RadiusMaxAU * AU * DIST_FACTOR * sin(L5), 0), text="L5 Trojans", xoffset=20, yoffset=12, space=0, height=10, border=6, box=false, font='sans', visible = False))
+		self.Labels.append(label(pos=(self.RadiusMaxAU * AU * DIST_FACTOR * cos(L4), self.RadiusMaxAU * AU * DIST_FACTOR * sin(L4), 0), text="L4 Trojans", xoffset=20, yoffset=12, space=0, height=10, border=6, box=False, font='sans', visible = False))
+		self.Labels.append(label(pos=(self.RadiusMaxAU * AU * DIST_FACTOR * cos(L5), self.RadiusMaxAU * AU * DIST_FACTOR * sin(L5), 0), text="L5 Trojans", xoffset=20, yoffset=12, space=0, height=10, border=6, box=False, font='sans', visible = False))
 
 
 # CLASS MAKEBODY --------------------------------------------------------------
@@ -1342,7 +1352,7 @@ class makeBody:
 		self.RefOrigin.pos= self.Position #(self.Position[0]+self.Foci[0],self.Position[1]+self.Foci[1],self.Position[2]+self.Foci[2])
 
 #		self.BodyGeometry = sphere(frame=self.RefOrigin, pos=(0,0,0), np=64, radius=self.getBodyRadius(), make_trail=True if self.CentralBody != None else False, up=(0,0,1))
-		self.BodyGeometry = sphere(frame=self.RefOrigin, pos=(0,0,0), np=64, radius=self.getBodyRadius(), make_trail=True, retain=50, up=(0,0,1))
+		self.BodyGeometry = sphere(frame=self.RefOrigin, pos=(0,0,0), np=64, radius=self.getBodyRadius(), make_trail=False, retain=50, up=(0,0,1))
 
 	def getBodyRadiusSAVE(self):
 		return self.radiusToShow/self.SizeCorrection[self.sizeType]
@@ -1801,6 +1811,7 @@ class makeBody:
 				self.Labels[i].visible = False
 		"""
 
+
 	def hide(self):
 
 		#print "HIDE "+ self.Name
@@ -1817,6 +1828,10 @@ class makeBody:
 #		if self.nRings > 0:
 #			self.SolarSystem.hideRings(self)
 
+	def isVisible(self):
+		return self.RefOrigin.visible
+
+		
 	def setAxisVisibility(self, setTo):
 		if self.PCI is not None: 
 			self.PCI.display(setTo)
@@ -1842,18 +1857,18 @@ class makeBody:
 
 #///////////////////////////
 
-			isTargetBody = True if self.SolarSystem.cameraViewTargetSelection == self.Name else False
+			isTargetBody = True if self.SolarSystem.cameraViewTargetName == self.Name else False
 
 			if hasattr(self, "planetOrbitingBodies"):
 				# this body orbits the sun. 
 				# Let's see if it has moons
 
-				#print "BODY refr: Current camera selection = ", self.SolarSystem.cameraViewTargetSelection, ", cur body:", self.Name
+				#print "BODY refr: Current camera selection = ", self.SolarSystem.cameraViewTargetName, ", cur body:", self.Name
 
-				#showMoon = True if self.SolarSystem.cameraViewTargetSelection == self.Name else False
+				#showMoon = True if self.SolarSystem.cameraViewTargetName == self.Name else False
 				moon = False
 				for moon_name, moon_body in self.planetOrbitingBodies.items():
-					if self.SolarSystem.cameraViewTargetSelection == moon_body.Name:
+					if self.SolarSystem.cameraViewTargetName == moon_body.Name:
 						#print "show moon ", moon_name, " for ", self.Name
 						moon_body.show()
 					else:
@@ -1868,8 +1883,8 @@ class makeBody:
 			else:
 
 				if self.CentralBody != None:
-					showMe = True if self.SolarSystem.cameraViewTargetSelection == self.CentralBody.Name or \
-							self.SolarSystem.cameraViewTargetSelection == self.Name	else False
+					showMe = True if self.SolarSystem.cameraViewTargetName == self.CentralBody.Name or \
+							self.SolarSystem.cameraViewTargetName == self.Name	else False
 					if showMe:
 						self.CentralBody.show()
 						self.show()
@@ -1882,7 +1897,7 @@ class makeBody:
 			# if this is the cameraViewTargetBody, 
 			# check for local referential attribute
 
-			if 	self.SolarSystem.cameraViewTargetSelection == self.Name.lower() and \
+			if 	self.SolarSystem.cameraViewTargetName == self.Name.lower() and \
 				self.SolarSystem.ShowFeatures & LOCAL_REFERENTIAL:
 					setTo = True
 			else:
@@ -1916,7 +1931,7 @@ class makeBody:
 			# if this is the cameraViewTargetBody, 
 			# check for local referential attribute
 
-			if 	self.SolarSystem.cameraViewTargetSelection == self.Name.lower() and \
+			if 	self.SolarSystem.cameraViewTargetName == self.Name.lower() and \
 				self.SolarSystem.ShowFeatures & LOCAL_REFERENTIAL:
 					setTo = True
 			else:
@@ -2688,7 +2703,7 @@ class makeEarth_and_widgets(makePlanet):
 		del self.RefOrigin
 		del self.BodyGeometry
 		self.RefOrigin = New_Origin
-		self.BodyGeometry = sphere(frame=self.RefOrigin, pos=(0,0,0), np=64, radius=self.getBodyRadius(), make_trail=false)
+		self.BodyGeometry = sphere(frame=self.RefOrigin, pos=(0,0,0), np=64, radius=self.getBodyRadius(), make_trail=False)
 		self.BodyGeometry.material = materials.texture(data=self.Texture, mapping="spherical", interpolate=False)
 		self.SiderealCorrectionAngle = 0.0  
 		self.Psi = 0.0
@@ -2790,7 +2805,7 @@ class makeEarth_and_widgets(makePlanet):
 
 		return # disabled for the moment as we are debugging the UTC/local time issue
 
-		if self.wasAnimated == false:
+		if self.wasAnimated == False:
 			# here insert call to update clock
 			orbitalBoxInstance.deltaTtick(timeinsec)
 			orbitalBoxInstance.refreshDate()
@@ -2906,7 +2921,7 @@ class hyperbolic(makeBody):
 	def __init__(self, system, key, color, planetBody):
 		makeBody.__init__(self, system, key, color, ptype=HYPERBOLIC, sizeCorrectionType=HYPERBOLIC, realisticCorrectionSize=HYPERBOLIC_SZ_CORRECTION, centralBody=None) 
 
-		self.isMoon = false
+		self.isMoon = False
 
 	def setAxisVisibility(self, setTo):
 		pass
@@ -3375,7 +3390,7 @@ class makeComet(makeBody):
 		self.BodyGeometry = ellipsoid(	frame=self.RefOrigin, pos=(0,0,0),
 									length=(self.radiusToShow * randint(10, 20)/10)/self.SizeCorrection[self.sizeType],
 									height=(self.radiusToShow * randint(10, 20)/10)/self.SizeCorrection[self.sizeType],
-									width=(self.radiusToShow * randint(10, 20)/10)/self.SizeCorrection[self.sizeType], make_trail=false)
+									width=(self.radiusToShow * randint(10, 20)/10)/self.SizeCorrection[self.sizeType], make_trail=False)
 	# makeComet::
 	def setAspect(self, key):
 		# we don't need key for comets
@@ -3468,7 +3483,7 @@ class makePha(makeBody):
 		self.BodyGeometry = ellipsoid(	frame = self.RefOrigin, pos=(0,0,0),
 									length=(self.radiusToShow * asteroidRandom[self.sizeType][0])/self.SizeCorrection[self.sizeType],
 									height=(self.radiusToShow * asteroidRandom[self.sizeType][1])/self.SizeCorrection[self.sizeType],
-									width=(self.radiusToShow * asteroidRandom[self.sizeType][2])/self.SizeCorrection[self.sizeType], make_trail=false)
+									width=(self.radiusToShow * asteroidRandom[self.sizeType][2])/self.SizeCorrection[self.sizeType], make_trail=False)
 		if self.JPL_designation == '4179':
 			pass
 			#print "makePHA:", self.Name,", position=:", self.Position, ", body position=",self.BodyGeometry.pos, "body Origin=", self.RefOrigin.pos
@@ -3522,7 +3537,7 @@ class makeSmallAsteroid(makeBody):
 		self.BodyGeometry = ellipsoid(	frame=self.RefOrigin, pos=(0,0,0),
 									length=(self.radiusToShow * randint(10, 20)/10)/self.SizeCorrection[self.sizeType],
 									height=(self.radiusToShow * randint(10, 20)/10)/self.SizeCorrection[self.sizeType],
-									width=(self.radiusToShow * randint(10, 20)/10)/self.SizeCorrection[self.sizeType], make_trail=false)
+									width=(self.radiusToShow * randint(10, 20)/10)/self.SizeCorrection[self.sizeType], make_trail=False)
 
 	# makeSmallAsteroid::
 	def toggleSize(self, realisticSize):
@@ -3604,7 +3619,7 @@ class makeTNO(makeBody):
 		self.BodyGeometry = ellipsoid(	frame=self.RefOrigin, pos=(0,0,0),
 									length=(self.radiusToShow * randint(10, 20)/10)/self.SizeCorrection[self.sizeType],
 									height=(self.radiusToShow * randint(10, 20)/10)/self.SizeCorrection[self.sizeType],
-									width=(self.radiusToShow * randint(10, 20)/10)/self.SizeCorrection[self.sizeType], make_trail=false)
+									width=(self.radiusToShow * randint(10, 20)/10)/self.SizeCorrection[self.sizeType], make_trail=False)
 
 	# makeTNO::
 	def toggleSize(self, realisticSize):
@@ -3680,8 +3695,8 @@ def glbRefresh(solarSystem, animationInProgress):
 		body.refresh()
 
 def hideBelt(beltname):
-	beltname.BodyGeometry.visible = false
-	beltname.Labels[0].visible = false
+	beltname.BodyGeometry.visible = False
+	beltname.Labels[0].visible = False
 
 def showBelt(beltname):
 	beltname.BodyGeometry.visible = true

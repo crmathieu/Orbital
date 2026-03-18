@@ -278,11 +278,11 @@ class makeLuna(makeNonKeplerianMoon):
 		vernal_equinox = vector(1, 0, 0)
 		em_vec = self.Position
 
-		# 2. calculate true earth position
+		# 2. calculate angle between earth-moon vector and vernal equinox vector
 		angle_to_equinox = diff_angle(em_vec, vernal_equinox)
 
 		# 4. Apply rotation
-		# You want the face of the moon to look at the earth.
+		# We want the face of the moon to look at the earth.
 		# We rotate the moon around the orbital normal to match the equinox offset.
 
 		print "angle to equinox is:", rad2deg(angle_to_equinox)
@@ -329,7 +329,10 @@ class makeLuna(makeNonKeplerianMoon):
 			"elements": elems
 		}
 
-
+	def show2(self):
+		makeNonKeplerianMoon.show(self)
+		self.setTexturePosition()		
+		print "------------------"
 		
 
 

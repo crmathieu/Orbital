@@ -425,7 +425,7 @@ class FOCUSpanel(AbstractUI):
 		# going from current object to next current object
 		print ("SMOOTH FOCUS to", destination)
 		#self.SolarSystem.cameraViewTargetBody
-		dest = self.SolarSystem.getBodyFromName(destination.lower())
+		dest = self.SolarSystem.getBodyFromName(destination)
 		if dest is not None:
 			print ("we got the body info")
 			Xc = self.SolarSystem.Scene.center[0]
@@ -454,7 +454,7 @@ class FOCUSpanel(AbstractUI):
 	"""
 
 	def OnLocalNorthPole(self, e):
-		#print ("cameraViewTargetBody:",self.SolarSystem.cameraViewTargetSelection)
+		#print ("cameraViewTargetBody:",self.SolarSystem.cameraViewTargetName)
 		self.setLocalNorthPole()
 
 	def setLocalNorthPole(self):
@@ -480,7 +480,7 @@ class FOCUSpanel(AbstractUI):
 		#self.setBodyFocus(body)
 
 	def getBodyIndexInList(self, bodyName):
-		index = bodyname_to_index[bodyName.lower()]
+		index = bodyname_to_index[bodyName]
 		if index is not None:
 			return index
 		return bodyname_to_index[SUN_NAME]
@@ -519,14 +519,14 @@ class FOCUSpanel(AbstractUI):
 				"Eccentricity ", e,
 				"Axial Tilt(deg) ", Body.AxialTilt) + "ZOB")
 
-		if self.SolarSystem.cameraViewTargetSelection != CURRENT_BODY:
-			print "cameraViewTargetBody", self.SolarSystem.cameraViewTargetSelection
+		if self.SolarSystem.cameraViewTargetName != CURRENT_BODY:
+			print "cameraViewTargetBody", self.SolarSystem.cameraViewTargetName
 
 			# if object was hidden due to its body type, make body type
 			# visible unless it's earth which always stays visible
 
 			if (Body.SolarSystem.ShowFeatures & Body.BodyType) == 0 \
-				and Body.Name.lower() != EARTH_NAME:
+				and Body.Name != EARTH_NAME:
 				print "MAKING OBJECT VISIBLE"
 				# if the body is not visible, Make it so
 				#print "Making "+Body.Name+" visible! bodyType = "+str(Body.BodyType)
@@ -544,8 +544,8 @@ class FOCUSpanel(AbstractUI):
 				Body.show()
 
 		self.SolarSystem.cameraViewTargetBody = Body
-		#### self.SolarSystem.cameraViewTargetSelection = Body.JPL_designation
-		print "cameraViewTargetBody selection is:", self.SolarSystem.cameraViewTargetSelection
+		#### self.SolarSystem.cameraViewTargetName = Body.JPL_designation
+		print "cameraViewTargetBody selection is:", self.SolarSystem.cameraViewTargetName
 
 		if self.smoothTransition == True:
 			self.SolarSystem.camera.smoothFocus(Body.Name)
@@ -553,8 +553,8 @@ class FOCUSpanel(AbstractUI):
 			self.SolarSystem.camera.updateCameraViewTarget()	
 
 	def setPlanetFocus(self):
-		planetBody = self.SolarSystem.getBodyFromName(self.SolarSystem.cameraViewTargetSelection)
-		return self.setBodyFocus(planetBody)
+		body = self.SolarSystem.getBodyFromName(self.SolarSystem.cameraViewTargetName)
+		return self.setBodyFocus(body)
 
 	def setSunFocus(self):
 		if self.SolarSystem.Sun is not None:
@@ -575,21 +575,21 @@ class FOCUSpanel(AbstractUI):
 		else: 
 			self.SolarSystem.resetView()
 		self.rbox.SetSelection(1)
-		self.SolarSystem.cameraViewTargetSelection = SUN_NAME
+		self.SolarSystem.cameraViewTargetName = SUN_NAME
 		self.SolarSystem.cameraViewTargetBody = None
 
 	def OnRadioBox(self, e):
 		index = self.rbox.GetSelection()
 
 		# set type of object selected
-		#self.SolarSystem.cameraViewTargetSelection = {	0: CURRENT_BODY, 1: SUN_NAME, 	2:EARTH_NAME,	3:"mercury", 	4:"venus",
+		#self.SolarSystem.cameraViewTargetName = {	0: CURRENT_BODY, 1: SUN_NAME, 	2:EARTH_NAME,	3:"mercury", 	4:"venus",
 		#												5: "mars", 		 6:"jupiter", 	7:"saturn", 	8:"uranus", 	9:"neptune",
 		#												10:"pluto", 	11:"sedna", 	12:"makemake", 13:"haumea", 	14:"eris", 
 		#												15:"charon", 	16: "phobos", 	17:"deimos", 	18:"moon"}[index]
 		
-		self.SolarSystem.cameraViewTargetSelection = index_to_bodyname[index]
+		self.SolarSystem.cameraViewTargetName = index_to_bodyname[index]
 
-		#self.SolarSystem.cameraViewTargetSelection = {	0: index_to_bodyname[0], 	1: index_to_bodyname[1], 	2: index_to_bodyname[2],	
+		#self.SolarSystem.cameraViewTargetName = {	0: index_to_bodyname[0], 	1: index_to_bodyname[1], 	2: index_to_bodyname[2],	
 		#												3: index_to_bodyname[3], 	4: index_to_bodyname[4],	5: index_to_bodyname[5],
 		#												6: index_to_bodyname[6], 	7: index_to_bodyname[7], 	8: index_to_bodyname[8], 	
 		#												9: index_to_bodyname[9],	10:index_to_bodyname[10], 	11:index_to_bodyname[11], 	
@@ -612,8 +612,8 @@ class FOCUSpanel(AbstractUI):
 		self.FocusFuncionsSet[index]()
 		self.setLocalNorthPole()
 
-	def getcameraViewTargetSelection(self):
-		return self.SolarSystem.cameraViewTargetSelection
+	def getcameraViewTargetName(self):
+		return self.SolarSystem.cameraViewTargetName
 
 	def OnReset(self, e):
 		self.resetCameraViewTarget()
@@ -790,7 +790,7 @@ class SEARCHpanel(AbstractUI):
 		if self.jsonResp["element_count"] > 0:
 			today = self.jsonResp["near_earth_objects"][self.fetchDateStr]
 			for entry in today:
-				if entry["close_approach_data"][0]["orbiting_body"].lower() == EARTH_NAME:
+				if entry["close_approach_data"][0]["orbiting_body"] == EARTH_NAME:
 					self.list.InsertStringItem(self.ListIndex, entry["name"])
 					if entry["is_potentially_hazardous_asteroid"] == True:
 							ch = "Y"
@@ -842,7 +842,7 @@ class SEARCHpanel(AbstractUI):
 			############self.parentFrame.orbitalTab.refreshDate()
 
 			self.parentFrame.orbitalTab.setCurrentBodyFromId(id)
-			if self.SolarSystem.cameraViewTargetSelection == CURRENT_BODY:
+			if self.SolarSystem.cameraViewTargetName == CURRENT_BODY:
 				self.SolarSystem.cameraViewTargetBody = self.parentFrame.orbitalTab.currentBody
 				self.SolarSystem.camera.updateCameraViewTarget()	
 				#self.parentFrame.orbitalTab.updateCameraViewTarget()
@@ -922,7 +922,7 @@ class SEARCHpanel(AbstractUI):
 			##########self.parentFrame.orbitalTab.refreshDate()
 
 			self.parentFrame.orbitalTab.setCurrentBodyFromId(id)
-			if self.SolarSystem.cameraViewTargetSelection == CURRENT_BODY:
+			if self.SolarSystem.cameraViewTargetName == CURRENT_BODY:
 				self.SolarSystem.cameraViewTargetBody = self.parentFrame.orbitalTab.currentBody
 				#self.parentFrame.orbitalTab.updateCameraViewTarget()
 				self.SolarSystem.camera.updateCameraViewTarget()	
@@ -1267,7 +1267,7 @@ class ORBITALpanel(AbstractUI):
 		for body in self.SolarSystem.bodies:
 			if body.BodyType in [SPACECRAFT, PHA, BIG_ASTEROID, COMET, TNO]:
 				self.list.append(body.Name)
-				self.listjplid.append(body.JPL_designation.lower())
+				self.listjplid.append(body.Name)
 
 		self.comb = wx.ComboBox(self, id=wx.ID_ANY, value="Select Object Individually", size=wx.DefaultSize, pos=(xpos, ypos), choices=self.list, style=(wx.CB_DROPDOWN))
 		self.comb.Bind(wx.EVT_COMBOBOX, self.OnSelect)
@@ -1281,7 +1281,7 @@ class ORBITALpanel(AbstractUI):
 			index = e.GetSelection()
 			name = self.listjplid[index]
 			self.setCurrentBodyFromId(name)
-			if self.SolarSystem.cameraViewTargetSelection == CURRENT_BODY:
+			if self.SolarSystem.cameraViewTargetName == CURRENT_BODY:
 				print ""
 				print "CHANGING CURRENT OBJECT"
 				print ""
@@ -1291,7 +1291,7 @@ class ORBITALpanel(AbstractUI):
 				self.SolarSystem.camera.updateCameraViewTarget()	
 
 			else:
-				print "OnSELECT: cameraViewTargetBody is", self.SolarSystem.cameraViewTargetBody.Name, "current ViewTarget selection type is", self.SolarSystem.cameraViewTargetSelection
+				print "OnSELECT: cameraViewTargetBody is", self.SolarSystem.cameraViewTargetBody.Name, "current ViewTarget selection type is", self.SolarSystem.cameraViewTargetName
 
 	def setCurrentBody(self, body):
 		if self.currentBody is not None:
@@ -1461,8 +1461,10 @@ class ORBITALpanel(AbstractUI):
 		self.Stepper.Bind(wx.EVT_BUTTON, self.OnStepper)
 
 		# u'\u25a0' = square character
-		self.Recorder = wx.Button(self, label=u'\u25a0', pos=(440, ANI_Y), size=(35, 35))
-		self.Recorder.Bind(wx.EVT_BUTTON, self.OnRecord)
+		# u'\u29bf' = circle character
+		# u'\u1f534' = big red circle
+		self.RecordButton = wx.Button(self, label=u'\u29bf', pos=(440, ANI_Y), size=(35, 35))
+		self.RecordButton.Bind(wx.EVT_BUTTON, self.OnRecord)
 
 		self.AutoRotation = wx.CheckBox(self, label="Auto-Rotation in Animation", pos=(200-30, DET_Y-40))
 		self.AutoRotation.SetValue(False)
@@ -1540,7 +1542,7 @@ class ORBITALpanel(AbstractUI):
 			print "no curent object"
 			return
 
-		if self.SolarSystem.cameraViewTargetBody.Name.lower() == EARTH_NAME:
+		if self.SolarSystem.cameraViewTargetBody.Name == EARTH_NAME:
 			earthLocPos = None
 			w = self.Earth.PlanetWidgets
 			if loc == None:
@@ -1586,18 +1588,78 @@ class ORBITALpanel(AbstractUI):
 		#print "----------"
 
 	"""			
-	
+
+	def updateCameraView(self, body):
+		if self.SolarSystem.cameraViewTargetBody is not None:
+			
+			# update center position if we are NOT in the middle of a smooth transition and
+			# NOT in a location Referential view mode (point of view from current location)
+
+			if 	body.Name == self.SolarSystem.cameraViewTargetBody.Name and \
+				self.SolarSystem.Dashboard.focusTab.smoothTransition == False and \
+				self.SolarSystem.Dashboard.widgetsTab.Earth.PlanetWidgets.locationEarthEyeView == False:
+
+				self.SolarSystem.camera.updateCameraViewTarget()
+
+	def updateDynamics(self, body, velocity, dte, dts):
+		# save velocity and DTE/DTS info on object currently observed onAnimate
+		if self.SolarSystem.cameraViewTargetName == body.Name or \
+			(self.SolarSystem.cameraViewTargetName == CURRENT_BODY and \
+			 self.SolarSystem.cameraViewTargetBody.Name == body.Name):
+			self.velocity = velocity
+			self.dte = dte
+			self.dts = dts
 
 	def updateSolarSystem(self):
 
 		# This function will ANIMATE all visible bodies in the solar system 
+
 		
 		self.refreshDate()
-		#self.SolarSystem.animate(self.DeltaT)
+
+		for name, body in self.SolarSystem.sunOrbiting.items():
+		#for body in self.SolarSystem.bodies:
+			if body.BodyType in [SUN, SPACECRAFT, OUTER_PLANET, INNER_PLANET, ASTEROID, \
+								 COMET, DWARF_PLANET, PHA, BIG_ASTEROID, TNO]:
+
+				if body.RefOrigin.visible == True or body.Name == EARTH_NAME:
+					velocity, dte, dts = body.animate(self.DeltaT)
+					#print "VEL:", velocity, "dte:", dte
+
+					self.updateCameraView(body)
+					self.updateDynamics(body, velocity, dte, dts)
+
+					# determine if there are moons orbiting that object
+					if hasattr(body, "planetOrbitingBodies"):
+						#print "Sys Refr: Current camera selection = ", self.cameraViewTargetName, ", cur body:", body.Name
+
+						for moon_name, moon_body in body.planetOrbitingBodies.items():
+							
+							# if current moon is visible or if it is "Luna", we
+							# update animation. In the case of Luna, we do it even
+							# if it is not visible because we want to preserve the
+							# proper texture orientation.
+
+							if moon_body.isVisible() or moon_name == "moon":
+								velocity, dte, dts = moon_body.animate(self.DeltaT)
+								self.updateCameraView(moon_body)
+								self.updateDynamics(moon_body, velocity, dte, dts)
+
+			#else:
+			#	print("UNKNOWN BODYTYPE:", body.BodyType)
+	
+
+	def updateSolarSystem2(self):
+
+		# This function will ANIMATE all visible bodies in the solar system 
+
+		
+		self.refreshDate()
+
 		for body in self.SolarSystem.bodies:
 			if body.BodyType in [SUN, SPACECRAFT, OUTER_PLANET, INNER_PLANET, MOON, ASTEROID, \
 								 COMET, DWARF_PLANET, PHA, BIG_ASTEROID, TNO]:
-				if body.RefOrigin.visible == True or body.Name.lower() == EARTH_NAME:
+				if body.RefOrigin.visible == True or body.Name == EARTH_NAME:
 					velocity, dte, dts = body.animate(self.DeltaT)
 					#print "VEL:", velocity, "dte:", dte
 					if self.SolarSystem.cameraViewTargetBody is not None:
@@ -1605,7 +1667,7 @@ class ORBITALpanel(AbstractUI):
 						# update center position if we are NOT in the middle of a smooth transition and
 						# NOT in a location Referential view mode (point of view from current location)
 
-						if 	body.JPL_designation == self.SolarSystem.cameraViewTargetBody.JPL_designation and \
+						if 	body.Name == self.SolarSystem.cameraViewTargetBody.Name and \
 							self.SolarSystem.Dashboard.focusTab.smoothTransition == False and \
 							self.SolarSystem.Dashboard.widgetsTab.Earth.PlanetWidgets.locationEarthEyeView == False:
 
@@ -1614,9 +1676,9 @@ class ORBITALpanel(AbstractUI):
 					#if body.BodyType == self.Source or body.Details == True:
 
 					# save velocity and DTE/DTS info on object currently observed onAnimate
-					if self.SolarSystem.cameraViewTargetSelection == body.Name.lower() or \
-						(self.SolarSystem.cameraViewTargetSelection == CURRENT_BODY and \
-						 self.SolarSystem.cameraViewTargetBody.Name.lower() == body.Name.lower()):
+					if self.SolarSystem.cameraViewTargetName == body.Name or \
+						(self.SolarSystem.cameraViewTargetName == CURRENT_BODY and \
+						 self.SolarSystem.cameraViewTargetBody.Name == body.Name):
 						self.velocity = velocity
 						self.dte = dte
 						self.dts = dts
@@ -1810,7 +1872,7 @@ class ORBITALpanel(AbstractUI):
 		else:
 			e.GetEventObject().SetLabel("Resume")
 			self.ResumeSlideShowLabel = True
-			if self.SolarSystem.cameraViewTargetSelection == CURRENT_BODY:
+			if self.SolarSystem.cameraViewTargetName == CURRENT_BODY:
 				self.SolarSystem.cameraViewTargetBody = self.currentBody
 				self.SolarSystem.camera.updateCameraViewTarget()
 
@@ -1874,7 +1936,7 @@ class ORBITALpanel(AbstractUI):
 		return False	# else return false
 
 	def OnSlideShow(self, e):
-		if self.SolarSystem.cameraViewTargetSelection == CURRENT_BODY:
+		if self.SolarSystem.cameraViewTargetName == CURRENT_BODY:
 			#print "currViewTargetselection = CURRENT_BODY - Reset to SUN"
 			self.parentFrame.focusTab.resetCameraViewTarget()
 
@@ -1944,13 +2006,14 @@ class ORBITALpanel(AbstractUI):
 	def OnRecord(self, e):
 		if self.RecorderOn == False:
 			self.RecorderOn = True
-			self.Recorder.SetOwnForegroundColour(wx.RED)
+			self.RecordButton.SetOwnForegroundColour(wx.RED)
 		else:
 			self.RecorderOn = False
-			self.Recorder.SetOwnForegroundColour(wx.BLACK)
 			if self.VideoRecorder is not None:
+				self.RecordButton.SetOwnForegroundColour(wx.YELLOW)
 				stopRecording(self.VideoRecorder)
 				self.VideoRecorder = None
+			self.RecordButton.SetOwnForegroundColour(wx.BLACK)
 
 
 		#self.disableBeltsForAnimation()
@@ -1966,8 +2029,13 @@ class ORBITALpanel(AbstractUI):
 
 		# animate by one TimeIncrement all bodies in the solar system
 		self.updateSolarSystem()
-		sleep(1e-2)
-		#sleep(1e-4)
+
+		# we need to give back CPU control to let other parts of the UI
+		# function as the animation/recording is in progress/
+
+		#sleep(1e-2)
+		
+		#sleep(1e-3) <--- it was uncommented. PUT IT BACK!!!
 
 	def executeAnimationActions(self):
 		# if auto movement is required, execute it
@@ -2050,17 +2118,41 @@ class ORBITALpanel(AbstractUI):
 		if self.AutoRotation.GetValue() == True:
 			self.set_autoMovement(True)
 
-		# start a new thread to retrieve the list of NEOs from JPL
-		#animateThread = threading.Thread(target=self.doAnimation, name="doAnimation", args=[] )
-		#animateThread.start()
-
 		# NEW: Safety cleanup before starting
 		self.VideoRecorder = None
 
-		self.doAnimation()
+		#animateThread = threading.Thread(target=self.doAnimation, name="doAnimation", args=[] )
+		#animateThread.start()
+
+
+		self.doAnimation() # <----- wasn't commented out in non-threaded animation
+		
 		# loop was here
 
-		#self.Recorder.SetColor() ####
+		#self.RecordButton.SetColor() ####
+
+
+
+	# Inside your toggle_record function:
+	def start_recordingXX():
+	    print("Calibrating hardware for 2 seconds...")
+	    start_cal = time.time()
+	    frames_captured = 0
+	    
+	    # Run a quick burst to see the impact of recording
+	    while time.time() - start_cal < 2.0:
+	        # 1. Simulate capture overhead 
+	        # (This mimics the ImageGrab and numpy conversion)
+	 #       dummy_img = ImageGrab.grab(bbox=my_bbox) 
+	        frames_captured += 1
+	        
+	    actual_fps = frames_captured / 2.0
+	    print("Hardware limit detected: %.2f FPS" % actual_fps)
+	    
+	    # Now initialize the writer with the TRUTH
+	    return cv2.VideoWriter('solar_sys.avi', fourcc, int(actual_fps), frame_size)
+
+
 	def doAnimation(self):
 		
 		# set mechanic to determine the # of frame per seconds in Animation (if recorder is ON)
@@ -2070,20 +2162,28 @@ class ORBITALpanel(AbstractUI):
 		videoRec = False
 		"""
 
-		target_fps = 60.0
+		# set our output fps
+		target_fps = 20.0 #60.0
 		frame_duration = 1.0 / target_fps
-
+		cumul = 0.0
+		i = 0
+		rate(60)
 		while self.AnimationInProgress:
 			start_time = time.time()
 
 			# 1. Logic for recording (The "Lazy" Initialization)
 			if self.RecorderOn and self.VideoRecorder is None:
-				self.VideoRecorder = setVideoRecording(framerate=target_fps, filename="orbit.mp4")
+				self.VideoRecorder = setVideoRecording(self.SolarSystem, framerate=target_fps, filename="orbit.mp4")
 				# Add a tiny 10ms sleep here to let the OS finalize the file handle 
 				# before the first frame capture happens
-				time.sleep(0.01)
+				sleep(0.01)
 
 			self.OneTimeIncrement()
+			
+			# make sure to give back the CPU every step of the loop to
+			# allow for events and messages to get propagated
+
+			sleep(1e-3)
 
 			# 3. Record IF the recorder was successfully created
 			if self.RecorderOn and self.VideoRecorder is not None:
@@ -2091,13 +2191,23 @@ class ORBITALpanel(AbstractUI):
 			
 			# if we have an animation callback set up, run it
 			if self.DisableAnimationCallback == False:
+				print "run Animation Callback"
 				self.AnimationCallback()
 
 			# Force the loop to wait if it's running too fast
 			elapsed = time.time() - start_time
+
 			if elapsed < frame_duration:
-				print "sleep for :", frame_duration - elapsed, " sec"
-				time.sleep(frame_duration - elapsed)
+				cumul = cumul + frame_duration - elapsed
+				#print "sleep for :", frame_duration - elapsed, " sec"
+				sleep(frame_duration - elapsed)
+
+			cumul = cumul + elapsed 
+			#print "cumul = ", cumul
+			if cumul > 1.0:
+				i += 1				
+				#print i, " SECOND"
+				cumul = 0.0
 
 			"""
 			# determine # of frames/sec
