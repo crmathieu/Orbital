@@ -1236,7 +1236,7 @@ objects_data2 = {
 }
 
 belt_data = {
-	"jupiterTrojan": {
+	"jupitertrojans": {
 		"radius_min":5.05,
 		"radius_max":5.65, #5.35,
 		"thickness": 0.6,

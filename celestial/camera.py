@@ -424,6 +424,30 @@ class camera3D:
 		# going from current object to next current object
 		print "SMOOTH TRANSITION TOWARDS target: ", targetBodyName
 		target = None
+		if targetBodyName in self.ssys.orbitWhat:
+			targetBody = self.ssys.getMoonBodyFromName(targetBodyName.lower())
+		else:
+			targetBody = self.ssys.getBodyFromName(targetBodyName.lower())
+		
+		if targetBody is None:
+			# use sun as target
+			target = vector(0,0,0)
+		else:
+			if targetBody.isMoon:
+				
+				# if the target body is a moon, make sure to translate
+				# geoEcliptic coordinates into helioEcliptic ones
+
+				target = targetBody.CentralBody.LocalEclipticRef.frame_to_world(targetBody.Position)
+			else:
+				target = targetBody.Position
+
+		return self._smoothFocus(target, ratefunc)
+
+	def smoothFocus2(self, targetBodyName, ratefunc =  ease_in_out):
+		# going from current object to next current object
+		print "SMOOTH TRANSITION TOWARDS target: ", targetBodyName
+		target = None
 		targetBody = self.ssys.getBodyFromName(targetBodyName.lower())
 
 		if targetBody is None:
@@ -440,7 +464,6 @@ class camera3D:
 				target = targetBody.Position
 
 		return self._smoothFocus(target, ratefunc)
-
 
 	# move the scene center to target location and rotate forward vector to vertical
 	def gotoEarthLocationVertical(self, nextLocation, ratefunc = ease_in_out_quart):

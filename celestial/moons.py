@@ -35,6 +35,7 @@ class makePlanetMoon(makeBody):
 
 	def registerSpacecraft(self, key, body):
 		self.moonOrbitingBodies[key] = body
+		self.SolarSystem.orbitWhat[key] = self.CentralBody.Name
 
 	# makePlanetMoon::
 	def toggleSize(self, realisticSize):
@@ -97,6 +98,7 @@ class makeNonKeplerianMoon(makeBody):
 
 	def registerSpacecraft(self, key, body):
 		self.moonOrbitingBodies[key] = body
+		self.SolarSystem.orbitWhat[key] = self.CentralBody.Name
 
 	# makeNonKeplerianMoon::
 	def toggleSize(self, realisticSize):
@@ -164,10 +166,10 @@ class makeNonKeplerianMoon(makeBody):
 		"""
 
 		if self.hasRenderedOrbit == True:
-
+			#print "..............NONkeplerianMoon: timeIncrement = ", timeIncrement
 			self.snapshot = self.getMoonElements(timeIncrement)
 			self.setMoonElements(self.Name, self.snapshot["elements"])
-			self.Position = self.snapshot["position_vec"] * self.distanceFactor #DIST_FACTOR_MOON # DIST_FACTOR 
+			self.Position = self.snapshot["position_vec"] * self.distanceFactor
 			self.RefOrigin.pos = self.Position
 			return self.Position 
 		else:
@@ -229,6 +231,7 @@ class makeLuna(makeNonKeplerianMoon):
 		prevent the use of normal kepler derivation
 		"""
 		print "MAKE LUNA CONSTRUCTOR"
+		self.distanceFactor = planet_moon_dist_factor["earth"]
 		self.snapshot = {}
 		self.snapshot = self.getMoonElements(0)
 
@@ -251,8 +254,9 @@ class makeLuna(makeNonKeplerianMoon):
 
 
 	def initRotation(self):
-
+		print "INIT MOON ROTATION ------------------"
 		self.setTexturePosition()
+		print "END INIT MOON ROT -------------------"
 
 	def to_helioPos(self):
 		"""
@@ -279,14 +283,19 @@ class makeLuna(makeNonKeplerianMoon):
 		em_vec = self.Position
 
 		# 2. calculate angle between earth-moon vector and vernal equinox vector
-		angle_to_equinox = diff_angle(em_vec, vernal_equinox)
+		angle_to_equinox = diff_angle(vernal_equinox, em_vec)
 
 		# 4. Apply rotation
 		# We want the face of the moon to look at the earth.
 		# We rotate the moon around the orbital normal to match the equinox offset.
 
 		print "angle to equinox is:", rad2deg(angle_to_equinox)
-		self.RefOrigin.rotate(angle=-(np.pi/2 + abs(angle_to_equinox)), axis=self.RotAxis, origin=(0,0,0))
+		#print "Moon pos:", self.Position
+
+#		self.RefOrigin.rotate(angle=-(np.pi/2 + abs(angle_to_equinox)), axis=self.RotAxis, origin=(0,0,0))
+		self.RefOrigin.rotate(angle=-(np.pi/2 - angle_to_equinox), axis=self.RotAxis, origin=(0,0,0))
+		
+		#print "Moon pos after rotation:", self.Position
 
 
 	def setTexturePosition2(self):
@@ -319,10 +328,11 @@ class makeLuna(makeNonKeplerianMoon):
 		from orbit3D import System_utc
 
 		# System_utc is the dateTime reference to estimate all
-		# positions in our solare system
+		# positions in our solar system
 
 		r, v, elems = moon_ephemeris(System_utc, timeIncrement)
-		#print "Moon's elements", elems
+		#r = r * self.distanceFactor
+		#print "Calculating Moon position ...", r , ", for time = ", System_utc, "Increment = ", timeIncrement
 		return {
 			"position_vec": r, # in meters
 			"velocity_vec": v, # in meters/sec
@@ -330,9 +340,10 @@ class makeLuna(makeNonKeplerianMoon):
 		}
 
 	def show2(self):
+		print ">>>>>>>>>>>>>>>>>>>>> Moon position before call to show:", self.Position
 		makeNonKeplerianMoon.show(self)
 		self.setTexturePosition()		
-		print "------------------"
+		print ">>>>>>>>>>>>>>>>>>>>> Moon position after call to show:", self.Position, "------------------"
 		
 
 

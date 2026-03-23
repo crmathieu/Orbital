@@ -28,7 +28,7 @@ def createSolarSystem():
 	ssys = makeSolarSystem()
 	
 	# set what is displayed by default
-	ssys.setDefaultFeatures(INNER_PLANET|ORBITS|SPACECRAFT|MOON|OUTER_PLANET|SUN) 
+	ssys.setDefaultFeatures(INNER_PLANET|OUTER_PLANET|ORBITS|SPACECRAFT|MOON|SUN) 
 
 	sun = makeSun(ssys, color=color.yellow, ptype=SUN, sizeCorrectionType=SUN, defaultSizeCorrection=SUN_SZ_CORRECTION)
 	ssys.register(sun)
@@ -135,7 +135,7 @@ def createSolarSystem():
 #	ssys.addTo(makeBelt(ssys, key='inneroort', name='Inner Oort Cloud', ptype=INNER_OORT_CLOUD, color=color.white, size=2, density=5))
 
 	# JUPITER TROJANS
-	ssys.addJTrojans(makeJtrojan(ssys, key='jupiterTrojan', name='Jupiter Trojans', ptype=JTROJANS, color=color.green, size=2, density=5, planetname='jupiter'))
+	ssys.addJTrojans(makeJtrojan(ssys, key='jupitertrojans', name='Jupiter Trojans', ptype=JTROJANS, color=color.green, size=2, density=5, planetname='jupiter'))
 	
 	MAX_OBJECTS = 1000
 	# ----> 2026/02/23 commented this out: loadBodies(ssys, PHA, "data/test.json", MAX_OBJECTS)
@@ -153,7 +153,8 @@ def createSolarSystem():
 
 	ssys.drawAllBodiesTrajectory()
 
-	glbRefresh(ssys, False)
+#	glbRefresh(ssys, False) #< ---- PUT IT BACK!!!
+
 #	return ssys, moon
 	return ssys
 

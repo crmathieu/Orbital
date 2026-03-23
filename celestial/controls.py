@@ -379,9 +379,9 @@ class FOCUSpanel(AbstractUI):
 		 8: self.setPlanetFocus, 9: self.setPlanetFocus,
 		 10: self.setPlanetFocus, 11: self.setPlanetFocus,
 		 12: self.setPlanetFocus, 13: self.setPlanetFocus,
-		 14: self.setPlanetFocus, 15: self.setPlanetFocus,
-		 16: self.setPlanetFocus, 17: self.setPlanetFocus,
-		 18: self.setPlanetFocus, 19: self.setPlanetFocus }
+		 14: self.setPlanetFocus, 15: self.setMoonFocus,
+		 16: self.setMoonFocus, 17: self.setMoonFocus,
+		 18: self.setMoonFocus, 19: self.setMoonFocus }
 
 	def InitUI(self):
 		self.BoldFont = wx.Font(10, wx.SWISS, wx.NORMAL, wx.BOLD)
@@ -394,10 +394,11 @@ class FOCUSpanel(AbstractUI):
 		Description = "Select which body the animation\nshould focus on. 'Current Object'\nwill follow the last object selected,\nwhether it comes from the Drop\ndown selection, a paused slide-\nshow selection or a Close App-\nroach object pick.\n\nYou may also choose any parti-\ncular planet or the sun."
 		self.Header.SetLabel(Description)
 		
-		lblList = ['Current Object', 'Sun', 'Earth', 'Mercury', 'Venus', 'Mars', 'Jupiter', 'Saturn', 'Uranus', 'Neptune', 'Pluto', 'Sedna', 'Makemake', 'Haumea','Eris','Charon', 'Phobos', 'Adrastea', 'Mimas', 'Moon']
-		self.rbox = wx.RadioBox(self, label = ' Focus on ', pos = (20, CVT_Y), size=(170, 610), choices = lblList ,majorDimension = 1, style = wx.RA_SPECIFY_COLS)
+		self.lblList = ['Current Object', 'Sun', 'Earth', 'Mercury', 'Venus', 'Mars', 'Jupiter', 'Saturn', 'Uranus', 'Neptune', 'Pluto', 'Sedna', 'Makemake', 'Haumea','Eris','Charon', 'Phobos', 'Adrastea', 'Mimas', 'Moon']
+
+		self.rbox = wx.RadioBox(self, label = ' Focus on ', pos = (20, CVT_Y), size=(170, 610), choices = self.lblList ,majorDimension = 1, style = wx.RA_SPECIFY_COLS)
 		self.rbox.SetFont(self.RegFont)
-		self.rbox.Bind(wx.EVT_RADIOBOX,self.OnRadioBox)
+		self.rbox.Bind(wx.EVT_RADIOBOX,self.OnFocus)
 
 		self.cb = wx.CheckBox(self, label="Show Local North Pole", pos=(200, CVT_FOCUS_Y+40)) #   CVT_Y+560))
 		self.cb.SetValue(False)
@@ -476,7 +477,7 @@ class FOCUSpanel(AbstractUI):
 	def setCurrentBodyFocusProgrammatically(self, body, selectIndex):
 		self.rbox.SetSelection(selectIndex)
 		self.parentFrame.orbitalTab.initViewAngle(body)
-		self.OnRadioBox(None)
+		self.OnFocus(None)
 		#self.setBodyFocus(body)
 
 	def getBodyIndexInList(self, bodyName):
@@ -520,7 +521,7 @@ class FOCUSpanel(AbstractUI):
 				"Axial Tilt(deg) ", Body.AxialTilt) + "ZOB")
 
 		if self.SolarSystem.cameraViewTargetName != CURRENT_BODY:
-			print "cameraViewTargetBody", self.SolarSystem.cameraViewTargetName
+			print "cameraViewTargetName", self.SolarSystem.cameraViewTargetName
 
 			# if object was hidden due to its body type, make body type
 			# visible unless it's earth which always stays visible
@@ -544,8 +545,6 @@ class FOCUSpanel(AbstractUI):
 				Body.show()
 
 		self.SolarSystem.cameraViewTargetBody = Body
-		#### self.SolarSystem.cameraViewTargetName = Body.JPL_designation
-		print "cameraViewTargetBody selection is:", self.SolarSystem.cameraViewTargetName
 
 		if self.smoothTransition == True:
 			self.SolarSystem.camera.smoothFocus(Body.Name)
@@ -553,8 +552,16 @@ class FOCUSpanel(AbstractUI):
 			self.SolarSystem.camera.updateCameraViewTarget()	
 
 	def setPlanetFocus(self):
+		print "setting focus ON: ", self.SolarSystem.cameraViewTargetName
 		body = self.SolarSystem.getBodyFromName(self.SolarSystem.cameraViewTargetName)
 		return self.setBodyFocus(body)
+
+	def setMoonFocus(self):
+		body = self.SolarSystem.getMoonBodyFromName(self.SolarSystem.cameraViewTargetName)
+		# make sure the moon's planet is visible
+		body.CentralBody.RefOrigin.visible = True
+		return self.setBodyFocus(body)
+
 
 	def setSunFocus(self):
 		if self.SolarSystem.Sun is not None:
@@ -578,42 +585,36 @@ class FOCUSpanel(AbstractUI):
 		self.SolarSystem.cameraViewTargetName = SUN_NAME
 		self.SolarSystem.cameraViewTargetBody = None
 
-	def OnRadioBox(self, e):
+
+	def OnFocus(self, e):
+
 		index = self.rbox.GetSelection()
+		if self.SolarSystem.cameraViewTargetBody != None and \
+			self.SolarSystem.cameraViewTargetBody.isMoon:
+			self.SolarSystem.cameraViewTargetBody.hide()
 
-		# set type of object selected
-		#self.SolarSystem.cameraViewTargetName = {	0: CURRENT_BODY, 1: SUN_NAME, 	2:EARTH_NAME,	3:"mercury", 	4:"venus",
-		#												5: "mars", 		 6:"jupiter", 	7:"saturn", 	8:"uranus", 	9:"neptune",
-		#												10:"pluto", 	11:"sedna", 	12:"makemake", 13:"haumea", 	14:"eris", 
-		#												15:"charon", 	16: "phobos", 	17:"deimos", 	18:"moon"}[index]
-		
-		self.SolarSystem.cameraViewTargetName = index_to_bodyname[index]
+		# here we pick the selected body name from the list, but we need to
+		# lower case it because our body dictionaries have lowercase keys.
 
-		#self.SolarSystem.cameraViewTargetName = {	0: index_to_bodyname[0], 	1: index_to_bodyname[1], 	2: index_to_bodyname[2],	
-		#												3: index_to_bodyname[3], 	4: index_to_bodyname[4],	5: index_to_bodyname[5],
-		#												6: index_to_bodyname[6], 	7: index_to_bodyname[7], 	8: index_to_bodyname[8], 	
-		#												9: index_to_bodyname[9],	10:index_to_bodyname[10], 	11:index_to_bodyname[11], 	
-		#												12:index_to_bodyname[12], 	13:index_to_bodyname[13], 	14:index_to_bodyname[14], 
-		#												15:index_to_bodyname[15], 	16:index_to_bodyname[16], 	17:index_to_bodyname[17], 	
-		#												18:index_to_bodyname[18]}[index]
+		self.SolarSystem.cameraViewTargetName = self.lblList[index].lower() 
+		if self.SolarSystem.cameraViewTargetName in self.SolarSystem.sunOrbiting:
+			self.SolarSystem.cameraViewTargetBody = self.SolarSystem.sunOrbiting[self.SolarSystem.cameraViewTargetName]
+		else:
+			# target body is the sun or a moon
+			self.SolarSystem.cameraViewTargetBody = self.SolarSystem.getMoonBodyFromName(self.SolarSystem.cameraViewTargetName)
+			#if self.SolarSystem.cameraViewTargetBody == None:
+			#	print "OOOPS!"
+			#	exit()
 
-		# and then call proper focus function
-		#{0:	self.setCurrentBodyFocus, 1: self.setSunFocus,
-		# 2: self.setPlanetFocus, 3: self.setPlanetFocus,
-		# 4: self.setPlanetFocus, 5: self.setPlanetFocus,
-		# 6: self.setPlanetFocus, 7: self.setPlanetFocus,
-		# 8: self.setPlanetFocus, 9: self.setPlanetFocus,
-		# 10: self.setPlanetFocus, 11: self.setPlanetFocus,
-		# 12: self.setPlanetFocus, 13: self.setPlanetFocus,
-		# 14: self.setPlanetFocus, 15: self.setPlanetFocus,
-		# 16: self.setPlanetFocus, 17: self.setPlanetFocus,
-		# 18: self.setPlanetFocus }[index]()
+		#print "OnFocus: ", self.SolarSystem.cameraViewTargetName
 
 		self.FocusFuncionsSet[index]()
 		self.setLocalNorthPole()
 
+
 	def getcameraViewTargetName(self):
 		return self.SolarSystem.cameraViewTargetName
+
 
 	def OnReset(self, e):
 		self.resetCameraViewTarget()
@@ -1263,11 +1264,20 @@ class ORBITALpanel(AbstractUI):
 		self.updateSolarSystem()
 		return
 
-	def createBodyList(self, xpos, ypos):
+	def createBodyList2(self, xpos, ypos):
 		for body in self.SolarSystem.bodies:
 			if body.BodyType in [SPACECRAFT, PHA, BIG_ASTEROID, COMET, TNO]:
 				self.list.append(body.Name)
 				self.listjplid.append(body.Name)
+
+		self.comb = wx.ComboBox(self, id=wx.ID_ANY, value="Select Object Individually", size=wx.DefaultSize, pos=(xpos, ypos), choices=self.list, style=(wx.CB_DROPDOWN))
+		self.comb.Bind(wx.EVT_COMBOBOX, self.OnSelect)
+
+	def createBodyList(self, xpos, ypos):
+		for name, body in self.SolarSystem.sunOrbiting.items():
+			if body.BodyType in [SPACECRAFT, PHA, BIG_ASTEROID, COMET, TNO]:
+				self.list.append(name)
+				self.listjplid.append(name)
 
 		self.comb = wx.ComboBox(self, id=wx.ID_ANY, value="Select Object Individually", size=wx.DefaultSize, pos=(xpos, ypos), choices=self.list, style=(wx.CB_DROPDOWN))
 		self.comb.Bind(wx.EVT_COMBOBOX, self.OnSelect)
@@ -1463,6 +1473,7 @@ class ORBITALpanel(AbstractUI):
 		# u'\u25a0' = square character
 		# u'\u29bf' = circle character
 		# u'\u1f534' = big red circle
+
 		self.RecordButton = wx.Button(self, label=u'\u29bf', pos=(440, ANI_Y), size=(35, 35))
 		self.RecordButton.Bind(wx.EVT_BUTTON, self.OnRecord)
 
@@ -1611,25 +1622,32 @@ class ORBITALpanel(AbstractUI):
 			self.dts = dts
 
 	def updateSolarSystem(self):
-
-		# This function will ANIMATE all visible bodies in the solar system 
-
+		"""
+		This function is called from 2 different locations:
 		
+		- after every timeIncrement change (OneTimeIncrement)
+		- after any date reset of date change (OnValidateDate, resetDateFromBodyId)
+		
+		It will set the position of each body at its accurate location for a given date
+		and time.
+		"""
+
 		self.refreshDate()
 
 		for name, body in self.SolarSystem.sunOrbiting.items():
-		#for body in self.SolarSystem.bodies:
+
 			if body.BodyType in [SUN, SPACECRAFT, OUTER_PLANET, INNER_PLANET, ASTEROID, \
 								 COMET, DWARF_PLANET, PHA, BIG_ASTEROID, TNO]:
 
 				if body.RefOrigin.visible == True or body.Name == EARTH_NAME:
+					# animate body
 					velocity, dte, dts = body.animate(self.DeltaT)
-					#print "VEL:", velocity, "dte:", dte
 
 					self.updateCameraView(body)
 					self.updateDynamics(body, velocity, dte, dts)
 
 					# determine if there are moons orbiting that object
+
 					if hasattr(body, "planetOrbitingBodies"):
 						#print "Sys Refr: Current camera selection = ", self.cameraViewTargetName, ", cur body:", body.Name
 
@@ -1644,47 +1662,7 @@ class ORBITALpanel(AbstractUI):
 								velocity, dte, dts = moon_body.animate(self.DeltaT)
 								self.updateCameraView(moon_body)
 								self.updateDynamics(moon_body, velocity, dte, dts)
-
-			#else:
-			#	print("UNKNOWN BODYTYPE:", body.BodyType)
 	
-
-	def updateSolarSystem2(self):
-
-		# This function will ANIMATE all visible bodies in the solar system 
-
-		
-		self.refreshDate()
-
-		for body in self.SolarSystem.bodies:
-			if body.BodyType in [SUN, SPACECRAFT, OUTER_PLANET, INNER_PLANET, MOON, ASTEROID, \
-								 COMET, DWARF_PLANET, PHA, BIG_ASTEROID, TNO]:
-				if body.RefOrigin.visible == True or body.Name == EARTH_NAME:
-					velocity, dte, dts = body.animate(self.DeltaT)
-					#print "VEL:", velocity, "dte:", dte
-					if self.SolarSystem.cameraViewTargetBody is not None:
-						
-						# update center position if we are NOT in the middle of a smooth transition and
-						# NOT in a location Referential view mode (point of view from current location)
-
-						if 	body.Name == self.SolarSystem.cameraViewTargetBody.Name and \
-							self.SolarSystem.Dashboard.focusTab.smoothTransition == False and \
-							self.SolarSystem.Dashboard.widgetsTab.Earth.PlanetWidgets.locationEarthEyeView == False:
-
-							self.SolarSystem.camera.updateCameraViewTarget()
-
-					#if body.BodyType == self.Source or body.Details == True:
-
-					# save velocity and DTE/DTS info on object currently observed onAnimate
-					if self.SolarSystem.cameraViewTargetName == body.Name or \
-						(self.SolarSystem.cameraViewTargetName == CURRENT_BODY and \
-						 self.SolarSystem.cameraViewTargetBody.Name == body.Name):
-						self.velocity = velocity
-						self.dte = dte
-						self.dts = dts
-
-			#else:
-			#	print("UNKNOWN BODYTYPE:", body.BodyType)
 
 	def OnValidateDate(self, e):
 		# typically the date spinner only changes the date. We keep the current time. 
@@ -1771,13 +1749,14 @@ class ORBITALpanel(AbstractUI):
 		##print "TROJAN INDEX=",self.SolarSystem.JTrojansIndex
 		curTrojans = self.SolarSystem.getJTrojans()
 		if curTrojans is not None:
-			JupiterBody = self.SolarSystem.getBodyFromName(self.SolarSystem.objects_data[curTrojans.PlanetName]['id']['name']) #'jpl_designation'])
+			#JupiterBody = self.SolarSystem.getBodyFromName(self.SolarSystem.objects_data[curTrojans.PlanetName]['id']['name']) #'jpl_designation'])
+			JupiterBody = self.SolarSystem.getBodyFromName("jupiter")
 			# if Jupiter coordinates haven't changed since this Trojans were generated, don't do anything
 			if JupiterBody.Position[0] == curTrojans.JupiterX and JupiterBody.Position[1] == curTrojans.JupiterY:
 				return
 
 			# otherwise, generate a new set of Trojans corresponding to Jupiter's new location
-			self.SolarSystem.addJTrojans(orbit3D.makeJtrojan(self.SolarSystem, 'jupiterTrojan', 'Jupiter Trojans', JTROJANS, color.green, 2, 5, 'jupiter'))
+			self.SolarSystem.addJTrojans(orbit3D.makeJtrojan(self.SolarSystem, 'jupitertrojans', 'Jupiter Trojans', JTROJANS, color.green, 2, 5, 'jupiter'))
 
 	def OnRadioBox(self, e):
 		if self.ResumeSlideShowLabel == True or self.SolarSystem.SlideShowInProgress == True:

@@ -101,6 +101,8 @@ from __future__ import print_function
 import math
 from datetime import datetime
 import numpy as np
+from visual import vector
+
 import pytz
 
 # =====================================================
@@ -312,7 +314,8 @@ def sph_to_cart_ecliptic(lam, beta, R_km):
     sl = math.sin(lam)
     cb = math.cos(beta)
     sb = math.sin(beta)
-    return np.array([R_km*cb*cl, R_km*cb*sl, R_km*sb], dtype=float)
+    #return np.array([R_km*cb*cl, R_km*cb*sl, R_km*sb], dtype=float)
+    return vector(R_km*cb*cl, R_km*cb*sl, R_km*sb)
 
 """
 cart_to_sph_ecliptic does the reverse: converts cartesians
@@ -376,7 +379,8 @@ def moon_ephemeris(dt, delta, vel_dt_sec=10.0):
     elems = state_to_elements_J2000(
         r, v, jd,
         mu=MU_EARTH,
-        plane_normal=np.array([0.0, 0.0, 1.0], dtype=float)
+        #plane_normal=np.array([0.0, 0.0, 1.0], dtype=float)
+        plane_normal=vector(0.0, 0.0, 1.0)
     )
    
     # now determine phase and other goodies:

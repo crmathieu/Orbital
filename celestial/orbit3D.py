@@ -63,12 +63,14 @@ class makeSolarSystem:
 	SCENE_WIDTH = 1920
 	SCENE_HEIGHT = 1080
 
-	bodies = []
-	sunOrbiting = {}
 
 
 	def __init__(self):
 		print "### vpython v"+version[0]+"-"+version[1]+" ###"
+
+		#self.bodies = []
+		self.sunOrbiting = {}
+		self.orbitWhat = {}
 
 		self.locationInfo = EarthLocations()
 		self.todayUTCdatetime = self.locationInfo.getUTCDateTime()
@@ -79,11 +81,13 @@ class makeSolarSystem:
 		self.SurfaceView = False
 		self.SurfaceDirection = [0,0,0]
 		self.nameIndex = {}
+		self.nameIndexDummy = {} # just during refactoring
 
 		self.Dashboard = None
 		self.AbortSlideShow = False
 		self.SlideShowInProgress = False
 		self.currentSource = PHA
+
 		self.JTrojansIndex = -1
 
 		# tracks what major body we are targetting
@@ -206,9 +210,40 @@ class makeSolarSystem:
 		#w.win.SetTransparent(0)
 		return w
 
+
+	def register2(self, sun):
+		self.Sun = sun
+		self.addTo(sun)
+
+	def register(self, sun):
+		self.Sun = sun
+		#self.addTo(sun)
+
 	def registerSunOrbitingBody(self, key, body):
 		self.sunOrbiting[key] = body
+		i = len(self.sunOrbiting) - 1
 
+		self.nameIndex[body.Name] = i
+
+		if body.Name == EARTH_NAME:
+			self.EarthRef = body
+		return i # this is the index of the added body in the collection
+
+	def addTo(self, body):
+		pass
+		"""
+		self.bodies.append(body)
+		i = len(self.bodies) - 1
+
+		#self.nameIndex[body.JPL_designation.lower()] = i
+		self.nameIndexDummy[body.Name] = i
+
+		#print "Adding", body.Name
+#		if body.JPL_designation.lower() == EARTH_NAME:
+		if body.Name == EARTH_NAME:
+			self.EarthRef = body
+		return i # this is the index of the added body in the collection
+		"""
 
 	def createJ2000eclipticReferential(self, parent_frame):
 		# we do not provide any orientation information,
@@ -328,6 +363,21 @@ class makeSolarSystem:
 	def isFeatured(self, type):
 		return self.ShowFeatures & type
 
+	def setFeatureNT(self, type, value):
+		# here we force the feature ON if the current object is of this type
+		if self.cameraViewTargetBody.BodyType == type:
+			self.ShowFeatures |= type
+		else:
+			if value == True:
+				self.ShowFeatures |= type
+			else:
+				self.ShowFeatures = (self.ShowFeatures & ~type)
+				if 	self.cameraViewTargetName != SUN_NAME and \
+					self.cameraViewTargetBody.Name != EARTH_NAME:
+					# reset SUN as current ViewTarget when the currobject should not longer be visible
+					return 1
+		return 0
+
 	def setFeature(self, type, value):
 		if value == True:
 			self.ShowFeatures |= type
@@ -364,54 +414,46 @@ class makeSolarSystem:
 		#self.SolarSystem.Scene.forward = (0, 0, -1)
 		# For a planet, Foci(x, y, z) is (0,0,0). For a moon, Foci represents the position of the planet the moon orbits around
 		self.cameraViewTargetBody = body
-		self.cameraViewTargetName = body.Name.lower()
+		self.cameraViewTargetName = body.Name
 		self.Scene.center = (self.cameraViewTargetBody.Position[0], #+self.cameraViewTargetBody.Foci[0],
 							 self.cameraViewTargetBody.Position[1], #+self.cameraViewTargetBody.Foci[1],
 							 self.cameraViewTargetBody.Position[2]) #+self.cameraViewTargetBody.Foci[2])
 		#print "SCENE CENTER: ", self.Scene.center
 
-	def register(self, sun):
-		self.Sun = sun
-		self.addTo(sun)
-
-	def addTo(self, body):
-		self.bodies.append(body)
-		i = len(self.bodies) - 1
-
-		#self.nameIndex[body.JPL_designation.lower()] = i
-		self.nameIndex[body.Name] = i
-
-		#print "Adding", body.Name
-#		if body.JPL_designation.lower() == EARTH_NAME:
-		if body.Name == EARTH_NAME:
-			self.EarthRef = body
-		return i # this is the index of the added body in the collection
-
-	def addTo_nt(self, body):
-
-		if body.Orbiting != None:
-
-			lkjhlkhkjh
-
-		self.bodies.append(body)
-		i = len(self.bodies) - 1
-
-		#self.nameIndex[body.JPL_designation.lower()] = i
-		self.nameIndex[body.Name] = i
-
-		#print "Adding", body.Name
-#		if body.JPL_designation.lower() == EARTH_NAME:
-		if body.Name == EARTH_NAME:
-			self.EarthRef = body
-		return i # this is the index of the added body in the collection
 
 
 	def addJTrojans(self, body):
+		body.draw()
+		return 
+
+		#print "Add Trojans"
+		name = "jupitertrojans"
+		if name in self.sunOrbiting:
+
+			for i in range(len(self.sunOrbiting[name].Labels)):
+				self.bodies[self.JTrojansIndex].Labels[i].visible = False
+			self.bodies[self.JTrojansIndex].BodyGeometry.visible = False
+			self.bodies[self.JTrojansIndex].Labels = []
+			self.bodies[self.JTrojansIndex] = body
+
+
+		if self.JTrojansIndex < 0:
+			self.JTrojansIndex = self.addTo(body)
+		else:
+			for i in range(len(self.sunOrbiting[self.JTrojansIndex].Labels)):
+				self.bodies[self.JTrojansIndex].Labels[i].visible = False
+			self.bodies[self.JTrojansIndex].BodyGeometry.visible = False
+			self.bodies[self.JTrojansIndex].Labels = []
+			self.bodies[self.JTrojansIndex] = body
+
+		body.draw()
+
+	def addJTrojans2(self, body):
 		#print "Add Trojans"
 		if self.JTrojansIndex < 0:
 			self.JTrojansIndex = self.addTo(body)
 		else:
-			for i in range(len(self.bodies[self.JTrojansIndex].Labels)):
+			for i in range(len(self.sunOrbiting[self.JTrojansIndex].Labels)):
 				self.bodies[self.JTrojansIndex].Labels[i].visible = False
 			self.bodies[self.JTrojansIndex].BodyGeometry.visible = False
 			self.bodies[self.JTrojansIndex].Labels = []
@@ -420,17 +462,23 @@ class makeSolarSystem:
 		body.draw()
 
 	def getJTrojans(self):
-		if self.JTrojansIndex >= 0:
-			return self.bodies[self.JTrojansIndex]
+		if "jupitertrojans" in self.sunOrbiting:
+			return self.sunOrbiting["jupitertrojans"]
 		return None
 
+		"""		 
+		if self.JTrojansIndex >= 0:
+			return self.sunOrbiting[self.JTrojansIndex]
+		return None
+		"""
 	# makeSolarSystem
 	def drawAllBodiesTrajectory(self):
 		"""
 		Will trace the orbit of all declared objects, regardless of whether 
 		the orbit is visible or not
 		"""
-		for body in self.bodies:
+		for name, body in self.sunOrbiting.items():
+
 #			if body.BodyType in [OUTER_PLANET, INNER_PLANET, MOON, DWARF_PLANET, KUIPER_BELT, ASTEROID_BELT, INNER_OORT_CLOUD, ECLIPTIC_PLANE]:
 			if body.BodyType in [OUTER_PLANET, INNER_PLANET, DWARF_PLANET, KUIPER_BELT, ASTEROID_BELT, ECLIPTIC_PLANE]:
 				print "drawing", body.Name, " orbit"
@@ -438,10 +486,28 @@ class makeSolarSystem:
 
 		self.Scene.autoscale = False #0
 
-	def getBodyFromName(self, name): #jpl_designation):
-		if name in self.nameIndex:
-			return self.bodies[self.nameIndex[name]] #jpl_designation]]
+	def getMoonBodyFromName(self, name): #jpl_designation):
+		# first figure out the planet this moon belongs to
+		if name in self.orbitWhat:
+			planetBody = self.sunOrbiting[self.orbitWhat[name]]
+			return planetBody.planetOrbitingBodies[name]
+			#return self.sunOrbiting[name]
 		return None
+
+	def getBodyFromName(self, name): #jpl_designation):
+		if name in self.sunOrbiting:
+			return self.sunOrbiting[name]
+		return None
+
+		"""
+		if name in self.nameIndex:
+			index = self.nameIndex[name]
+			print "For name = ", name, ", index = ", index
+			print self.sunOrbiting[index]
+
+			return self.sunOrbiting[index] #jpl_designation]]
+		return None
+		"""
 
 	def isRealsize(self):
 		if self.ShowFeatures & REALSIZE != 0:
@@ -456,60 +522,61 @@ class makeSolarSystem:
 
 		"""
 		# 1. determine global visibility parameters first (applies to all objects)
-		orbitTrace 		= True if self.ShowFeatures & ORBITS 	!= 0 else False
-		labelVisible 	= True if self.ShowFeatures & LABELS 	!= 0 else False
-		realisticSize 	= True if self.ShowFeatures & REALSIZE 	!= 0 else False
 
-		#self.toggleSize(realisticSize)
+		self.orbitTrace 	= True if self.ShowFeatures & ORBITS 	!= 0 else False
+		self.labelVisible 	= True if self.ShowFeatures & LABELS 	!= 0 else False
+		self.realisticSize 	= True if self.ShowFeatures & REALSIZE 	!= 0 else False
+
 
 		# 2. figure out display status object by object:
-		# sun bound objects are planets, moons, tnos, asteroids, ecliptic, constellation and celestial sphere
+		# sun bound objects are planets, moons, tnos, asteroids, 
+		# comets, ecliptic, constellation and celestial sphere
+
 		for name, body in self.sunOrbiting.items():
+
+			bodyVisible = True if self.ShowFeatures & body.BodyType != 0 else False
 
 			# check bodies around the sun
 			if body.BodyType in [SUN, SPACECRAFT, OUTER_PLANET, INNER_PLANET, ASTEROID, COMET, \
 								 MOON, DWARF_PLANET, PHA, BIG_ASTEROID, TNO]:
 
-				body.toggleSize(realisticSize)
+				body.toggleSize(self.realisticSize)
+
 				if body.BodyType == SUN:
 					continue
 
-				bodyVisible = True if self.ShowFeatures & body.BodyType != 0 else False
+				if body.Name == EARTH_NAME:
+					bodyVisible = True
+				
 				body.RefOrigin.visible = bodyVisible  
-				body.Orbit.visible = orbitTrace
-				body.Labels[0].visible = labelVisible if body.RefOrigin.visible == True else False
+				body.Orbit.visible = self.orbitTrace & bodyVisible
+				print "orbit is ", body.Orbit.visible, " for ", body.Name
+
+				body.Labels[0].visible = self.labelVisible if body.RefOrigin.visible == True else False
 
 				if body.BodyType == OUTER_PLANET:
 					body.displayRings(bodyVisible)
 
-
 				# for planets, make sure only moons belonging to the
-				# planet set as "currentObject" are visible. The other
-				# moons stay hidden for clarity
+				# planet set as "focus" are visible. The other moons 
+				# should stay hidden for clarity
 
-				if hasattr(body, "planetOrbitingBodies"):
-					#print "Sys Refr: Current camera selection = ", self.cameraViewTargetName, ", cur body:", body.Name
+				body.refresh() 
 
-					for moon_name, moon_body in body.planetOrbitingBodies.items():
-						showMoon = True if self.cameraViewTargetName == body.Name or self.cameraViewTargetName == moon_body.Name else False
-						if showMoon:
-						#	print "show moon ", moon_name, " for ", body.Name
-							moon_body.Orbit.visible = orbitTrace
-							moon_body.RefOrigin.visible = bodyVisible
-						else:
-						#	print "hide moon ", moon_name, " for ", body.Name
-							#moon_body.Orbit.visible = False
-							#moon_body.RefOrigin.visible = False
-							moon_body.hide()
 
 			else: # belts / rings
 				if body.BodyType != ECLIPTIC_PLANE:					
-					if body.BodyGeometry.visible == True and animationInProgress == True:
+					if animationInProgress == True:
 						body.BodyGeometry.visible = False
 						for i in range(len(body.Labels)):
 							body.Labels[i].visible = False
+					else:
+						body.BodyGeometry.visible = bodyVisible
+
+
 		
 		# 3. Figure out lighting status
+
 		if self.ShowFeatures & LIT_SCENE != 0:
 			#print "LITE"
 			self.Scene.ambient = Color.white
@@ -526,6 +593,7 @@ class makeSolarSystem:
 		setRefTo = True if self.ShowFeatures & REFERENTIAL != 0 else False
 		
 		# 4. determine axis visibility
+		
 		if 	self.cameraViewTargetName == self.Sun.Name and \
 			self.ShowFeatures & LOCAL_REFERENTIAL:
 			setRelTo = True
@@ -535,162 +603,10 @@ class makeSolarSystem:
 		self.setAxisVisibility(setRefTo, setRelTo)
 
 		# 5. finally, update constellation & celestial sphere visibility status
+		
 		self.Universe.visible = self.isFeatured(CELESTIAL_SPHERE)
 		self.Constellations.visible = self.isFeatured(CONSTELLATIONS)
 
-
-	def refresh_old(self, animationInProgress = False):
-		orbitTrace 		= True if self.ShowFeatures & ORBITS 	!= 0 else False
-		labelVisible 	= True if self.ShowFeatures & LABELS 	!= 0 else False
-		realisticSize 	= True if self.ShowFeatures & REALSIZE 	!= 0 else False
-
-		#self.toggleSize(realisticSize)
-
-		for body in self.bodies:
-
-			if body.BodyType in [SUN, SPACECRAFT, OUTER_PLANET, INNER_PLANET, ASTEROID, COMET, \
-								 MOON, DWARF_PLANET, PHA, BIG_ASTEROID, TNO]:
-
-				#print "FOUND BODY="+body.Name
-				body.toggleSize(realisticSize)
-				if body.BodyType == SUN:
-					continue
-
-				body.RefOrigin.visible = True if self.ShowFeatures & body.BodyType != 0 else False ################################
-#				body.toggleSize(realisticSize)
-
-
-				if body.BodyType == OUTER_PLANET:
-					body.displayRings(body.RefOrigin.visible)
-
-				if body.RefOrigin.visible == True:
-					if body.Orbit is not None:
-						body.Orbit.visible = orbitTrace
-
-					"""
-					if False and body.isMoon == True: #### temporary hack to force the moon to be seen
-						# apply label on/off when moon in real size, otherwise do not show label
-						value = labelVisible if body.sizeType == SCALE_NORMALIZED else False
-					else:
-						value = labelVisible
-					"""
-
-					value = labelVisible
-					for i in range(len(body.Labels)):
-						body.Labels[i].visible = value
-				else:
-					pass #body.RefOrigin.visible = bodyVisible
-
-				if body.isMoon == True:
-
-					# for moon, determine visibility based on centralBody visibility status
-					visibilityStatus = True if self.ShowFeatures & body.CentralBody.BodyType != 0 else False
-					body.RefOrigin.visible = visibilityStatus
-					#body.Orbit.visible = visibilityStatus
-			
-
-			else: # belts / rings
-				if body.BodyType != ECLIPTIC_PLANE:
-					
-					if body.BodyGeometry.visible == True and animationInProgress == True:
-						body.BodyGeometry.visible = False
-						for i in range(len(body.Labels)):
-							body.Labels[i].visible = False
-		
-		if self.ShowFeatures & LIT_SCENE != 0:
-			#print "LITE"
-			self.Scene.ambient = Color.white
-			self.sunLight.visible = False
-			self.Sun.BodyGeometry.material = materials.texture(data=self.Sun.Texture, mapping="spherical", interpolate=False)
-			self.Sun.BodyGeometry.opacity = 1.0
-		else:
-			#print "DARK", self.Sun
-			self.Scene.ambient = Color.nightshade #Color.black
-			self.sunLight.visible = True
-			self.Sun.BodyGeometry.material = materials.emissive
-#			self.Sun.BodyGeometry.material = materials.texture(data=self.Sun.Texture, mapping="spherical", interpolate=False)
-			
-		setRefTo = True if self.ShowFeatures & REFERENTIAL != 0 else False
-		
-#		if 	self.cameraViewTargetName == self.Sun.JPL_designation and \
-		if 	self.cameraViewTargetName == self.Sun.Name.lower() and \
-			self.ShowFeatures & LOCAL_REFERENTIAL:
-			setRelTo = True
-		else:
-			setRelTo = False
-
-		self.setAxisVisibility(setRefTo, setRelTo)
-
-		self.Universe.visible = self.isFeatured(CELESTIAL_SPHERE)
-		self.Constellations.visible = self.isFeatured(CONSTELLATIONS)
-
-
-	def refresh_prev1(self, animationInProgress = False):
-		orbitTrace 		= True if self.ShowFeatures & ORBITS 	!= 0 else False
-		labelVisible 	= True if self.ShowFeatures & LABELS 	!= 0 else False
-		realisticSize 	= True if self.ShowFeatures & REALSIZE 	!= 0 else False
-
-		#self.toggleSize(realisticSize)
-
-		for body in self.bodies:
-
-			if body.BodyType in [SUN, SPACECRAFT, OUTER_PLANET, INNER_PLANET, ASTEROID, COMET, \
-								 MOON, DWARF_PLANET, PHA, BIG_ASTEROID, TNO]:
-
-				#print "FOUND BODY="+body.Name
-				body.toggleSize(realisticSize)
-				if body.BodyType == SUN:
-					continue
-
-				body.RefOrigin.visible = True if self.ShowFeatures & body.BodyType != 0 else False ################################
-#				body.toggleSize(realisticSize)
-				if body.RefOrigin.visible == True:
-					if body.Orbit is not None:
-						body.Orbit.visible = orbitTrace
-					if body.isMoon == True:
-						# apply label on/off when moon in real size, otherwise do not show label
-						value = labelVisible if body.sizeType == SCALE_NORMALIZED else  False
-					else:
-						value = labelVisible
-
-					for i in range(len(body.Labels)):
-						body.Labels[i].visible = value
-				else:
-					pass #body.RefOrigin.visible = bodyVisible
-
-			else: # belts / rings
-				if body.BodyType != ECLIPTIC_PLANE:
-					
-					if body.BodyGeometry.visible == True and animationInProgress == True:
-						body.BodyGeometry.visible = False
-						for i in range(len(body.Labels)):
-							body.Labels[i].visible = False
-		
-		if self.ShowFeatures & LIT_SCENE != 0:
-			#print "LITE"
-			self.Scene.ambient = Color.white
-			self.sunLight.visible = False
-			self.Sun.BodyGeometry.material = materials.texture(data=self.Sun.Texture, mapping="spherical", interpolate=False)
-			self.Sun.BodyGeometry.opacity = 1.0
-		else:
-			#print "DARK", self.Sun
-			self.Scene.ambient = Color.nightshade #Color.black
-			self.sunLight.visible = True
-			self.Sun.BodyGeometry.material = materials.emissive
-			
-		setRefTo = True if self.ShowFeatures & REFERENTIAL != 0 else False
-		
-#		if 	self.cameraViewTargetName == self.Sun.JPL_designation and \
-		if 	self.cameraViewTargetName == self.Sun.Name.lower() and \
-			self.ShowFeatures & LOCAL_REFERENTIAL:
-			setRelTo = True
-		else:
-			setRelTo = False
-
-		self.setAxisVisibility(setRefTo, setRelTo)
-
-		self.Universe.visible = self.isFeatured(CELESTIAL_SPHERE)
-		self.Constellations.visible = self.isFeatured(CONSTELLATIONS)
 
 	def setAxisVisibility(self, setRefTo, setRelTo):
 		self.J2000eclipticRef.display(setRefTo)
@@ -729,6 +645,9 @@ class makeEcliptic:
 		self.RefOrigin = frame(frame=system.J2000eclipticFrame)
 		self.Labels.append(label(pos=(250*AU*DIST_FACTOR, 250*AU*DIST_FACTOR, 0), text=self.Name, xoffset=20, yoffset=12, space=0, height=10, border=6, box=False, font='sans', visible = False))
 
+		# register this construct as belonging to the solar system
+		self.SolarSystem.registerSunOrbitingBody(self.Name, self)
+
 	# makeEcliptic::
 	def toggleSize(self, realisticSize):
 		pass
@@ -757,19 +676,28 @@ class makeBelt:
 
 	def __init__(self, system, key, name, ptype, color, size, density = 1, planetname = None):  # change default values during instantiation
 		self.Labels = []
-		self.Name = name
+		self.Name = key #name
 		self.Iau_name = name
 		self.JPL_designation = name
 		self.SolarSystem = system
 		self.Density = density		# body name
-		self.RadiusMinAU = belt_data[key]["radius_min"]	# in AU
-		self.RadiusMaxAU = belt_data[key]["radius_max"]	# in AU
-		self.Thickness = belt_data[key]["thickness"]	# in AU
-		self.ThicknessFactor = belt_data[key]["thickness_factor"]
+
+		if key in belt_data:
+			self.RadiusMinAU = belt_data[key]["radius_min"]	# in AU
+			self.RadiusMaxAU = belt_data[key]["radius_max"]	# in AU
+			self.Thickness = belt_data[key]["thickness"]	# in AU
+			self.ThicknessFactor = belt_data[key]["thickness_factor"]
+		else:
+			print belt_data
+			exit()
+
 		self.PlanetName = planetname
 		self.Color = color
 		self.BodyType = ptype
 		self.BodyGeometry = points(pos=(self.RadiusMinAU, 0, 0), size=size, color=(color[0]*0.5, color[1]*0.5, color[2]*0.5))
+
+		# register this construct as belonging to the solar system
+		self.SolarSystem.registerSunOrbitingBody(key, self)
 
 		self.BodyGeometry.visible = False
 		if self.Thickness == 0:
@@ -798,10 +726,10 @@ class makeBelt:
 			if self.BodyGeometry.visible == False:
 				self.BodyGeometry.visible = True
 
-			labelVisible = True if self.SolarSystem.ShowFeatures & LABELS != 0 else False
+			#labelVisible = True if self.SolarSystem.ShowFeatures & LABELS != 0 else False
 
 			for i in range(len(self.Labels)):
-				self.Labels[i].visible = labelVisible
+				self.Labels[i].visible = self.labelVisible
 
 		else:
 			if self.BodyGeometry.visible == true:
@@ -818,7 +746,7 @@ class makeJtrojan(makeBelt):
 		
 		print "MAKE TRJOAN: ", planetname
 
-		self.Planet = self.SolarSystem.getBodyFromName(self.SolarSystem.objects_data[self.PlanetName]["id"]["name"])
+		self.Planet = self.SolarSystem.getBodyFromName(planetname) #self.SolarSystem.objects_data[self.PlanetName]["id"]["name"])
 		if self.Planet is not None:
 			self.JupiterX = self.Planet.Position[0]
 			self.JupiterY = self.Planet.Position[1]
@@ -827,9 +755,9 @@ class makeJtrojan(makeBelt):
 			self.JupiterY = 0
 
 	def updateThickness(self, increment):
-		self.RadiusMinAU = belt_data["jupiterTrojan"]["radius_min"]	- sqrt(increment) # in AU
-		self.RadiusMaxAU = belt_data["jupiterTrojan"]["radius_max"]	+ sqrt(increment) # in AU
-		self.Thickness = belt_data["jupiterTrojan"]["thickness"]	+ sqrt(increment)
+		self.RadiusMinAU = belt_data["jupitertrojans"]["radius_min"]	- sqrt(increment) # in AU
+		self.RadiusMaxAU = belt_data["jupitertrojans"]["radius_max"]	+ sqrt(increment) # in AU
+		self.Thickness = belt_data["jupitertrojans"]["thickness"]	+ sqrt(increment)
 
 	# makeJtrojan::
 	def draw(self):
@@ -851,7 +779,7 @@ class makeJtrojan(makeBelt):
 		for i in np.arange(pi/(180*self.Density), delta, pi/(180*self.Density)):
 			self.updateThickness(i)
 			RandomRadius = uniform(round(self.RadiusMinAU * AU * DIST_FACTOR, 3) * 1000, round(self.RadiusMaxAU * AU * DIST_FACTOR, 3) * 1000) / 1000
-			RandomTail = uniform(round(belt_data["jupiterTrojan"]["radius_min"]  * AU * DIST_FACTOR, 3) * 1000, round(belt_data["jupiterTrojan"]["radius_max"] * AU * DIST_FACTOR, 3) * 1000) / 1000
+			RandomTail = uniform(round(belt_data["jupitertrojans"]["radius_min"]  * AU * DIST_FACTOR, 3) * 1000, round(belt_data["jupitertrojans"]["radius_max"] * AU * DIST_FACTOR, 3) * 1000) / 1000
 			MAX = self.getGaussian(RandomRadius) * self.Thickness * AU * DIST_FACTOR * self.ThicknessFactor
 			MAXTAIL = self.getGaussian(RandomTail) * self.Thickness * AU * DIST_FACTOR * self.ThicknessFactor
 
@@ -902,6 +830,7 @@ class makeBody:
 
 		self.ObjectIndex 			= key
 		self.SolarSystem 			= system
+
 		self.locationInfo 			= system.locationInfo
 		self.AxialTilt				= system.objects_data[key]["rotation"]["axial_tilt"] 
 		#print "Axial tilt for ", key, " is ", self.AxialTilt
@@ -942,6 +871,9 @@ class makeBody:
 		self.l  					= getSemiLatusRectum(self.a, self.e)
 
 
+		# For any non-moon objects, use the standard distance compression factor
+		self.distanceFactor 		= DIST_FACTOR
+
 		self.CentralBody = centralBody
 		if self.CentralBody != None:
 			self.isMoon = True
@@ -958,11 +890,7 @@ class makeBody:
 			self.distanceFactor = self.getMoonDIstanceFactor() 
 		else:
 			self.isMoon = False
-			"""
-			For any other non-moon objects, use the 
-			standard distance compression factor
-			"""
-			self.distanceFactor = DIST_FACTOR
+
 
 		self.Details				= False
 		self.hasRenderedOrbit		= False
@@ -1165,10 +1093,10 @@ class makeBody:
 		that projection vector perpendicularly to the ecliptic plane to reach the
 		desired orientation
 		"""
-		bodies = [	"sun", 	  "mercury", "venus",   "earth", "mars", "jupiter", 
+		bodies_with_northPoleInfo = [	"sun", 	  "mercury", "venus",   "earth", "mars", "jupiter", 
 					"saturn", "uranus",  "neptune", "pluto"]
 
-		if self.Name in bodies:
+		if self.Name in bodies_with_northPoleInfo:
 
 			#cur = datetime.datetime.now()
 
@@ -1824,6 +1752,7 @@ class makeBody:
 		for i in range(len(self.Labels)):
 			self.Labels[i].visible = False
 		self.Orbit.visible = False
+
 		#if self.Ring:
 #		if self.nRings > 0:
 #			self.SolarSystem.hideRings(self)
@@ -1831,7 +1760,7 @@ class makeBody:
 	def isVisible(self):
 		return self.RefOrigin.visible
 
-		
+
 	def setAxisVisibility(self, setTo):
 		if self.PCI is not None: 
 			self.PCI.display(setTo)
@@ -1843,72 +1772,86 @@ class makeBody:
 			self.PCI.Axis[i].display(setTo)
 			self.PCI.AxisLabel[i].visible = setTo
 		"""
+
 	# makeBody::
 	def refresh(self):
+		"""
+		When a planet is the focus and MOON is set, we display the moon(s), but
+		if the planet isn't the focus we do not display moon(s). We do not call
+		the refresh method for moons, as their "refresh" is performed from their
+		centralBody. If one the moon is the focus, then we display that moon only,
+		even though the MOON flag is off, and we also display the planet, even if 
+		its flag should make it hidden
+		"""
 
-		#print "refreshing "+self.Name + "..."
+		bodyVisible = True if self.BodyType & self.SolarSystem.ShowFeatures != 0 else False
+		if self.Name == EARTH_NAME:
+			bodyVisible = True
 
-		if 	self.SolarSystem.SlideShowInProgress and \
-			self.BodyType == self.SolarSystem.currentSource:
-			return
+		if bodyVisible or self.Details == True:
 
-		if 	self.BodyType & self.SolarSystem.ShowFeatures != 0 or \
-			self.Name == EARTH_NAME or self.Details == True:
+			# check is body is current focus
+			isFocus = True if self.SolarSystem.cameraViewTargetName == self.Name else False
 
-#///////////////////////////
-
-			isTargetBody = True if self.SolarSystem.cameraViewTargetName == self.Name else False
-
+			# check for moons
 			if hasattr(self, "planetOrbitingBodies"):
+
 				# this body orbits the sun. 
 				# Let's see if it has moons
 
-				#print "BODY refr: Current camera selection = ", self.SolarSystem.cameraViewTargetName, ", cur body:", self.Name
+				displayMoons = True if self.SolarSystem.ShowFeatures & MOON != 0 else False
 
-				#showMoon = True if self.SolarSystem.cameraViewTargetName == self.Name else False
-				moon = False
 				for moon_name, moon_body in self.planetOrbitingBodies.items():
-					if self.SolarSystem.cameraViewTargetName == moon_body.Name:
-						#print "show moon ", moon_name, " for ", self.Name
-						moon_body.show()
-					else:
-						moon = True
-						if isTargetBody:
+					if isFocus:
+						if displayMoons:
 							#print "show moon ", moon_name, " for ", self.Name
 							moon_body.show()
 						else:
+							#print "hide moon ", moon_name, " for FOCUS = ", self.Name
+							moon_body.hide()
+					else:
+						#print "ZOB ----> ", self.Name
+						# check if moon is the focus
+						if self.SolarSystem.cameraViewTargetName == moon_body.Name:
+							#print "show moon ", moon_name, " and planet ", self.Name
+							moon_body.show()
+							self.show()
+						else:
 							#print "hide moon ", moon_name, " for ", self.Name
 							moon_body.hide()
-
 			else:
 
-				if self.CentralBody != None:
-					showMe = True if self.SolarSystem.cameraViewTargetName == self.CentralBody.Name or \
-							self.SolarSystem.cameraViewTargetName == self.Name	else False
-					if showMe:
-						self.CentralBody.show()
-						self.show()
-					else:
-						self.hide()
-				else:					
-					self.show()
-
+				# this is a comet, asteroid, PHA, TNO etc...
+				self.show()
 
 			# if this is the cameraViewTargetBody, 
 			# check for local referential attribute
 
-			if 	self.SolarSystem.cameraViewTargetName == self.Name.lower() and \
-				self.SolarSystem.ShowFeatures & LOCAL_REFERENTIAL:
+			if 	isFocus and self.SolarSystem.ShowFeatures & LOCAL_REFERENTIAL:
 					setTo = True
 			else:
 					setTo = False
 
 			self.setAxisVisibility(setTo)
+
 		else:
+			# the body is not visible. let's see if a moon orbiting it
+			# might be the focus (cameraViewTarget)
+
+			if hasattr(self, "planetOrbitingBodies"):
+				if self.SolarSystem.cameraViewTargetName in self.planetOrbitingBodies:
+					# if it is the case, force to show the body 
+					self.show()
+					self.setAxisVisibility(False)
+					return
+				else:
+					for moon_name, moon_body in self.planetOrbitingBodies.items():
+						moon_body.hide()
+
 			self.hide()
 			self.setAxisVisibility(False)
 
-	def refresh_save(self):
+	def refresh_old(self):
 		
 		#print "refreshing "+self.Name
 
@@ -2161,6 +2104,8 @@ class makePlanet(makeBody):
 		# A satellite can be either a spacecraft or a Moon
 
 		self.planetOrbitingBodies[key] = body
+		self.SolarSystem.orbitWhat[key] = self.Name
+
 
 
 	def setReferentialProfile(self):
@@ -3691,8 +3636,13 @@ def getOrbitalPeriod(semimajor):
 
 def glbRefresh(solarSystem, animationInProgress):
 	solarSystem.refresh(animationInProgress)
-	for body in solarSystem.bodies:
-		body.refresh()
+	return 
+
+	#for name, body in solarSystem.sunOrbiting.items():
+	#	body.refresh()
+
+	#for body in solarSystem.bodies:
+	#	body.refresh()
 
 def hideBelt(beltname):
 	beltname.BodyGeometry.visible = False
