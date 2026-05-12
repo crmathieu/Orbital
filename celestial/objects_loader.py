@@ -47,14 +47,52 @@ import json
 import math
 from datetime import datetime
 
-from horizons_api import get_state_vectors, elements_from_state, make_empty_elements_block
+from horizons_api import get_state_vectors,get_osculating_elements, elements_from_state, make_empty_elements_block, format_horizons_command
 from orbit3D import datetime_to_julian_date
 from objects_resolver import OBJECTS
 from planetary_constants import PLANET_CONSTANTS
 
 from constants import *
 import collections
+import urllib
 
+
+def set_spkid_for_CAP(cfg):
+    return "'" + cfg['spk_id'] + ";'"
+
+# the following is the pre-built entry for the sun-barycenter
+# this is used only if the resolver contains an entry for the 
+# sun barycenter
+SSB =  collections.OrderedDict([
+
+        # identification
+        ("id", collections.OrderedDict([
+            ("name", "ssb"),
+            ("iau_name", "ssb"),
+            ("jpl_designation", "Solar System Barycenter"),
+            ("horizons_id",  "0"),
+            ("spk_id",  "0"),
+            ("object_class", BARYCENTER),
+            ("orbiting", None)
+        ])),
+        
+        # Orbital Elements block
+        ("elements", {}), # If 'elements' is a dict, it will be unordered inside
+        
+        # Rotation block
+        ("rotation", {}),
+        
+        # Physical block
+        ("physical", {}),
+
+        # State vector block
+        ("state_vector", collections.OrderedDict([
+            ("r", (0,0,0)),
+            ("v", (0,0,0)),
+            ("epochJD", "")
+        ]))
+
+    ])
 # ------------------------------------------------------------
 # Build a single object entry (nested schema)
 # ------------------------------------------------------------
@@ -63,7 +101,11 @@ def build_object_entry(name, cfg, epoch_str_now, epochJD_now):
     Build a single catalog entry for one object using the nested schema.
     """
 
-    horizons_rec_id = cfg["horizons_rec_id"]
+    spk_id = cfg["spk_id"]
+    if spk_id == "0":
+        # SSB: solar system Barycenter
+        return SSB
+
     horizons_id = cfg["horizons_id"]
     jpl_designation = cfg["jpl_designation"]
     iau_name = cfg["iau_name"]
@@ -71,6 +113,7 @@ def build_object_entry(name, cfg, epoch_str_now, epochJD_now):
         
     primary = cfg["orbiting"]
     center = cfg["center"]
+
     physical = cfg["physical"]
     GM_object = 0.0
     if physical["mass_kg"] != None:
@@ -93,45 +136,66 @@ def build_object_entry(name, cfg, epoch_str_now, epochJD_now):
         epochJD = epochJD_now
 
 
-    # ------------------------------------------------------------
-    # 1. Fetch state vectors from Horizons
-    # ------------------------------------------------------------
-    r_vec, v_vec, status = get_state_vectors(
-        object_id=horizons_id,
-        center=center,
-        epoch_str=epoch_str
-    )
-    if status == ERR_CANTFIND_BLOCKMARKER:
-        print "TRYING WITH HORIZONS_RECID: ", horizons_rec_id
-        # try with a numeric ID instead of horizons_id
-        r_vec, v_vec, status = get_state_vectors(
-            object_id=horizons_rec_id,
+    #designation = ""
+    #if cfg["object_class"] in [COMET, SMALL_ASTEROID, BIG_ASTEROID, PHA]:
+    #    designation = "DES="
+
+    # format the search string according to the object class
+    formatted_id = format_horizons_command(cfg)
+
+    if center == PLUTO_BARYCENTER or name == "sun":
+        # ------------------------------------------------------------
+        # 1. Fetch elements directly from Horizons
+        # ------------------------------------------------------------
+        elements = get_osculating_elements(
+            object_id=formatted_id, # horizons_id,
             center=center,
             epoch_str=epoch_str
         )
-        if status != ERR_NOERR:
-            raise("Can't parse data for ", name)
-
-    # ------------------------------------------------------------
-    # 2. GM of central body (planet name is the key)
-    # ------------------------------------------------------------
-    if primary != None:
-        GM_central = PLANET_CONSTANTS[primary]["GM"]
+        r_vec, v_vec = (0, 0, 0), (0, 0, 0)
     else:
-        GM_central = SUN_Mu
 
-    # ------------------------------------------------------------
-    # 3. Convert RV → orbital elements (using horizons_api helper)
-    # ------------------------------------------------------------
+        # ------------------------------------------------------------
+        # 1. Fetch state vectors from Horizons
+        # ------------------------------------------------------------
+        r_vec, v_vec, status = get_state_vectors(
+            object_id=formatted_id, # horizons_id,
+            center=center,
+            epoch_str=epoch_str
+        )
 
-    if name == "sun":
-        elements = make_empty_elements_block()
-    else:
+        if status == ERR_CANTFIND_BLOCKMARKER:
+            print "TRYING WITH SPK_ID: ", spk_id
+            # try with the spk-id without DES=
+            formatted_id = set_spkid_for_CAP(cfg)
+            r_vec, v_vec, status = get_state_vectors(
+                object_id = formatted_id, #spk_id,
+                center = center,
+                epoch_str = epoch_str
+            )
+            if status != ERR_NOERR:
+                raise("Can't parse data for ", name)
+
+        # ------------------------------------------------------------
+        # 2. GM of central body (planet name is the key)
+        # ------------------------------------------------------------
+        if primary != None and cfg["object_class"] != BARYCENTER:
+            GM_central = PLANET_CONSTANTS[primary]["GM"]
+        else:
+            GM_central = SUN_Mu
+
+        # ------------------------------------------------------------
+        # 3. Convert RV → orbital elements (using horizons_api helper)
+        # ------------------------------------------------------------
+
+        #if name == "sun":
+        #    elements = make_empty_elements_block()
+        #else:
         elements = elements_from_state(
-                        r_vec, v_vec,
-                        GM_central,
-                        epochJD
-                    )
+                            r_vec, v_vec,
+                            GM_central,
+                            epochJD
+                        )
 
     # ------------------------------------------------------------
     # 4. Orbital period (days)
@@ -197,20 +261,32 @@ def build_object_entry(name, cfg, epoch_str_now, epochJD_now):
 
     # output the entry
 
-
-    entry = collections.OrderedDict([
-
-        # identification
-        ("id", collections.OrderedDict([
+    if "object_role" in cfg:
+        ID = collections.OrderedDict([
             ("name", name),
             ("iau_name", cfg["iau_name"]),
             ("jpl_designation", cfg["jpl_designation"]),
             ("horizons_id",  cfg["horizons_id"]),
-            ("horizons_rec_id",  cfg["horizons_rec_id"]),
+            ("spk_id",  cfg["spk_id"]),
+            ("object_class", cfg["object_class"]),
+            ("object_role", cfg["object_role"]),
+            ("orbiting", primary)
+        ])
+    else:
+        ID = collections.OrderedDict([
+            ("name", name),
+            ("iau_name", cfg["iau_name"]),
+            ("jpl_designation", cfg["jpl_designation"]),
+            ("horizons_id",  cfg["horizons_id"]),
+            ("spk_id",  cfg["spk_id"]),
             ("object_class", cfg["object_class"]),
             ("orbiting", primary)
-        ])),
-        
+        ])        
+
+    entry = collections.OrderedDict([
+
+        # identification
+        ("id", ID),
         
         # Orbital Elements block
         ("elements", elements), # If 'elements' is a dict, it will be unordered inside

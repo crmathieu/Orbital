@@ -1,4 +1,4 @@
-
+from constants import BARYCENTER
 from vpython_interface import Color
 from objects import simpleArrow
 import numpy as np
@@ -7,13 +7,14 @@ from visual import *
 
 class makeBasicReferential:
 
-    # basic referentials are used to display PCPF referentials
-    # which rotate with the planet. There is no visible axis to display, 
-    # but we still need to know what the North Pole direction is in 
-    # order to rotate the body's texture properly. For Planets and the 
-    # Sun, the North Pole vector is calculated from tables provided by 
-    # the IAU working group. For other bodies, the North Pole is 
-    # arbitrarily the J2000 Ecliptic North Pole.
+    # basic referentials are used to display PCPF (Planet Centered Planet
+    # Fixed) referentials which rotate with the planet. 
+    #
+    # There is no visible axis to display, but we still need to know what 
+    # the North Pole direction is in order to rotate the body's texture 
+    # properly. For Planets and the Sun, the North Pole vector is calculated 
+    # from tables provided by the IAU working group. For other bodies, the 
+    # North Pole is arbitrarily the J2000 Ecliptic North Pole.
 
     def  __init__(self, params):
         # axisLock is used when the referential needs to have its axis linked to the frame
@@ -265,6 +266,10 @@ class make3DaxisReferential:
         # set North Pole for main planets and Sun, and for other objects
         # such as PHAs, Comets, Asteroids, set some arbitrary values
         Npole = vector(0,0,0)
+        if self.body != None:
+            print "--> ", self.body.Name, ", NORTH POLE VEC = ", self.NPole
+        else:
+            print "NORTH POLE VEC = ", self.NPole
 
         if is_zero_vector_epsilon(self.NPole) == False:
             #print "3DAXIS-REF::setAxisTilt: NPole = ", self.NPole
@@ -285,6 +290,8 @@ class make3DaxisReferential:
                 print "3Dref: Adjusting axis direction by ", rightAscension%360, " degrees"
                 self.referential.rotate(angle=deg2rad(rightAscension % 360), axis=(0,0,1), origin=(self.body.Position[0]+self.body.Foci[0],self.body.Position[1]+self.body.Foci[1],self.body.Position[2]+self.body.Foci[2]))
             """
+            if self.body != None and self.body.Object_class == BARYCENTER:
+                return
 
             # determine unit vector for each direction
             ZdirectionVec = self.referential.frame_to_world(self.Axis[2].pos[1])-self.referential.frame_to_world(self.Axis[2].pos[0])
@@ -360,7 +367,7 @@ class make3DaxisReferential:
         # Handle cases where vectors are nearly collinear (dot_product close to 1 or -1)
         # If vectors are almost identical, return identity matrix
         if np.isclose(dot_product, 1.0):
-            print "DING DING DING!!"
+            #print "DING DING DING!!"
             return  normalizedNpole # we are done, nothing to rotate here 
 
         # If vectors are almost opposite, rotate by 180 degrees around an arbitrary perpendicular axis

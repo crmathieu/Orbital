@@ -1,15 +1,16 @@
-# Rate functions can be used "incrementally" or "absolutely"
-#   Typically these functions require a domain between [0, 1] and will
-#   return a value always comprised in the interval [0, 1]. 
+# Rate functions can be used "incrementally" or "absolutely".
+# Typically, these functions require a domain between [0, 1] and will
+# return a value always comprised in the interval [0, 1]. 
 #
-#   So, as a consequence, always make sure to have the input parameter between [0, 1] 
+# So, as a consequence, always make sure to have the input parameter between [0, 1] 
 #
 # 2 types of rate functions:
 # --------------------------
+# 
 #   1) When used absolutely, rate functions operate on a quantity to deduct a value at a 
 #   given step knowing the global quantity difference. 
 #   
-#   for instance: 
+#       for instance: 
 #
 #       current_dist = original_distance + (original_distance - final_distance) * rate_func(step)
 #
@@ -19,7 +20,7 @@
 #   2) When used incrementally, rate functions operate on a quantity to deduct a value at a 
 #   given step knowing the value at the previous step. 
 # 
-#   for instance:
+#       for instance:
 #
 #       current_angle = current_angle + (angle_variation) * rate_func(step)
 #

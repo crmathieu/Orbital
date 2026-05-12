@@ -1,6 +1,7 @@
 """ main module  """
 
 from re import I
+import re as RE
 from rate_func import *	
 from orbit3D import *
 from planets import *
@@ -9,11 +10,12 @@ from planetsdata import *
 from controls import *
 from celestial.orbitalLIB import Api
 from eqsols_calculator import Vernal, Vernal2
-from moons import makePlanetMoon, makeLuna
+from moons import makePlanetMoon, makeLuna, makeSystemBarycenterMember, makeSystemBarycenterMain
 from objects_loader import load_objects_catalog
 from moons_loader import load_moon_catalog
 
 #from utils import sleep
+print "re ==",RE.__version__
 
 def createSolarSystem():
 		
@@ -30,7 +32,11 @@ def createSolarSystem():
 	# set what is displayed by default
 	ssys.setDefaultFeatures(INNER_PLANET|OUTER_PLANET|ORBITS|SPACECRAFT|MOON|SUN) 
 
-	sun = makeSun(ssys, color=color.yellow, ptype=SUN, sizeCorrectionType=SUN, defaultSizeCorrection=SUN_SZ_CORRECTION)
+#	sun_barycenter = makeBarycenter(ssys, key='sun-barycenter', color=color.green, ptype=BARYCENTER, sizeCorrectionType=SUN, defaultSizeCorrection=SUN_SZ_CORRECTION)
+#	sun = makeBarycenterMember(ssys, key='sun', color=color.white, ptype=SUN, sizeCorrectionType=MOON, realisticCorrectionSize=SUN_SZ_CORRECTION, barycenter=sun_barycenter)	
+	
+
+	sun = makeSun(ssys, color=color.black, ptype=SUN, sizeCorrectionType=SUN, defaultSizeCorrection=SUN_SZ_CORRECTION)
 	ssys.register(sun)
 
 	print Frame_Intervals
@@ -70,27 +76,28 @@ def createSolarSystem():
 	ssys.addTo(makePlanetMoon(ssys, key='ganymede', color=color.green, sizeCorrectionType=MOON, centralbody=jupiter))
 	ssys.addTo(makePlanetMoon(ssys, key='callisto', color=color.orange, sizeCorrectionType=MOON, centralbody=jupiter))
 	ssys.addTo(makePlanetMoon(ssys, key='io', color=color.cyan, sizeCorrectionType=MOON, centralbody=jupiter))
-	ssys.addTo(makePlanetMoon(ssys, key='adrastea', color=color.yellow, sizeCorrectionType=TINY_MOON, centralbody=jupiter))
+	ssys.addTo(makePlanetMoon(ssys, key='adrastea', color=color.yellow, sizeCorrectionType=SMALL_MOON, centralbody=jupiter))
 	ssys.addTo(makePlanetMoon(ssys, key='amalthea', color=Color.pink, sizeCorrectionType=SMALL_MOON, centralbody=jupiter))
+	ssys.addTo(makePlanetMoon(ssys, key='europa', color=Color.grey, sizeCorrectionType=MOON, centralbody=jupiter))
 
 	# SATURN 
 	saturn = makeSaturn(ssys, color=color.cyan, ptype=OUTER_PLANET, sizeCorrectionType=GAS_GIANT, defaultSizeCorrection=PLANET_SZ_CORRECTION)
 	ssys.addTo(saturn)
 
-	ssys.addTo(makePlanetMoon(ssys, key='mimas', color=color.green, sizeCorrectionType=SMALL_MOON, centralbody=saturn))
+	ssys.addTo(makePlanetMoon(ssys, key='mimas', color=color.green, sizeCorrectionType=MOON, centralbody=saturn))
 	ssys.addTo(makePlanetMoon(ssys, key='titan', color=color.yellow, sizeCorrectionType=MOON, centralbody=saturn))
 	ssys.addTo(makePlanetMoon(ssys, key='iapetus', color=color.red, sizeCorrectionType=MOON, centralbody=saturn))
 	ssys.addTo(makePlanetMoon(ssys, key='rhea', color=color.magenta, sizeCorrectionType=MOON, centralbody=saturn))
 	ssys.addTo(makePlanetMoon(ssys, key='dione', color=Color.pink, sizeCorrectionType=MOON, centralbody=saturn))
 	ssys.addTo(makePlanetMoon(ssys, key='tethys', color=Color.lightgrey, sizeCorrectionType=MOON, centralbody=saturn))
-	ssys.addTo(makePlanetMoon(ssys, key='enceladus', color=color.orange, sizeCorrectionType=SMALL_MOON, centralbody=saturn))
+	ssys.addTo(makePlanetMoon(ssys, key='enceladus', color=color.orange, sizeCorrectionType=SMALLER_MOON, centralbody=saturn))
 	ssys.addTo(makePlanetMoon(ssys, key='hyperion', color=Color.cyanish, sizeCorrectionType=SMALL_MOON, centralbody=saturn))
 
 	# URANUS
 	uranus = makeUranus(ssys, color=color.yellow, ptype=OUTER_PLANET, sizeCorrectionType=GAS_GIANT, defaultSizeCorrection=PLANET_SZ_CORRECTION)
 	ssys.addTo(uranus)
 
-	ssys.addTo(makePlanetMoon(ssys, key='umbriel', color=Color.orange, sizeCorrectionType=SMALL_MOON, centralbody=uranus))
+	ssys.addTo(makePlanetMoon(ssys, key='umbriel', color=Color.orange, sizeCorrectionType=SMALLER_MOON, centralbody=uranus))
 
 
 	# NEPTUNE
@@ -100,20 +107,29 @@ def createSolarSystem():
 	ssys.addTo(makePlanetMoon(ssys, key='despina', color=Color.orange, sizeCorrectionType=SMALL_MOON, centralbody=neptune))
 	ssys.addTo(makePlanetMoon(ssys, key='thalassa', color=Color.yellow, sizeCorrectionType=SMALL_MOON, centralbody=neptune))
 	ssys.addTo(makePlanetMoon(ssys, key='nereid', color=Color.blue, sizeCorrectionType=SMALL_MOON, centralbody=neptune))
-	ssys.addTo(makePlanetMoon(ssys, key='larissa', color=Color.red, sizeCorrectionType=SMALL_MOON, centralbody=neptune))
+	ssys.addTo(makePlanetMoon(ssys, key='larissa', color=Color.red, sizeCorrectionType=SMALLER_MOON, centralbody=neptune))
 	ssys.addTo(makePlanetMoon(ssys, key='naiad', color=Color.cyanish, sizeCorrectionType=SMALL_MOON, centralbody=neptune))
-	ssys.addTo(makePlanetMoon(ssys, key='proteus', color=Color.lightgrey, sizeCorrectionType=SMALL_MOON, centralbody=neptune))
+	ssys.addTo(makePlanetMoon(ssys, key='proteus', color=Color.lightgrey, sizeCorrectionType=SMALLER_MOON, centralbody=neptune))
 	ssys.addTo(makePlanetMoon(ssys, key='galatea', color=Color.pink, sizeCorrectionType=SMALL_MOON, centralbody=neptune))
 	ssys.addTo(makePlanetMoon(ssys, key='triton', color=Color.green, sizeCorrectionType=BIG_MOON, centralbody=neptune))
 
 
 	# DWARF PLANETS
 	# PLUTO
-	pluto = makePluto(ssys, color=color.green, ptype=DWARF_PLANET, sizeCorrectionType=INNER_PLANET, defaultSizeCorrection=PLANET_SZ_CORRECTION) #OUTER_PLANET, DWARF_PLANET)
-#	pluto = makePluto(ssys, color=color.green, ptype=INNER_PLANET, sizeCorrectionType=INNER_PLANET, defaultSizeCorrection=PLANET_SZ_CORRECTION) #OUTER_PLANET, DWARF_PLANET)
-	ssys.addTo(pluto)
+	useBarycenter = True
+	if useBarycenter == False:
+		pluto = makePluto(ssys, color=color.green, ptype=DWARF_PLANET, sizeCorrectionType=INNER_PLANET, defaultSizeCorrection=PLANET_SZ_CORRECTION) #OUTER_PLANET, DWARF_PLANET)
+		ssys.addTo(pluto)
+		ssys.addTo(makePlanetMoon(ssys, key='charon', color=color.white, sizeCorrectionType=MOON, centralbody=pluto))
+	else:
+		
+		# when creating a barycenter system, the main body of the system should be created
+		# immediately after the barycenter
 
-	ssys.addTo(makePlanetMoon(ssys, key='charon', color=color.white, sizeCorrectionType=MOON, centralbody=pluto))
+		pluto_barycenter = makeSystemBarycenter(ssys, key='pluto-barycenter', color=color.green, ptype=BARYCENTER, sizeCorrectionType=INNER_PLANET, defaultSizeCorrection=PLANET_SZ_CORRECTION) #OUTER_PLANET, DWARF_PLANET)
+		pluto = makeSystemBarycenterMain(ssys, key='pluto', color=color.white, ptype=DWARF_PLANET, sizeCorrectionType=MOON, realisticCorrectionSize=PLANET_SZ_CORRECTION, barycenter=pluto_barycenter)
+		ssys.addTo(pluto)
+		ssys.addTo(makeSystemBarycenterMember(ssys, key='charon', color=color.yellow, ptype=MOON, sizeCorrectionType=MOON, realisticCorrectionSize=MOON_SZ_CORRECTION, barycenter=pluto_barycenter))
 
 	# ECLIPTIC
 	ssys.addTo(makeEcliptic(ssys, color.white, 0.4))
@@ -124,10 +140,10 @@ def createSolarSystem():
 	#ssys.addTo(makeDwarfPlanet(ssys, key='haumea', color=color.white))
 
 	# TNOs
-	ssys.addTo(makeTNO(ssys, key='eris', color=color.yellow))
-	ssys.addTo(makeTNO(ssys, key='makemake', color=color.magenta))
-	ssys.addTo(makeTNO(ssys, key='sedna', color=color.orange))
-	ssys.addTo(makeTNO(ssys, key='haumea', color=color.white))
+	ssys.addTo(makeTNO(ssys, key='eris', color=color.yellow, centralbody=None))
+	ssys.addTo(makeTNO(ssys, key='makemake', color=color.magenta, centralbody=None))
+	ssys.addTo(makeTNO(ssys, key='sedna', color=color.orange, centralbody=None))
+	ssys.addTo(makeTNO(ssys, key='haumea', color=color.white, centralbody=None))
 
 	# BELTS
 	ssys.addTo(makeBelt(ssys, key='kuiper', name='Kuiper Belt', ptype=KUIPER_BELT, color=Color.lightgrey, size=2, density=4))
@@ -181,6 +197,8 @@ def bootLoader(story, recorder):
 
 		ssys.setEarthLocations(makeDashBoard(ssys))
 		#ssys.getDashboard().showInfoWindow(True)
+
+		print ssys.getFocusList()
 
 		# play story when provided
 		api = Api(ssys, recorder = recorder)

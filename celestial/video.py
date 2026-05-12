@@ -8,6 +8,10 @@ import os
 import subprocess
 import shutil
 
+print "cv2 ==", cv2.__version__
+print "numpy ==",np.__version__
+print "pyautogui ==", pyautogui.__version__
+
 def initialize_environment():
     import platform
     import ctypes
@@ -257,7 +261,8 @@ def stopRecording(videoRecorder):
     videoRecorder.closeVideo()
 
 """
-TO INSTALL PYAUTOGUI and its dependencies for python 2.7
+TO INSTALL PYAUTOGUI and its dependencies for python 2.7:
+Install in this order:
 pip install pillow==6.2.2
 pip install pyscreeze==0.1.21
 pip install pymsgbox==1.0.6

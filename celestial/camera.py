@@ -3,7 +3,7 @@ from rate_func import *
 #import rate_func
 from utils import deg2rad, getAngleBetweenVectors, getOrthogonalVector, getVectorOrthogonalToPlane #, sleep
 from objects import simpleArrow
-from planetsdata import EARTH_NAME
+from planetsdata import EARTH_NAME, DEFAULT_FRAMERATE
 from video import recOneFrame # import * 
 
 # All camera movements occur using a focal point centered on the
@@ -77,7 +77,8 @@ class camera3D:
 		
 		self.view.userspin = True
 		self.view.userzoom = True
-		self.view.autoscale = True
+		self.view.autoscale = True 
+		self.framerate = DEFAULT_FRAMERATE # default frame rate for video recording
 #		self.view.autocenter = False
 
 	def setEarthLocations(self):
@@ -191,7 +192,7 @@ class camera3D:
 
 #		if recorder == True:
 #			if self.parentFrame.orbitalTab.VideoRecorder is None:
-#				self.parentFrame.orbitalTab.VideoRecorder = setVideoRecording(framerate = 20, filename = "output.avi")
+#				self.parentFrame.orbitalTab.VideoRecorder = setVideoRecording(framerate = self.framerate, filename = "output.avi")
 
 		# calculate number of ticks
 		ticks = int(duration * 70 * self.transitionVelocityFactor)
@@ -289,6 +290,7 @@ class camera3D:
 ######################
 
 	def updateCameraViewTarget(self, loc = None):
+
 		if loc is not None:
 			print "Location is", loc.Name
 
@@ -296,7 +298,10 @@ class camera3D:
 			print "no curent object"
 			return
 
-		if self.ssys.cameraViewTargetBody.Name.lower() == EARTH_NAME:
+		if self.ssys.cameraViewTargetBody.Name == EARTH_NAME:
+			"""
+			For earth, we examine if earth locations are involved
+			"""
 			earthLocPos = None
 			if self.ssys.EarthRef is not None and self.ssys.EarthRef.PlanetWidgets is not None:
 				w = self.ssys.EarthRef.PlanetWidgets
@@ -307,15 +312,11 @@ class camera3D:
 				else:
 					loc.updateEclipticPosition()
 					earthLocPos = loc.getEclipticPosition()
-					print "reading ecliptic from loc", loc.getEclipticPosition()
+					#print "reading ecliptic from loc", loc.getEclipticPosition()
 
 				if earthLocPos is not None:
 					#print "centering on loc", earthLocPos.Name
-					self.ssys.Scene.center = (
-						earthLocPos[0],
-						earthLocPos[1],
-						earthLocPos[2]
-					)
+					self.ssys.Scene.center = (earthLocPos[0], earthLocPos[1], earthLocPos[2])
 					return
 		#else:
 		
@@ -348,11 +349,11 @@ class camera3D:
 			self.ssys.Scene.center = self.ssys.cameraViewTargetBody.CentralBody.LocalEclipticRef.frame_to_world(self.ssys.cameraViewTargetBody.Position)
 		else:
 			self.ssys.Scene.center = (
-				self.ssys.cameraViewTargetBody.Position[0],
-				self.ssys.cameraViewTargetBody.Position[1],
-				self.ssys.cameraViewTargetBody.Position[2]
-			)
-		
+										self.ssys.cameraViewTargetBody.Position[0],
+										self.ssys.cameraViewTargetBody.Position[1],
+										self.ssys.cameraViewTargetBody.Position[2]
+									)
+
 		"""
 		print "----------"
 		print "isMoon:", isMoon, ", updateCameraViewTarget: position:",self.ssys.cameraViewTargetBody.Position
@@ -372,25 +373,199 @@ class camera3D:
 		self.transitionVelocityFactor = 1/float(velocity)
 
 
-	def _smoothFocus(self, newloc, ratefunc = ease_in_out):
+	def _smoothFocus(self, targetBody, ratefunc = ease_in_out):
 
-		# (Xc, Yc, Zc) is the current location (scene center before transition)
-		Xc = self.ssys.Scene.center[0]
-		Yc = self.ssys.Scene.center[1]
-		Zc = self.ssys.Scene.center[2]
-		#print ("Xc=", Xc, ", Yc=", Yc,", Zc=", Zc)
+		# sourcePos is the current location position 
+		# (scene center before transition)
+		sourcePos = self.ssys.Scene.center
+
+		# take recording into account
+		if self.ssys.Dashboard.orbitalTab.RecorderOn == True:
+			if self.ssys.Dashboard.orbitalTab.VideoRecorder is None:
+				from video import setVideoRecording
+				self.ssys.Dashboard.orbitalTab.VideoRecorder = setVideoRecording(self.ssys, framerate = self.framerate)
+
+
+		# Calculate number of steps based on current transition velocity factor (default is 1.0)
+		total_steps = int(100 * self.transitionVelocityFactor)
+
+		# move scene center by an increment towards the destination coordinates. Since 
+		# we use 100 * transitionVelocityFactor steps to do that, and our rate function 
+		# only takes an input between 0 and 1, we divide the current increment by the 
+		# total number of steps to always keep the rate function input between these limits.
+		# Incremental location is calculated as the initial location + difference between initial
+		# and final locations time the rate for this particular step.
+
+		origin = self.ssys.cameraViewPreviousTargetBody
+
+		for i in np.arange(0, total_steps+1, 1):
+			r = ratefunc(float(i)/total_steps)
+
+			# adjust target position in case an animation is in progress
+			if targetBody.isMoon:
+				targetPos = targetBody.CentralBody.LocalEclipticRef.frame_to_world(targetBody.Position)
+			else:
+				targetPos = targetBody.Position
+
+			if origin.isMoon:
+				sourcePos = origin.CentralBody.LocalEclipticRef.frame_to_world(origin.Position)
+			else:
+				sourcePos = origin.Position
+
+			# calculate distance between origin and 
+			# destination for each coordinate 
+
+			deltaX = (targetPos[0] - sourcePos[0])
+			deltaY = (targetPos[1] - sourcePos[1])
+			deltaZ = (targetPos[2] - sourcePos[2])
+
+			# adjust Scene center
+			self.ssys.Scene.center = (sourcePos[0] + r*deltaX,
+									  sourcePos[1] + r*deltaY,
+									  sourcePos[2] + r*deltaZ)
+
+			sleep(2e-2)
+
+			# if there is an animation in progress, make sure to propagate.
+			# Note that we introduce a slight error when an animation is in
+			# progress, since we considered the origin as fixed. For a more
+			# accurate calculation, we should place the reading of sourcePos
+			# in the loop, but we would need to know what object is that origine.
+
+			if self.ssys.Dashboard.orbitalTab.AnimationInProgress == True:
+				self.ssys.Dashboard.orbitalTab.OneTimeIncrement()
+			
+			if self.ssys.Dashboard.orbitalTab.RecorderOn == True:
+				recOneFrame(self.ssys.Dashboard.orbitalTab.VideoRecorder)
+
+
+	def _smoothFocusNT(self, targetBody, ratefunc = ease_in_out):
+
+		# sourcePos is the current location position 
+		# (scene center before transition)
+		sourcePos = self.ssys.Scene.center
+
+		# take recording into account
+		if self.ssys.Dashboard.orbitalTab.RecorderOn == True:
+			if self.ssys.Dashboard.orbitalTab.VideoRecorder is None:
+				self.ssys.Dashboard.orbitalTab.VideoRecorder = setVideoRecording(framerate = self.framerate, filename = "output.avi")
+
+
+		# Calculate number of steps based on current transition velocity factor (default is 1.0)
+		total_steps = int(100 * self.transitionVelocityFactor)
+
+		# move scene center by an increment towards the destination coordinates. Since 
+		# we use 100 * transitionVelocityFactor steps to do that, and our rate function 
+		# only takes an input between 0 and 1, we divide the current increment by the 
+		# total number of steps to always keep the rate function input between these limits.
+		# Incremental location is calculated as the initial location + difference between initial
+		# and final locations time the rate for this particular step.
+
+		origin = self.ssys.cameraViewPreviousTargetBody
+
+		for i in np.arange(0, total_steps+1, 1):
+			r = ratefunc(float(i)/total_steps)
+
+			# adjust target position in case an animation is in progress
+			if targetBody.isMoon:
+				targetPos = targetBody.CentralBody.LocalEclipticRef.frame_to_world(targetBody.Position)
+			else:
+				targetPos = targetBody.Position
+
+			# calculate distance between origine and 
+			# destination for each coordinate 
+
+			deltaX = (targetPos[0] - sourcePos[0])
+			deltaY = (targetPos[1] - sourcePos[1])
+			deltaZ = (targetPos[2] - sourcePos[2])
+
+			# adjust Scene center
+			self.ssys.Scene.center = (sourcePos[0] + r*deltaX,
+									  sourcePos[1] + r*deltaY,
+									  sourcePos[2] + r*deltaZ)
+
+			sleep(2e-2)
+
+			# if there is an animation in progress, make sure to propagate.
+			# Note that we introduce a slight error when an animation is in
+			# progress, since we considered the origin as fixed. For a more
+			# accurate calculation, we should place the reading of sourcePos
+			# in the loop, but we would need to know what object is that origine.
+
+			if self.ssys.Dashboard.orbitalTab.AnimationInProgress == True:
+				self.ssys.Dashboard.orbitalTab.OneTimeIncrement()
+			
+			if self.ssys.Dashboard.orbitalTab.RecorderOn == True:
+				recOneFrame(self.ssys.Dashboard.orbitalTab.VideoRecorder)
+
+
+	def _smoothFocus1(self, newloc, ratefunc = ease_in_out):
+
+			# (Xc, Yc, Zc) is the current location (scene center before transition)
+			Xc = self.ssys.Scene.center[0]
+			Yc = self.ssys.Scene.center[1]
+			Zc = self.ssys.Scene.center[2]
+			#print ("Xc=", Xc, ", Yc=", Yc,", Zc=", Zc)
+			
+			# calculate distance between current location and 
+			# destination for each coordinate 
+			deltaX = (newloc[0] - Xc)
+			deltaY = (newloc[1] - Yc)
+			deltaZ = (newloc[2] - Zc)
+
+			#print ("X=", deltaX, ", Y=", deltaY,", Z=", deltaZ)
+
+			if self.ssys.Dashboard.orbitalTab.RecorderOn == True:
+				if self.ssys.Dashboard.orbitalTab.VideoRecorder is None:
+					self.ssys.Dashboard.orbitalTab.VideoRecorder = setVideoRecording(framerate = self.framerate, filename = "output.avi")
+
+
+			# Calculate number of steps based on current transition velocity factor (default is 1.0)
+			#print ("Smooth Focus TRANSITION VELOCITY=", self.transitionVelocityFactor)
+			total_steps = int(100 * self.transitionVelocityFactor)
+			#print ("Smooth Focus TOTAL_STEPS=", total_steps)
+
+			# move scene center by an increment towards the destination coordinates. Since 
+			# we use 100 * transitionVelocityFactor steps to do that, and our rate function 
+			# only takes an input between 0 and 1, we divide the current increment by the 
+			# total number of steps to always keep the rate function input between these limits.
+			# Incremental location is calculated as the initial location + difference between initial
+			# and final locations time the rate for this particular step.
+
+			for i in np.arange(0, total_steps+1, 1):
+				r = ratefunc(float(i)/total_steps)
+				self.ssys.Scene.center = vector( (Xc + r*deltaX),
+												 (Yc + r*deltaY),
+												 (Zc + r*deltaZ))
+				sleep(2e-2)
+				if self.ssys.Dashboard.orbitalTab.AnimationInProgress == True:
+					self.ssys.Dashboard.orbitalTab.OneTimeIncrement()
+				if self.ssys.Dashboard.orbitalTab.RecorderOn == True:
+					recOneFrame(self.ssys.Dashboard.orbitalTab.VideoRecorder)
+
+
+
+	def _smoothFocus2(self, newloc, ratefunc = ease_in_out):
+
+		# curloc is the current location (scene center before transition)
+		
+		print "Scene.center is of type ", type(self.ssys.Scene.center)
+		curloc = (self.ssys.Scene.center[0], self.ssys.Scene.center[1], self.ssys.Scene.center[2])
 		
 		# calculate distance between current location and 
 		# destination for each coordinate 
-		deltaX = (newloc[0] - Xc)
-		deltaY = (newloc[1] - Yc)
-		deltaZ = (newloc[2] - Zc)
 
-		#print ("X=", deltaX, ", Y=", deltaY,", Z=", deltaZ)
+		deltaX = (newloc[0] - curloc[0])
+		deltaY = (newloc[1] - curloc[1])
+		deltaZ = (newloc[2] - curloc[2])
 
+		#delta = newloc - curloc
+		#print "delta vector = ", delta
+		#print "deltaX = ", deltaX
+		# take recording into account
 		if self.ssys.Dashboard.orbitalTab.RecorderOn == True:
 			if self.ssys.Dashboard.orbitalTab.VideoRecorder is None:
-				self.ssys.Dashboard.orbitalTab.VideoRecorder = setVideoRecording(framerate = 20, filename = "output.avi")
+				self.ssys.Dashboard.orbitalTab.VideoRecorder = setVideoRecording(framerate = self.framerate, filename = "output.avi")
 
 
 		# Calculate number of steps based on current transition velocity factor (default is 1.0)
@@ -407,12 +582,17 @@ class camera3D:
 
 		for i in np.arange(0, total_steps+1, 1):
 			r = ratefunc(float(i)/total_steps)
-			self.ssys.Scene.center = vector( (Xc + r*deltaX),
-											 (Yc + r*deltaY),
-											 (Zc + r*deltaZ))
+			self.ssys.Scene.center =(curloc[0] + r*deltaX,
+									 curloc[1] + r*deltaY,
+									 curloc[2] + r*deltaZ)
+			#self.ssys.Scene.center = curloc + r * delta
+			#print "Scene center = ", self.ssys.Scene.center
+
 			sleep(2e-2)
+
 			if self.ssys.Dashboard.orbitalTab.AnimationInProgress == True:
 				self.ssys.Dashboard.orbitalTab.OneTimeIncrement()
+			
 			if self.ssys.Dashboard.orbitalTab.RecorderOn == True:
 				recOneFrame(self.ssys.Dashboard.orbitalTab.VideoRecorder)
 
@@ -421,49 +601,35 @@ class camera3D:
 		return self._smoothFocus(target, ratefunc)
 
 	def smoothFocus(self, targetBodyName, ratefunc =  ease_in_out):
-		# going from current object to next current object
-		print "SMOOTH TRANSITION TOWARDS target: ", targetBodyName
-		target = None
+
+		"""
+		Going from current object to next current object. First,		
+		Figure out if the target object is a moon or something else
+		"""
+		targetPos = None
 		if targetBodyName in self.ssys.orbitWhat:
+			# it's a moon!
 			targetBody = self.ssys.getMoonBodyFromName(targetBodyName.lower())
 		else:
+			# something else
 			targetBody = self.ssys.getBodyFromName(targetBodyName.lower())
 		
 		if targetBody is None:
-			# use sun as target
-			target = vector(0,0,0)
+			# use earth as default target destination
+			targetBody = self.ssys.getBodyFromName(EARTH_NAME)
+
+		if targetBody.isMoon:
+			
+			# if the target body is a moon, make sure to translate
+			# geoEcliptic coordinates into helioEcliptic ones
+
+			targetPos = targetBody.CentralBody.LocalEclipticRef.frame_to_world(targetBody.Position)
 		else:
-			if targetBody.isMoon:
-				
-				# if the target body is a moon, make sure to translate
-				# geoEcliptic coordinates into helioEcliptic ones
+			targetPos = targetBody.Position
 
-				target = targetBody.CentralBody.LocalEclipticRef.frame_to_world(targetBody.Position)
-			else:
-				target = targetBody.Position
+#		return self._smoothFocus(targetPos, ratefunc)
+		return self._smoothFocus(targetBody, ratefunc)
 
-		return self._smoothFocus(target, ratefunc)
-
-	def smoothFocus2(self, targetBodyName, ratefunc =  ease_in_out):
-		# going from current object to next current object
-		print "SMOOTH TRANSITION TOWARDS target: ", targetBodyName
-		target = None
-		targetBody = self.ssys.getBodyFromName(targetBodyName.lower())
-
-		if targetBody is None:
-			# use sun as target
-			target = vector(0,0,0)
-		else:
-			if targetBody.isMoon:
-				
-				# if the target body is a moon, make sure to translate
-				# geoEcliptic coordinates into helioEcliptic ones
-
-				target = targetBody.CentralBody.LocalEclipticRef.frame_to_world(targetBody.Position)
-			else:
-				target = targetBody.Position
-
-		return self._smoothFocus(target, ratefunc)
 
 	# move the scene center to target location and rotate forward vector to vertical
 	def gotoEarthLocationVertical(self, nextLocation, ratefunc = ease_in_out_quart):
@@ -499,7 +665,7 @@ class camera3D:
 
 		if self.ssys.Dashboard.orbitalTab.RecorderOn == True:
 			if self.ssys.Dashboard.orbitalTab.VideoRecorder is None:
-				self.ssys.Dashboard.orbitalTab.VideoRecorder = setVideoRecording(framerate = 20, filename = "output.avi")
+				self.ssys.Dashboard.orbitalTab.VideoRecorder = setVideoRecording(framerate = self.framerate, filename = "output.avi")
 
 
 		# radialToCamera (vector between center of earth and camera location)

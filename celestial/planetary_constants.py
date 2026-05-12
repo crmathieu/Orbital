@@ -8,6 +8,16 @@
 
 PLANET_CONSTANTS = {
 
+    "sun-barycenter": {
+        "object_id": "0",
+        "GM": 1.32712440018e20,
+        "J2": 0.0,
+        "radius_m": 695700e3,
+        "texture": "",
+        "drift_coef": {},
+        "precession":{}
+    },
+
     "sun": {
         "object_id": "10",
         "GM": 1.32712440018e20,
@@ -272,12 +282,12 @@ PLANET_CONSTANTS = {
 
     },
 
-    "pluto": {
-        "object_id": "999",
-        "GM": 8.703e11,
+    "pluto-barycenter": {
+        "object_id": "9",
+        "GM": 9.761e11,
         "J2": 0.0,
         "radius_m": 1188.3e3,
-        "texture": "pluto3",
+        "texture": None,
         "drift_coef": {
             "a": 39.48686035, "ar": 0.00449751,
             "e": 0.24885238, "er": 0.00006016,
@@ -287,6 +297,16 @@ PLANET_CONSTANTS = {
             "N": 110.30167986, "Nr": -0.00809981,
             "b": -0.01262724, "c": 0.0, "s": 0.0, "f": 0.0
         },
+        "precession":{}
+    },
+
+    "pluto": {
+        "object_id": "999",
+        "GM": 8.703e11,
+        "J2": 0.0,
+        "radius_m": 1188.3e3,
+        "texture": "pluto3",
+        "drift_coef": {},
         "precession": {
             "pole_ra_deg": 313.02,
             "pole_ra_rate_deg_day": -0.001,

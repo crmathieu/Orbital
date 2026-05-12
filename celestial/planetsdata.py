@@ -22,41 +22,56 @@ SOFTWARE.
 
 """
 # Body types
-INNER_PLANET 		= 0x01
-OUTER_PLANET 		= 0x02
-MOON 				= 0x04
-SPACECRAFT 			= 0x08
-ASTEROID 			= 0x10
-GAS_GIANT 			= 0x20
-DWARF_PLANET 		= 0x40
-TNO 				= 0x80
-COMET 				= 0x100
+INNER_PLANET 			= 0x01
+OUTER_PLANET 			= 0x02
 
-SMALL_ASTEROID 		= 0x200
-BIG_ASTEROID 		= 0x400
-PHA 				= 0x800
-ASTEROID_BELT 		= 0x1000
-KUIPER_BELT 		= 0x2000
-INNER_OORT_CLOUD 	= 0x4000
-ECLIPTIC_PLANE 		= 0x8000
+MOON 					= 0x04
+#BARYCENTER_MEMBER 		= 0x04
+ 	
+SPACECRAFT 				= 0x08
+ASTEROID 				= 0x10
+GAS_GIANT 				= 0x20
+DWARF_PLANET 			= 0x40
+TNO 					= 0x80
+COMET 					= 0x100
 
-LIT_SCENE 			= 0x10000
-REFERENTIAL 		= 0x20000
-ORBITS 				= 0x40000
-LABELS 				= 0x80000
+SMALL_ASTEROID 			= 0x200
+BIG_ASTEROID 			= 0x400
+PHA 					= 0x800
+ASTEROID_BELT 			= 0x1000
+KUIPER_BELT 			= 0x2000
+INNER_OORT_CLOUD 		= 0x4000
+ECLIPTIC_PLANE 			= 0x8000
 
-JTROJANS 			= 0x100000
-REALSIZE 			= 0x200000
-LOCAL_REFERENTIAL 	= 0x400000
-CELESTIAL_SPHERE 	= 0x800000
-HYPERBOLIC 			= 0x1000000
-CONSTELLATIONS 		= 0x2000000
-SUN 				= 0x4000000
-SMALL_MOON			= 0x8000000
-TINY_MOON  			= 0x10000000
-BIG_MOON			= 0x20000000
+LIT_SCENE 				= 0x10000
+REFERENTIAL 			= 0x20000
+ORBITS 					= 0x40000
+LABELS 					= 0x80000
 
-TYPE_MASK = 0xFFFFFFF
+JTROJANS 				= 0x100000
+REALSIZE 				= 0x200000
+LOCAL_REFERENTIAL 		= 0x400000
+CELESTIAL_SPHERE 		= 0x800000
+HYPERBOLIC 				= 0x1000000
+CONSTELLATIONS 			= 0x2000000
+
+STAR 					= 0x4000000
+SUN 					= 0x4000000
+
+SMALL_MOON				= 0x8000000
+SMALLER_MOON			= 0x10000000
+TINY_MOON  				= 0x20000000
+BIG_MOON				= 0x40000000
+BARYCENTER				= 0x80000000
+BARYCENTER_MEMBER		= 0x100000000
+
+
+TYPE_MASK = 0xFFFFFFFFF
+
+# Pluto-Charon barycenter as the reference center
+# 500@9 = Pluto system barycenter (same as Pluto-Charon barycenter)
+PLUTO_BARYCENTER = "500@9"
+SUN_BARYCENTER = "500@0"
 
 SPACECRAFT_M = 100
 THREE_D = False
@@ -92,9 +107,9 @@ TYPE_MOON = 7
 
 CURRENT_BODY = "current_body"
 EARTH_NAME = "earth"
-EARTH_NAME_2 = "earthZombi"
 SUN_NAME = "sun"
 JUPITER_PERIHELION = 740.52e9
+DEFAULT_FRAMERATE = 20.0
 
 index_to_month = {
 	1: "Jan", 2:"Feb", 3:"Mar", 4:"Apr", 5:"May", 6:"Jun", 7:"Jul", 8:"Aug", 9:"Sep", 10:"Oct", 11:"Nov", 12:"Dec"
@@ -284,8 +299,11 @@ SCALE_NORMALIZED = 1
 
 # size and distance corrections...
 # we apply a coefficient to reduce distances which are vastly too big for a 
-# practical use in a simulation. The SMALLER the number in DIST_FACTOR, the 
-# MORE compressed distances will be. For MOONS, we need to compress less so 
+# practical use in a simulation.
+# 
+# The SMALLER the number in DIST_FACTOR, the MORE compressed distances will be. 
+#
+# For MOONS, we need to compress less so 
 # that we can see them around their central body. If we'd compress with the 
 # same ratio, they would be all inside their central body, as their semi-major
 # axis is very small compared to interplanetary distances. On the opposite side
@@ -301,8 +319,9 @@ DIST_FACTOR_MOON = DIST_FACTOR * 15 # <--- distance factor to use for a moon orb
 
 planet_moon_dist_factor = {
 	"earth": DIST_FACTOR * 18,
-	"mars" : DIST_FACTOR * 60,
-	"pluto": DIST_FACTOR * 32,
+	"mars" : DIST_FACTOR * 80,
+	"pluto": DIST_FACTOR * 80,
+	"pluto-barycenter": DIST_FACTOR * 150,
 	"jupiter": DIST_FACTOR * 75,
 	"saturn": DIST_FACTOR * 75,
 	"uranus": DIST_FACTOR * 30,
@@ -344,16 +363,17 @@ bodyScaler = { 	SUN: 			15000,
 				INNER_PLANET: 	1400, 
 				BIG_MOON: 		2000, 
 				MOON: 			1400, 
+				SMALLER_MOON:	300,
 				SMALL_MOON:		100, 
 				TINY_MOON: 		30, 
 				GAS_GIANT: 		1300, 
-				DWARF_PLANET: 	50, 
+				DWARF_PLANET: 	35, 
 				ASTEROID:		1, 
 				COMET:			0.02, 
 				SMALL_ASTEROID: 0.1, 
 				BIG_ASTEROID:	0.1, 
 				PHA: 			0.04, 
-				TNO: 			50
+				TNO: 			20 #50
 }
 
 #bodyScaler = { SUN: 120000, SPACECRAFT: 1, INNER_PLANET: 2400, MOON: 2400, GAS_GIANT: 4500, DWARF_PLANET: 100, ASTEROID:1, COMET:0.02, SMALL_ASTEROID: 0.1, BIG_ASTEROID:0.1, PHA: 0.007, TNO: 0.001}

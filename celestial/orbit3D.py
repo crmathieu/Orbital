@@ -53,6 +53,8 @@ import json
 
 System_utc = None
 
+print "pytz ==", pytz.__version__
+
 # CLASS SOLARSYSTEM -----------------------------------------------------------
 class makeSolarSystem:
 
@@ -95,6 +97,8 @@ class makeSolarSystem:
 
 		# system camera (always works in helio-centric ecliptic)
 		self.cameraViewTargetBody = None
+		self.cameraViewPreviousTargetBody = None
+		
 		self.cameraViewTargetName = SUN_NAME
 
 		# orientation parameters
@@ -136,6 +140,9 @@ class makeSolarSystem:
 		# only through mouse events and/or resetting the scene Center
 		self.camera = camera3D(self)
 		
+		# objects_data contains all the possible objects to load as a 
+		# specific body (TNO, SPACECRAFT, MOON etc...)
+
 		self.objects_data = objects_data
 
 		# TimeIncrement is a float representing the time quantity value by which 
@@ -143,6 +150,7 @@ class makeSolarSystem:
 		# during an animation - In fraction of day (from 1sec -> 1day)
 		# for 1sec, TimeIncrement = 1/86400
 		# for 1day, TimeIncrement = 1.0
+
 		self.TimeIncrement = INITIAL_TIMEINCR 
 
 		if False:
@@ -219,15 +227,19 @@ class makeSolarSystem:
 		self.Sun = sun
 		#self.addTo(sun)
 
-	def registerSunOrbitingBody(self, key, body):
+	def registerSSBOrbitingBody(self, key, body):
+		"""
+		All SSB orbiting bodies must register using this function
+		"""
 		self.sunOrbiting[key] = body
-		i = len(self.sunOrbiting) - 1
+		#i = len(self.sunOrbiting) - 1
 
-		self.nameIndex[body.Name] = i
+		#self.nameIndex[body.Name] = i
 
 		if body.Name == EARTH_NAME:
 			self.EarthRef = body
-		return i # this is the index of the added body in the collection
+
+		#return i # this is the index of the added body in the collection
 
 	def addTo(self, body):
 		pass
@@ -256,7 +268,6 @@ class makeSolarSystem:
 		return make3DaxisReferential({
 					'parent_frame': parent_frame,
 					'body':			None,
-					'parent_frame': None,
 					'radius': 		5*AU*DIST_FACTOR,
 					'tiltangle': 	0,
 					'show':			True,
@@ -296,6 +307,10 @@ class makeSolarSystem:
 	def setEarthLocations(self, db):
 		self.setDashboard(db)
 		self.camera.setEarthLocations()
+
+	def getFocusList(self):
+		# returns the set of bodies listed in the focus list
+		return self.Dashboard.focusTab.lblList 
 
 	def getDashboard(self):
 		return self.Dashboard
@@ -365,7 +380,7 @@ class makeSolarSystem:
 
 	def setFeatureNT(self, type, value):
 		# here we force the feature ON if the current object is of this type
-		if self.cameraViewTargetBody.BodyType == type:
+		if self.cameraViewTargetBody.Object_class == type:
 			self.ShowFeatures |= type
 		else:
 			if value == True:
@@ -384,7 +399,7 @@ class makeSolarSystem:
 		else:
 			self.ShowFeatures = (self.ShowFeatures & ~type)
 			if 	self.cameraViewTargetName != SUN_NAME and \
-				self.cameraViewTargetBody.BodyType == type and \
+				self.cameraViewTargetBody.Object_class == type and \
 				self.cameraViewTargetBody.Name.lower() != EARTH_NAME:
 				# reset SUN as current ViewTarget when the currobject should not longer be visible
 				return 1
@@ -415,9 +430,13 @@ class makeSolarSystem:
 		# For a planet, Foci(x, y, z) is (0,0,0). For a moon, Foci represents the position of the planet the moon orbits around
 		self.cameraViewTargetBody = body
 		self.cameraViewTargetName = body.Name
-		self.Scene.center = (self.cameraViewTargetBody.Position[0], #+self.cameraViewTargetBody.Foci[0],
+		self.Scene.center = vector(self.cameraViewTargetBody.position) 
+
+		"""
+		(self.cameraViewTargetBody.Position[0], #+self.cameraViewTargetBody.Foci[0],
 							 self.cameraViewTargetBody.Position[1], #+self.cameraViewTargetBody.Foci[1],
 							 self.cameraViewTargetBody.Position[2]) #+self.cameraViewTargetBody.Foci[2])
+		"""
 		#print "SCENE CENTER: ", self.Scene.center
 
 
@@ -479,15 +498,23 @@ class makeSolarSystem:
 		"""
 		for name, body in self.sunOrbiting.items():
 
-#			if body.BodyType in [OUTER_PLANET, INNER_PLANET, MOON, DWARF_PLANET, KUIPER_BELT, ASTEROID_BELT, INNER_OORT_CLOUD, ECLIPTIC_PLANE]:
-			if body.BodyType in [OUTER_PLANET, INNER_PLANET, DWARF_PLANET, KUIPER_BELT, ASTEROID_BELT, ECLIPTIC_PLANE]:
-				print "drawing", body.Name, " orbit"
+#			if body.Object_class in [OUTER_PLANET, INNER_PLANET, MOON, DWARF_PLANET, KUIPER_BELT, ASTEROID_BELT, INNER_OORT_CLOUD, ECLIPTIC_PLANE]:
+			if body.Object_class in [OUTER_PLANET, INNER_PLANET, DWARF_PLANET, KUIPER_BELT, ASTEROID_BELT, ECLIPTIC_PLANE]:
+				#print "drawing", body.Name, " orbit"
 				body.draw()
 
 		self.Scene.autoscale = False #0
 
 	def getMoonBodyFromName(self, name): #jpl_designation):
 		# first figure out the planet this moon belongs to
+		if name in self.orbitWhat:
+			planetBody = self.sunOrbiting[self.orbitWhat[name]]
+			return planetBody.planetOrbitingBodies[name]
+			#return self.sunOrbiting[name]
+		return None
+
+	def getBarycenterMemberFromName(self, name): #jpl_designation):
+		# first figure out what planet this moon belongs to
 		if name in self.orbitWhat:
 			planetBody = self.sunOrbiting[self.orbitWhat[name]]
 			return planetBody.planetOrbitingBodies[name]
@@ -534,15 +561,19 @@ class makeSolarSystem:
 
 		for name, body in self.sunOrbiting.items():
 
-			bodyVisible = True if self.ShowFeatures & body.BodyType != 0 else False
+			if body.Object_class == BARYCENTER:
+				bodyVisible = True if self.ShowFeatures & body.MainMember_bodytype != 0 else False
+			else:
+				bodyVisible = True if self.ShowFeatures & body.Object_class != 0 else False
 
 			# check bodies around the sun
-			if body.BodyType in [SUN, SPACECRAFT, OUTER_PLANET, INNER_PLANET, ASTEROID, COMET, \
-								 MOON, DWARF_PLANET, PHA, BIG_ASTEROID, TNO]:
+			if body.Object_class in [SUN, BARYCENTER, SPACECRAFT, OUTER_PLANET, INNER_PLANET, ASTEROID, COMET, \
+#							   MOON, DWARF_PLANET, PHA, BIG_ASTEROID, TNO]:
+								     DWARF_PLANET, PHA, BIG_ASTEROID, TNO]:
 
 				body.toggleSize(self.realisticSize)
 
-				if body.BodyType == SUN:
+				if body.Object_class == SUN:
 					continue
 
 				if body.Name == EARTH_NAME:
@@ -550,11 +581,11 @@ class makeSolarSystem:
 				
 				body.RefOrigin.visible = bodyVisible  
 				body.Orbit.visible = self.orbitTrace & bodyVisible
-				print "orbit is ", body.Orbit.visible, " for ", body.Name
+				#print "orbit is ", body.Orbit.visible, " for ", body.Name
 
 				body.Labels[0].visible = self.labelVisible if body.RefOrigin.visible == True else False
 
-				if body.BodyType == OUTER_PLANET:
+				if body.Object_class == OUTER_PLANET:
 					body.displayRings(bodyVisible)
 
 				# for planets, make sure only moons belonging to the
@@ -565,7 +596,7 @@ class makeSolarSystem:
 
 
 			else: # belts / rings
-				if body.BodyType != ECLIPTIC_PLANE:					
+				if body.Object_class != ECLIPTIC_PLANE:					
 					if animationInProgress == True:
 						body.BodyGeometry.visible = False
 						for i in range(len(body.Labels)):
@@ -609,6 +640,7 @@ class makeSolarSystem:
 
 
 	def setAxisVisibility(self, setRefTo, setRelTo):
+
 		self.J2000eclipticRef.display(setRefTo)
 		if self.Sun.PCPF != None:
 			self.Sun.PCPF.updateReferential()
@@ -641,12 +673,12 @@ class makeEcliptic:
 		self.Color = color
 		self.Opacity = opacity
 		self.Lines = []
-		self.BodyType = ECLIPTIC_PLANE
+		self.Object_class = ECLIPTIC_PLANE
 		self.RefOrigin = frame(frame=system.J2000eclipticFrame)
 		self.Labels.append(label(pos=(250*AU*DIST_FACTOR, 250*AU*DIST_FACTOR, 0), text=self.Name, xoffset=20, yoffset=12, space=0, height=10, border=6, box=False, font='sans', visible = False))
 
 		# register this construct as belonging to the solar system
-		self.SolarSystem.registerSunOrbitingBody(self.Name, self)
+		self.SolarSystem.registerSSBOrbitingBody(self.Name, self)
 
 	# makeEcliptic::
 	def toggleSize(self, realisticSize):
@@ -693,11 +725,11 @@ class makeBelt:
 
 		self.PlanetName = planetname
 		self.Color = color
-		self.BodyType = ptype
+		self.Object_class = ptype
 		self.BodyGeometry = points(pos=(self.RadiusMinAU, 0, 0), size=size, color=(color[0]*0.5, color[1]*0.5, color[2]*0.5))
 
 		# register this construct as belonging to the solar system
-		self.SolarSystem.registerSunOrbitingBody(key, self)
+		self.SolarSystem.registerSSBOrbitingBody(key, self)
 
 		self.BodyGeometry.visible = False
 		if self.Thickness == 0:
@@ -722,7 +754,7 @@ class makeBelt:
 
 	# makeBelt::
 	def refresh(self):
-		if self.SolarSystem.ShowFeatures & self.BodyType != 0:
+		if self.SolarSystem.ShowFeatures & self.Object_class != 0:
 			if self.BodyGeometry.visible == False:
 				self.BodyGeometry.visible = True
 
@@ -767,7 +799,7 @@ class makeJtrojan(makeBelt):
 
 		# grab Jupiter's current True Anomaly and add the Long. of perihelion to capture
 		# the current angle in the fixed referential
-		print "DRAWING TROJANS for Planet: ", self.Planet.Name
+		#print "DRAWING TROJANS for Planet: ", self.Planet.Name
 		Nu = deg2rad(toRange(rad2deg(self.Planet.Nu) + self.Planet.Longitude_of_periapsis))
 
 		# get Lagrangian L4 and L5 based on body position
@@ -810,11 +842,12 @@ class makeBody:
 
 	RING_BASE_THICKNESS = 2000
 	STILL_ROTATION_INTERVAL = 50 #5 * 60 # (in seconds)
-	def __init__(self, system, key, color, ptype = INNER_PLANET, sizeCorrectionType = INNER_PLANET, realisticCorrectionSize = SMALLBODY_SZ_CORRECTION, centralBody = None):  # change default values during instantiation
+	def __init__(self, system, key, color, ptype = INNER_PLANET, sizeCorrectionType = INNER_PLANET, realisticCorrectionSize = SMALLBODY_SZ_CORRECTION, centralBody=None, barycenter=False):  # change default values during instantiation
 
 		self.Labels = []
 		self.compounded = False
 		self.RefOrigin = None
+		self.isBarycenter = barycenter
 		
 		self.RealisticCorrectionSize = realisticCorrectionSize
 		self.sizeCorrectionType = sizeCorrectionType
@@ -841,7 +874,7 @@ class makeBody:
 
 		self.Name					= system.objects_data[key]["id"]["name"]				# body name
 		if self.Name in PLANET_CONSTANTS:
-			self.MoonRegister = []
+			self.MemberRegister = []
 
 #		if "symbol" in system.objects_data[key]:
 #			self.Symbol				= system.objects_data[key]["symbol"]			# body symbol
@@ -858,7 +891,23 @@ class makeBody:
 		self.Mass 					= system.objects_data[key]["physical"]["mass_kg"]				# body mass
 		self.BodyRadius 			= system.objects_data[key]["physical"]["radius_m"]			# body radius
 		self.Color 					= color
+		#self.Object_class 				= ptype
 		self.BodyType 				= ptype
+		self.Object_class 			= system.objects_data[key]["id"]["object_class"]
+
+		# default values for parent and role
+		self.Object_parent			= None #system.objects_data[key]["id"]["orbiting"] 
+		self.Object_role			= None #system.objects_data[key]["id"]["object_class"] 
+		self.Orbiting 				= system.objects_data[key]["id"]["orbiting"]
+
+		# when a specific value is provided, overwrite default
+
+		if "object_parent" in system.objects_data[key]["id"]:
+			self.Object_parent  	= system.objects_data[key]["id"]["object_parent"]
+
+		if "object_role" in system.objects_data[key]["id"]:
+			self.Object_role  		= system.objects_data[key]["id"]["object_role"]
+
 		self.BodyGeometry 			= None
 		self.LocalEclipticRef 		= None
 
@@ -870,24 +919,29 @@ class makeBody:
 		self.a 						= getSemiMajor(self.Periapsis, self.e)
 		self.l  					= getSemiLatusRectum(self.a, self.e)
 
+		self.isMoon = self.isSynchronous = False
 
 		# For any non-moon objects, use the standard distance compression factor
 		self.distanceFactor 		= DIST_FACTOR
 
 		self.CentralBody = centralBody
 		if self.CentralBody != None:
-			self.isMoon = True
-			# register this moon with its central body
-			self.CentralBody.MoonRegister.append(self.Name)
+			# register this member (moon or barycenter member) with its central body
+			self.CentralBody.MemberRegister.append(self.Name)
+
+			if system.objects_data[key]["id"]["object_class"] == MOON:
+				self.isMoon = True
+
+				if system.objects_data[key]["id"]["moon_class"] == "SYNCHRONOUS":
+					self.isSynchronous = True
 
 			"""
-			For moons, we need to decrease the distance factor so 
-			their orbits aren't completely engulfed by their central 
-			body which has been inflated for better visualization.
-			This factor is planet specific, as each planet has different
-			visualization drawbacks requirements 
+			For moons, or barycenter members, we need to decrease the distance factor 
+			so that their orbits aren't completely engulfed by their central body which 
+			has been inflated for better visualization. This factor is planet specific, 
+			as each planet has different visualization drawbacks requirements 
 			"""
-			self.distanceFactor = self.getMoonDIstanceFactor() 
+			self.distanceFactor = self.getMemberDIstanceFactor() 
 		else:
 			self.isMoon = False
 
@@ -1061,7 +1115,8 @@ class makeBody:
 		# and the angle between the prime meridian and the descending node.
 
 		self.Pole_vec, self.W_angle, self.Omega_angle = self.compute_Ecliptic_NorthPole_data()
-		#print "BODY ORIENTATION FOR ", self.Name
+		if self.Name == "charon":
+			print "BODY ORIENTATION FOR ", self.Name, " : Pole_vec=", self.Pole_vec
 		#print self.Pole_vec, self.W_angle, self.Omega_angle
 		#print "----------------------------------"
 
@@ -1093,8 +1148,8 @@ class makeBody:
 		that projection vector perpendicularly to the ecliptic plane to reach the
 		desired orientation
 		"""
-		bodies_with_northPoleInfo = [	"sun", 	  "mercury", "venus",   "earth", "mars", "jupiter", 
-					"saturn", "uranus",  "neptune", "pluto"]
+		bodies_with_northPoleInfo = ["sun", 	"mercury", "venus", 	"earth", "mars", "jupiter", 
+									 "saturn",  "uranus",  "neptune", 	"pluto"]
 
 		if self.Name in bodies_with_northPoleInfo:
 
@@ -1160,8 +1215,82 @@ class makeBody:
 				#         planet_data_results[planet] = f"Error: {e}"
 				#	            planet_data_results[planet] = "Error: {e}"
 				print "Error: {e}"
+				return (0,0,1), 0, 0
+		else:
+			# here we deal with moons, TNOs, etc...
 
-		return [0,0,1], 0, 0
+			"""
+			As a general rule for simulation, using the planet’s axial tilt and pole 
+			direction for its moons is a very strong approximation—but only for 
+			"Regular" moons.
+
+			In celestial mechanics, moons are categorized into two groups, and this 
+			approximation works perfectly for one while failing spectacularly for the 
+			other.
+			
+			1. The "Regular" Moons (The Approximation Works)
+			Most major moons (like the Galilean moons of Jupiter, the major moons of 
+			Saturn, and Mars' Phobos/Deimos) were formed from the same spinning disk 
+			of gas and dust as their parent planet.
+
+			    - Tidal Locking: These moons are close to the planet and have been 
+			    tidally locked over billions of years.
+
+			    - The Result: Their rotation axes are forced to stay perpendicular 
+			    to their orbital planes. Since most regular moons orbit almost exactly 
+			    above the planet’s equator, their poles align with the planet's poles.
+
+			    - For moons like Io, Europa, Titan, or Phobos, copying the planet's 
+			    axial_tilt and pole_direction is nearly 100% accurate.
+
+			2. The "Irregular" Moons (The Approximation Fails)
+			These are typically asteroids that were captured by a planet's gravity later 
+			in history.
+
+			    - Chaotic Orbits: They often have highly inclined, elliptical, or even 
+			    retrograde (backward) orbits.
+
+			    - Distance: Because they are so far away, tidal forces are too weak to 
+			    "straighten them out."
+
+			    - The Result: Their axial tilts and pole directions can be completely 
+			    random and have nothing to do with the parent planet.
+
+			    Example: Phoebe (Saturn) or Triton (Neptune). Triton actually orbits in 
+			    the opposite direction of Neptune's rotation!
+			"""
+
+			body = None
+			Pole_vec = (0,0,1) # default north pole is ecliptic North
+
+			# we overwrite the NP default only for moons part of a barycenter 
+			# system or moons that are synchronous (tidal lock) and regular (have 
+			# negligeable orbital perturbation and behave in a keplerian way)
+
+			# check if we are dealing with a barycenter system
+
+			if self.Object_role == BARYCENTER_MEMBER:
+				
+				# use the parent to determine the NP orientation. Note: The parent
+				# (a planet) is likely to have its North Pole properly oriented 
+				# since it is in the "bodies_with_northPoleInfo" array.
+
+				body = 	self.SolarSystem.getBarycenterMemberFromName(self.Object_parent)
+				if body != None:
+					Pole_vec = body.Pole_vec
+				else:
+					print "Warning: could not determine parent for barycenter member ", self.Name
+			else:
+				if self.Object_class == MOON:
+					body = self.SolarSystem.getBodyFromName(self.Orbiting)
+					if body != None:
+						if self.isSynchronous and self.isRegularMoon:
+							Pole_vec = body.Pole_vec
+					else:
+						print "Warning: could not determine central body for ", self.Name
+
+
+			return Pole_vec, 0, 0
 
 
 	# makeBody
@@ -1181,7 +1310,11 @@ class makeBody:
 
 	# makeBody::
 	def setRotAxis(self): 
-		self.RotAxis = self.Pole_vec
+		if norm(self.Pole_vec) > 0:
+			self.RotAxis = self.Pole_vec
+		else:
+			self.Rotaxis = (0,0,1)
+
 	"""
 		if self.PCI is not None:
 			self.RotAxis = self.PCI.RotAxis
@@ -1224,6 +1357,12 @@ class makeBody:
 	# makeBody::
 	def make_PCPF_referential(self): 
 		
+		#if self.Object_class == MOON or self.Object_class == BARYCENTER_MEMBER:
+		#	self.PCPF 				= None 
+		#	self.RefOrigin 			= frame()
+		#	self.RefOrigin.visible	= True
+		#	return
+
 		# This is the default makebody::make_PCPF_referential method.
 		# PCPF (Planet Centered Planet Fixed) is the referential that rotates with the body:
 		# default PCPF referential: just a frame with no axis. Body texture is linked to
@@ -1279,13 +1418,16 @@ class makeBody:
 		# default makebody::makeShape
 		self.RefOrigin.pos= self.Position #(self.Position[0]+self.Foci[0],self.Position[1]+self.Foci[1],self.Position[2]+self.Foci[2])
 
+		if self.Name == SUN_NAME:
+			print "Sun position is ", self.Position
+
 #		self.BodyGeometry = sphere(frame=self.RefOrigin, pos=(0,0,0), np=64, radius=self.getBodyRadius(), make_trail=True if self.CentralBody != None else False, up=(0,0,1))
 		self.BodyGeometry = sphere(frame=self.RefOrigin, pos=(0,0,0), np=64, radius=self.getBodyRadius(), make_trail=False, retain=50, up=(0,0,1))
 
 	def getBodyRadiusSAVE(self):
 		return self.radiusToShow/self.SizeCorrection[self.sizeType]
 
-	def getMoonDIstanceFactor(self):
+	def getMemberDIstanceFactor(self):
 		"""
 		This will calculate the appropriate DISTANCE compression factor
 		to apply to the moon coordinates, in order to take into account
@@ -1326,8 +1468,11 @@ class makeBody:
 	def makeOrbit(self):
 
 		# attach a curve to the body to display its orbit
+		if self.Name == SUN_NAME:
+			print "MAKING SUN ORBIT..."
 
-		if self.BodyGeometry is not None:
+		if self.BodyGeometry is not None or self.Object_class == BARYCENTER:
+#		if self.BodyGeometry is not None or self.Object_class == BARYCENTER:
 			# determine what the reference frame is:
 
 			referenceFrame = self.SolarSystem.J2000eclipticFrame	# default is J2000 ecliptic ref
@@ -1337,6 +1482,8 @@ class makeBody:
 			# create an orbit either in the J2000 ecliptic referential centered 
 			# in the SS Barycenter or a planet centric ecliptic referential
 
+			if self.Name == SUN_NAME:
+				print "creating sun's ORBIT around SSB..."
 			self.Orbit = curve(frame=referenceFrame, Color=(self.Color[0]*0.8, self.Color[1]*0.8, self.Color[2]*0.8))
 
 			self.Orbit.visible = True
@@ -1350,7 +1497,7 @@ class makeBody:
 
 	# makeBody::
 	def initRotation(self):
-		print "default INIT ROT for ", self.Name
+		#print "default INIT ROT for ", self.Name
 		# this method is provided as a placeholder on this base class
 		# and should be overwritten by any child class requiring a precise
 		# orientation of its texture based on time of day (ie earth)
@@ -1389,7 +1536,9 @@ class makeBody:
 		if self.hasRenderedOrbit == False:
 			self.draw()
 
-		self.wasAnimated = true
+		#print "Animating ", self.Name
+
+		self.wasAnimated = True
 
 		# update position
 
@@ -1566,8 +1715,14 @@ class makeBody:
 
 
 	def getIncrement(self):
-		# provide 1 degree increment in radians
-		return pi/180
+
+		if self.Object_role in [MOON, BARYCENTER_MEMBER]:
+			# provide 1 degree increment in radians
+			return pi/180
+
+		# we provided 4 times more segments to represent planets or 
+		# barycenters orbits
+		return (pi/180) * 1/4 # it is one minute arc expressed in rd
 
 
 	# makebody::
@@ -1577,6 +1732,9 @@ class makeBody:
 		# Typically, moons do not show their orbit, hence this method
 		# is overridden by a dummy method in the moon classes
 
+		if self.Name == SUN_NAME:
+			print "Drawing Sun's orbit..."
+
 		self.Orbit.visible = False
 		rad_E = deg2rad(self.Eccentric_anomaly)
 		increment = self.getIncrement()
@@ -1584,6 +1742,8 @@ class makeBody:
 		# draw small segments between 2 
 		# angulars steps looping between 0 to 2PI
 
+		if self.Name == SUN_NAME:
+			print "drawing Sun's orbit around its SSB"
 		for E in np.arange(0, 2*pi+increment, increment):
 			#self.setPolarCoordinates(E+rad_E)
 			self.R, self.Nu = self.setPolarCoordinates(E+rad_E)
@@ -1718,7 +1878,7 @@ class makeBody:
 	# makeBody::
 	def show(self):
 
-		#print "SHOW "+ self.Name
+		print "SHOW "+ self.Name
 
 		if self.hasRenderedOrbit == False:
 			self.draw()
@@ -1739,10 +1899,10 @@ class makeBody:
 				self.Labels[i].visible = False
 		"""
 
-
+	# makeBody::
 	def hide(self):
 
-		#print "HIDE "+ self.Name
+		print "HIDE "+ self.Name
 
 		if self.hasRenderedOrbit == False:
 			self.draw()
@@ -1776,32 +1936,35 @@ class makeBody:
 	# makeBody::
 	def refresh(self):
 		"""
-		When a planet is the focus and MOON is set, we display the moon(s), but
+		When a planet is the focus and MOON is set, we display its moon(s), but
 		if the planet isn't the focus we do not display moon(s). We do not call
 		the refresh method for moons, as their "refresh" is performed from their
-		centralBody. If one the moon is the focus, then we display that moon only,
-		even though the MOON flag is off, and we also display the planet, even if 
-		its flag should make it hidden
+		centralBody. If one of the moon is the focus, then we display that moon 
+		only, even though the MOON flag is off, and we also display the planet, 
+		even if its flag should make it hidden
 		"""
-
-		bodyVisible = True if self.BodyType & self.SolarSystem.ShowFeatures != 0 else False
+		bodyVisible = True if self.Object_class & self.SolarSystem.ShowFeatures != 0 else False
 		if self.Name == EARTH_NAME:
 			bodyVisible = True
 
+		showAxis = False
 		if bodyVisible or self.Details == True:
 
 			# check is body is current focus
 			isFocus = True if self.SolarSystem.cameraViewTargetName == self.Name else False
 
-			# check for moons
+			# check for moons (or barycenter members)
 			if hasattr(self, "planetOrbitingBodies"):
 
-				# this body orbits the sun. 
+				# this body orbits the sun 
 				# Let's see if it has moons
 
 				displayMoons = True if self.SolarSystem.ShowFeatures & MOON != 0 else False
 
+
+				# loop through each moon / spacecraft / barycenter-member
 				for moon_name, moon_body in self.planetOrbitingBodies.items():
+
 					if isFocus:
 						if displayMoons:
 							#print "show moon ", moon_name, " for ", self.Name
@@ -1810,14 +1973,16 @@ class makeBody:
 							#print "hide moon ", moon_name, " for FOCUS = ", self.Name
 							moon_body.hide()
 					else:
-						#print "ZOB ----> ", self.Name
-						# check if moon is the focus
+
+						#print self.Name, " is not the focus!"
+						# check if this moon/member is the focus
 						if self.SolarSystem.cameraViewTargetName == moon_body.Name:
 							#print "show moon ", moon_name, " and planet ", self.Name
 							moon_body.show()
-							self.show()
+
 						else:
 							#print "hide moon ", moon_name, " for ", self.Name
+							#if moon_body.Main
 							moon_body.hide()
 			else:
 
@@ -1827,12 +1992,8 @@ class makeBody:
 			# if this is the cameraViewTargetBody, 
 			# check for local referential attribute
 
-			if 	isFocus and self.SolarSystem.ShowFeatures & LOCAL_REFERENTIAL:
-					setTo = True
-			else:
-					setTo = False
-
-			self.setAxisVisibility(setTo)
+			if isFocus and self.SolarSystem.ShowFeatures & LOCAL_REFERENTIAL:
+				showAxis = True
 
 		else:
 			# the body is not visible. let's see if a moon orbiting it
@@ -1849,17 +2010,18 @@ class makeBody:
 						moon_body.hide()
 
 			self.hide()
-			self.setAxisVisibility(False)
+
+		self.setAxisVisibility(showAxis)
 
 	def refresh_old(self):
 		
 		#print "refreshing "+self.Name
 
 		if 	self.SolarSystem.SlideShowInProgress and \
-			self.BodyType == self.SolarSystem.currentSource:
+			self.Object_class == self.SolarSystem.currentSource:
 			return
 
-		if 	self.BodyType & self.SolarSystem.ShowFeatures != 0 or \
+		if 	self.Object_class & self.SolarSystem.ShowFeatures != 0 or \
 			self.Name == EARTH_NAME or self.Details == True:
 
 			if self.CentralBody != None:
@@ -1957,151 +2119,27 @@ class makeBody:
 class emptyTrail:
 	visible = False
 
-# CLASS MAKESUN ---------------------------------------------------------------
-class makeSun(makeBody):
-	
-	def __init__(self, system, color, ptype, sizeCorrectionType, defaultSizeCorrection):
-		makeBody.__init__(self, system, SUN_NAME, color, ptype, sizeCorrectionType, defaultSizeCorrection, None) #system)
-		self.BodyGeometry.visible = True
-		self.Orbit = emptyTrail()
-		self.Labels[0].visible = False
-
-	def setReferentialProfile(self):
-		self.Ratio = [0,0,1]
-
-	# makeSun::
-	def make_PCI_referential(self): 
-
-		# This is the referential that doesn't rotate with the 
-		# planet and is fixed to the stars. In other words, it 
-		# always points to the same direction
-		
-		self.setReferentialProfile()
-
-		#print "Planet: build PCI ref for", self.Name
-		self.PCI = make3DaxisReferential({
-			'parent_frame': self.SolarSystem.J2000eclipticFrame,
-			'body': self,
-			'radius': 0,
-			'orientation': {
-				'pole_vec': self.Pole_vec,
-				'w_angle': self.W_angle,
-				'omega_angle': self.Omega_angle,
-			},
-			'show':	False,
-			'color': Color.white,
-			'ratio': self.Ratio,
-            'name':  self.Name+"PCI",
-			'legend': ["x", "y", "Eq.North"],
-		})  
-
-		self.RefOrigin 				= self.PCI.referential
-		self.RefOrigin.visible		= True
-
-		self.PCI.setAxisTilt()
-		self.PCI.display(False)
-
-	# makeSun::
-	def make_PCPF_referential(self):
-		self.PCPF = None
-		pass 		
-
-	# makeSun::
-	def makeShape(self):
-		self.RefOrigin.pos=self.Position #(self.Position[0]+self.Foci[0],self.Position[1]+self.Foci[1],self.Position[2]+self.Foci[2])
-		self.BodyGeometry = sphere(frame=self.RefOrigin, pos=(0,0,0), np=64, radius=self.getBodyRadius(), make_trail=False, color=Color.yellow)
-		#self.PCPF.referential.visible = True
-
-	# makeSun::
-	def setAspect(self, key):
-		print "TEXTURE=", self.texture_path + ".tga"
-
-		# encode the filnal path within a str (...) to remove unicode wrapping
-		self.Texture = materials.loadTGA(str(self.texture_path + ".tga"))
-		self.BodyGeometry.material = materials.emissive
-
-	def setAspectXXX(self, key):
-		self.Texture = materials.loadTGA(self.texture_path+".tga")
-
-		#print "loading"+"./img/"+self.Tga
-		self.Texture = materials.loadTGA("./img/"+self.Tga) if self.SolarSystem.objects_data[key]["material"] != 0 else materials.loadTGA("./img/asteroid")
-		#self.BodyGeometry.material = materials.texture(data=self.Texture, mapping="spherical", interpolate=False)
-		#print "setting sun as emissive"
-		self.BodyGeometry.material = materials.emissive
-
-	def updateStillPosition(self, timeinsec):
-		pass
-
-	# makeSun
-	def draw(self):
-		self.hasRenderedOrbit = True
-		
-	# makeSun::
-	def setPolarCoordinates(self, E_rad):
-		return 0.0, 0.0 
-		#self.R = 0
-		#self.Nu = 0
-
-	# makeSun
-	def getCurrentVelocity(self):
-		return 0
-
-	# makeSun
-	def setCartesianCoordinates(self, timeIncrement):
-		return (0,0,0)
-
-	# makeSun::
-	def getSemiMinor(self, semimajor, eccentricity):
-		pass
-
-	# makeSun::
-	def makeOrbit(self):
-		pass
-
-	# makeSun::
-	def setOrbitalElements(self, key, timeincrement = 0):
-		# makeSun::setOrbitalElements 
-		# (overrides makeBody::setOrbitalElements)
-
-		self.Eccentric_anomaly = self.a = self.e = self.Longitude_of_ascendingnode = self.Argument_of_periapsis = self.Inclination = 0
-
-	# makeSun::
-	def updateOrbitalElements(self, key, timeIncrement):
-		# makeSun::updateOrbitalElements 
-		# (overrides makeBody::updateOrbitalElements)
-
-		pass
-
-	# makeSun::
-	def toggleSize(self, realisticSize):
-		x = SCALE_NORMALIZED if realisticSize == True else SCALE_OVERSIZED
-		if x == self.sizeType:
-			return
-		else:
-			self.sizeType = x
-
-		self.BodyGeometry.radius = self.radiusToShow  / self.SizeCorrection[self.sizeType]
 
 
 # CLASS PLANET ----------------------------------------------------------------
 class makePlanet(makeBody):
 	
-	def __init__(self, system, key, Color, ptype, sizeCorrectionType, defaultSizeCorrection):
-		makeBody.__init__(self, system, key, Color, ptype, sizeCorrectionType, defaultSizeCorrection, None) 
+	def __init__(self, system, key, Color, ptype, sizeCorrectionType, defaultSizeCorrection, barycenter=False):
+		makeBody.__init__(self, system, key, Color, ptype, sizeCorrectionType, defaultSizeCorrection, centralBody=None, barycenter=barycenter) 
 		#self.BodyGeometry.visible = False
 		
-		# create a dictionary of orbiting bodies for this planet
+		# create a dictionary of orbiting bodies for this planet/or barycenter
 		self.planetOrbitingBodies = {}
 
 		# register this planet as a body orbiting the sun
-		self.SolarSystem.registerSunOrbitingBody(key, self)
+		self.SolarSystem.registerSSBOrbitingBody(key, self)
 
 		self.setRings()
 
 
 	def registerSatellite(self, key, body):
 
-		# A satellite can be either a spacecraft or a Moon
+		# A satellite can be either a spacecraft, a Moon or a barycenter member
 
 		self.planetOrbitingBodies[key] = body
 		self.SolarSystem.orbitWhat[key] = self.Name
@@ -2164,9 +2202,10 @@ class makePlanet(makeBody):
 	# makePlanet::
 	def setOrbitalElements(self, key, timeincrement = 0):
 		
-		# for the Major planets includig Pluto, we need to calculate 
-		# the drift in precession with time of orbital elements (a, e, i, Omega, omega, M).
-		# It follows an analytical T-based model (VSOP/Meeus style) -> drift a,e,i,L,Omega,W 
+		# for the Major planets includig Pluto, we need to calculate the precession
+		# drift with time of the orbital elements (a, e, i, Omega, omega, M).
+		# It follows an analytical T-based model: 
+		# (VSOP/Meeus style) -> drift a,e,i,L,Omega,W 
 
 		self.updateOrbitalElements(key, timeincrement)
 
@@ -2195,8 +2234,8 @@ class makePlanet(makeBody):
 	    Equinox.
 		
 		re-calculate the osculating elements and current value of approximate position 
-		of the planet. Valid for all planets including pluto. Based in the time increment. 
-		This method is only applicable to planets.
+		of the planet. Valid for all planets including pluto-barycenter. Based in the 
+		time increment. This method is only applicable to planets.
 		 
 		Principle: for every timeIncrement, all orbital elements are recalculated. 
 		This include aphelion, eccentricity and inclinaison, followed by 
@@ -2374,6 +2413,207 @@ class makePlanet(makeBody):
 		for i in range(0, self.nRings):
 			planet.Rings[i].visible = True
 
+
+# CLASS MAKESUN ---------------------------------------------------------------
+
+class makeSun2(makePlanet):
+	def __init__(self, system, color, ptype, sizeCorrectionType, defaultSizeCorrection):
+		makePlanet.__init__(self, system, SUN_NAME, color, ptype, sizeCorrectionType, defaultSizeCorrection, None)
+
+	def setReferentialProfile(self):
+		self.Ratio = [0,0,1]
+
+	# makeSun::
+	def make_PCI_referential(self): 
+
+		# This is the referential that doesn't rotate with the 
+		# planet and is fixed to the stars. In other words, it 
+		# always points to the same direction
+		
+		self.setReferentialProfile()
+
+		#print "Planet: build PCI ref for", self.Name
+		self.PCI = make3DaxisReferential({
+			'parent_frame': self.SolarSystem.J2000eclipticFrame,
+			'body': self,
+			'radius': 0,
+			'orientation': {
+				'pole_vec': self.Pole_vec,
+				'w_angle': self.W_angle,
+				'omega_angle': self.Omega_angle,
+			},
+			'show':	False,
+			'color': Color.white,
+			'ratio': self.Ratio,
+            'name':  self.Name+"PCI",
+			'legend': ["x", "y", "Eq.North"],
+		})  
+
+		self.RefOrigin 				= self.PCI.referential
+		self.RefOrigin.visible		= True
+
+		self.PCI.setAxisTilt()
+		self.PCI.display(False)
+
+	# makeSun::
+	def make_PCPF_referential(self):
+		self.PCPF = None
+		pass 		
+
+	# makeSun::
+	def setAspect(self, key):
+		print "SUN TEXTURE=", self.texture_path + ".tga"
+
+		# encode the filnal path within a str (...) to remove unicode wrapping
+		self.Texture = materials.loadTGA(str(self.texture_path + ".tga"))
+		self.BodyGeometry.material = materials.emissive
+
+	# makeSun
+	def getCurrentVelocity(self):
+		return 0
+
+	# makeSun::
+	def toggleSize(self, realisticSize):
+		x = SCALE_NORMALIZED if realisticSize == True else SCALE_OVERSIZED
+		if x == self.sizeType:
+			return
+		else:
+			self.sizeType = x
+
+		self.BodyGeometry.radius = self.radiusToShow  / self.SizeCorrection[self.sizeType]
+
+
+
+class makeSun(makeBody):
+	
+	def __init__(self, system, color, ptype, sizeCorrectionType, defaultSizeCorrection):
+		makeBody.__init__(self, system, SUN_NAME, color, ptype, sizeCorrectionType, defaultSizeCorrection, None) #system)
+		self.BodyGeometry.visible = True
+		#self.Orbit = emptyTrail()
+		self.Labels[0].visible = False
+
+		# register this construct as belonging to the solar system
+		self.SolarSystem.registerSSBOrbitingBody(SUN_NAME, self)
+
+	def setReferentialProfile(self):
+		self.Ratio = [0,0,1]
+
+	# makeSun::
+	def make_PCI_referential(self): 
+
+		# This is the referential that doesn't rotate with the 
+		# planet and is fixed to the stars. In other words, it 
+		# always points to the same direction
+		
+		self.setReferentialProfile()
+
+		#print "Planet: build PCI ref for", self.Name
+		self.PCI = make3DaxisReferential({
+			'parent_frame': self.SolarSystem.J2000eclipticFrame,
+			'body': self,
+			'radius': 0,
+			'orientation': {
+				'pole_vec': self.Pole_vec,
+				'w_angle': self.W_angle,
+				'omega_angle': self.Omega_angle,
+			},
+			'show':	False,
+			'color': Color.white,
+			'ratio': self.Ratio,
+            'name':  self.Name+"PCI",
+			'legend': ["x", "y", "Eq.North"],
+		})  
+
+		self.RefOrigin 				= self.PCI.referential
+		self.RefOrigin.visible		= True
+
+		self.PCI.setAxisTilt()
+		self.PCI.display(False)
+
+	# makeSun::
+	def make_PCPF_referential(self):
+		self.PCPF = None
+		pass 		
+
+	# makeSun::
+	def makeShape2(self):
+		print "Sun Position is ", self.RefOrigin.pos
+
+		self.RefOrigin.pos=self.Position #(self.Position[0]+self.Foci[0],self.Position[1]+self.Foci[1],self.Position[2]+self.Foci[2])
+		self.BodyGeometry = sphere(frame=self.RefOrigin, pos=(0,0,0), np=64, radius=self.getBodyRadius(), make_trail=False, color=Color.yellow)
+		#self.PCPF.referential.visible = True
+
+
+
+	# makeSun::
+	def setAspect(self, key):
+		print "SUN TEXTURE=", self.texture_path + ".tga"
+
+		# encode the filnal path within a str (...) to remove unicode wrapping
+		self.Texture = materials.loadTGA(str(self.texture_path + ".tga"))
+		self.BodyGeometry.material = materials.emissive
+
+	def setAspectXXX(self, key):
+		self.Texture = materials.loadTGA(self.texture_path+".tga")
+
+		#print "loading"+"./img/"+self.Tga
+		self.Texture = materials.loadTGA("./img/"+self.Tga) if self.SolarSystem.objects_data[key]["material"] != 0 else materials.loadTGA("./img/asteroid")
+		#self.BodyGeometry.material = materials.texture(data=self.Texture, mapping="spherical", interpolate=False)
+		#print "setting sun as emissive"
+		self.BodyGeometry.material = materials.emissive
+
+	def updateStillPosition2(self, timeinsec):
+		pass
+
+	# makeSun
+	def draw2(self):
+		self.hasRenderedOrbit = True
+		
+	# makeSun::
+	def setPolarCoordinates2(self, E_rad):
+		return 0.0, 0.0 
+		#self.R = 0
+		#self.Nu = 0
+
+	# makeSun
+	def getCurrentVelocity(self):
+		return 0
+
+	# makeSun
+	def setCartesianCoordinates2(self, timeIncrement):
+		return (0,0,0)
+
+	# makeSun::
+	def getSemiMinor2(self, semimajor, eccentricity):
+		pass
+
+	# makeSun::
+	def makeOrbit2(self):
+		pass
+
+	# makeSun::
+	def setOrbitalElements2(self, key, timeincrement = 0):
+		# makeSun::setOrbitalElements 
+		# (overrides makeBody::setOrbitalElements)
+
+		self.Eccentric_anomaly = self.a = self.e = self.Longitude_of_ascendingnode = self.Argument_of_periapsis = self.Inclination = 0
+
+	# makeSun::
+	def updateOrbitalElements2(self, key, timeIncrement):
+		# makeSun::updateOrbitalElements 
+		# (overrides makeBody::updateOrbitalElements)
+
+		pass
+
+	# makeSun::
+	def toggleSize(self, realisticSize):
+		x = SCALE_NORMALIZED if realisticSize == True else SCALE_OVERSIZED
+		if x == self.sizeType:
+			return
+		else:
+			self.sizeType = x
+
+		self.BodyGeometry.radius = self.radiusToShow  / self.SizeCorrection[self.sizeType]
 
 
 ADJUSTMENT_COEFFICIENT = 0.5
@@ -2883,7 +3123,7 @@ class hyperbolic(makeBody):
 		else:
 			self.sizeType = x
 
-		if self.SolarSystem.isFeatured(self.CentralBody.BodyType):
+		if self.SolarSystem.isFeatured(self.CentralBody.Object_class):
 			if self.sizeType == SCALE_OVERSIZED:
 				self.Labels[0].visible = False
 			else:
@@ -2907,7 +3147,7 @@ class hyperbolic(makeBody):
 
 	# hyperbolic::
 	def draw(self):
-		print "drawing "+self.Name
+		#print "drawing "+self.Name
 		self.Orbit.visible = False
 		rad_E = deg2rad(self.Eccentric_anomaly)
 		increment = self.getIncrement()
@@ -2933,9 +3173,9 @@ class hyperbolic(makeBody):
 
 # CLASS GENERICSPACECRAFT -----------------------------------------------------
 class makeGenericSpacecraft(makeBody):
-	def __init__(self, system, key, color):
+	def __init__(self, system, key, color, centralbody):
 		#print "makeGenericSpacecraft: CALLED FOR KEY=", key
-		makeBody.__init__(self, system, key, color, ptype=SPACECRAFT, sizeCorrectionType=SPACECRAFT, realisticCorrectionSize=SMALLBODY_SZ_CORRECTION, centralBody=None) 
+		makeBody.__init__(self, system, key, color, ptype=SPACECRAFT, sizeCorrectionType=SPACECRAFT, realisticCorrectionSize=SMALLBODY_SZ_CORRECTION, centralBody=centralbody) 
 
 		self.BARYCENTER = 0.0
 		self.AFT_TANK_RADIUS = 0.0
@@ -2951,6 +3191,17 @@ class makeGenericSpacecraft(makeBody):
 		print "*** FINISHED init makeGenericSpacecraft ***"
 		print ""
 		"""
+
+		# depending on whether or not the spacecraft orbit a 
+		# planet or the sun, register it appropriately
+		if system.objects_data[key]["id"]["orbiting"] == "sun":
+			self.SolarSystem.registerSSBOrbitingBody(key, self)
+		else:
+			pass
+
+			# I need to add the logic to register the spacecraft as a satellite of a planet
+			#self.
+
 	def setAxisVisibility(self, setTo):
 		pass
 
@@ -2983,7 +3234,7 @@ class makeGenericSpacecraft(makeBody):
 		self.Position = self.setCartesianCoordinates(timeIncrement)
 
 		# update foci position
-		#self.Foci = self.CentralBody.Position
+		#self.Foci = self.centralbody.Position
 
 		#print "ANIMATING-1 ", self.Name, "Origin=",self.RefOrigin.pos, "Foci =",self.Foci
 
@@ -3171,10 +3422,12 @@ class makeGenericSpacecraft(makeBody):
 
 # CLASS STARMAN ---------------------------------------------------------------
 class starman(makeBody):
-	def __init__(self, system, key, color):
+	def __init__(self, system, key, color, centralbody):
 		print "starman: CALLED FOR KEY=", key
 		makeBody.__init__(self, system, key, color, ptype=SPACECRAFT, sizeCorrectionType=SPACECRAFT, realisticCorrectionSize=SMALLBODY_SZ_CORRECTION, centralBody=None)
 
+		# register this craft as a body orbiting the sun
+		self.SolarSystem.registerSSBOrbitingBody(key, self)
 
 		print "*** FINISHED init starman ***"
 		print ""
@@ -3301,7 +3554,7 @@ class starman(makeBody):
 
 # CLASS SPACECRAFT ------------------------------------------------------------
 class makeSpacecraft(makeGenericSpacecraft, starman):
-	def __init__(self, system, key, color):
+	def __init__(self, system, key, color, centralbody):
 		if "profile" in system.objects_data[key]:
 			#print system.objects_data[key]["profile"]
 			profile = json.loads(system.objects_data[key]["profile"])
@@ -3314,7 +3567,7 @@ class makeSpacecraft(makeGenericSpacecraft, starman):
 				self.profile = "makeGenericSpacecraft" #"genericSpacecraft"
 
 			# call appropriate class based on profile name
-			globals()[self.profile].__init__(self, system, key, color)
+			globals()[self.profile].__init__(self, system, key, color, centralbody)
 		else:
 			raise ValueError("Could not find spacecraft profile for {key}")
 	
@@ -3326,8 +3579,12 @@ class makeSpacecraft(makeGenericSpacecraft, starman):
 
 # CLASS COMET -----------------------------------------------------------------
 class makeComet(makeBody):
-	def __init__(self, system, key, color):
+	def __init__(self, system, key, color, centralbody):
 		makeBody.__init__(self, system, key, color, ptype=COMET, sizeCorrectionType=COMET, realisticCorrectionSize=SMALLBODY_SZ_CORRECTION, centralBody=None) #system.Sun)
+
+		# register this comet as a body orbiting the sun
+		self.SolarSystem.registerSSBOrbitingBody(key, self)
+
 
 	# makeComet::
 	def makeShape(self):
@@ -3382,11 +3639,11 @@ class makeComet(makeBody):
 
 # CLASS ASTEROID --------------------------------------------------------------
 class makeAsteroid(makeBody):
-	def __init__(self, system, key, color):
+	def __init__(self, system, key, color, centralbody):
 		makeBody.__init__(self, system, key, color, ptype=BIG_ASTEROID, sizeCorrectionType=BIG_ASTEROID, realisticCorrectionSize=ASTEROID_SZ_CORRECTION, centralBody=None)
 
 		# registerthis asteroid as a body orbiting the sun
-		self.SolarSystem.registerSunOrbitingBody(key, self)
+		self.SolarSystem.registerSSBOrbitingBody(key, self)
 
 	def setAxisVisibility(self, setTo):
 		pass
@@ -3412,11 +3669,11 @@ class makeAsteroid(makeBody):
 
 # CLASS PHA -------------------------------------------------------------------
 class makePha(makeBody):
-	def __init__(self, system, key, color):
+	def __init__(self, system, key, color, centralbody):
 		makeBody.__init__(self, system, key, color, ptype=PHA, sizeCorrectionType=PHA, realisticCorrectionSize=SMALLBODY_SZ_CORRECTION, centralBody=None) #system.Sun)
 
 		# register this PHA as a body orbiting the sun
-		self.SolarSystem.registerSunOrbitingBody(key, self)
+		self.SolarSystem.registerSSBOrbitingBody(key, self)
 
 	def setAxisVisibility(self, setTo):
 		pass
@@ -3467,11 +3724,11 @@ class makePha(makeBody):
 
 # CLASS SMALLASTEROID ---------------------------------------------------------
 class makeSmallAsteroid(makeBody):
-	def __init__(self, system, key, color):
+	def __init__(self, system, key, color, centralbody):
 		makeBody.__init__(self, system, key, color, ptype=SMALL_ASTEROID, sizeCorrectionType=SMALL_ASTEROID, realisticCorrectionSize=SMALLBODY_SZ_CORRECTION, centralBody=None) #system.Sun)
 
 		# register this small asteroid as a body orbiting the sun
-		self.SolarSystem.registerSunOrbitingBody(key, self)
+		self.SolarSystem.registerSSBOrbitingBody(key, self)
 
 	def setAxisVisibility(self, setTo):
 		pass
@@ -3523,11 +3780,11 @@ class makeSmallAsteroid(makeBody):
 
 # CLASS DWARF_PLANET -----------------------------------------------------------
 class makeDwarfPlanet(makeBody):
-	def __init__(self, system, key, color):
+	def __init__(self, system, key, color, centralbody):
 		makeBody.__init__(self, system, key, color, ptype=DWARF_PLANET, sizeCorrectionType=DWARF_PLANET, realisticCorrectionSize=DWARF_PLANET_SZ_CORRECTION, centralBody=None)
 
 		# register this dwarf planet as a body orbiting the sun
-		self.SolarSystem.registerSunOrbitingBody(key, self)
+		self.SolarSystem.registerSSBOrbitingBody(key, self)
 
 	def setAxisVisibility(self, setTo):
 		pass
@@ -3549,11 +3806,11 @@ class makeDwarfPlanet(makeBody):
 
 # CLASS TRANSNEPTUNIAN --------------------------------------------------------
 class makeTNO(makeBody):
-	def __init__(self, system, key, color):
+	def __init__(self, system, key, color, centralbody):
 		makeBody.__init__(self, system, key, color, ptype=TNO, sizeCorrectionType=TNO, realisticCorrectionSize=SMALLBODY_SZ_CORRECTION, centralBody=None) #system.Sun)
 
 		# register this TNO as a body orbiting the sun
-		self.SolarSystem.registerSunOrbitingBody(key, self)
+		self.SolarSystem.registerSSBOrbitingBody(key, self)
 
 	def setAxisVisibility(self, setTo):
 		pass
@@ -3581,14 +3838,16 @@ class makeTNO(makeBody):
 
 	# makeTNO::
 	def initRotation(self):
-		self.RotAngle = pi/512
-		self.RotAxis = (0,1,1)
+		# define a random rotation speed
+		self.RotAngle = pi/256 #pi/512
+		self.RotAxis = (1,1,1)
 
 	# makeTNO::
 	def animateBodyRotation(self):
 #		self.RefOrigin.pos = vector(self.Position[0],self.Position[1],self.Position[2])
 #		self.BodyGeometry.rotate(angle=self.RotAngle, axis=self.RotAxis, origin=(0,0,0)) #-sin(alpha), cos(alpha)))
 		self.RefOrigin.rotate(angle=self.RotAngle, axis=self.RotAxis) #, origin=(0,0,0)) #-sin(alpha), cos(alpha)))
+
 
 	# makeTNO::
 	def make_PCPF_referential(self):
@@ -3654,6 +3913,11 @@ def showBelt(beltname):
 
 def getColor():
 	return { 0: Color.white, 1: Color.red, 2: Color.orange, 3: Color.yellow, 4: Color.cyan, 5: Color.magenta, 6: Color.green}[randint(0,6)]
+
+def getTrace():
+	import traceback
+	traceback.print_stack()
+	exit()
 
 def solveKepler(M, e, depth, precision = 1.e-8):
 
@@ -3763,6 +4027,35 @@ def loadBodies(SolarSystem, type, filename, maxentries = 0):
 		#break
 	fo.close()
 
+def loadBody(SolarSystem, name):
+
+	if name not in SolarSystem.objects_data:
+		print "Object '"+name+"' not found in catalog."
+		return
+
+	# build body using proper body type
+	from moons import makePlanetMoon
+
+	type = SolarSystem.objects_data[name]["id"]["object_class"]
+	centralBodyName = SolarSystem.objects_data[name]["id"]["orbiting"]
+	print "centralBodyName is ", centralBodyName
+	centralBody = None
+	if centralBodyName != "sun-barycenter":
+		centralBody = SolarSystem.sunOrbiting[centralBodyName]
+
+	body = {SPACECRAFT: 	makeSpacecraft,
+			COMET: 			makeComet,
+			BIG_ASTEROID: 	makeAsteroid,
+			ASTEROID: 		makeAsteroid,
+			PHA:			makePha,
+			DWARF_PLANET:	makeDwarfPlanet,
+			TNO:			makeTNO,
+			MOON:			makePlanetMoon,
+			SMALL_ASTEROID:	makeSmallAsteroid,
+			}[type](SolarSystem, name, getColor(), centralBody)
+
+	return body
+	#SolarSystem.addTo(body)
 
 # ----------------
 # TIME MANAGEMENT

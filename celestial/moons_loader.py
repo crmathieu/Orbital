@@ -28,7 +28,7 @@ import json
 import math
 import os
 
-from horizons_api import get_state_vectors, elements_from_state, get_equatorial_elements
+from horizons_api import get_state_vectors, get_osculating_elements, elements_from_state, get_equatorial_elements, format_horizons_command
 from time_helper import TimeH
 from constants import *
 
@@ -192,7 +192,7 @@ def build_moon_entry_equatorial(moon_name, cfg):
             ("iau_name", Id["iau_name"]),
             ("jpl_designation", Id["jpl_designation"]),
             ("horizons_id",  Id["horizons_id"]),
-            ("horizons_rec_id",  Id["horizons_rec_id"]),
+            ("spk_id",  Id["spk_id"]),
             ("object_class", Id["object_class"]),
             ("moon_class", Id["moon_class"]),
             ("orbiting", Id["orbiting"])
@@ -273,26 +273,6 @@ def build_moon_entry_Ecliptic(moon_name, cfg):
         epochJD = J2000_EPOCH
 
     # --------------------------------------------------------
-    # 2. Fetch state vectors (SI units)
-    # --------------------------------------------------------
-    r_planet, v_planet, status = get_state_vectors(command, center, epoch_str)
-    if r_planet is None:
-        print("ERROR: No state vectors for {}, skipping".format(moon_name))
-        return None
-
-    # ----------------------------------------------------------------
-    # 2b. Convert from planet-centric ecliptic to sun-centric ecliptic
-    # ----------------------------------------------------------------
-    #inc_deg = PLANET_CONSTANTS[planet]["orbital_plane"]["inclination"]
-    #Omega_deg = PLANET_CONSTANTS[planet]["orbital_plane"]["inclination"]
-    #r_sun, v_sun = rotate_body_ecl_to_sun_ecl(r_planet, v_planet, inc_deg, Omega_deg)
-
-
-    r_sun = r_planet
-    v_sun = v_planet
-
-
-    # --------------------------------------------------------
     # 3. Physical properties from fallback
     # --------------------------------------------------------
     #fb = FALLBACK_PROPERTIES.get(moon_name, {})
@@ -321,11 +301,45 @@ def build_moon_entry_Ecliptic(moon_name, cfg):
     #mu = (GM_planet_km3_s2 * 1e9) + GM_moon  # m^3/s^2
     mu = GM_planet_m3_s2 + GM_moon  # m^3/s^2
 
+    # format the search string according to the object class
+    formatted_id = format_horizons_command(Id)
 
-    # --------------------------------------------------------
-    # 5. Orbital elements (SI-native)
-    # --------------------------------------------------------
-    elements = elements_from_state(r_sun, v_sun, mu, epochJD)
+    if center == PLUTO_BARYCENTER:
+        # ------------------------------------------------------------
+        # 1. Fetch elements directly from Horizons
+        # ------------------------------------------------------------
+        elements = get_osculating_elements(
+            object_id=formatted_id, # horizons_id,
+            center=center,
+            epoch_str=epoch_str
+        )
+        r_sun, v_sun = (0, 0, 0), (0, 0, 0)
+    else:
+
+        # --------------------------------------------------------
+        # 2. Fetch state vectors (SI units)
+        # --------------------------------------------------------
+        r_planet, v_planet, status = get_state_vectors(command, center, epoch_str)
+        if r_planet is None:
+            print("ERROR: No state vectors for {}, skipping".format(moon_name))
+            return None
+
+        # ----------------------------------------------------------------
+        # 2b. Convert from planet-centric ecliptic to sun-centric ecliptic
+        # ----------------------------------------------------------------
+        #inc_deg = PLANET_CONSTANTS[planet]["orbital_plane"]["inclination"]
+        #Omega_deg = PLANET_CONSTANTS[planet]["orbital_plane"]["inclination"]
+        #r_sun, v_sun = rotate_body_ecl_to_sun_ecl(r_planet, v_planet, inc_deg, Omega_deg)
+
+
+        r_sun = r_planet
+        v_sun = v_planet
+
+
+        # --------------------------------------------------------
+        # 5. Orbital elements (SI-native)
+        # --------------------------------------------------------
+        elements = elements_from_state(r_sun, v_sun, mu, epochJD)
 
     # Extract needed values for J2 and revolution period
     a_m = elements["semi_major_m"]
@@ -366,6 +380,225 @@ def build_moon_entry_Ecliptic(moon_name, cfg):
 
     # output the entry
     
+    obj_role = Id["object_class"]
+    if "object_role" in Id:
+        obj_role = Id["object_role"]
+        obj_parent = Id["object_parent"]
+        ID = collections.OrderedDict([
+            ("name", moon_name),
+            ("iau_name", Id["iau_name"]),
+            ("jpl_designation", Id["jpl_designation"]),
+            ("horizons_id",  Id["horizons_id"]),
+            ("spk_id",  Id["spk_id"]),
+            ("object_class", Id["object_class"]),
+            ("object_role", obj_role),
+            ("object_parent", obj_parent),
+            ("moon_class", Id["moon_class"]),
+            ("orbiting", Id["orbiting"])
+        ])
+    else:
+        ID = collections.OrderedDict([
+            ("name", moon_name),
+            ("iau_name", Id["iau_name"]),
+            ("jpl_designation", Id["jpl_designation"]),
+            ("horizons_id",  Id["horizons_id"]),
+            ("spk_id",  Id["spk_id"]),
+            ("object_class", Id["object_class"]),
+            ("moon_class", Id["moon_class"]),
+            ("orbiting", Id["orbiting"])
+        ])
+
+    entry = collections.OrderedDict([
+
+        # identification
+        ("id", ID),
+        
+        # Orbital Elements block
+        ("elements", elements), # If 'elements' is a dict, it will be unordered inside
+        
+        # Rotation block
+        ("rotation", collections.OrderedDict([
+            ("axial_tilt", Physical.get("axial_tilt_deg")),
+            # the rotation is sidereal but expressed in # of solar days
+            ("rotation_period_solar_d", Physical.get("rotation_period_in_solar_d")),
+            ("pole_RA_deg", Rotation.get("pole_ra")),                     # in degrees
+            ("pole_DEC_deg", Rotation.get("pole_dec")),
+            ("prime_meridian_deg", Rotation.get("prime_meridian"))
+
+        ])),
+        
+        # Physical block
+        ("physical", collections.OrderedDict([
+            ("texture", texture),
+            ("mass_kg", Physical.get("mass_kg")),
+            ("radius_m", Physical.get("radius_m")),
+            ("GM", GM_moon),
+            ("Omega_dot_deg_day", Omega_dot_rad_day * 180.0 / math.pi),
+            ("omega_dot_deg_day", omega_dot_rad_day * 180.0 / math.pi)
+
+        ])),
+
+       # State vector block
+        ("state_vector", collections.OrderedDict([
+            ("r", r_sun),
+            ("v", v_sun),
+            ("epochJD", elements["epochJD"])
+        ]))
+
+    ])
+
+    return entry
+
+# ------------------------------------------------------------
+# Build a single moon entry
+# ------------------------------------------------------------
+def build_moon_entry_EclipticSAVE(moon_name, cfg):
+    import collections
+
+    """
+    Build a catalog entry for a single moon using:
+      - SI-native Horizons state vectors
+      - SI-native orbital elements
+      - fallback physical properties
+      - J2 precession
+      - synchronous rotation logic
+    """
+    Id = cfg["Id"]
+    Physical = cfg["physical"]
+    Rotation = cfg["rotation"]
+
+    planet = Id["orbiting"]
+    command = Id["horizons_id"]
+    center = Id["center"]
+
+
+    # --------------------------------------------------------
+    # 1. Determine epoch
+    # --------------------------------------------------------
+    if moon_name == "moon":
+        # Luna uses NOW (TT/TDB via TimeH)
+        t = TimeH()
+        epoch_str = t.to_horizons_timestamp()
+        epochJD = t.jd_tdb
+
+    else:
+        # All other moons use J2000
+        epoch_str = "2000-01-01"
+        epochJD = J2000_EPOCH
+
+    # format the search string according to the object class
+    formatted_id = format_horizons_command(Id)
+
+    if center == PLUTO_BARYCENTER:
+        # ------------------------------------------------------------
+        # 1. Fetch elements directly from Horizons
+        # ------------------------------------------------------------
+        elements = get_osculating_elements(
+            object_id=formatted_id, # horizons_id,
+            center=center,
+            epoch_str=epoch_str
+        )
+        r_sun, v_sun = (0, 0, 0), (0, 0, 0)
+    else:
+
+        # --------------------------------------------------------
+        # 2. Fetch state vectors (SI units)
+        # --------------------------------------------------------
+        r_planet, v_planet, status = get_state_vectors(command, center, epoch_str)
+        if r_planet is None:
+            print("ERROR: No state vectors for {}, skipping".format(moon_name))
+            return None
+
+        # ----------------------------------------------------------------
+        # 2b. Convert from planet-centric ecliptic to sun-centric ecliptic
+        # ----------------------------------------------------------------
+        #inc_deg = PLANET_CONSTANTS[planet]["orbital_plane"]["inclination"]
+        #Omega_deg = PLANET_CONSTANTS[planet]["orbital_plane"]["inclination"]
+        #r_sun, v_sun = rotate_body_ecl_to_sun_ecl(r_planet, v_planet, inc_deg, Omega_deg)
+
+
+        r_sun = r_planet
+        v_sun = v_planet
+
+
+        # --------------------------------------------------------
+        # 3. Physical properties from fallback
+        # --------------------------------------------------------
+        #fb = FALLBACK_PROPERTIES.get(moon_name, {})
+        #fb = MOONS[moon_name]["physical"]
+        fb = Physical
+
+        radius_m = Physical.get("radius_m")
+        #mass_kg = fb.get("mass_kg")
+        mass_kg = Physical["mass_kg"]
+
+        GM_moon_m3_s2 = Physical.get("GM", 0.0)
+        rotation_days = Physical.get("rotation_period_in_solar_d")
+        axial_tilt_deg = Physical.get("axial_tilt_deg", 0.0)
+
+        # Convert radius to meters
+        #radius_m = radius_km * 1000.0 if radius_km is not None else None
+
+        # Convert GM to SI (m^3/s^2)
+        #GM_moon = GM_moon_km3_s2 * 1e9 if GM_moon_km3_s2 is not None else 0.0
+        GM_moon = GM_moon_m3_s2 if GM_moon_m3_s2 is not None else 0.0
+
+        # --------------------------------------------------------
+        # 4. Gravitational parameter μ = GM_planet + GM_moon (SI)
+        # --------------------------------------------------------
+        GM_planet_m3_s2 = PLANET_CONSTANTS[planet]["GM"]
+        #mu = (GM_planet_km3_s2 * 1e9) + GM_moon  # m^3/s^2
+        mu = GM_planet_m3_s2 + GM_moon  # m^3/s^2
+
+
+        # --------------------------------------------------------
+        # 5. Orbital elements (SI-native)
+        # --------------------------------------------------------
+        elements = elements_from_state(r_sun, v_sun, mu, epochJD)
+
+        # Extract needed values for J2 and revolution period
+        a_m = elements["semi_major_m"]
+        #if a_m < 0:
+        #    print("Proteus center:", center)
+
+        e = elements["eccentricity_EC"]
+        inc_rad = math.radians(elements["orbital_inclination_IN"])
+
+        # --------------------------------------------------------
+        # 6. J2 precession (rad/day → deg/day)
+        # --------------------------------------------------------
+        #a_km = a_m / 1000.0
+        #print "a_m=", a_m, ", e=", e,", planet=", planet
+        Omega_dot_rad_day, omega_dot_rad_day = j2_precession_rates(
+            a_m,
+            e,
+            inc_rad,
+            planet
+        )
+
+        # --------------------------------------------------------
+        # 7. Revolution period (days)
+        # --------------------------------------------------------
+        n_rad_day = elements["mean_motion_rad_day"]
+        revolution_days = (2.0 * math.pi) / n_rad_day
+
+        # --------------------------------------------------------
+        # 8. Synchronous rotation logic
+        # --------------------------------------------------------
+        if Id.get("moon_class") == "SYNCHRONOUS":
+            rotation_days = revolution_days
+
+    if "texture" in Physical:
+        texture = Physical["texture"]
+    else: 
+        texture = DEFAULT_TEXTURE
+
+    # output the entry
+    
+    obj_role = Id["object_class"]
+    if "object_role" in Id:
+        obj_role = Id["object_role"]
+
     entry = collections.OrderedDict([
 
         # identification
@@ -374,8 +607,9 @@ def build_moon_entry_Ecliptic(moon_name, cfg):
             ("iau_name", Id["iau_name"]),
             ("jpl_designation", Id["jpl_designation"]),
             ("horizons_id",  Id["horizons_id"]),
-            ("horizons_rec_id",  Id["horizons_rec_id"]),
+            ("spk_id",  Id["spk_id"]),
             ("object_class", Id["object_class"]),
+            ("object_role", obj_role),
             ("moon_class", Id["moon_class"]),
             ("orbiting", Id["orbiting"])
         ])),
@@ -416,7 +650,6 @@ def build_moon_entry_Ecliptic(moon_name, cfg):
     ])
 
     return entry
-
 
 # --------------------------------------------------------------
 # Helper that takes care of serializing json before file dumping

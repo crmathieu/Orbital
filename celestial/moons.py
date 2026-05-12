@@ -6,14 +6,125 @@ import planetsdata as pd
 from controls import *
 
 """
+This file contains classes dealing with regular/irregular moons and barycenter members
+"""
+
+class makeMember(makeBody):
+	"""
+	A member is either a Moon, or a component of a barycenter system. ie, Charon and
+	Pluto are both members of the pluto-barycenter system
+	"""
+	def __init__(self, system, key, color, ptype, sizeCorrectionType, realisticCorrectionSize, centralbody):
+
+		if ptype == MOON:
+			self.isRegularMoon = True
+
+		makeBody.__init__(self, system, key, color, ptype=ptype, sizeCorrectionType=sizeCorrectionType, realisticCorrectionSize=realisticCorrectionSize, centralBody=centralbody)
+
+		# register moon/Bmember with planet's orbiting bodies set
+		self.CentralBody.registerSatellite(key, self)
+
+		# create a dictionary of orbiting bodies for this moon
+		# (this is to be used for moon orbiting spacecrafts)
+		self.moonOrbitingBodies = {}
+
+
+		"""
+		set up the Nodal regression rate (rad/day) for the longitude of the 
+		ascending node and the Periapsis precession rate (rad/day) for the 
+		argument of periapsis. This is valid only for "good behaving moon", 
+		whose orbit and position can be deternmined following the keplerian 
+		model. It is the default behavior as many moons do follow a that model.
+		"""
+		self.Omega0 = self.Longitude_of_ascendingnode
+		self.omega0 = self.Argument_of_periapsis
+
+	def setPCPF(self):
+		pass 
+		
+	def registerSpacecraft(self, key, body):
+		self.moonOrbitingBodies[key] = body
+		self.SolarSystem.orbitWhat[key] = self.CentralBody.Name
+
+	# makeSatellite::
+	def toggleSize(self, realisticSize):
+		x = SCALE_NORMALIZED if realisticSize == True else SCALE_OVERSIZED
+		if x == self.sizeType:
+			return
+		else:
+			self.sizeType = x
+
+		if self.SolarSystem.isFeatured(self.CentralBody.Object_class):
+			if self.sizeType == SCALE_OVERSIZED:
+				self.Labels[0].visible = False
+			else:
+				self.Labels[0].visible = True
+
+		self.BodyGeometry.radius = self.radiusToShow  / self.SizeCorrection[self.sizeType]
+
+
+	# makeSatellite::
+	def updateBodyPosition(self, timeIncrement):
+
+		# calculate current position based on orbital 
+		# elements (timeIncrement comes in days as a float)
+		
+		dT = daysSinceEpochJD(self.Epoch, self.locationInfo) + timeIncrement 
+
+		# compute Longitude of Ascending node taking into account the 
+		# precession due to J2 effect and time elapsed since epoch
+		
+		if hasattr(self, 'Omega_dot'):
+			self.Longitude_of_ascendingnode = self.Omega0 + self.Omega_dot * dT
+			self.Argument_of_periapsis = self.omega0 + self.omega_dot * dT
+		
+
+		# adjust Mean Anomaly with time elapsed since epoch
+		M = toRange(self.Mean_anomaly + self.Mean_motion * dT)
+
+		# since we can't solve Kepler's equation analytically,
+		# we use an iterative numerical method
+
+		return solveKepler(M, self.e, 20000)
+
+"""
+CLASS makeSystemBarycenterMEMBER -------------------------------------------------
+This class is used to add a member to a planet barycenter system
+
+"""
+class makeSystemBarycenterMember(makeMember):
+	
+	def __init__(self, system, key, color, ptype, sizeCorrectionType, realisticCorrectionSize, barycenter):
+		makeMember.__init__(self, system, key, color, ptype=ptype, sizeCorrectionType=sizeCorrectionType, realisticCorrectionSize=realisticCorrectionSize, centralbody=barycenter)
+		self.Main = False
+
+class makeSystemBarycenterMain(makeMember):
+	
+	def __init__(self, system, key, color, ptype, sizeCorrectionType, realisticCorrectionSize, barycenter):
+		makeMember.__init__(self, system, key, color, ptype=ptype, sizeCorrectionType=sizeCorrectionType, realisticCorrectionSize=realisticCorrectionSize, centralbody=barycenter)
+		self.Main = True
+
+		# make sure to let the barycenter know what bodytype 
+		# its main member has since it will determine the
+		# barycenter's type as well.
+
+		barycenter.setMainMemberBodyType(ptype)
+
+
+
+"""
 CLASS MAKEPLANETMOON -------------------------------------------------------
 This class is used to create a moon with predictable behavior, moving in a 
 keplerian way
 """
-class makePlanetMoon(makeBody):
+#class makePlanetMoon(makeBody):
+class makePlanetMoon(makeMember):
 	def __init__(self, system, key, color, sizeCorrectionType, centralbody):
 
-		makeBody.__init__(self, system, key, color, ptype=MOON, sizeCorrectionType=sizeCorrectionType, realisticCorrectionSize=MOON_SZ_CORRECTION, centralBody=centralbody)
+		#makeBody.__init__(self, system, key, color, ptype=MOON, sizeCorrectionType=sizeCorrectionType, realisticCorrectionSize=MOON_SZ_CORRECTION, centralBody=centralbody)
+		makeMember.__init__(self, system, key, color, ptype=MOON, sizeCorrectionType=sizeCorrectionType, realisticCorrectionSize=MOON_SZ_CORRECTION, centralbody=centralbody)
+
+"""
 
 		# register moon with planet's orbiting bodies set
 		self.CentralBody.registerSatellite(key, self)
@@ -22,13 +133,12 @@ class makePlanetMoon(makeBody):
 		# (this is to be used for moon orbiting spacecrafts)
 		self.moonOrbitingBodies = {}
 
-		"""
-		set up the Nodal regression rate (rad/day) for the longitutde of the 
-		ascending node and the Periapsis precession rate (rad/day) for the 
-		argument of periapsis. This is valid only for "good behaving moon", 
-		whose orbit and position can be deternmined following the keplerian 
-		model. It is the default behavior as many moons do follow a that model.
-		"""
+		# set up the Nodal regression rate (rad/day) for the longitude of the 
+		# ascending node and the Periapsis precession rate (rad/day) for the 
+		# argument of periapsis. This is valid only for "good behaving moon", 
+		# whose orbit and position can be deternmined following the keplerian 
+		# model. It is the default behavior as many moons do follow a that model.
+		
 		self.Omega0 = self.Longitude_of_ascendingnode
 		self.omega0 = self.Argument_of_periapsis
 
@@ -45,7 +155,7 @@ class makePlanetMoon(makeBody):
 		else:
 			self.sizeType = x
 
-		if self.SolarSystem.isFeatured(self.CentralBody.BodyType):
+		if self.SolarSystem.isFeatured(self.CentralBody.Object_class):
 			if self.sizeType == SCALE_OVERSIZED:
 				self.Labels[0].visible = False
 			else:
@@ -78,6 +188,8 @@ class makePlanetMoon(makeBody):
 		return solveKepler(M, self.e, 20000)
 	
 """
+
+"""
 CLASS MAKENONKEPLERIANMOON --------------------------------------------------
 the makeNonKeplerianMoon class is used for highly pertubed moons whose 
 orbits and state vector can't be described with a keplerian model.
@@ -87,6 +199,8 @@ class makeNonKeplerianMoon(makeBody):
 
 	def __init__(self, system, key, color, sizeCorrectionType, centralbody):
 
+		self.isRegularMoon = False
+
 		makeBody.__init__(self, system, key, color, ptype=MOON, sizeCorrectionType=sizeCorrectionType, realisticCorrectionSize=MOON_SZ_CORRECTION, centralBody=centralbody)
 
 		# register moon with planet's orbiting bodies set
@@ -94,6 +208,7 @@ class makeNonKeplerianMoon(makeBody):
 
 		# create a dictionary of orbiting bodies for this moon
 		self.moonOrbitingBodies = {}
+
 
 
 	def registerSpacecraft(self, key, body):
@@ -108,7 +223,7 @@ class makeNonKeplerianMoon(makeBody):
 		else:
 			self.sizeType = x
 
-		if self.SolarSystem.isFeatured(self.CentralBody.BodyType):
+		if self.SolarSystem.isFeatured(self.CentralBody.Object_class):
 			if self.sizeType == SCALE_OVERSIZED:
 				self.Labels[0].visible = False
 			else:
@@ -149,18 +264,18 @@ class makeNonKeplerianMoon(makeBody):
 	def setCartesianCoordinates(self, timeIncrement):
 		"""
 		We need to override the default makeBody::setCartesianCoordinates
-		since these cartesian coordinates are normally derived from the body's 
-		orbital elements. Because orbital elements for highly pertubed moons are 
-		osculating, they can't be trusted to generate the position of the moon 
+		because these cartesian coordinates are normally derived from the body's 
+		orbital elements. But orbital elements for highly pertubed moons are 
+		osculating; they can't be trusted to generate the position of the moon 
 		with an acceptable precision, hence we need a special function to replace 
 		the default method. 
 
 		But, we still need the default setCartesianCoordinate using the canonical
-		(constant) orbital elements from data to trace the orbit. Hence we use the 
+		(constant) orbital elements from data to trace the orbit. So we use the 
 		new code only after the orbit has been rendered.
 
-		The consequence is that the position of the moon may not always be following
-		its orbit right in its trajectory, but may be slightly off. 
+		The consequence is that the position of the moon will not always be following
+		its orbit right in its trajectory, but will be slightly off. 
 
 		So to recap, the position of the moon is accurate, but its orbit is a mean orbit.
 		"""
@@ -219,7 +334,8 @@ class makeNonKeplerianMoon(makeBody):
 
 """
 CLASS MAKELUNA ------------------------------------------------------------
-Specific class for "luna", our moon, which is highly pertubed
+Specific class for "luna", the earth's moon, which is 
+highly pertubed / irregular
 
 """
 class makeLuna(makeNonKeplerianMoon):
@@ -276,27 +392,31 @@ class makeLuna(makeNonKeplerianMoon):
 		print "moon geo:", moon_geo, ", moon helio position:", moon_helio
 		return moon_helio
 
+
 	def setTexturePosition(self):
 
-		# 1. Define the Vernal Equinox direction (your reference X-axis)
-		vernal_equinox = vector(1, 0, 0)
+		# 1. Define the Earth-to-moon vector
 		em_vec = self.Position
 
-		# 2. calculate angle between earth-moon vector and vernal equinox vector
-		angle_to_equinox = diff_angle(vernal_equinox, em_vec)
+	    # 2. Calculate the angle from the X-axis (Vernal Equinox)
+	    # em_vec[0] is the component towards the vernal equinox, and em_vec[1]
+	    # is the component perpendicular to it
+		angle_to_equinox = np.arctan2(em_vec[1], em_vec[0])
+
+		# 3. Define the amount of rotation: alpha - pi/2.
+		# This aligns the 'tangent' texture face to point back at Earth.
+		absolute_target_angle = angle_to_equinox - (np.pi / 2.0)
 
 		# 4. Apply rotation
 		# We want the face of the moon to look at the earth.
 		# We rotate the moon around the orbital normal to match the equinox offset.
 
-		print "angle to equinox is:", rad2deg(angle_to_equinox)
-		#print "Moon pos:", self.Position
-
-#		self.RefOrigin.rotate(angle=-(np.pi/2 + abs(angle_to_equinox)), axis=self.RotAxis, origin=(0,0,0))
-		self.RefOrigin.rotate(angle=-(np.pi/2 - angle_to_equinox), axis=self.RotAxis, origin=(0,0,0))
+		print "Angle to equinox is:", rad2deg(angle_to_equinox)
+		print "Rotation texture by ", rad2deg(absolute_target_angle), " degrees!"
+		print "Rotation axis is ", self.RotAxis
 		
-		#print "Moon pos after rotation:", self.Position
-
+		self.RefOrigin.rotate(angle=absolute_target_angle, axis=self.RotAxis, origin=(0,0,0))
+		
 
 	def setTexturePosition2(self):
 

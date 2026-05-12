@@ -10,13 +10,16 @@ import pytz
 import datetime as dt
 import time
 from orbit3D import deg2rad
-from dateutil.relativedelta import relativedelta
+#from dateutil.relativedelta import relativedelta
+import dateutil
 from time_helper import TimeH, utc_to_tdb
 
 """
 EarthLocations - time management of earth locations
 
 """
+print "dateutil ==",dateutil.__version__
+print "urllib2 ==",urllib2.__version__
 
 class locList:
 	TZ_YOUR_LOCATION = 0

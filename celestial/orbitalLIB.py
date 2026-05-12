@@ -214,6 +214,7 @@ class camera():
         body = self.solSystem.getBodyFromName(bodyName)
         if body is not None:
             inx = self.solSystem.Dashboard.focusTab.getBodyIndexInList(bodyName)
+            self.solSystem.cameraViewTargetBody = body
             self.solSystem.Dashboard.focusTab.setCurrentBodyFocusProgrammatically(body, inx)
         else:
             print ("Unknown Body Name:", bodyName)

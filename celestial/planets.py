@@ -168,6 +168,138 @@ class makePluto(makePlanet):
 		makePlanet.__init__(self, system, "pluto", color, ptype, sizeCorrectionType, defaultSizeCorrection)
 
 
+class makeSystemBarycenter(makePlanet):
+
+	# intuitively, makeSystemBarycenter must derive from makePlanet, since it is
+	# IT that orbits the sun on the behalf of its underlying planet and moons.
+	
+	def __init__(self, system, key, color, ptype, sizeCorrectionType, defaultSizeCorrection):
+		makePlanet.__init__(self, system, key, color, ptype, sizeCorrectionType, defaultSizeCorrection, barycenter=True)
+
+	def setMainMemberBodyType(self, ptype):
+		self.MainMember_bodytype = ptype
+		
+	def setAspect(self, key):
+		# barycenter has no texture ...
+		pass
+
+	def make_PCI_referentialXX(self):
+		# barycenter has no axis ...
+		pass 
+
+	def setBodyOrientation(self):
+		# barycenter has no orientation ...
+		pass
+
+	def makeShape(self):
+		self.RefOrigin.pos= self.Position 
+
+	def refresh(self):
+		"""
+		This is the refresh function for a barycenter system. It follows the same
+		principle as for a non-barycentric system. Each member of a barycenter system
+		acts as a "moon" of this system, with one member defined as the "main" member.
+
+		When a barycenter is the focus and MOON is set, we display its member(s), but
+		if the barycenter isn't the focus we do not display the member(s). We do not 
+		call the refresh method for members, as their "refresh" is performed from their
+		barycenter. If one of the member is the focus, then we display that member 
+		only, even though the MOON flag is off, and we also display the parent planet 
+		member, even if its flag should make it hidden
+		"""
+
+		bodyVisible = True if self.Object_class & self.SolarSystem.ShowFeatures != 0 else False
+
+		showAxis = False
+		if bodyVisible or self.Details == True:
+
+			# check if barycenter is current focus
+			isFocus = True if self.SolarSystem.cameraViewTargetName == self.Name else False
+
+			# this body orbits the sun 
+			# Let's see if it has moons
+
+			displayMembers = True if self.SolarSystem.ShowFeatures & MOON != 0 else False
+
+			print "REFRESHING ", self.Name
+
+			# loop through each moon / spacecraft / barycenter-member
+			for member_name, member_body in self.planetOrbitingBodies.items():
+
+				if isFocus:
+					if displayMembers:
+						print "show member ", member_name, " for FOCUS = ", self.Name
+						member_body.show()
+					else:
+						print "hide member ", member_name, " for FOCUS = ", self.Name
+						member_body.hide()
+
+				else:
+					print self.Name, " is not the focus!"
+
+					# check if this moon/member is the focus
+					if self.SolarSystem.cameraViewTargetName == member_body.Name:
+						print "show member ", member_name, " for barycenter ", self.Name
+						member_body.show()
+
+						if member_body.Object_role == BARYCENTER_MEMBER:
+							parent = self.SolarSystem.getBarycenterMemberFromName(member_body.Object_parent)
+							if parent != None:
+								parent.show()
+
+					else:
+						if member_body.Main == False:
+							print "hide member ", member_name, " for barycenter ", self.Name
+							member_body.hide()
+
+
+			# if this is the cameraViewTargetBody, 
+			# check for local referential attribute
+
+			if isFocus and self.SolarSystem.ShowFeatures & LOCAL_REFERENTIAL:
+				showAxis = True
+
+		else:
+			# the barycenter is not visible. let's see if a member orbiting it
+			# might be the focus (cameraViewTarget)
+
+			if self.SolarSystem.cameraViewTargetName in self.planetOrbitingBodies:
+				# if it is the case, force to show the body 
+				self.show()
+				self.setAxisVisibility(False)
+				return
+			else:
+				for member_name, member_body in self.planetOrbitingBodies.items():
+					member_body.hide()
+
+			self.hide()
+
+		self.setAxisVisibility(showAxis)
+
+
+
+class makePlutoBarycenterXX(makeSystemBarycenter):
+	
+	def __init__(self, system, color, ptype, sizeCorrectionType, defaultSizeCorrection):
+		makeSystemBarycenter.__init__(self, system, "pluto-barycenter", color, ptype, sizeCorrectionType, defaultSizeCorrection)
+
+	def FixPlutoEccentricityXXXX(self):
+		pluto = self.SolarSystem.getBarycenterMemberFromName("pluto")
+		charon = self.SolarSystem.getBarycenterMemberFromName("charon")
+		pluto.e = charon.e = 0.0
+		pluto.Inclination = charon.Inclination
+		pluto.Longitude_of_ascendingnode = charon.Longitude_of_ascendingnode
+		pluto.Argument_of_periapsis = charon.Argument_of_periapsis 
+		pluto.Mean_anomaly = charon.Mean_anomaly + np.pi
+		pluto.a = charon.a * (1.586e21/1.303e22)
+		charon.a = charon.a * 2
+		pluto.Revolution = charon.Revolution = 6.38723
+		pluto.Mean_motion = charon.Mean_motion = 360/6.38723
+		#pluto.Rotation = charon.Rotation = 6.38723
+
+
+
+
 class makeEarth(makeEarth_and_widgets):
 	
 	def __init__(self, system, color, ptype, sizeCorrectionType, defaultSizeCorrection):

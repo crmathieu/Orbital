@@ -8,15 +8,28 @@ OBJECTS = {
     # -------------------------
     # Planets Objects
     # -------------------------
+
+    "sun-barycenter": {
+        "synonyms": ["ssb", "solar system barycenter"],
+        "spk_id": "0",
+        "horizons_id": "0",
+        "object_class": BARYCENTER,
+        "iau_name": "SSB",
+        "jpl_designation": "Solar System Barycenter",
+        "center": SUN_BARYCENTER, # Center on itself/Absolute origin
+        "orbiting": None,
+        "end_date": None,    
+    },
+        
     "sun": {
         "synonyms": ["sun"],
-        "horizons_rec_id": "10",
+        "spk_id": "10",
         "horizons_id": "10",
-        "object_class": SUN,
+        "object_class": STAR,
         "iau_name": "Sun",
         "jpl_designation": "Sun",
-        "center": "500@0",
-        "orbiting": None,
+        "center": SUN_BARYCENTER,
+        "orbiting": "sun-barycenter",
         "end_date": None,
         "physical": {
             "texture": "./img/sun",
@@ -30,13 +43,13 @@ OBJECTS = {
 
     "mercury": {
         "synonyms": ["mercury"],
-        "horizons_rec_id": "199",
+        "spk_id": "199",
         "horizons_id": "199",
         "object_class": INNER_PLANET,
         "iau_name": "Mercury",
         "jpl_designation": "Mercury",
-        "center": "500@0",
-        "orbiting": "sun",
+        "center": SUN_BARYCENTER,
+        "orbiting": "sun-barycenter",
         "end_date": None,
         "physical": {
             "texture": "./img/mercury",
@@ -49,13 +62,13 @@ OBJECTS = {
 
     "venus": {
         "synonyms": ["venus"],
-        "horizons_rec_id": "299",
+        "spk_id": "299",
         "horizons_id": "299",
         "object_class": INNER_PLANET,
         "iau_name": "Venus",
         "jpl_designation": "Venus",
-        "center": "500@0",
-        "orbiting": "sun",
+        "center": SUN_BARYCENTER,
+        "orbiting": "sun-barycenter",
         "end_date": None,
         "physical": {
             "texture": "./img/venus",
@@ -68,13 +81,13 @@ OBJECTS = {
     
     "earth": {
         "synonyms": ["earth"],
-        "horizons_rec_id": "399",
+        "spk_id": "399",
         "horizons_id": "399",
         "object_class": INNER_PLANET,
         "iau_name": "Earth",
         "jpl_designation": "Earth",
-        "center": "500@0",
-        "orbiting": "sun",
+        "center": SUN_BARYCENTER,
+        "orbiting": "sun-barycenter",
         "end_date": None,
         "physical": {
             "texture": "./img/highres-earth-8192x4096-clouds",
@@ -87,13 +100,13 @@ OBJECTS = {
 
     "mars": {
         "synonyms": ["mars"],
-        "horizons_rec_id": "499",
+        "spk_id": "499",
         "horizons_id": "499",
         "object_class": INNER_PLANET,
         "iau_name": "Mars",
         "jpl_designation": "Mars",
-        "center": "500@0",
-        "orbiting": "sun",
+        "center": SUN_BARYCENTER,
+        "orbiting": "sun-barycenter",
         "end_date": None,
         "physical": {
             "texture": "./img/mars",
@@ -106,13 +119,13 @@ OBJECTS = {
 
     "jupiter": {
         "synonyms": ["jupiter"],
-        "horizons_rec_id": "599",
+        "spk_id": "599",
         "horizons_id": "599",
-        "object_class": "OUTER_PLANET",
+        "object_class": OUTER_PLANET,
         "iau_name": "Jupiter",
         "jpl_designation": "Jupiter",
-        "center": "500@0",
-        "orbiting": "sun",
+        "center": SUN_BARYCENTER,
+        "orbiting": "sun-barycenter",
         "end_date": None,
         "physical": {
             "texture": "./img/source/2k_jupiter-PM-normalized",
@@ -125,13 +138,13 @@ OBJECTS = {
 
     "saturn": {
         "synonyms": ["saturn"],
-        "horizons_rec_id": "699",
+        "spk_id": "699",
         "horizons_id": "699",
-        "object_class": "OUTER_PLANET",
+        "object_class": OUTER_PLANET,
         "iau_name": "Saturn",
         "jpl_designation": "Saturn",
-        "center": "500@0",
-        "orbiting": "sun",
+        "center": SUN_BARYCENTER,
+        "orbiting": "sun-barycenter",
         "end_date": None,
         "physical": {
             "texture": "./img/saturn",
@@ -144,13 +157,13 @@ OBJECTS = {
 
     "uranus": {
         "synonyms": ["uranus"],
-        "horizons_rec_id": "799",
+        "spk_id": "799",
         "horizons_id": "799",
-        "object_class": "OUTER_PLANET",
+        "object_class": OUTER_PLANET,
         "iau_name": "Uranus",
         "jpl_designation": "Uranus",
-        "center": "500@0",
-        "orbiting": "sun",
+        "center": SUN_BARYCENTER,
+        "orbiting": "sun-barycenter",
         "end_date": None,
         "physical": {
             "texture":"./img/uranus",
@@ -163,13 +176,13 @@ OBJECTS = {
 
     "neptune": {
         "synonyms": ["neptune"],
-        "horizons_rec_id": "899",
+        "spk_id": "899",
         "horizons_id": "899",
-        "object_class": "OUTER_PLANET",
+        "object_class": OUTER_PLANET,
         "iau_name": "Neptune",
         "jpl_designation": "Neptune",
-        "center": "500@0",
-        "orbiting": "sun",
+        "center": SUN_BARYCENTER,
+        "orbiting": "sun-barycenter",
         "end_date": None,
         "physical": {
             "texture": "./img/source/2k_neptune-PM-normalized",
@@ -180,15 +193,55 @@ OBJECTS = {
         }
     },
 
+    "pluto-barycenter2": {
+        "synonyms": ["pluto-barycenter2"],
+        "spk_id": "9",
+        "horizons_id": "9",
+        "object_class": BARYCENTER,
+        "object_role": DWARF_PLANET,
+        "iau_name": "Pluto-Barycenter2",
+        "jpl_designation": "Pluto Barycenter2",
+        "center": SUN_BARYCENTER,
+        "orbiting": "sun-barycenter",
+        "end_date": None,
+        "physical": {
+            "texture": "",
+            "mass_kg": 1.303e22,
+            "radius_m": 1188300.0,
+            "rotation_period_in_solar_d": -6.3872,
+            "axial_tilt_deg": 119.61
+        }
+    },
+
+    "pluto-barycenter": {
+        "synonyms": ["pluto-barycenter"],
+        "spk_id": "9",
+        "horizons_id": "9",
+        "object_class": BARYCENTER,
+        "iau_name": "Pluto-Barycenter",
+        "jpl_designation": "Pluto Barycenter",
+        "center": SUN_BARYCENTER,
+        "orbiting": "sun-barycenter",
+        "end_date": None,
+        "physical": {
+            "texture": "",
+            "mass_kg": 0.0,
+            "radius_m": 0.0,
+            "rotation_period_in_solar_d": 0.0,
+            "axial_tilt_deg": 0.0
+        }
+    },
+
     "pluto": {
         "synonyms": ["pluto", "134340 pluto"],
-        "horizons_rec_id": "134340",
-        "horizons_id": "134340",
+        "spk_id": "999",
+        "horizons_id": "999",
         "object_class": DWARF_PLANET,
+        "object_role": BARYCENTER_MEMBER,
         "iau_name": "Pluto",
         "jpl_designation": "134340 Pluto",
-        "center": "500@0",
-        "orbiting": "sun",
+        "center": PLUTO_BARYCENTER,
+        "orbiting": "pluto-barycenter",
         "end_date": None,
         "physical": {
             "texture": "./img/pluto3",
@@ -206,13 +259,13 @@ OBJECTS = {
 
     "eris": {
         "synonyms": ["eris", "136199 eris"],
-        "horizons_rec_id": "136199",
-        "horizons_id": "136199",
+        "spk_id": "2136199",
+        "horizons_id": "2136199",
         "object_class": TNO,
         "iau_name": "Eris",
         "jpl_designation": "136199 Eris",
-        "center": "500@0",
-        "orbiting": "sun",
+        "center": SUN_BARYCENTER,
+        "orbiting": "sun-barycenter",
         "end_date": None,
         "physical": {
             "texture": "./img/eris",
@@ -225,13 +278,13 @@ OBJECTS = {
 
     "haumea": {
         "synonyms": ["haumea", "136108 haumea"],
-        "horizons_rec_id": "136108",
-        "horizons_id": "136108",
+        "spk_id": "2136108",
+        "horizons_id": "2136108",
         "object_class": TNO,
         "iau_name": "Haumea",
         "jpl_designation": "136108 Haumea",
-        "center": "500@0",
-        "orbiting": "sun",
+        "center": SUN_BARYCENTER,
+        "orbiting": "sun-barycenter",
         "end_date": None,
         "physical": {
             "texture": "./img/haumea",
@@ -244,13 +297,13 @@ OBJECTS = {
 
     "makemake": {
         "synonyms": ["makemake", "136472 makemake"],
-        "horizons_rec_id": "136472",
-        "horizons_id": "136472",
+        "spk_id": "2136472",
+        "horizons_id": "2136472",
         "object_class": TNO,
         "iau_name": "Makemake",
         "jpl_designation": "136472 Makemake",
-        "center": "500@0",
-        "orbiting": "sun",
+        "center": SUN_BARYCENTER,
+        "orbiting": "sun-barycenter",
         "end_date": None,
         "physical": {
             "texture": "./img/makemake",
@@ -263,13 +316,13 @@ OBJECTS = {
 
     "gonggong": {
         "synonyms": ["gonggong", "225088 gonggong"],
-        "horizons_rec_id": "225088",
-        "horizons_id": "225088",
+        "spk_id": "2225088",
+        "horizons_id": "2225088",
         "object_class": TNO,
         "iau_name": "Gonggong",
         "jpl_designation": "225088 Gonggong",
-        "center": "500@0",
-        "orbiting": "sun",
+        "center": SUN_BARYCENTER,
+        "orbiting": "sun-barycenter",
         "end_date": None,
         "physical": {
             "mass_kg": 1.75e21,
@@ -281,13 +334,13 @@ OBJECTS = {
 
     "quaoar": {
         "synonyms": ["quaoar", "50000 quaoar"],
-        "horizons_rec_id": "50000",
-        "horizons_id": "50000",
+        "spk_id": "20050000",
+        "horizons_id": "20050000",
         "object_class": TNO,
         "iau_name": "Quaoar",
         "jpl_designation": "50000 Quaoar",
-        "center": "500@0",
-        "orbiting": "sun",
+        "center": SUN_BARYCENTER,
+        "orbiting": "sun-barycenter",
         "end_date": None,
         "physical": {
             "mass_kg": 1.4e21,
@@ -299,13 +352,13 @@ OBJECTS = {
 
     "sedna": {
         "synonyms": ["sedna", "90377 sedna"],
-        "horizons_rec_id": "90377",
-        "horizons_id": "90377",
+        "spk_id": "20090377",
+        "horizons_id": "20090377",
         "object_class": TNO,
         "iau_name": "Sedna",
         "jpl_designation": "90377 Sedna",
-        "center": "500@0",
-        "orbiting": "sun",
+        "center": SUN_BARYCENTER,
+        "orbiting": "sun-barycenter",
         "end_date": None,
         "physical": {
             "texture": "./img/sedna",
@@ -318,13 +371,13 @@ OBJECTS = {
 
     "orcus": {
         "synonyms": ["orcus", "90482 orcus"],
-        "horizons_rec_id": "90482",
-        "horizons_id": "90482",
+        "spk_id": "20090482",
+        "horizons_id": "20090482",
         "object_class": TNO,
         "iau_name": "Orcus",
         "jpl_designation": "90482 Orcus",
-        "center": "500@0",
-        "orbiting": "sun",
+        "center": SUN_BARYCENTER,
+        "orbiting": "sun-barycenter",
         "end_date": None,
         "physical": {
             "mass_kg": 6.32e20,
@@ -336,13 +389,13 @@ OBJECTS = {
 
     "salacia": {
         "synonyms": ["salacia", "120347 salacia"],
-        "horizons_rec_id": "120347",
-        "horizons_id": "120347",
+        "spk_id": "2120347",
+        "horizons_id": "2120347",
         "object_class": ASTEROID,
         "iau_name": "Salacia",
         "jpl_designation": "120347 Salacia",
-        "center": "500@0",
-        "orbiting": "sun",
+        "center": SUN_BARYCENTER,
+        "orbiting": "sun-barycenter",
         "end_date": None,
         "physical": {
             "mass_kg": 4.66e20,
@@ -354,13 +407,13 @@ OBJECTS = {
 
     "varuna": {
         "synonyms": ["varuna", "20000 varuna"],
-        "horizons_rec_id": "20000",
-        "horizons_id": "20000",
+        "spk_id": "20020000",
+        "horizons_id": "20020000",
         "object_class": ASTEROID,
         "iau_name": "Varuna",
         "jpl_designation": "20000 Varuna",
-        "center": "500@0",
-        "orbiting": "sun",
+        "center": SUN_BARYCENTER,
+        "orbiting": "sun-barycenter",
         "end_date": None,
         "physical": {
             "mass_kg": None,
@@ -372,13 +425,13 @@ OBJECTS = {
 
     "varda": {
         "synonyms": ["varda", "174567 varda"],
-        "horizons_rec_id": "174567",
-        "horizons_id": "174567",
+        "spk_id": "2174567",
+        "horizons_id": "2174567",
         "object_class": ASTEROID,
         "iau_name": "Varda",
         "jpl_designation": "174567 Varda",
-        "center": "500@0",
-        "orbiting": "sun",
+        "center": SUN_BARYCENTER,
+        "orbiting": "sun-barycenter",
         "end_date": None,
         "physical": {
             "mass_kg": 2.66e20,
@@ -390,13 +443,13 @@ OBJECTS = {
 
     "ixion": {
         "synonyms": ["ixion", "28978 ixion"],
-        "horizons_rec_id": "28978",
-        "horizons_id": "28978",
-        "object_class": ASTEROID,
+        "spk_id": "20028978",
+        "horizons_id": "20028978",
+        "object_class": TNO,
         "iau_name": "Ixion",
         "jpl_designation": "28978 Ixion",
-        "center": "500@0",
-        "orbiting": "sun",
+        "center": SUN_BARYCENTER,
+        "orbiting": "sun-barycenter",
         "end_date": None,
         "physical": {
             "mass_kg": None,
@@ -408,13 +461,13 @@ OBJECTS = {
 
     "2002 MS4": {
         "synonyms": ["2002 ms4", "307261 2002 ms4"],
-        "horizons_rec_id": "307261",
-        "horizons_id": "307261",
+        "spk_id": "2307261",
+        "horizons_id": "2307261",
         "object_class": ASTEROID,
         "iau_name": "2002 MS4",
         "jpl_designation": "2002 MS4",
-        "center": "500@0",
-        "orbiting": "sun",
+        "center": SUN_BARYCENTER,
+        "orbiting": "sun-barycenter",
         "end_date": None,
         "physical": {
             "mass_kg": None,
@@ -426,13 +479,13 @@ OBJECTS = {
 
     "2002 AW197": {
         "synonyms": ["2002 aw197", "55565 2002 aw197"],
-        "horizons_rec_id": "55565",
-        "horizons_id": "55565",
+        "spk_id": "20055565",
+        "horizons_id": "20055565",
         "object_class": ASTEROID,
         "iau_name": "2002 AW197",
         "jpl_designation": "2002 AW197",
-        "center": "500@0",
-        "orbiting": "sun",
+        "center": SUN_BARYCENTER,
+        "orbiting": "sun-barycenter",
         "end_date": None,
         "physical": {
             "mass_kg": None,
@@ -449,15 +502,16 @@ OBJECTS = {
 
     "ceres": {
         "synonyms": ["ceres", "1 ceres"],
-        "horizons_rec_id": "2000001",
-        "horizons_id": "1",
+        "spk_id": "2000001",
+        "horizons_id": "1;",
         "object_class": DWARF_PLANET,
         "iau_name": "Ceres",
         "jpl_designation": "1 Ceres",
-        "center": "500@0",
-        "orbiting": "sun",
+        "center": SUN_BARYCENTER,
+        "orbiting": "sun-barycenter",
         "end_date": None,
         "physical": {
+            "texture": "./img/ceres",
             "mass_kg": 9.393e20,
             "radius_m": 473000.0,
             "rotation_period_in_solar_d": 0.3781,
@@ -467,15 +521,16 @@ OBJECTS = {
 
     "pallas": {
         "synonyms": ["pallas", "2 pallas"],
-        "horizons_rec_id": "2000002",
-        "horizons_id": "2",
-        "object_class": ASTEROID,
+        "spk_id": "2000002",
+        "horizons_id": "2;",
+        "object_class": DWARF_PLANET,
         "iau_name": "Pallas",
         "jpl_designation": "2 Pallas",
-        "center": "500@0",
-        "orbiting": "sun",
+        "center": SUN_BARYCENTER,
+        "orbiting": "sun-barycenter",
         "end_date": None,
         "physical": {
+            "texture": "./img/pallas",
             "mass_kg": 2.04e20,
             "radius_m": 256000.0,
             "rotation_period_in_solar_d": 0.3255,
@@ -485,13 +540,13 @@ OBJECTS = {
 
     "juno astroid": {
         "synonyms": ["juno astroid", "3 juno"],
-        "horizons_rec_id": "2000003",
-        "horizons_id": "3",
-        "object_class": ASTEROID,
+        "spk_id": "2000003",
+        "horizons_id": "3;",
+        "object_class": BIG_ASTEROID,
         "iau_name": "Juno",
         "jpl_designation": "3 Juno",
-        "center": "500@0",
-        "orbiting": "sun",
+        "center": SUN_BARYCENTER,
+        "orbiting": "sun-barycenter",
         "end_date": None,
         "physical": {
             "mass_kg": 2.67e19,
@@ -503,13 +558,13 @@ OBJECTS = {
 
     "vesta": {
         "synonyms": ["vesta", "4 vesta"],
-        "horizons_rec_id": "2000004",
-        "horizons_id": "4",
-        "object_class": ASTEROID,
+        "spk_id": "2000004",
+        "horizons_id": "4;",
+        "object_class": DWARF_PLANET,
         "iau_name": "Vesta",
         "jpl_designation": "4 Vesta",
-        "center": "500@0",
-        "orbiting": "sun",
+        "center": SUN_BARYCENTER,
+        "orbiting": "sun-barycenter",
         "end_date": None,
         "physical": {
             "mass_kg": 2.59e20,
@@ -521,13 +576,13 @@ OBJECTS = {
 
     "astraea": {
         "synonyms": ["astraea", "5 astraea"],
-        "horizons_rec_id": "2000005",
+        "spk_id": "2000005",
         "horizons_id": "5",
         "object_class": ASTEROID,
         "iau_name": "Astraea",
         "jpl_designation": "5 Astraea",
-        "center": "500@0",
-        "orbiting": "sun",
+        "center": SUN_BARYCENTER,
+        "orbiting": "sun-barycenter",
         "end_date": None,
         "physical": {
             "mass_kg": None,
@@ -539,13 +594,13 @@ OBJECTS = {
 
     "hebe": {
         "synonyms": ["hebe", "6 hebe"],
-        "horizons_rec_id": "2000006",
+        "spk_id": "2000006",
         "horizons_id": "6",
         "object_class": ASTEROID,
         "iau_name": "Hebe",
         "jpl_designation": "6 Hebe",
-        "center": "500@0",
-        "orbiting": "sun",
+        "center": SUN_BARYCENTER,
+        "orbiting": "sun-barycenter",
         "end_date": None,
         "physical": {
             "mass_kg": None,
@@ -557,13 +612,13 @@ OBJECTS = {
 
     "iris": {
         "synonyms": ["iris", "7 iris"],
-        "horizons_rec_id": "2000007",
+        "spk_id": "2000007",
         "horizons_id": "7",
         "object_class": ASTEROID,
         "iau_name": "Iris",
         "jpl_designation": "7 Iris",
-        "center": "500@0",
-        "orbiting": "sun",
+        "center": SUN_BARYCENTER,
+        "orbiting": "sun-barycenter",
         "end_date": None,
         "physical": {
             "mass_kg": None,
@@ -575,13 +630,13 @@ OBJECTS = {
 
     "flora": {
         "synonyms": ["flora", "8 flora"],
-        "horizons_rec_id": "2000008",
+        "spk_id": "2000008",
         "horizons_id": "8",
         "object_class": ASTEROID,
         "iau_name": "Flora",
         "jpl_designation": "8 Flora",
-        "center": "500@0",
-        "orbiting": "sun",
+        "center": SUN_BARYCENTER,
+        "orbiting": "sun-barycenter",
         "end_date": None,
         "physical": {
             "mass_kg": None,
@@ -593,13 +648,13 @@ OBJECTS = {
 
     "metis": {
         "synonyms": ["metis", "9 metis"],
-        "horizons_rec_id": "2000009",
+        "spk_id": "2000009",
         "horizons_id": "9",
         "object_class": ASTEROID,
         "iau_name": "Metis",
         "jpl_designation": "9 Metis",
-        "center": "500@0",
-        "orbiting": "sun",
+        "center": SUN_BARYCENTER,
+        "orbiting": "sun-barycenter",
         "end_date": None,
         "physical": {
             "mass_kg": None,
@@ -611,13 +666,13 @@ OBJECTS = {
 
     "hygiea": {
         "synonyms": ["hygiea", "10 hygiea"],
-        "horizons_rec_id": "2000010",
+        "spk_id": "2000010",
         "horizons_id": "10",
         "object_class": ASTEROID,
         "iau_name": "Hygiea",
         "jpl_designation": "10 Hygiea",
-        "center": "500@0",
-        "orbiting": "sun",
+        "center": SUN_BARYCENTER,
+        "orbiting": "sun-barycenter",
         "end_date": None,
         "physical": {
             "mass_kg": 8.67e19,
@@ -629,13 +684,13 @@ OBJECTS = {
 
     "parthenope": {
         "synonyms": ["parthenope", "11 parthenope"],
-        "horizons_rec_id": "2000011",
+        "spk_id": "2000011",
         "horizons_id": "11",
         "object_class": ASTEROID,
         "iau_name": "Parthenope",
         "jpl_designation": "11 Parthenope",
-        "center": "500@0",
-        "orbiting": "sun",
+        "center": SUN_BARYCENTER,
+        "orbiting": "sun-barycenter",
         "end_date": None,
         "physical": {
             "mass_kg": None,
@@ -647,13 +702,13 @@ OBJECTS = {
 
     "victoria": {
         "synonyms": ["victoria", "12 victoria"],
-        "horizons_rec_id": "2000012",
+        "spk_id": "2000012",
         "horizons_id": "12",
         "object_class": ASTEROID,
         "iau_name": "Victoria",
         "jpl_designation": "12 Victoria",
-        "center": "500@0",
-        "orbiting": "sun",
+        "center": SUN_BARYCENTER,
+        "orbiting": "sun-barycenter",
         "end_date": None,
         "physical": {
             "mass_kg": None,
@@ -665,13 +720,13 @@ OBJECTS = {
 
     "eunomia": {
         "synonyms": ["eunomia", "15 eunomia"],
-        "horizons_rec_id": "2000015",
+        "spk_id": "2000015",
         "horizons_id": "15",
         "object_class": ASTEROID,
         "iau_name": "Eunomia",
         "jpl_designation": "15 Eunomia",
-        "center": "500@0",
-        "orbiting": "sun",
+        "center": SUN_BARYCENTER,
+        "orbiting": "sun-barycenter",
         "end_date": None,
         "physical": {
             "mass_kg": 3.12e19,
@@ -683,13 +738,13 @@ OBJECTS = {
 
     "psyche": {
         "synonyms": ["psyche", "16 psyche"],
-        "horizons_rec_id": "2000016",
+        "spk_id": "2000016",
         "horizons_id": "16",
         "object_class": ASTEROID,
         "iau_name": "Psyche",
         "jpl_designation": "16 Psyche",
-        "center": "500@0",
-        "orbiting": "sun",
+        "center": SUN_BARYCENTER,
+        "orbiting": "sun-barycenter",
         "end_date": None,
         "physical": {
             "mass_kg": 2.72e19,
@@ -701,13 +756,13 @@ OBJECTS = {
 
     "themis": {
         "synonyms": ["themis", "24 themis"],
-        "horizons_rec_id": "2000024",
+        "spk_id": "2000024",
         "horizons_id": "24",
         "object_class": ASTEROID,
         "iau_name": "Themis",
         "jpl_designation": "24 Themis",
-        "center": "500@0",
-        "orbiting": "sun",
+        "center": SUN_BARYCENTER,
+        "orbiting": "sun-barycenter",
         "end_date": None,
         "physical": {
             "mass_kg": None,
@@ -719,13 +774,13 @@ OBJECTS = {
 
     "doris": {
         "synonyms": ["doris", "48 doris"],
-        "horizons_rec_id": "2000048",
+        "spk_id": "2000048",
         "horizons_id": "48",
         "object_class": ASTEROID,
         "iau_name": "Doris",
         "jpl_designation": "48 Doris",
-        "center": "500@0",
-        "orbiting": "sun",
+        "center": SUN_BARYCENTER,
+        "orbiting": "sun-barycenter",
         "end_date": None,
         "physical": {
             "mass_kg": None,
@@ -737,13 +792,13 @@ OBJECTS = {
 
     "cybele": {
         "synonyms": ["cybele", "65 cybele"],
-        "horizons_rec_id": "2000065",
+        "spk_id": "2000065",
         "horizons_id": "65",
         "object_class": ASTEROID,
         "iau_name": "Cybele",
         "jpl_designation": "65 Cybele",
-        "center": "500@0",
-        "orbiting": "sun",
+        "center": SUN_BARYCENTER,
+        "orbiting": "sun-barycenter",
         "end_date": None,
         "physical": {
             "mass_kg": None,
@@ -755,13 +810,13 @@ OBJECTS = {
 
     "eurynome": {
         "synonyms": ["eurynome", "79 eurynome"],
-        "horizons_rec_id": "2000079",
+        "spk_id": "2000079",
         "horizons_id": "79",
         "object_class": ASTEROID,
         "iau_name": "Eurynome",
         "jpl_designation": "79 Eurynome",
-        "center": "500@0",
-        "orbiting": "sun",
+        "center": SUN_BARYCENTER,
+        "orbiting": "sun-barycenter",
         "end_date": None,
         "physical": {
             "mass_kg": None,
@@ -773,13 +828,13 @@ OBJECTS = {
 
     "euphrosyne": {
         "synonyms": ["euphrosyne", "31 euphrosyne"],
-        "horizons_rec_id": "2000031",
+        "spk_id": "2000031",
         "horizons_id": "31",
         "object_class": ASTEROID,
         "iau_name": "Euphrosyne",
         "jpl_designation": "31 Euphrosyne",
-        "center": "500@0",
-        "orbiting": "sun",
+        "center": SUN_BARYCENTER,
+        "orbiting": "sun-barycenter",
         "end_date": None,
         "physical": {
             "mass_kg": None,
@@ -791,13 +846,13 @@ OBJECTS = {
 
     "interamnia": {
         "synonyms": ["interamnia", "704 interamnia"],
-        "horizons_rec_id": "2000704",
+        "spk_id": "2000704",
         "horizons_id": "704",
         "object_class": ASTEROID,
         "iau_name": "Interamnia",
         "jpl_designation": "704 Interamnia",
-        "center": "500@0",
-        "orbiting": "sun",
+        "center": SUN_BARYCENTER,
+        "orbiting": "sun-barycenter",
         "end_date": None,
         "physical": {
             "mass_kg": 3.9e19,
@@ -809,13 +864,13 @@ OBJECTS = {
 
     "davida": {
         "synonyms": ["davida", "511 davida"],
-        "horizons_rec_id": "2000511",
+        "spk_id": "2000511",
         "horizons_id": "511",
         "object_class": ASTEROID,
         "iau_name": "Davida",
         "jpl_designation": "511 Davida",
-        "center": "500@0",
-        "orbiting": "sun",
+        "center": SUN_BARYCENTER,
+        "orbiting": "sun-barycenter",
         "end_date": None,
         "physical": {
             "mass_kg": 3.0e19,
@@ -827,13 +882,13 @@ OBJECTS = {
 
     "camilla": {
         "synonyms": ["camilla", "107 camilla"],
-        "horizons_rec_id": "2000107",
+        "spk_id": "2000107",
         "horizons_id": "107",
         "object_class": ASTEROID,
         "iau_name": "Camilla",
         "jpl_designation": "107 Camilla",
-        "center": "500@0",
-        "orbiting": "sun",
+        "center": SUN_BARYCENTER,
+        "orbiting": "sun-barycenter",
         "end_date": None,
         "physical": {
             "mass_kg": 1.12e19,
@@ -845,13 +900,13 @@ OBJECTS = {
 
     "sylvia": {
         "synonyms": ["sylvia", "87 sylvia"],
-        "horizons_rec_id": "2000087",
+        "spk_id": "2000087",
         "horizons_id": "87",
         "object_class": ASTEROID,
         "iau_name": "Sylvia",
         "jpl_designation": "87 Sylvia",
-        "center": "500@0",
-        "orbiting": "sun",
+        "center": SUN_BARYCENTER,
+        "orbiting": "sun-barycenter",
         "end_date": None,
         "physical": {
             "mass_kg": 1.48e19,
@@ -866,13 +921,13 @@ OBJECTS = {
     # -------------------------
     "halley": {
         "synonyms": ["halley", "1p", "1p/halley"],
-        "horizons_rec_id": "90000030",
+        "spk_id": "1000036",
         "horizons_id": "1P",
         "object_class": COMET,
         "iau_name": "Halley",
         "jpl_designation": "1P/Halley",
-        "center": "500@0",
-        "orbiting": "sun",
+        "center": SUN_BARYCENTER,
+        "orbiting": "sun-barycenter",
         "end_date": None,
         "physical": {
             "mass_kg": None,
@@ -884,13 +939,13 @@ OBJECTS = {
 
     "encke": {
         "synonyms": ["encke", "2p", "2p/encke"],
-        "horizons_rec_id": "90000021",
+        "spk_id": "90000002",
         "horizons_id": "2P",
         "object_class": COMET,
         "iau_name": "Encke",
         "jpl_designation": "2P/Encke",
-        "center": "500@0",
-        "orbiting": "sun",
+        "center": SUN_BARYCENTER,
+        "orbiting": "sun-barycenter",
         "end_date": None,
         "physical": {
             "mass_kg": None,
@@ -902,13 +957,13 @@ OBJECTS = {
 
     "tempel 1": {
         "synonyms": ["tempel 1", "9p", "9p/tempel"],
-        "horizons_rec_id": "90000027",
+        "spk_id": "90000192",
         "horizons_id": "9P",
         "object_class": COMET,
         "iau_name": "Tempel 1",
         "jpl_designation": "9P/Tempel 1",
-        "center": "500@0",
-        "orbiting": "sun",
+        "center": SUN_BARYCENTER,
+        "orbiting": "sun-barycenter",
         "end_date": None,
         "physical": {
             "mass_kg": None,
@@ -920,13 +975,13 @@ OBJECTS = {
 
     "churyumov-gerasimenko": {
         "synonyms": ["churyumov-gerasimenko", "67p", "67p/churyumov-gerasimenko"],
-        "horizons_rec_id": "90000032",
+        "spk_id": "1000012",
         "horizons_id": "67P",
         "object_class": COMET,
         "iau_name": "Churyumov-Gerasimenko",
         "jpl_designation": "67P/Churyumov-Gerasimenko",
-        "center": "500@0",
-        "orbiting": "sun",
+        "center": SUN_BARYCENTER,
+        "orbiting": "sun-barycenter",
         "end_date": None,
         "physical": {
             "mass_kg": 1.0e13,
@@ -943,7 +998,7 @@ OBJECTS = {
 
     "jwst": {
         "synonyms": ["jwst", "james webb"],
-        "horizons_rec_id": "-170",
+        "spk_id": "-170",
         "horizons_id": "-170",
         "object_class": SPACECRAFT,
         "iau_name": "James Webb Space Telescope",
@@ -961,7 +1016,7 @@ OBJECTS = {
 
     "gaia": {
         "synonyms": ["gaia"],
-        "horizons_rec_id": "gaia",
+        "spk_id": "gaia",
         "horizons_id": "gaia",
         "object_class": SPACECRAFT,
         "iau_name": "Gaia",
@@ -979,7 +1034,7 @@ OBJECTS = {
 
     "iss": {
         "synonyms": ["iss", "international space station"],
-        "horizons_rec_id": "-125544",
+        "spk_id": "-125544",
         "horizons_id": "-125544",
         "object_class": SPACECRAFT,
         "iau_name": "International Space Station",
@@ -997,7 +1052,7 @@ OBJECTS = {
 
     "hubble": {
         "synonyms": ["hubble", "hst", "hubble space telescope"],
-        "horizons_rec_id": "-48",
+        "spk_id": "-48",
         "horizons_id": "-48",
         "object_class": SPACECRAFT,
         "iau_name": "Hubble Space Telescope",
@@ -1015,7 +1070,7 @@ OBJECTS = {
 
     "chandra": {
         "synonyms": ["chandra", "chandra x-ray observatory"],
-        "horizons_rec_id": "-151",
+        "spk_id": "-151",
         "horizons_id": "-151",
         "object_class": SPACECRAFT,
         "iau_name": "Chandra X-ray Observatory",
@@ -1033,7 +1088,7 @@ OBJECTS = {
 
     "tess": {
         "synonyms": ["tess", "transiting exoplanet survey satellite"],
-        "horizons_rec_id": "-95",
+        "spk_id": "-95",
         "horizons_id": "-95",
         "object_class": SPACECRAFT,
         "iau_name": "Transiting Exoplanet Survey Satellite",
@@ -1055,7 +1110,7 @@ OBJECTS = {
 
     "mro": {
         "synonyms": ["mro", "mars reconnaissance orbiter"],
-        "horizons_rec_id": "-74",
+        "spk_id": "-74",
         "horizons_id": "-74",
         "object_class": SPACECRAFT,
         "iau_name": "Mars Reconnaissance Orbiter",
@@ -1073,7 +1128,7 @@ OBJECTS = {
 
     "odyssey": {
         "synonyms": ["odyssey", "2001 mars odyssey"],
-        "horizons_rec_id": "-53",
+        "spk_id": "-53",
         "horizons_id": "-53",
         "object_class": SPACECRAFT,
         "iau_name": "2001 Mars Odyssey",
@@ -1091,7 +1146,7 @@ OBJECTS = {
 
     "maven": {
         "synonyms": ["maven"],
-        "horizons_rec_id": "-202",
+        "spk_id": "-202",
         "horizons_id": "-202",
         "object_class": SPACECRAFT,
         "iau_name": "MAVEN",
@@ -1109,7 +1164,7 @@ OBJECTS = {
 
     "tgo": {
         "synonyms": ["tgo", "trace gas orbiter"],
-        "horizons_rec_id": "-143",
+        "spk_id": "-143",
         "horizons_id": "-143",
         "object_class": SPACECRAFT,
         "iau_name": "Trace Gas Orbiter",
@@ -1131,7 +1186,7 @@ OBJECTS = {
 
     "juno": {
         "synonyms": ["juno", "juno spacecraft"],
-        "horizons_rec_id": "-61",
+        "spk_id": "-61",
         "horizons_id": "-61",
         "object_class": SPACECRAFT,
         "iau_name": "Juno",
@@ -1149,7 +1204,7 @@ OBJECTS = {
 
     "galileo": {
         "synonyms": ["galileo"],
-        "horizons_rec_id": "-77",
+        "spk_id": "-77",
         "horizons_id": "-77",
         "object_class": SPACECRAFT,
         "iau_name": "Galileo",
@@ -1171,7 +1226,7 @@ OBJECTS = {
 
     "cassini": {
         "synonyms": ["cassini", "cassini-huygens"],
-        "horizons_rec_id": "-82",
+        "spk_id": "-82",
         "horizons_id": "-82",
         "object_class": SPACECRAFT,
         "iau_name": "Cassini–Huygens",
@@ -1193,7 +1248,7 @@ OBJECTS = {
 
     "messenger": {
         "synonyms": ["messenger"],
-        "horizons_rec_id": "-236",
+        "spk_id": "-236",
         "horizons_id": "-236",
         "object_class": SPACECRAFT,
         "iau_name": "MESSENGER",
@@ -1211,7 +1266,7 @@ OBJECTS = {
 
     "bepicolombo": {
         "synonyms": ["bepicolombo"],
-        "horizons_rec_id": "-121",
+        "spk_id": "-121",
         "horizons_id": "-121",
         "object_class": SPACECRAFT,
         "iau_name": "BepiColombo",
@@ -1234,13 +1289,13 @@ OBJECTS = {
 
     "voyager 1": {
         "synonyms": ["voyager 1", "vgr1", "voyager-1"],
-        "horizons_rec_id": "-31",
+        "spk_id": "-31",
         "horizons_id": "-31",
         "object_class": SPACECRAFT,
         "iau_name": "Voyager 1",
         "jpl_designation": "Voyager 1",
-        "center": "500@0",
-        "orbiting": "sun",
+        "center": SUN_BARYCENTER,
+        "orbiting": "sun-barycenter",
         "end_date": None,
         "physical": {
             "mass_kg": None,
@@ -1252,13 +1307,13 @@ OBJECTS = {
 
     "voyager 2": {
         "synonyms": ["voyager 2", "vgr2", "voyager-2"],
-        "horizons_rec_id": "-32",
+        "spk_id": "-32",
         "horizons_id": "-32",
         "object_class": SPACECRAFT,
         "iau_name": "Voyager 2",
         "jpl_designation": "Voyager 2",
-        "center": "500@0",
-        "orbiting": "sun",
+        "center": SUN_BARYCENTER,
+        "orbiting": "sun-barycenter",
         "end_date": None,
         "physical": {
             "mass_kg": None,
@@ -1270,13 +1325,13 @@ OBJECTS = {
 
     "pioneer 10": {
         "synonyms": ["pioneer 10", "pioneer-10"],
-        "horizons_rec_id": "-23",
+        "spk_id": "-23",
         "horizons_id": "-23",
         "object_class": SPACECRAFT,
         "iau_name": "Pioneer 10",
         "jpl_designation": "Pioneer 10",
-        "center": "500@0",
-        "orbiting": "sun",
+        "center": SUN_BARYCENTER,
+        "orbiting": "sun-barycenter",
         "end_date": None,
         "physical": {
             "mass_kg": None,
@@ -1288,13 +1343,13 @@ OBJECTS = {
 
     "pioneer 11": {
         "synonyms": ["pioneer 11", "pioneer-11"],
-        "horizons_rec_id": "-24",
+        "spk_id": "-24",
         "horizons_id": "-24",
         "object_class": SPACECRAFT,
         "iau_name": "Pioneer 11",
         "jpl_designation": "Pioneer 11",
-        "center": "500@0",
-        "orbiting": "sun",
+        "center": SUN_BARYCENTER,
+        "orbiting": "sun-barycenter",
         "end_date": None,
         "physical": {
             "mass_kg": None,
@@ -1306,31 +1361,37 @@ OBJECTS = {
 
     "tesla roadster": {
         "synonyms": ["tesla roadster", "spacex roadster", "elon musk car"],
-        "horizons_rec_id": "-143205",
+        "spk_id": "-143205",
         "horizons_id": "-143205",
         "object_class": SPACECRAFT,
         "iau_name": "Tesla Roadster",
         "jpl_designation": "Tesla Roadster",
-        "center": "500@0",
-        "orbiting": "sun",
+        "center": SUN_BARYCENTER,
+        "orbiting": "sun-barycenter",
         "end_date": None,
         "physical": {
             "mass_kg": None,
             "radius_m": None,
             "rotation_period_in_solar_d": None,
-            "axial_tilt_deg": None
+            "axial_tilt_deg": None,
+            "profile":  {
+                "look": "starman",
+                "engine": 1,
+                "length": 1.0,
+                "COPV": 1
+            }
         }
     },
 
     "rosetta": {
         "synonyms": ["rosetta"],
-        "horizons_rec_id": "-226",
+        "spk_id": "-226",
         "horizons_id": "-226",
         "object_class": SPACECRAFT,
         "iau_name": "Rosetta",
         "jpl_designation": "Rosetta",
-        "center": "500@0",
-        "orbiting": "sun",
+        "center": SUN_BARYCENTER,
+        "orbiting": "sun-barycenter",
         "end_date": "2016-10-04",
         "physical": {
             "mass_kg": None,
@@ -1342,13 +1403,13 @@ OBJECTS = {
 
     "kepler": {
         "synonyms": ["kepler", "kepler space telescope"],
-        "horizons_rec_id": "-227",
+        "spk_id": "-227",
         "horizons_id": "-227",
         "object_class": SPACECRAFT,
         "iau_name": "Kepler Space Telescope",
         "jpl_designation": "Kepler Space Telescope",
-        "center": "500@0",
-        "orbiting": "sun",
+        "center": SUN_BARYCENTER,
+        "orbiting": "sun-barycenter",
         "end_date": None,
         "physical": {
             "mass_kg": None,
@@ -1360,13 +1421,13 @@ OBJECTS = {
 
     "dawn": {
         "synonyms": ["dawn"],
-        "horizons_rec_id": "-203",
+        "spk_id": "-203",
         "horizons_id": "-203",
         "object_class": SPACECRAFT,
         "iau_name": "Dawn",
         "jpl_designation": "Dawn",
-        "center": "500@0",
-        "orbiting": "sun",
+        "center": SUN_BARYCENTER,
+        "orbiting": "sun-barycenter",
         "end_date": None,
         "physical": {
             "mass_kg": None,
@@ -1378,13 +1439,13 @@ OBJECTS = {
 
     "osiris-rex": {
         "synonyms": ["osiris-rex", "osiris rex"],
-        "horizons_rec_id": "-64",
+        "spk_id": "-64",
         "horizons_id": "-64",
         "object_class": SPACECRAFT,
         "iau_name": "OSIRIS-REx",
         "jpl_designation": "OSIRIS-REx",
-        "center": "500@0",
-        "orbiting": "sun",
+        "center": SUN_BARYCENTER,
+        "orbiting": "sun-barycenter",
         "end_date": None,
         "physical": {
             "mass_kg": None,
@@ -1396,13 +1457,13 @@ OBJECTS = {
 
     "hayabusa": {
         "synonyms": ["hayabusa"],
-        "horizons_rec_id": "-130",
+        "spk_id": "-130",
         "horizons_id": "-130",
         "object_class": SPACECRAFT,
         "iau_name": "Hayabusa",
         "jpl_designation": "Hayabusa",
-        "center": "500@0",
-        "orbiting": "sun",
+        "center": SUN_BARYCENTER,
+        "orbiting": "sun-barycenter",
         "end_date": "2010-06-12",
         "physical": {
             "mass_kg": None,
@@ -1414,13 +1475,13 @@ OBJECTS = {
 
     "hayabusa2": {
         "synonyms": ["hayabusa2", "hayabusa 2"],
-        "horizons_rec_id": "-37",
+        "spk_id": "-37",
         "horizons_id": "-37",
         "object_class": SPACECRAFT,
         "iau_name": "Hayabusa2",
         "jpl_designation": "Hayabusa2",
-        "center": "500@0",
-        "orbiting": "sun",
+        "center": SUN_BARYCENTER,
+        "orbiting": "sun-barycenter",
         "end_date": None,
         "physical": {
             "mass_kg": None,
@@ -1432,13 +1493,13 @@ OBJECTS = {
 
     "new horizons": {
         "synonyms": ["new horizons", "nh"],
-        "horizons_rec_id": "-98",
+        "spk_id": "-98",
         "horizons_id": "-98",
         "object_class": SPACECRAFT,
         "iau_name": "New Horizons",
         "jpl_designation": "New Horizons",
-        "center": "500@0",
-        "orbiting": "sun",
+        "center": SUN_BARYCENTER,
+        "orbiting": "sun-barycenter",
         "end_date": None,
         "physical": {
             "mass_kg": None,
@@ -1449,3 +1510,4 @@ OBJECTS = {
     }
 
 }
+
