@@ -1484,6 +1484,7 @@ class makeBody:
 
 			if self.Name == SUN_NAME:
 				print "creating sun's ORBIT around SSB..."
+			
 			self.Orbit = curve(frame=referenceFrame, Color=(self.Color[0]*0.8, self.Color[1]*0.8, self.Color[2]*0.8))
 
 			self.Orbit.visible = True
@@ -1744,6 +1745,7 @@ class makeBody:
 
 		if self.Name == SUN_NAME:
 			print "drawing Sun's orbit around its SSB"
+			
 		for E in np.arange(0, 2*pi+increment, increment):
 			#self.setPolarCoordinates(E+rad_E)
 			self.R, self.Nu = self.setPolarCoordinates(E+rad_E)
